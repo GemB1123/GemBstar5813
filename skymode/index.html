@@ -7,11 +7,11 @@
 :root{--ink:#efe3c8;--dim:#a99f8a;--gold:#d1ab74;--panel:rgba(12,14,24,.82);--line:rgba(209,171,116,.45);color-scheme:dark}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:#04060f;color:var(--ink);font:15px/1.35 -apple-system,BlinkMacSystemFont,Inter,Segoe UI,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none;touch-action:none}
 canvas#sky{position:fixed;inset:0;display:block}
-.bar{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:2px;padding:4px 6px calc(env(safe-area-inset-bottom) + 4px);background:rgba(6,8,16,.78);border-top:1px solid rgba(209,171,116,.3);z-index:2;font-variant-numeric:tabular-nums}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;align-items:center;gap:0;padding:4px 6px calc(env(safe-area-inset-bottom) + 4px);background:rgba(6,8,16,.78);border-top:1px solid rgba(209,171,116,.3);z-index:2;font-variant-numeric:tabular-nums}
 .bar .f{position:relative;flex:none;display:flex;align-items:center;justify-content:center;min-height:40px;padding:0 7px;border-radius:8px;color:var(--ink);font-size:15px;font-weight:600;white-space:pre;background:none;border:0}
 .bar .f:active,.bar .f:focus-within{background:rgba(209,171,116,.16)}
 .bar .loc{flex:1 1 auto;min-width:0;justify-content:flex-start}.bar .loc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar .ic{width:44px;padding:0}.bar .ic svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round}
+.bar .ic{width:44px;max-width:calc((100vw - 14px)/9);padding:0}.bar .ic svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round}
 #night[aria-pressed="true"] svg{stroke:#ff5a4a}
 .bar input{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;padding:0;margin:0;-webkit-appearance:none;appearance:none}
 .bar .f{-webkit-touch-callout:none}
@@ -80,6 +80,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <p class="sub">If the stars drift from the real ones toward the screen's edges, slide Match Camera until they line up.</p></div>
 <nav class="bar" aria-label="Sky Mode">
  <button class="f ic" id="mbtn" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+ <button class="f ic" id="tbtn" aria-label="Track Sky: the sky follows the phone" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="8.5" y="4" width="7" height="16" rx="1.6"/><path d="M11 17.2h2"/><path d="M5.6 8.5a5 5 0 0 0 0 7M3 6.5a8 8 0 0 0 0 11M18.4 8.5a5 5 0 0 1 0 7M21 6.5a8 8 0 0 1 0 11" style="stroke-width:1.5"/></svg></button>
  <button class="f ic" id="kbtn" aria-label="Date and time"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg></button>
  <button class="f ic" id="lbtn" aria-label="Location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.6 7.5h14.8M4.6 16.5h14.8"/></svg></button>
  <button class="f ic" id="abtn" aria-label="Armillary: sky circles" aria-pressed="true"><canvas id="armi" width="64" height="64"></canvas></button>
@@ -481,7 +482,10 @@ function start(){const go=()=>{addEventListener('deviceorientationabsolute',e=>o
 let sayT=0;function say(t,ms){$('msg').textContent=t;clearTimeout(sayT);if(ms)sayT=setTimeout(()=>{if($('msg').textContent===t)$('msg').textContent=''},ms)}
 function hint(){try{if(localStorage.getItem('skymode-hint'))return;localStorage.setItem('skymode-hint','1')}catch(e){}setTimeout(()=>say('Tip: tap an icon to turn it on or off, hold it for its settings.',6000),1800)}
 $('start').onclick=start;
-function trackBtn(){const b=$('track');b.hidden=!ST.sensors||ST.track;say(ST.sensors&&!ST.track?'Tracking is off: drag to look around, or open the Menu and tap Track Sky.':'')}
+/* Track Sky (Gemini, Nov 12): an icon always on the bar, lit while the sky follows the phone, dim when a drag has stopped it; tap to turn it back on (or off) */
+function trackBtn(){const b=$('track');b.hidden=!ST.sensors||ST.track;$('tbtn').setAttribute('aria-pressed',!!(ST.sensors&&ST.track));say(ST.sensors&&!ST.track?'Tracking is off. Tap the phone icon to follow the sky again.':'',ST.sensors&&!ST.track?4000:0)}
+$('tbtn').onclick=()=>{if(!ST.sensors){say($('start').hidden?'No motion sensors here: drag to look around.':'Tap Start Sky Mode first.',3500);return}
+ if(ST.track){if(CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt}ST.track=false}else ST.track=true;trackBtn()};
 $('track').onclick=()=>{ST.track=true;trackBtn();closeSheets()};
 $('night').onclick=()=>{ST.night=!ST.night;document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);save()};
 $('zin').onclick=()=>{ST.fov=Math.max(10,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(130,ST.fov*1.3)};
