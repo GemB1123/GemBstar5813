@@ -84,7 +84,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button class="f ic" id="lbtn" aria-label="Location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M4.6 7.5h14.8M4.6 16.5h14.8"/></svg></button>
  <button class="f ic" id="abtn" aria-label="Armillary: sky circles" aria-pressed="true"><canvas id="armi" width="64" height="64"></canvas></button>
  <button class="f ic" id="hbtn" aria-label="Houses" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 1.5v3M12 19.5v3"/><circle cx="12" cy="12" r="7.5"/><ellipse cx="12" cy="12" rx="3.2" ry="7.5"/><path d="M12 4.5v15"/><circle cx="12" cy="1.8" r=".9" fill="#d1ab74"/><circle cx="12" cy="22.2" r=".9" fill="#d1ab74"/></svg></button>
- <button class="f ic" id="obtn" aria-label="Constellations" aria-pressed="true"><svg viewBox="0 0 24 24" style="stroke-width:1.2"><path d="M7 5l3 -2.5L16 6M7 5l2.5 8.5M16 6l-1.5 8.5M9.5 13.5l2.5.5l2.5.5M9.5 13.5L7.5 21M14.5 14.5L17 20.5"/><g fill="#d1ab74" stroke="none"><circle cx="7" cy="5" r="1.9"/><circle cx="16" cy="6" r="1.4"/><circle cx="10" cy="2.5" r="1"/><circle cx="9.5" cy="13.5" r="1.1"/><circle cx="12" cy="14" r="1.1"/><circle cx="14.5" cy="14.5" r="1.1"/><circle cx="7.5" cy="21" r="1.3"/><circle cx="17" cy="20.5" r="1.8"/></g></svg></button>
+ <button class="f ic" id="obtn" aria-label="Constellations" aria-pressed="true"><svg viewBox="-2.6 0 24 24" style="stroke-width:.9"><path d="M3.5 2.0L1.6 5.5M5.1 2.2L2.5 5.2M1.6 5.5L2.7 9.0M2.5 5.2L2.7 9.0M2.7 9.0L3.9 10.8M3.9 10.8L7.6 10.0M7.6 10.0L9.0 12.1M9.0 12.1L15.4 12.3M14.4 10.1L15.3 10.9M15.3 10.9L15.4 12.3M15.4 12.3L15.2 13.3M15.2 13.3L14.6 15.2M14.6 15.2L13.9 15.7M3.9 10.8L6.0 17.2M9.0 12.1L7.6 16.6M6.0 17.2L6.8 17.0M6.8 17.0L7.6 16.6M6.0 17.2L4.6 22.4M7.6 16.6L11.0 22.1M4.6 22.4L11.0 22.1"/><g fill="#d1ab74" stroke="none"><circle cx="3.5" cy="2.0" r="0.85"/><circle cx="5.1" cy="2.2" r="0.85"/><circle cx="1.6" cy="5.5" r="0.85"/><circle cx="2.5" cy="5.2" r="0.85"/><circle cx="2.7" cy="9.0" r="0.85"/><circle cx="3.9" cy="10.8" r="1.5"/><circle cx="7.6" cy="10.0" r="1.2"/><circle cx="9.0" cy="12.1" r="0.85"/><circle cx="14.4" cy="10.1" r="0.85"/><circle cx="15.3" cy="10.9" r="0.85"/><circle cx="15.4" cy="12.3" r="0.85"/><circle cx="15.2" cy="13.3" r="0.85"/><circle cx="14.6" cy="15.2" r="0.85"/><circle cx="13.9" cy="15.7" r="0.85"/><circle cx="6.0" cy="17.2" r="1"/><circle cx="6.8" cy="17.0" r="1"/><circle cx="7.6" cy="16.6" r="1"/><circle cx="4.6" cy="22.4" r="1.1"/><circle cx="11.0" cy="22.1" r="1.5"/></g></svg></button>
  <button class="f ic" id="cbtn" aria-label="Camera" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M3 8.5a2 2 0 0 1 2-2h2.5L9 4.5h6l1.5 2H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.6"/></svg></button>
  <button class="f ic" id="night" aria-pressed="false" aria-label="Red Light"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></button>
 </nav>
@@ -275,7 +275,7 @@ const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
-const ST={lat:37.8044,lon:-122.2712,place:'Oakland',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:60,sensors:false,
+const ST={lat:37.8044,lon:-122.2712,place:'Oakland',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
  yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,cam:null,camFov:66,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
@@ -419,24 +419,28 @@ function draw(){const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=no
  if(ST.houses&&K.hs){g.strokeStyle=CFG.houseCol;for(const h of K.hs){const ang=h.i%3===1;g.lineWidth=ang?1.6:.9;g.globalAlpha=ang?.85:.55;g.beginPath();poly(g,h.pts);g.stroke()}g.globalAlpha=.9;
   g.fillStyle=CFG.houseCol;g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p)g.fillText(h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i),p[0],p[1])}g.globalAlpha=1;g.textBaseline='alphabetic'}
  /* constellation figures */
- if(ST.cons||ST.cnames){g.strokeStyle=CFG.figCol;g.lineWidth=1;g.beginPath();const lab=[];
+ const fade=camOn?1:1-.8*day;   /* daylight dims the figures, names, and stars (Gemini, Nov 12) */
+ if(ST.cons||ST.cnames){g.globalAlpha=fade;g.strokeStyle=CFG.figCol;g.lineWidth=1;g.beginPath();const lab=[];
   for(const ab in D.figs){const f=D.figs[ab],pts=[];for(let i=0;i+1<f.length;i+=2){const a=K.stars[f[i]],b=K.stars[f[i+1]];if(!a||!b)continue;const pa=proj(a),pb=proj(b);if(!pa||!pb)continue;
     if(Math.abs(pa[0]-pb[0])>W||Math.abs(pa[1]-pb[1])>H)continue;if(ST.cons){g.moveTo(pa[0],pa[1]);g.lineTo(pb[0],pb[1])}pts.push(pa,pb)}
    const inn=pts.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H);if(inn.length>=3)lab.push([D.names[ab]||ab,inn.reduce((v,p)=>v+p[0],0)/inn.length,inn.reduce((v,p)=>v+p[1],0)/inn.length])}
-  if(ST.cons)g.stroke();if(ST.cnames){g.fillStyle='rgba(160,180,225,.85)';g.font=`${12*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [n,x,y] of lab)g.fillText(n,x,y+18)}}
+  if(ST.cons)g.stroke();if(ST.cnames){g.fillStyle='rgba(160,180,225,.85)';g.font=`${12*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [n,x,y] of lab)g.fillText(n,x,y+18)}g.globalAlpha=1}
  /* stars, fading in daylight */
  const lim=sa>-1?1.0:sa>-6?2.5:sa>-12?4.5:5.6;
  g.fillStyle='#fff';for(let i=0;i<K.stars.length;i++){const v=K.stars[i];if(!v)continue;const m=D.stars[i][2];if(m>lim)continue;const p=proj(v);if(!p||p[0]<-5||p[0]>W+5||p[1]<-5||p[1]>H+5)continue;
-  g.globalAlpha=Math.min(1,0.35+(lim-m)*0.25);g.beginPath();g.arc(p[0],p[1],Math.max(0.6,(3.2-m*0.5))*tiny,0,7);g.fill()}
+  g.globalAlpha=fade*Math.min(1,0.35+(lim-m)*0.25);g.beginPath();g.arc(p[0],p[1],Math.max(0.6,(3.2-m*0.5))*tiny,0,7);g.fill()}
  g.globalAlpha=1;
- if(ST.snames){g.fillStyle='rgba(255,255,255,.75)';g.font=`${11*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';for(const [i,n] of NAMED){const v=K.stars[i];if(!v||D.stars[i][2]>lim)continue;const p=proj(v);if(p)g.fillText(n,p[0]+5,p[1]-4)}}
+ if(ST.snames){g.globalAlpha=fade;g.fillStyle='rgba(255,255,255,.75)';g.font=`${11*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';for(const [i,n] of NAMED){const v=K.stars[i];if(!v||D.stars[i][2]>lim)continue;const p=proj(v);if(p)g.fillText(n,p[0]+5,p[1]-4)}g.globalAlpha=1}
  /* the ecliptic (gold) and Ana's sign glyphs in the band */
  if(ST.ecl){g.strokeStyle=CFG.eclCol;g.lineWidth=1.5;g.globalAlpha=.9;g.beginPath();poly(g,K.ecl.map(e=>e.v));g.stroke();g.globalAlpha=1}
  if(ST.glyphs){const gs=Math.max(16,Math.min(30,CAM.F*rad(7)));for(let s=0;s<12;s++){const e=K.ecl.find(x=>x.L===s*30+15),p=e&&proj(e.v);if(!p)continue;const im=glyph(s);
    if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);else{g.fillStyle=CFG.glyCols[s%4];g.font=`${gs*.8}px 'Apple Symbols','Segoe UI Symbol',sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'][s]+'︎',p[0],p[1]);g.textBaseline='alphabetic'}}}
  /* the ground (none over the camera: the real ground shows), the horizon, and the directions */
- if(!camOn){g.fillStyle=ST.night?'rgba(20,6,6,.93)':'rgba(16,22,18,.93)';for(let az=0;az<360;az+=10)for(let al=0;al>-90;al-=10){const c=[[az,al],[az+10,al],[az+10,al-10],[az,al-10]].map(([A,B])=>proj(azV(A,B)));
-   if(c.some(x=>!x))continue;g.beginPath();g.moveTo(c[0][0],c[0][1]);for(let k=1;k<4;k++)g.lineTo(c[k][0],c[k][1]);g.closePath();g.fill()}}
+ /* the ground: the horizon is a straight line in this projection, so the ground is the part of the screen on the nadir's
+    side of it (Gemini, Nov 12: the old 10° patches left gaps looking down, where stars showed through bright) */
+ if(!camOn){const C=CAM,val=(x,y)=>C.f[2]+((x-W/2)/C.F)*C.r[2]-((y-H/2)/C.F)*C.u[2],pts=[[-2,-2],[W+2,-2],[W+2,H+2],[-2,H+2]],out=[];
+  for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4],va=val(...a),vb=val(...b);if(va<0)out.push(a);if((va<0)!==(vb<0)){const t=va/(va-vb);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}
+  if(out.length>2){g.fillStyle=ST.night?'rgb(20,6,6)':'rgb(14,20,16)';g.globalAlpha=.96;g.beginPath();g.moveTo(out[0][0],out[0][1]);for(const q of out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}}
  g.strokeStyle=CFG.horCol;g.lineWidth=1.6;g.beginPath();poly(g,HORZ);g.stroke();
  g.font=`bold ${16*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [az,n] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){const p=proj(azV(az,0));if(p){g.fillStyle=n==='N'?'#ff8a7a':'#cfe3cf';g.fillText(n,p[0],p[1]+22)}}
  /* Sun, Moon, and planets, drawn last so they sit above the ground line when they are low */
@@ -456,13 +460,18 @@ cv.addEventListener('click',ev=>{if(dragged)return;if(!K)return;let best=null,bd
  el.innerHTML=`<b>${best.n}</b><br>${alt>=0?Math.round(alt)+'° up':'below the horizon'}, ${dirName(az)} (${Math.round(az)}°)${sg}${mag}`;el.hidden=false;ST.tapInfo=best});
 /* drag to look around when there are no sensors (or while held) */
 let dragging=null,dragged=false;
-cv.addEventListener('pointerdown',e=>{dragging=[e.clientX,e.clientY];dragged=false});
-addEventListener('pointerup',()=>{dragging=null});
+/* pinch to zoom (Gemini, Nov 12): two fingers set the field of view; a pinch never turns tracking off */
+const PTS=new Map();let pinch=null;
+cv.addEventListener('pointerdown',e=>{PTS.set(e.pointerId,[e.clientX,e.clientY]);if(PTS.size===2){const [a,b]=[...PTS.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,fov:ST.fov};dragging=null;dragged=true;return}
+ if(PTS.size>2)return;dragging=[e.clientX,e.clientY];dragged=false});
+for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{PTS.delete(e.pointerId);if(PTS.size<2)pinch=null;if(!PTS.size)dragging=null});
+cv.addEventListener('pointermove',e=>{if(!PTS.has(e.pointerId))return;PTS.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&PTS.size===2){const [a,b]=[...PTS.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
+ if(ST.cam){say('Zoom is set by the camera while it is on: use Match Camera in the Camera menu.',3000);return}ST.fov=Math.max(10,Math.min(130,pinch.fov*pinch.d/d))}});
 /* tap and drag turns tracking off and leaves the sky where it was (Gemini, Nov 7); Track Sky turns it back on */
-addEventListener('pointermove',e=>{if(!dragging)return;const dx=e.clientX-dragging[0],dy=e.clientY-dragging[1];if(!dragged&&Math.abs(dx)+Math.abs(dy)<6)return;
+addEventListener('pointermove',e=>{if(!dragging||pinch)return;const dx=e.clientX-dragging[0],dy=e.clientY-dragging[1];if(!dragged&&Math.abs(dx)+Math.abs(dy)<6)return;
  if(!dragged){dragged=true;if(ST.track&&CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt;ST.track=false;trackBtn()}}
  dragging=[e.clientX,e.clientY];const k=fovNow()/H;ST.yaw=n360(ST.yaw-dx*k);ST.pitch=Math.max(-89,Math.min(89,ST.pitch+dy*k))});
-addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;ST.fov=Math.max(15,Math.min(110,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:true});
+addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;ST.fov=Math.max(10,Math.min(130,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:true});
 /* ---- buttons ---- */
 const $=id=>document.getElementById(id);
 function start(){const go=()=>{addEventListener('deviceorientationabsolute',e=>onOrient(e,true));addEventListener('deviceorientation',e=>onOrient(e,false));$('start').hidden=true;
@@ -475,7 +484,7 @@ $('start').onclick=start;
 function trackBtn(){const b=$('track');b.hidden=!ST.sensors||ST.track;say(ST.sensors&&!ST.track?'Tracking is off: drag to look around, or open the Menu and tap Track Sky.':'')}
 $('track').onclick=()=>{ST.track=true;trackBtn();closeSheets()};
 $('night').onclick=()=>{ST.night=!ST.night;document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);save()};
-$('zin').onclick=()=>{ST.fov=Math.max(15,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(110,ST.fov*1.3)};
+$('zin').onclick=()=>{ST.fov=Math.max(10,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(130,ST.fov*1.3)};
 /* Align: put something bright you can see in the ring, pick it, and the compass error is corrected */
 $('align').onclick=()=>{closeSheets();const L=$('alist');if(!L.hidden){L.hidden=true;return}if(!K)return;const up=K.bodies.filter(b=>b.v[2]>0&&b.k!=='Sun').map(b=>[b.k,GLY[b.k]+' '+b.k,b.v]).concat(NAMED.filter(([i])=>K.stars[i]&&K.stars[i][2]>0.08).map(([i,n])=>[n,n,K.stars[i]]));
  L.innerHTML=`<p>Point the ring at one of these in the real sky, then tap its name.</p>`+up.map((x,j)=>`<button data-j="${j}">${x[1]}</button>`).join('')+`<button data-j="reset">Reset Alignment</button>`;L.hidden=false;
@@ -582,7 +591,7 @@ function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();REC.on=fal
 $('recb').onclick=()=>{REC.on?recStop():recStart()};
 $('hlist').innerHTML=CFG.houses.map(h=>`<button data-hs="${h[0]}">${h[1]}</button>`).join('');
 /* the Armillary icon (Gemini, Nov 12): a sphere with a thick zodiac band across its front, Capricorn on the left through
-   Aquarius, Pisces, Aries, and Taurus to Gemini on the right, each in its sign color with Ana's glyph */
+   Aquarius, Pisces, Aries, and Taurus to Gemini on the right, in the icons' gold with Ana's glyphs */
 function armIcon(){const c=$('armi'),g=c.getContext('2d'),S=c.width/32;g.setTransform(S,0,0,S,0,0);g.clearRect(0,0,32,32);g.lineCap='round';
  g.strokeStyle='#d1ab74';g.lineWidth=1.3;g.beginPath();g.arc(16,16,14,0,7);g.stroke();
  g.strokeStyle=CFG.merCol;g.lineWidth=1;g.beginPath();g.ellipse(16,16,4.5,14,0,0,7);g.stroke();
@@ -590,12 +599,13 @@ function armIcon(){const c=$('armi'),g=c.getContext('2d'),S=c.width/32;g.setTran
  const rot=rad(-24),rx=13.6,ry=6.2,P=t=>[16+rx*Math.cos(t)*Math.cos(rot)-ry*Math.sin(t)*Math.sin(rot),16+rx*Math.cos(t)*Math.sin(rot)+ry*Math.sin(t)*Math.cos(rot)];
  g.strokeStyle='rgba(232,194,90,.7)';g.lineWidth=1.6;g.beginPath();g.ellipse(16,16,rx,ry,rot,Math.PI,2*Math.PI);g.stroke();   /* the band's far side */
  const signs=[9,10,11,0,1,2];let ok=true;
- signs.forEach((s,k)=>{const a=Math.PI-k*Math.PI/6,b=a-Math.PI/6;g.strokeStyle=SC(s);g.lineWidth=7;g.lineCap='butt';g.beginPath();g.ellipse(16,16,rx,ry,rot,b,a);g.stroke()});
+ g.strokeStyle='#d1ab74';g.lineWidth=7;g.lineCap='butt';g.beginPath();g.ellipse(16,16,rx,ry,rot,0,Math.PI);g.stroke();   /* one gold band, no sign colors (Gemini, Nov 12) */
  signs.forEach((s,k)=>{const t=Math.PI-(k+.5)*Math.PI/6,p=P(t),im=glyphDark(s);if(im)g.drawImage(im,p[0]-2.9,p[1]-2.9,5.8,5.8);else ok=false});
  if(!ok)setTimeout(armIcon,300)}
 const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP_GLYK||[])[i];if(!src)return null;if(GDK[i]===null)return null;GDK[i]=null;const im=new Image();
  im.onload=()=>{const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const g=c.getContext('2d');g.drawImage(im,0,0);g.globalCompositeOperation='source-in';g.fillStyle='#14100a';g.fillRect(0,0,c.width,c.height);GDK[i]=c};im.src=src;return null}
 armIcon();
+document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
 $('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('cfov').value=ST.camFov;$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
