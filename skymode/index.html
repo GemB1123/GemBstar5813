@@ -19,6 +19,7 @@ canvas#sky{position:fixed;inset:0;display:block}
 .bar .ic[aria-pressed="false"]{opacity:.55}.bar #night[aria-pressed="false"],.bar #mbtn,.bar #kbtn,.bar #lbtn{opacity:1}
 .bar .ic[aria-pressed="true"]{background:rgba(209,171,116,.14)}.bar #night[aria-pressed="true"]{background:rgba(255,90,74,.14)}
 .bar .live::after{content:'';position:absolute;top:6px;right:5px;width:7px;height:7px;border-radius:50%;background:#ff9a3c}
+.bar .play::after{content:'';position:absolute;top:6px;right:5px;width:7px;height:7px;border-radius:50%;background:#7fbf7a;animation:blink 1.2s infinite}
 .bar .rec::after{content:'';position:absolute;top:6px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff3b30;animation:blink 1s infinite}
 @keyframes blink{50%{opacity:.2}}
 button{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 12px;min-height:44px;cursor:pointer}
@@ -33,7 +34,7 @@ button.on,button[aria-pressed="true"]{background:var(--gold);color:#1b1408;borde
 .sheet .big{font-size:20px;font-weight:600;margin:0 0 8px;font-variant-numeric:tabular-nums}
 .sheet input[type=date],.sheet input[type=time]{font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-height:44px;color-scheme:dark}
 .sheet label.sl{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;font-size:14px}.sheet label.sl input{flex:1}
-.sheet button[disabled]{opacity:.45}input[type=range]{accent-color:var(--gold)}.sheet .tm{display:flex;gap:4px;margin-top:4px}.sheet .tm button{flex:1;padding:9px 0;min-width:0}.sheet .tm #now2{flex:1.5}.sheet .tm2{margin-top:8px}.sheet .tm2 button{flex:0 0 52px;font-size:20px}
+.sheet button[disabled]{opacity:.45}input[type=range]{accent-color:var(--gold)}.sheet .tm{display:flex;gap:4px;margin-top:4px}.sheet .tm button{flex:1;padding:9px 0;min-width:0}.sheet .tm #now2{flex:1.5}.sheet .tm2{margin-top:8px}.sheet .tm2 button{flex:0 0 52px;font-size:18px}
 .sheet .tm2 input,.sheet .tm2 select{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px;min-height:44px}
 .sheet select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:44px}
 video#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000}video#cam.selfie{transform:scaleX(-1)}video#cam[hidden]{display:none}
@@ -64,6 +65,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <p class="big"><span id="ktx"></span> <small id="ktag" class="sub"></small></p><p class="sub">Local time in <span id="kplace"></span>.</p>
  <div class="row"><input type="date" id="din" aria-label="Date"><input type="time" id="tin" aria-label="Time"></div>
  <div class="cap">TIME MACHINE</div><div class="tm"><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button data-st="-1 min" aria-label="Back one minute">−M</button><button id="now2">Now</button><button data-st="1 min" aria-label="Forward one minute">+M</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button></div>
+ <div class="tm tm2"><button id="pback" aria-label="Play backward" aria-pressed="false">◀</button><button id="ppause" aria-label="Pause" aria-pressed="true">❚❚</button><button id="pfwd" aria-label="Play forward" aria-pressed="false">▶</button><select id="pspd" aria-label="Play speed"></select></div>
  <div class="tm tm2"><button id="cminus" aria-label="Back by the step">−</button><input type="number" id="camt" value="1" min="1" inputmode="numeric" aria-label="Step amount"><select id="cunit" aria-label="Step unit"><option value="min">Minutes</option><option value="hour">Hours</option><option value="day">Days</option><option value="week">Weeks</option><option value="month">Months</option><option value="year" selected>Years</option><option value="century">Centuries</option><option value="millennium">Millennia</option></select><button id="cplus" aria-label="Forward by the step">+</button></div></div>
 <div id="locs" class="sheet" hidden role="dialog" aria-label="Location"><button class="x" data-close aria-label="Close">×</button><h3>Location</h3><p class="sub">Now: <span id="lcur"></span></p>
  <input type="search" id="lq" placeholder="Search for a city" autocomplete="off" aria-label="Search for a city">
@@ -427,7 +429,7 @@ function drawBody(g,b,p,r){const sun=K.bodies.find(x=>x.k==='Sun');let L=[0,0,1]
  const sp=r>=3?sphere(b.k,r,L):null;
  if(b.k==='Sun'){g.save();g.globalAlpha*=.5;const gr=g.createRadialGradient(p[0],p[1],r*.6,p[0],p[1],r*2.6);gr.addColorStop(0,'rgba(255,215,94,.8)');gr.addColorStop(1,'rgba(255,215,94,0)');g.fillStyle=gr;g.beginPath();g.arc(p[0],p[1],r*2.6,0,7);g.fill();g.restore()}
  if(sp)g.drawImage(sp,p[0]-r,p[1]-r,r*2,r*2);else{g.fillStyle=PCOL[b.k];g.beginPath();g.arc(p[0],p[1],Math.max(1.2,r),0,7);g.fill()}}
-function draw(){const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=now}CAM=camera();const g=cx;g.setTransform(DPR,0,0,DPR,0,0);
+function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=now}CAM=camera();const g=cx;g.setTransform(DPR,0,0,DPR,0,0);
  const sa0=K.sunAlt,sa=ST.atm?sa0:-90,day=Math.max(0,Math.min(1,(sa+12)/14)),camOn=!!ST.cam,tiny=W<500?0.85:1;   /* Atmosphere off: a night sky even by day (Gemini, Nov 12) */
  if(camOn)g.clearRect(0,0,W,H);else{g.fillStyle=`rgb(${Math.round(4+40*day)},${Math.round(6+80*day)},${Math.round(16+130*day)})`;g.fillRect(0,0,W,H)}
  const dark=Math.max(0,Math.min(1,(-sa-4)/10));   /* sa is -90 with the Atmosphere off */
@@ -593,8 +595,19 @@ function stepBy(n,u){const now=Date.now()+TOFF,f=UNIT[u];if(typeof f==='number')
  const dim=new Date(U(y,mo+1,0,12,0)).getUTCDate();jump(zms(y,mo,Math.min(q.d,dim),q.h,q.mi))}
 document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{const [n,u]=b.dataset.st.split(' ');stepBy(+n,u)});
 for(const [id,sg] of [['cminus',-1],['cplus',1]])$(id).onclick=()=>{const n=Math.max(0,Math.round(+$('camt').value||0));if(n)stepBy(sg*n,$('cunit').value);try{localStorage.setItem('skymode-step',$('camt').value+' '+$('cunit').value)}catch(e){}};
+/* Play and Pause (Gemini, Nov 12): time runs forward or back at the chosen speed; "By The Step" moves by the row above, four times a second */
+const PLAY={dir:0,last:0,acc:0};
+const SPEEDS=[['rt','Real Time',1],['m1','1 Minute A Second',60],['m10','10 Minutes A Second',600],['h1','1 Hour A Second',3600],['d1','1 Day A Second',86400],['w1','1 Week A Second',604800],['step','By The Step',0]];
+$('pspd').innerHTML=SPEEDS.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('');$('pspd').value='m10';
+function playSet(d){PLAY.dir=PLAY.dir===d?0:d;PLAY.last=performance.now();PLAY.acc=0;$('pback').setAttribute('aria-pressed',PLAY.dir<0);$('pfwd').setAttribute('aria-pressed',PLAY.dir>0);$('ppause').setAttribute('aria-pressed',PLAY.dir===0);
+ $('kbtn').classList.toggle('play',PLAY.dir!==0)}
+$('pfwd').onclick=()=>playSet(1);$('pback').onclick=()=>playSet(-1);$('ppause').onclick=()=>playSet(0);
+function playTick(){if(!PLAY.dir)return;const t=performance.now(),dt=Math.min(.25,(t-PLAY.last)/1000);PLAY.last=t;const sp=SPEEDS.find(x=>x[0]===$('pspd').value)||SPEEDS[0];
+ if(sp[0]==='step'){PLAY.acc+=dt;if(PLAY.acc>=.25){PLAY.acc=0;const n=Math.max(1,Math.round(+$('camt').value||1));stepBy(PLAY.dir*n,$('cunit').value)}return}
+ const ms=Date.now()+TOFF+PLAY.dir*sp[2]*dt*1000,y=new Date(ms).getUTCFullYear();if(y<LIM[0]||y>LIM[1]){playSet(0);return}
+ TOFF=ms-Date.now();if(sp[2]>1)K=null}
 try{const v=(localStorage.getItem('skymode-step')||'').split(' ');if(+v[0]>0&&UNIT[v[1]]){$('camt').value=v[0];$('cunit').value=v[1]}}catch(e){}
-$('now').onclick=$('now2').onclick=()=>{TOFF=0;SKY=null;K=null;barText()};
+$('now').onclick=$('now2').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
 $('kbtn').onclick=()=>openSheet('clock');
 $('lbtn').onclick=()=>{openSheet('locs');loadPlaces();setTimeout(()=>$('lq').focus(),50)};
 /* sheets: X or Escape closes them (the Device's menu rule) */
