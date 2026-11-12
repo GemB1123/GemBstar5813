@@ -215,8 +215,15 @@ function onOrient(e,abs){if(e.alpha==null)return;
  if(!abs&&e.webkitCompassHeading==null&&Date.now()-lastAbs<1500)return;   /* Android: prefer the absolute (true north) event */
  if(abs)lastAbs=Date.now();let M=matrix(e.alpha,e.beta||0,e.gamma||0);
  if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading)){   /* iPhone: alpha is relative, so turn the sky until it agrees with the compass */
-  const z=col(M,2),flat=Math.abs(z[2])>0.8,ref=flat?col(M,1):z.map(x=>-x),refAz=deg(Math.atan2(ref[0],ref[1])),corr=n360(e.webkitCompassHeading-refAz);
-  ST.icorr=ST.icorr==null?corr:n360(ST.icorr+((((corr-ST.icorr)%360)+540)%360-180)*0.15);M=rotUp(M,ST.icorr)}
+  /* Gemini, Nov 12: tilting up toward the zenith made the sky snap about 180° and back, because iOS changes which edge its
+     compass heading follows as the phone tips past its tilt limits. Only read the compass while the phone is clearly upright
+     (heading = where the camera points) or clearly lying face up (heading = the top edge); in between, and while looking
+     up overhead, keep the last correction and let the gyroscope carry the view. */
+  const z=col(M,2),up=Math.abs(z[2])<0.55,faceUp=z[2]>0.85,ref=up?z.map(x=>-x):faceUp?col(M,1):null;
+  if(ref&&(e.webkitCompassAccuracy==null||e.webkitCompassAccuracy<0||e.webkitCompassAccuracy<=25||ST.icorr==null)){const refAz=deg(Math.atan2(ref[0],ref[1])),corr=n360(e.webkitCompassHeading-refAz),dd=((((corr-(ST.icorr??corr))%360)+540)%360)-180;
+   if(ST.icorr==null||Math.abs(dd)<=60){ST.icorr=ST.icorr==null?corr:n360(ST.icorr+dd*0.08);ST.jt=0}
+   else if(!ST.jt)ST.jt=Date.now();else if(Date.now()-ST.jt>2500){ST.icorr=corr;ST.jt=0}}   /* a sudden jump of more than 60° is ignored unless it holds steady for 2.5 s */
+  if(ST.icorr!=null)M=rotUp(M,ST.icorr)}
  if(!ST.sensors){ST.sensors=true;ST.track=true;trackBtn()}ST.M=M}
 /* turn a device matrix about the up axis (compass correction and Align) */
 function rotUp(M,d){const c=Math.cos(rad(d)),s=Math.sin(rad(d));return [0,1,2].map(i=>i===2?M[2].slice():[0,1,2].map(j=>i===0?c*M[0][j]+s*M[1][j]:-s*M[0][j]+c*M[1][j]))}
