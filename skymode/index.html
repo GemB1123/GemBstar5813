@@ -30,6 +30,11 @@ button.on,button[aria-pressed="true"]{background:var(--gold);color:#1b1408;borde
 .sheet input[type=search]{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:8px}
 .sheet .pl{display:block;width:100%;text-align:left;margin-bottom:4px;font-weight:500}.sheet .pl small{color:var(--dim)}
 .sheet[hidden]{display:none}
+/* sub-menu rows (Gemini, Nov 12): holding Armillary or Orion slides up a row of smaller icons above the bar; tap = on/off, hold = its panel */
+.subbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;justify-content:space-around;gap:2px;padding:4px;background:rgba(10,12,22,.9);border:1px solid rgba(209,171,116,.35);border-radius:12px;z-index:2}
+.subbar[hidden]{display:none}.subbar button{flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
+.subbar button svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.subbar button[aria-pressed="true"]{background:rgba(209,171,116,.16)}.subbar button[aria-pressed="false"]{opacity:.55}
+body.rowopen .sheet{bottom:calc(env(safe-area-inset-bottom) + 118px)}body.rowopen #info{bottom:calc(env(safe-area-inset-bottom) + 122px)}
 .sheet .sub{margin:2px 0 8px;font-size:13px;color:var(--dim)}.sheet .cap{margin:10px 0 6px;font-size:11px;letter-spacing:.08em;color:var(--dim)}
 .sheet .big{font-size:20px;font-weight:600;margin:0 0 8px;font-variant-numeric:tabular-nums}
 .sheet input[type=date],.sheet input[type=time]{font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-height:44px;color-scheme:dark}
@@ -59,8 +64,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button id="align">Align</button>
  <button id="zout" aria-label="Zoom out">−</button><button id="zin" aria-label="Zoom in">+</button></div>
  <div class="cap">SETTINGS</div><div class="row">
- <button data-open="arm">Armillary</button><button data-open="hou">Houses</button><button data-open="obj">Sky Objects</button><button data-open="camm">Camera</button></div>
- <p class="sub">Tip: tap an icon to turn it on or off, hold it for its settings.</p></div>
+ <button data-row="arm">Armillary</button><button data-open="hou">Houses</button><button data-row="obj">Sky Objects</button><button data-open="camm">Camera</button></div>
+ <p class="sub">Tip: tap an icon to turn it on or off, hold it for its settings. Holding Armillary or Orion opens a row of smaller icons.</p></div>
 <div id="clock" class="sheet" hidden role="dialog" aria-label="Date and time"><button class="x" data-close aria-label="Close">×</button><h3>Date And Time</h3>
  <p class="big"><span id="ktx"></span> <small id="ktag" class="sub"></small></p><p class="sub">Local time in <span id="kplace"></span>.</p>
  <div class="row"><input type="date" id="din" aria-label="Date"><input type="time" id="tin" aria-label="Time"></div>
@@ -70,24 +75,24 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <div id="locs" class="sheet" hidden role="dialog" aria-label="Location"><button class="x" data-close aria-label="Close">×</button><h3>Location</h3><p class="sub">Now: <span id="lcur"></span></p>
  <input type="search" id="lq" placeholder="Search for a city" autocomplete="off" aria-label="Search for a city">
  <button id="here" class="pl">Use My Location</button><div id="lres"></div></div>
-<div id="arm" class="sheet" hidden role="dialog" aria-label="Armillary"><button class="x" data-close aria-label="Close">×</button><h3>Armillary</h3><p class="sub">The circles of the sky. Tap the Armillary icon to turn them all off or on.</p><div class="row">
- <button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button><button data-sw="agrid">Horizon Grid</button><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div>
- <div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select>
- <div class="cap">GRIDS (ANY TOGETHER)</div><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button></div></div>
+<div id="s-circ" class="sheet" hidden role="dialog" aria-label="Circles"><button class="x" data-close aria-label="Close">×</button><h3>Circles</h3><div class="row"><button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button></div></div>
+<div id="s-agrid" class="sheet" hidden role="dialog" aria-label="Horizon Grid"><button class="x" data-close aria-label="Close">×</button><h3>Horizon Grid</h3><p class="sub">Altitude every 10°, azimuth every 15°.</p><div class="row"><button data-sw="agrid">Horizon Grid</button></div></div>
+<div id="s-zod" class="sheet" hidden role="dialog" aria-label="Zodiac"><button class="x" data-close aria-label="Close">×</button><h3>Zodiac</h3><div class="row"><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div><div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select></div>
+<div id="s-grids" class="sheet" hidden role="dialog" aria-label="Grids"><button class="x" data-close aria-label="Close">×</button><h3>Grids</h3><p class="sub">Any of them together.</p><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button></div></div>
 <div id="hou" class="sheet" hidden role="dialog" aria-label="Houses"><button class="x" data-close aria-label="Close">×</button><h3>Houses</h3><p class="sub">Tap the Houses icon to step through lines, degrees, degree sign minute, and off. Each house line runs through its cusp's zodiac degree and the poles of the ecliptic (In Zodiaco).</p><div class="row">
  <button data-sw="houses">Show Houses</button></div><div class="cap">CUSP LABELS</div><div class="row"><button data-hl="0">None</button><button data-hl="1">Degrees</button><button data-hl="2">Degree Sign Minute</button></div>
  <div class="cap">HOUSE SYSTEM</div><div class="row" id="hlist"></div></div>
-<div id="obj" class="sheet" hidden role="dialog" aria-label="Sky objects"><button class="x" data-close aria-label="Close">×</button><h3>Sky Objects</h3><div class="row">
- <button data-sw="cons">Constellation Lines</button><button disabled title="Coming soon">Constellation Art (Coming Soon)</button><button data-sw="cnames">Constellation Names</button><button data-sw="snames">Star Names</button><button data-sw="planets">Show Planets</button><button data-sw="daystars">Daytime Stars</button><button data-sw="atm">Atmosphere</button><button data-sw="mw">Milky Way</button></div>
- <div class="cap">PLANET LABELS</div><div class="row"><button data-pl="gly">Glyphs</button><button data-pl="name">Names</button><button data-pl="none">None</button></div>
- <div class="cap">PLANET SIZE</div><div class="row"><button data-ps="big">Enlarged</button><button data-ps="real">Realistic</button></div>
- <label class="sl">Ground See-Through <input type="range" id="gst" min="0" max="100" step="5" aria-label="Ground see-through"><b id="gstv"></b></label>
- <label class="sl">Milky Way Brightness <input type="range" id="mwbr" min="20" max="200" step="5" aria-label="Milky Way brightness"><b id="mwbrv"></b></label></div>
+<div id="s-cons" class="sheet" hidden role="dialog" aria-label="Constellations"><button class="x" data-close aria-label="Close">×</button><h3>Constellations</h3><div class="row"><button data-sw="cons">Constellation Lines</button><button data-sw="cnames">Constellation Names</button><button disabled title="Coming soon">Constellation Art (Coming Soon)</button></div></div>
+<div id="s-stars" class="sheet" hidden role="dialog" aria-label="Stars"><button class="x" data-close aria-label="Close">×</button><h3>Stars</h3><div class="row"><button data-sw="snames">Star Names</button><button data-sw="daystars">Daytime Stars</button></div></div>
+<div id="s-plan" class="sheet" hidden role="dialog" aria-label="Planets"><button class="x" data-close aria-label="Close">×</button><h3>Planets</h3><div class="row"><button data-sw="planets">Show Planets</button></div><div class="cap">PLANET LABELS</div><div class="row"><button data-pl="gly">Glyphs</button><button data-pl="name">Names</button><button data-pl="none">None</button></div><div class="cap">PLANET SIZE</div><div class="row"><button data-ps="big">Enlarged</button><button data-ps="real">Realistic</button></div></div>
+<div id="s-mw" class="sheet" hidden role="dialog" aria-label="Milky Way"><button class="x" data-close aria-label="Close">×</button><h3>Milky Way</h3><div class="row"><button data-sw="mw">Milky Way</button></div><label class="sl">Brightness <input type="range" id="mwbr" min="20" max="200" step="5" aria-label="Milky Way brightness"><b id="mwbrv"></b></label></div>
+<div id="s-sky" class="sheet" hidden role="dialog" aria-label="Sky"><button class="x" data-close aria-label="Close">×</button><h3>Sky</h3><div class="row"><button data-sw="atm">Atmosphere</button></div><p class="sub">Off: a night sky even by day.</p><label class="sl">Ground See-Through <input type="range" id="gst" min="0" max="100" step="5" aria-label="Ground see-through"><b id="gstv"></b></label></div>
 <div id="camm" class="sheet" hidden role="dialog" aria-label="Camera"><button class="x" data-close aria-label="Close">×</button><h3>Camera</h3><p class="sub">The live camera behind the sky. Selfie puts the sky behind you.</p><div class="row">
  <button data-cm="off">Off</button><button data-cm="environment">Back Camera</button><button data-cm="user">Selfie</button></div>
  <div class="cap">CAPTURE</div><div class="row"><button id="snapb">Take Photo</button><button id="recb">Record Video</button></div>
  <label class="sl">Match Camera <input type="range" id="cfov" min="30" max="100" step="1" aria-label="Camera field of view"><b id="cfovv"></b></label>
  <p class="sub">If the stars drift from the real ones toward the screen's edges, slide Match Camera until they line up.</p></div>
+<nav class="subbar" id="subbar" hidden aria-label="Sub-menu"></nav>
 <nav class="bar" aria-label="Sky Mode">
  <button class="f ic" id="mbtn" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
  <button class="f ic" id="tbtn" aria-label="Track Sky: the sky follows the phone" aria-pressed="false"><svg viewBox="0 0 24 24"><rect x="8.5" y="4" width="7" height="16" rx="1.6"/><path d="M11 17.2h2"/><path d="M5.6 8.5a5 5 0 0 0 0 7M3 6.5a8 8 0 0 0 0 11M18.4 8.5a5 5 0 0 1 0 7M21 6.5a8 8 0 0 1 0 11" style="stroke-width:1.5"/></svg></button>
@@ -308,7 +313,7 @@ const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],['lgrid','Ecliptic Grid',false,'arm'],['egrid','Equatorial Grid',false,'arm'],['ggrid','Galactic Grid',false,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
-const ST={lat:37.8044,lon:-122.2712,place:'Oakland',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
+const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
  yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
@@ -552,7 +557,7 @@ $('align').onclick=()=>{closeSheets();const L=$('alist');if(!L.hidden){L.hidden=
 document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);
 /* ---- the bar (Gemini, Nov 12): Menu, Clock, Globe, Armillary, Houses, Constellations, Camera, Red Light ----
    Tap an icon to turn its layer on or off; hold it (half a second) for its settings. Every sheet has an X and closes with Escape. */
-function holdable(id,tap,hold){const b=$(id);let t=0,held=false;
+function holdable(id,tap,hold){const b=typeof id==='string'?$(id):id;let t=0,held=false;
  b.addEventListener('pointerdown',e=>{held=false;clearTimeout(t);t=setTimeout(()=>{held=true;if(navigator.vibrate)try{navigator.vibrate(12)}catch(x){}hold()},480)});
  for(const ev of ['pointerup','pointerleave','pointercancel'])b.addEventListener(ev,()=>clearTimeout(t));
  b.addEventListener('contextmenu',e=>e.preventDefault());
@@ -562,6 +567,7 @@ const ARM=SW.filter(s=>s[3]==='arm').map(s=>s[0]);
 const armOn=()=>ARM.some(k=>ST[k]);
 function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttribute('aria-pressed',ST.houses);$('obtn').setAttribute('aria-pressed',ST.cons);$('cbtn').setAttribute('aria-pressed',!!ST.cam);
  $('kbtn').classList.toggle('live',TOFF!==0);
+ document.querySelectorAll('#subbar [data-sub]').forEach(b=>{const it=SUBI[b.dataset.sub];b.setAttribute('aria-pressed',it.keys.some(k=>ST[k]))});
  document.querySelectorAll('[data-sw]').forEach(b=>b.setAttribute('aria-pressed',!!ST[b.dataset.sw]));
  document.querySelectorAll('[data-hs]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.hs===ST.hsys));
  document.querySelectorAll('[data-hl]').forEach(b=>b.setAttribute('aria-pressed',ST.houses&&+b.dataset.hl===ST.hlab));if($('zsel').value!==ST.zod)$('zsel').value=ST.zod;
@@ -570,13 +576,14 @@ function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttr
  document.querySelectorAll('[data-cm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cm===(ST.cam||'off')));
  $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on)}
 /* the Armillary: tap turns all its circles off, and back on to the same ones (Gemini, Nov 12) */
-holdable('abtn',()=>{if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>openSheet('arm'));
+holdable('abtn',()=>{if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>toggleRow('arm'));
 /* Houses (Gemini, Nov 12): each tap steps through four states: lines, lines with degrees, lines with degree sign minute, off */
 holdable('hbtn',()=>{if(!ST.houses){ST.houses=true;ST.hlab=0}else if(ST.hlab<2)ST.hlab++;else{ST.houses=false;ST.hlab=0}K=null;save();sync();
  say(ST.houses?CFG.houses.find(h=>h[0]===ST.hsys)[1]+' houses'+['',', degrees',', degree sign minute'][ST.hlab]+'. Hold for more.':'Houses off.',3000)},()=>openSheet('hou'));
-holdable('obtn',()=>{ST.cons=!ST.cons;save();sync()},()=>openSheet('obj'));
+holdable('obtn',()=>{ST.cons=!ST.cons;save();sync()},()=>toggleRow('obj'));
 holdable('cbtn',()=>{if(ST.cam)camOff();else camOn(ST.lastCam||'environment')},()=>openSheet('camm'));
-document.addEventListener('click',e=>{const b=e.target.closest('[data-pl],[data-sw],[data-hs],[data-hl],[data-ps],[data-cm],[data-open]');if(!b)return;
+document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');if(r){closeSheets();toggleRow(r.dataset.row,true);return}
+ const b=e.target.closest('[data-pl],[data-sw],[data-hs],[data-hl],[data-ps],[data-cm],[data-open]');if(!b)return;
  if(b.dataset.pl){ST.plab=b.dataset.pl;save();sync();return}
  if(b.dataset.hl){ST.hlab=+b.dataset.hl;ST.houses=true;K=null;save();sync();return}
  if(b.dataset.sw){const k=b.dataset.sw;ST[k]=!ST[k];if(/houses|grid$/.test(k))K=null}
@@ -633,21 +640,27 @@ $('now').onclick=$('now2').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K
 $('kbtn').onclick=()=>openSheet('clock');
 $('lbtn').onclick=()=>{openSheet('locs');loadPlaces();setTimeout(()=>$('lq').focus(),50)};
 /* sheets: X or Escape closes them (the Device's menu rule) */
-const SHEETS=['menu','locs','clock','arm','hou','obj','camm'];
+const SHEETS=['menu','locs','clock','hou','camm','s-circ','s-agrid','s-zod','s-grids','s-cons','s-stars','s-plan','s-mw','s-sky'];
 function closeSheets(){for(const id of SHEETS)$(id).hidden=true;$('mbtn').setAttribute('aria-expanded','false')}
 function openSheet(id){const was=!$(id).hidden;closeSheets();$('alist').hidden=true;if(was)return;$(id).hidden=false;if(id==='menu')$('mbtn').setAttribute('aria-expanded','true');sync()}
 document.querySelectorAll('.sheet [data-close]').forEach(b=>b.onclick=closeSheets);
-addEventListener('keydown',e=>{if(e.key==='Escape'){closeSheets();$('alist').hidden=true}});
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;const any=SHEETS.some(id=>!$(id).hidden)||!$('alist').hidden;closeSheets();$('alist').hidden=true;if(!any&&ROW)toggleRow(ROW)});   /* Escape closes a panel first, then the row */
 $('mbtn').onclick=()=>openSheet('menu');
 /* places: the Device's GeoNames list (places.txt, CC BY 4.0), fetched only when needed */
 let PL=null,PLwait=null;
+/* place labels (Gemini, Nov 12): U.S. places carry the state, as in Boston, MA, USA; other places carry the country name */
+let CN=null;try{CN=new Intl.DisplayNames(['en'],{type:'region'})}catch(e){}
+function plabel(n,cc,a1){if(cc==='US')return n+(a1&&/^[A-Z]{2}$/.test(a1)?', '+a1:'')+', USA';let c=cc;try{if(CN&&cc)c=CN.of(cc)||cc}catch(e){}return c?n+', '+c:n}
 function loadPlaces(){if(PL||PLwait)return PLwait;PLwait=(async()=>{for(const u of ['places.txt','../planetarium/places.txt']){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text(),L=t.split('\n'),TZ=L[0].split(',');const a=[];
-  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([f[0],f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;return a}catch(e){}}PL=[];return PL})();return PLwait}
+  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([plabel(f[0],f[2],f[3]),f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;relabel();return a}catch(e){}}PL=[];return PL})();return PLwait}
+/* a place saved before the labels changed gets its state or country added */
+function relabel(){if(!ST.place||ST.place.includes(',')||ST.place==='My Location')return;const n=ST.place.toLowerCase();let b=null,bd=1e9;for(const q of PL){if(q[4]!==n)continue;const d=(q[2]-ST.lat)**2+(q[3]-ST.lon)**2;if(d<bd){bd=d;b=q}}if(b&&bd<0.01){ST.place=b[0];save();barText()}}
 function setPlace(name,lat,lon,tz){ST.lat=lat;ST.lon=lon;ST.place=name;ST.tz=tz||null;SKY=null;K=null;save();barText();closeSheets()}
+loadPlaces();
 $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerCase(),R=$('lres');if(q.length<2){R.innerHTML='';return}await loadPlaces();
  const hit=[];for(const p of PL){if(p[4].startsWith(q))hit.push(p);if(hit.length>=12)break}
  if(hit.length<12)for(const p of PL){if(!p[4].startsWith(q)&&(p[4].includes(q)||p[5].includes(q)))hit.push(p);if(hit.length>=12)break}
- R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${p[1]} · ${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
+ R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
  R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3],p[6])}}});
 function locateMe(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
   await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;save();barText()}},
@@ -681,6 +694,24 @@ function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();REC.on=fal
 $('recb').onclick=()=>{REC.on?recStop():recStart()};
 $('zsel').innerHTML='<option value="trop">Tropical</option>'+PLN_AYAN.map(a=>`<option value="${a[0]}">Sidereal: ${a[1]}</option>`).join('');
 $('zsel').addEventListener('change',()=>{ST.zod=$('zsel').value;K=null;save();sync()});
+/* ---- sub-menu rows (Gemini, Nov 12): holding Armillary or Orion opens a row of smaller icons; each one taps its layers on or off and holds for its own short panel. The pattern for every menu that grows. ---- */
+const SUBS={arm:[['circ','Circles',['ecl','equ','mer'],'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-22 12 12)"/><ellipse cx="12" cy="12" rx="3.5" ry="9"/>'],
+  ['agrid','Horizon',['agrid'],'<path d="M3 17a9 9 0 0 1 18 0M3 17h18M12 8v9M7.5 9.5L9 17M16.5 9.5L15 17M4.5 13h15"/>'],
+  ['zod','Zodiac',['band','glyphs'],'<ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-20 12 12)" stroke-width="3.6"/><circle cx="12" cy="12" r="1.3" fill="#d1ab74" stroke="none"/>'],
+  ['grids','Grids',['lgrid','egrid','ggrid'],'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5 7.5h14M5 16.5h14M7.5 4.5c-2 5-2 10 0 15M16.5 4.5c2 5 2 10 0 15"/>']],
+ obj:[['cons','Figures',['cons','cnames'],'<path d="M3 8l5 6 4-5 4 7 5-6"/><g fill="#d1ab74" stroke="none"><circle cx="3" cy="8" r="1.6"/><circle cx="8" cy="14" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="16" r="1.6"/><circle cx="21" cy="10" r="1.6"/></g>'],
+  ['stars','Star Names',['snames'],'<path d="M12 3l1.8 6.2L20 12l-6.2 1.8L12 21l-1.8-7.2L4 12l6.2-2.8z"/>'],
+  ['plan','Planets',['planets'],'<circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10" ry="3.2" transform="rotate(-18 12 12)"/>'],
+  ['mw','Milky Way',['mw'],'<path d="M2 18C8 15 10 9 22 6" stroke-width="5" stroke-opacity=".35"/><path d="M2 18C8 15 10 9 22 6"/><g fill="#d1ab74" stroke="none"><circle cx="6" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="4" r="1"/></g>'],
+  ['sky','Sky',['atm'],'<path d="M2 17h20M6.5 17a5.5 5.5 0 0 1 11 0M12 5.5V8M5.3 9.3l1.6 1.6M18.7 9.3l-1.6 1.6"/>']]};
+const SUBI={},SUBMEM={},SUBDEF={grids:['lgrid'],stars:['snames'],cons:['cons']};
+for(const r in SUBS)for(const x of SUBS[r])SUBI[x[0]]={label:x[1],keys:x[2]};
+let ROW=null;
+function toggleRow(r,force){const bar=$('subbar');if(ROW===r&&!force){ROW=null;bar.hidden=true;document.body.classList.remove('rowopen');closeSheets();return}
+ ROW=r;closeSheets();bar.innerHTML=SUBS[r].map(x=>`<button data-sub="${x[0]}" aria-label="${x[1]}: tap for on or off, hold for settings"><svg viewBox="0 0 24 24">${x[3]}</svg>${x[1]}</button>`).join('');bar.hidden=false;document.body.classList.add('rowopen');
+ for(const b of bar.querySelectorAll('[data-sub]'))holdable(b,()=>{const it=SUBI[b.dataset.sub],on=it.keys.filter(k=>ST[k]);
+   if(on.length){SUBMEM[b.dataset.sub]=on;for(const k of it.keys)ST[k]=false}else for(const k of SUBMEM[b.dataset.sub]||SUBDEF[b.dataset.sub]||it.keys)ST[k]=true;K=null;save();sync()},()=>openSheet('s-'+b.dataset.sub));
+ sync()}
 $('hlist').innerHTML=CFG.houses.map(h=>`<button data-hs="${h[0]}">${h[1]}</button>`).join('');
 /* the Armillary icon (Gemini, Nov 12): a sphere with a thick zodiac band across its front, Capricorn on the left through
    Aquarius, Pisces, Aries, and Taurus to Gemini on the right, in the icons' gold with Ana's glyphs */
