@@ -51,7 +51,9 @@ body.rowopen .sheet{bottom:calc(env(safe-area-inset-bottom) + 118px)}body.rowope
 video#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000}video#cam.selfie{transform:scaleX(-1)}video#cam[hidden]{display:none}
 canvas#sky{z-index:1}
 #start{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:18px;padding:16px 22px;background:var(--gold);color:#1b1408;z-index:3;box-shadow:0 8px 30px rgba(0,0,0,.6)}
-#info{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 60px);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;pointer-events:none}
+#info{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 60px);max-height:40vh;overflow:auto;background:rgba(10,12,22,.9);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;z-index:3;max-width:520px;margin:0 auto}
+#info .ih{display:flex;align-items:baseline;gap:8px;padding-right:40px;margin-bottom:6px}#info .ih span{color:var(--dim);font-size:13px}#info .x{position:absolute;top:4px;right:4px;min-height:36px;width:36px;padding:0;border:0;background:none;font-size:20px;color:var(--dim)}
+#info dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}#info dt{color:var(--dim);white-space:nowrap}#info dd{margin:0}
 #info b{color:var(--gold);font-size:16px}
 #alist{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 60px);max-height:50vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:2}
 #alist[hidden],#info[hidden],button[hidden]{display:none}
@@ -62,7 +64,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
 <button id="start">Start Sky Mode</button>
-<div id="info" hidden></div><div id="alist" hidden></div>
+<div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div>
 <video id="cam" playsinline muted autoplay hidden></video>
 <div id="menu" class="sheet" hidden role="dialog" aria-label="Menu"><button class="x" data-close aria-label="Close">×</button><h3>Sky Mode</h3><div class="row">
  <button id="track" hidden>Track Sky</button>
@@ -296,7 +298,15 @@ SNode: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><path fill=
 const PLN_AYAN=[['fagan','Fagan-Bradley',24.7403],['lahiri','Lahiri (Chitrapaksha)',23.8571],['krishna','Krishnamurti',23.7602],['raman','Raman',22.4108],['yukt','Sri Yukteshwar',22.4788],['bhasin','J.N. Bhasin',22.7621],['deluce','De Luce',27.8158],['djk','Djwhal Khul',28.3597],['sassan','Sassanian',19.9930],['ushas','Ushashashi',20.0575],['gc0sag','Galactic Center At 0 Sagittarius',26.8460],
  ['tchitra','True Chitrapaksha (Spica At 0 Libra)',23.8414],['trevati','True Revati (Zeta Piscium At 29°50\u2032 Pisces)',20.0443],['tpushya','True Pushya (Delta Cancri At 16 Cancer)',22.7219],['aldeb15','Aldebaran At 15 Taurus',24.7892]];   /* star-anchored: the star\'s J2000 longitude, proper motion left out */
 const plnAyan=(id,jd)=>{const a=(PLN_AYAN.find(x=>x[0]===id)||PLN_AYAN[0])[2],T=(jd-2451545)/36525;return a+(5028.796195*T+1.1054348*T*T)/3600};
-const PLN_GAL=[[-0.0548755604,0.4941094279,-0.8676661490],[-0.8734370902,-0.4448296300,-0.1980763734],[-0.4838350155,0.7469822445,0.4559837762]];</script>
+const PLN_GAL=[[-0.0548755604,0.4941094279,-0.8676661490],[-0.8734370902,-0.4448296300,-0.1980763734],[-0.4838350155,0.7469822445,0.4559837762]];
+function plnConAt(ra,de){const D=window.EA_PLN_SKY;if(!D)return '';
+ /* each border unwrapped in right ascension; a border that circles a pole is closed through that pole */
+ if(!PLN_CPOLY){PLN_CPOLY=[];for(const k in D.bounds)for(const r of D.bounds[k]){const u=[[r[0][0],r[0][1]]];for(let i=1;i<r.length;i++){const d=((r[i][0]-r[i-1][0]+540)%360)-180;u.push([u[i-1][0]+d,r[i][1]])}
+  const tot=u[u.length-1][0]+((r[0][0]-r[r.length-1][0]+540)%360)-180-u[0][0];if(Math.abs(tot)>180){const pl=r.reduce((a,p)=>a+p[1],0)>0?90:-90;u.push([u[0][0]+tot,u[0][1]],[u[0][0]+tot,pl],[u[0][0],pl])}
+  let lo=1e9,hi=-1e9;for(const p of u){lo=Math.min(lo,p[0]);hi=Math.max(hi,p[0])}PLN_CPOLY.push({k,u,lo,hi})}}
+ const inside=(u,x)=>{let c=false;for(let i=0,j=u.length-1;i<u.length;j=i++){const [xi,yi]=u[i],[xj,yj]=u[j];if((yi>de)!==(yj>de)&&x<(xj-xi)*(de-yi)/(yj-yi)+xi)c=!c}return c};
+ for(const q of PLN_CPOLY)for(const x of [ra-720,ra-360,ra,ra+360,ra+720])if(x>=q.lo&&x<=q.hi&&inside(q.u,x))return q.k;return ''}
+let PLN_CPOLY=null;</script>
 <script>/* ---------- Sky Mode (Gemini, Nov 7, 2026): the live sky that follows the phone ----------
    Hold the phone up: its compass and tilt sensors turn the sky to match, live. Built on the Device's shared pieces: the
    Planetarium's star catalog and figures (plnsky.js) and photo Milky Way (plnmwimg.js), the precise Sun and Moon (sgeph.js),
@@ -470,7 +480,7 @@ function sphere(k,rp,L){const T=ptex(k);if(!T)return null;const n=Math.max(6,Mat
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=(i+.5-rr)/rr,y=(rr-j-.5)/rr,q=x*x+y*y,p=(j*n+i)*4;if(q>1){o[p+3]=0;continue}
   const z=Math.sqrt(1-q),u=.5+Math.atan2(x,z)/(2*Math.PI),la=Math.asin(y),tx=Math.min(T.w-1,(u*T.w)|0),ty=Math.min(T.h-1,((.5-la/Math.PI)*T.h)|0),t=(ty*T.w+tx)*4;
   /* the night side (Gemini, Nov 12): the full face at 20% under the lit phase at full strength, so a dark Moon still shows; a narrow soft terminator */
-  const c=x*L[0]+y*L[1]+z*L[2],tt=Math.max(0,Math.min(1,(c+.02)/.08)),sh=lit?1.2:.2+(Math.min(1,.35+c*1.6)-.2)*tt,al=1;
+  const c=x*L[0]+y*L[1]+z*L[2],tt=Math.max(0,Math.min(1,(c+.02)/.08)),sh=lit?1.2:.2+(Math.min(1,.75+c*1.2)-.2)*tt,al=1;
   o[p]=Math.min(255,T.px[t]*sh*bf);o[p+1]=Math.min(255,T.px[t+1]*sh*bf);o[p+2]=Math.min(255,T.px[t+2]*sh*bf);o[p+3]=Math.round(al*(q>.9?255*(1-q)/.1:255))}
  g.putImageData(im,0,0);SPH[k]={key,cv};return cv}
 /* planet labels (Gemini, Nov 12): the Device's glyphs (PLG), bold, in each planet's color with a dark edge, beside the planet */
@@ -538,17 +548,16 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.planets)for(const b of K.bodies){const p=proj(b.v);if(!p||p[0]<-40||p[0]>W+40||p[1]<-40||p[1]>H+40)continue;const below=b.v[2]<0,r=bodyR(b);g.globalAlpha=below&&!camOn?0.45:1;
   drawBody(g,b,p,r);if(ST.plab==='gly'){const im=pglyph(b.k),gs=22*tiny;if(im)g.drawImage(im,p[0]+r+4,p[1]-gs/2,gs,gs)}else if(ST.plab==='name'){g.fillStyle=PCOL[b.k];g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';g.fillText(b.k,p[0]+r+5,p[1]+4)}}
  g.globalAlpha=1;
+ infoRing(g);infoTick();
  /* the aim ring */
  g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1;g.beginPath();g.arc(W/2,H/2,18,0,7);g.stroke();
  if(REC.on||REC.snap)compose();
  requestAnimationFrame(draw)}
 /* ---- taps: what is that? ---- */
 cv.addEventListener('click',ev=>{if(dragged)return;if(!K)return;let best=null,bd=34;const tryV=(v,info)=>{const p=proj(v);if(!p)return;const d=Math.hypot(p[0]-ev.clientX,p[1]-ev.clientY);if(d<bd){bd=d;best=info(v)}};
- if(ST.planets)for(const b of K.bodies)tryV(b.v,v=>({n:GLY[b.k]+' '+b.k,v,lon:b.lon}));for(const [i,n] of NAMED)if(K.stars[i])tryV(K.stars[i],v=>({n,v,lon:null,i}));
+ if(ST.planets)for(const b of K.bodies)tryV(b.v,v=>({n:GLY[b.k]+' '+b.k,v,lon:b.lon,k:b.k}));for(const [i,n] of NAMED)if(K.stars[i])tryV(K.stars[i],v=>({n,v,lon:null,i}));
  if(!best){for(let i=0;i<K.stars.length;i++){const v=K.stars[i];if(!v||D.stars[i][2]>3.5)continue;const f=D.info[i];tryV(v,v=>({n:(f&&f[7])||(f&&f[2]?f[2]+' '+(D.gen&&D.gen[f[4]]||f[4]):'Star'),v,i}))}}
- const el=document.getElementById('info');if(!best){el.hidden=true;return}const [az,alt]=azAlt(best.v);
- const zl=best.lon!=null?n360(best.lon-zoff(K.jd)):null,sg=zl!=null?` · ${SIGNS[Math.floor(zl/30)]} ${Math.floor(zl%30)}°${ST.zod==='trop'?'':' sidereal'}`:'',mag=best.i!=null?` · magnitude ${D.stars[best.i][2]}`:'';
- el.innerHTML=`<b>${best.n}</b><br>${alt>=0?Math.round(alt)+'° up':'below the horizon'}, ${dirName(az)} (${Math.round(az)}°)${sg}${mag}`;el.hidden=false;ST.tapInfo=best});
+ if(!best){infoClose();return}ST.tapInfo=best;infoShow(best.i!=null?{t:'s',i:best.i}:{t:'p',k:best.k})});
 /* drag to look around when there are no sensors (or while held) */
 let dragging=null,dragged=false;
 /* pinch to zoom (Gemini, Nov 12): two fingers set the field of view; a pinch never turns tracking off */
@@ -679,7 +688,7 @@ const SHEETS=['menu','locs','clock','hou','camm','s-circ','s-agrid','s-zod','s-g
 function closeSheets(){for(const id of SHEETS)$(id).hidden=true;$('mbtn').setAttribute('aria-expanded','false')}
 function openSheet(id){const was=!$(id).hidden;closeSheets();$('alist').hidden=true;if(was)return;$(id).hidden=false;if(id==='menu')$('mbtn').setAttribute('aria-expanded','true');sync()}
 document.querySelectorAll('.sheet [data-close]').forEach(b=>b.onclick=closeSheets);
-addEventListener('keydown',e=>{if(e.key!=='Escape')return;const any=SHEETS.some(id=>!$(id).hidden)||!$('alist').hidden;closeSheets();$('alist').hidden=true;if(!any&&ROW)toggleRow(ROW)});   /* Escape closes a panel first, then the row */
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;const any=SHEETS.some(id=>!$(id).hidden)||!$('alist').hidden||!$('info').hidden;infoClose();closeSheets();$('alist').hidden=true;if(!any&&ROW)toggleRow(ROW)});   /* Escape closes a panel first, then the row */
 $('mbtn').onclick=()=>openSheet('menu');
 /* places: the Device's GeoNames list (places.txt, CC BY 4.0), fetched only when needed */
 let PL=null,PLwait=null;
@@ -771,6 +780,101 @@ $('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwB
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
+/* Sky Mode: tap a planet or a star for its information page (Gemini, Nov 12).
+   The rows follow Galileo's Planetarium info box (worlds/planetarium/planetarium.js, plnInfoRows):
+   planets: zodiac degree, longitude and latitude, right ascension and declination (out of bounds), azimuth and altitude,
+   constellation, house, motion (direct or retrograde, near a station), elongation, phase and how much is lit, morning or
+   evening, magnitude, distance, size, heliocentric position, and today's rise, top, and set.
+   Stars: catalog numbers, constellation, the same positions, elongation, morning or evening, magnitude, distance, spectral type,
+   and today's rise, top, and set. Positions come from NASA JPL DE441 (EA_JPL); stars are the Planetarium's catalog. */
+const IRKM={Sun:695700,Moon:1737.4,Mercury:2439.7,Venus:6051.8,Mars:3389.5,Jupiter:69911,Saturn:58232,Uranus:25362,Neptune:24622};
+const IAU=149597870.7,ISPD={Mercury:1.2,Venus:1.1,Mars:.5,Jupiter:.08,Saturn:.033,Uranus:.012,Neptune:.006};
+const iDMS=(x,sg)=>{const s=x<0?'−':sg?'+':'',t=Math.round(Math.abs(x)*60);return s+Math.floor(t/60)+'°'+String(t%60).padStart(2,'0')+'′'};
+const iHMS=ra=>{const t=Math.round(n360(ra)/15*3600)%86400;return Math.floor(t/3600)+'h '+String(Math.floor(t/60)%60).padStart(2,'0')+'m '+String(t%60).padStart(2,'0')+'s'};
+const iSpd=v=>Math.abs(v)<1/60?Math.round(Math.abs(v)*3600)+'″':iDMS(Math.abs(v));
+const iOrd=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
+const iEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* constellation names: sidereal uses the sign names, since sidereal signs and constellations line up (Planetarium rule) */
+const ISIDN={Ari:'Aries',Tau:'Taurus',Gem:'Gemini',Cnc:'Cancer',Leo:'Leo',Vir:'Virgo',Lib:'Libra',Sco:'Scorpio',Sgr:'Sagittarius',Cap:'Capricorn',Aqr:'Aquarius',Psc:'Pisces'};
+const iCN=k=>(ST.zod!=='trop'&&ISIDN[k])||(D.names&&D.names[k])||k;
+function iZod(lon,jd){const l=n360(lon-zoff(jd)),si=Math.floor(l/30);return `${iDMS(l-si*30)} ${SIGNS[si]}${ST.zod==='trop'?'':' (sidereal)'}`}
+/* apparent magnitude (Astronomical Almanac formulas as Meeus gives them; Saturn with its rings' tilt), i = phase angle */
+function iMag(k,r,d,R,i,lon,lat,jd){const lg=5*Math.log10(Math.max(1e-9,r*d));
+ switch(k){case 'Sun':return -26.74+5*Math.log10(d);case 'Moon':return -12.73+0.026*i+4e-9*i**4;
+  case 'Mercury':return -0.42+lg+0.0380*i-0.000273*i*i+0.000002*i**3;case 'Venus':return -4.40+lg+0.0009*i+0.000239*i*i-0.00000065*i**3;
+  case 'Mars':return -1.52+lg+0.016*i;case 'Jupiter':return -9.40+lg+0.005*i;
+  case 'Saturn':{const T=(jd-2451545)/36525,ii=rad(28.075216-0.012998*T),Om=rad(169.508470+1.394681*T),la=rad(lon),be=rad(lat),sB=Math.abs(Math.sin(ii)*Math.cos(be)*Math.sin(la-Om)-Math.cos(ii)*Math.sin(be));return -8.88+lg-2.60*sB+1.25*sB*sB}
+  case 'Uranus':return -7.19+lg;case 'Neptune':return -6.87+lg;default:return lg}}
+/* average magnitude and distance from the Earth, sampled over 60 years with the core's planet math (as the Planetarium does) */
+const IAVG={};function iAvg(k){if(IAVG[k])return IAVG[k];const n=720,st=60*365.25/n;let m=0,dd=0;
+ for(let j=0;j<n;j++){const jd=2451545+j*st,P=planets(jd)[k],dd0=jd-2451543.5,h=helio(k.toLowerCase(),dd0),r=Math.hypot(h[0],h[1],h[2]);m+=iMag(k,r,P.dist,1,P.ph,P.lon,P.lat,jd);dd+=P.dist}
+ return IAVG[k]={m:m/n,d:dd/n}}
+/* altitude from right ascension and declination of date, with the apparent sidereal time */
+function iAlt(ra,de,jd){const lst=n360((JPL&&JPL.gast?JPL.gast(jd):E.gmst(jd))+ST.lon),H=rad(lst-ra),d=rad(de),p=rad(ST.lat);
+ return [deg(Math.asin(Math.sin(p)*Math.sin(d)+Math.cos(p)*Math.cos(d)*Math.cos(H))),((lst-ra+540)%360)-180]}
+const iClock=t=>{const q=zparts(t);return `${q.h%12||12}:${String(q.mi).padStart(2,'0')}${q.h<12?'am':'pm'}`};
+/* rises, culminates, and sets on the local day of the moment shown; radec(jd) gives the position of date */
+function iRTS(radec,h0){const ms=Date.now()+TOFF,q=zparts(ms),day0=ms-((q.h*60+q.mi)*60000)-(ms%60000),j0=day0/864e5+2440587.5;
+ const node=[];for(let i=0;i<=24;i++){const p=radec(j0+i/24);if(!p)return '';node.push(p)}
+ const at=f=>{const x=f*24,i=Math.min(23,Math.floor(x)),t=x-i,a=node[i],b=node[i+1];return [a[0]+(((b[0]-a[0]+540)%360)-180)*t,a[1]+(b[1]-a[1])*t]};
+ let rise=null,set=null,cul=null,pa=null,ph=null,up=0;
+ for(let i=0;i<=288;i++){const f=i/288,jd=j0+f,p=at(f),[al,H]=iAlt(p[0],p[1],jd),a=al-h0;if(a>0)up++;
+  if(pa!=null){const fr=pa/(pa-a),t=day0+(f-1/288+fr/288)*864e5;if(pa<0&&a>=0&&rise==null)rise=t;if(pa>0&&a<=0&&set==null)set=t}
+  if(ph!=null&&ph<0&&H>=0&&cul==null)cul=day0+(f-1/288+(-ph/(H-ph))/288)*864e5;pa=a;ph=H}
+ const tf=t=>t==null?'—':iClock(t);
+ if(rise==null&&set==null)return up?'Up all day (never sets)':'Below the horizon all day';
+ return `Rise ${tf(rise)} · Top ${tf(cul)} · Set ${tf(set)}`}
+/* the house a longitude falls in, by the chosen system */
+function iHouse(lon,jd){try{const c=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys);for(let i=1;i<=12;i++){const a=c[i],b=c[i%12+1];if(((lon-a+360)%360)<((b-a+360)%360||360))return `${iOrd(i)} (${(CFG.houses.find(h=>h[0]===ST.hsys)||[0,'Placidus'])[1]})`}}catch(e){}return ''}
+function iElong(l,b,sl){const dl=((l-sl+540)%360)-180;return {e:deg(Math.acos(Math.max(-1,Math.min(1,Math.cos(rad(b))*Math.cos(rad(dl)))))),east:dl>0}}
+/* the rows for a planet or star: sel = {t:'p',k} or {t:'s',i}; null while the NASA century loads */
+function infoRows(sel){const jd=K.jd,rows=[],add=(a,b)=>rows.push([a,b]),topo={lat:ST.lat,lon:ST.lon};
+ if(!JPL)return {title:sel.t==='p'?sel.k:'Star',sub:'',rows:[['Note','The NASA ephemeris did not load on this page.']]};
+ const Sg=JPL.body('Sun',jd,{speed:false});if(!Sg){JPL.need(jd).then(()=>infoShow()).catch(()=>{});return null}const sl=Sg.lon;
+ const azalt=v=>{const [az,al]=azAlt(v);add('Az, Alt',`${iDMS(az)} ${dirName(az)} · ${iDMS(al,1)}${al<0?' (below the horizon)':''}`)};
+ if(sel.t==='s'){const s=D.stars[sel.i],f=D.info&&D.info[sel.i]||[];const [hr,hd,bay,fl,cn0,plx,sp,com,vr]=f,gen=D.gen||{},cn=cn0||(window.plnConAt?plnConAt(s[0],s[1]):'');
+  const des=[bay&&gen[cn]?bay+' '+gen[cn]:'',fl&&gen[cn]?fl+' '+gen[cn]:'',hr?'HR '+hr:'',hd?'HD '+hd:''].filter(Boolean),name=com||des[0]||('HR '+hr);
+  const st=SKY&&SKY.st[sel.i],ra=st?st.ra:s[0],de=st?st.de:s[1],[l,b]=eqToEcl(ra,de,obl(jd));
+  add('Catalog',des.filter(t=>t!==name).join(' · ')||'—');add('Constellation',cn?iCN(cn):'—');add('Zodiac',iZod(l,jd));add('Long, Lat',`${n360(l).toFixed(2)}° · ${iDMS(b,1)}`);
+  add('RA, Dec',`${iHMS(ra)} · ${iDMS(de,1)}`);if(K.stars[sel.i])azalt(K.stars[sel.i]);
+  const El=iElong(l,b,sl);add('Elongation',`${iDMS(El.e)} ${El.east?'east':'west'} of the Sun`);add('Morning/Evening',El.e<15?'Too close to the Sun to see':El.east?'Evening star':'Morning star');
+  add('Magnitude',`${s[2].toFixed(2)}${vr?' (variable)':''}`);
+  add('Distance',plx>0?`About ${Math.round(3.2616/plx).toLocaleString('en-US')} light-years`:'Not in this catalog yet');if(sp)add('Spectral Type',sp);
+  add('Today',iRTS(()=>[ra,de],-0.5667));return {title:name,sub:'Star',rows}}
+ const k=sel.k,G=JPL.body(k,jd),T=JPL.body(k,jd,{topo,speed:false});if(!G||!T)return null;
+ add('Zodiac',iZod(G.lon,jd));add('Long, Lat',`${n360(G.lon).toFixed(2)}° · ${iDMS(G.lat,1)}`);
+ add('RA, Dec',`${iHMS(T.ra)} · ${iDMS(T.dec,1)}${Math.abs(G.dec!=null?G.dec:T.dec)>obl(jd)&&k!=='Sun'?' · Out Of Bounds':''}`);
+ const bv=K.bodies.find(b=>b.k===k);if(bv)azalt(bv.v);
+ if(window.plnConAt){const p=-(5028.796195*(jd-2451545)/36525)/3600,q=eclToEq(G.lon+p,G.lat,23.4392911),cn=plnConAt(q[0],q[1]);if(cn)add('Constellation',iCN(cn))}
+ const hs=iHouse(G.lon,jd);if(hs)add('House',hs);
+ const v=G.lonSpeed||0;if(k==='Sun'||k==='Moon')add('Motion',`Direct · ${iDMS(Math.abs(v))} a day`);
+ else add('Motion',`${v<0?'Retrograde':'Direct'}${Math.abs(v)<.12*(ISPD[k]||1)?', near its station':''} · ${iSpd(v)} a day`);
+ const d=G.dist,He=JPL.helio('Earth',jd),R=He?He.r:1,Hk=k==='Sun'||k==='Moon'?null:JPL.helio(k,jd);let pa=0;
+ if(k!=='Sun'){const El=iElong(G.lon,G.lat,sl);
+  if(k==='Moon')pa=180-El.e;else if(Hk){const r=Hk.r;pa=deg(Math.acos(Math.max(-1,Math.min(1,(r*r+d*d-R*R)/(2*r*d)))))}
+  add('Elongation',`${iDMS(El.e)} ${El.east?'east':'west'} of the Sun`);add('Phase',`Phase angle ${Math.round(pa)}° · ${Math.round((1+Math.cos(rad(pa)))/2*100)}% lit`);
+  add('Morning/Evening',El.e<(k==='Moon'?8:12)?'Too close to the Sun to see':k==='Moon'?(El.east?'Waxing, evening sky':'Waning, morning sky'):El.east?'Evening star':'Morning star')}
+ const mag=iMag(k,Hk?Hk.r:R,d,R,pa,G.lon,G.lat,jd);
+ if(k==='Sun'||k==='Moon')add('Magnitude',mag.toFixed(2));else{const av=iAvg(k);add('Magnitude',`${mag.toFixed(2)} now · ${av.m.toFixed(2)} on average`)}
+ const fd=au=>k==='Moon'?Math.round(au*IAU).toLocaleString('en-US')+' km':au.toFixed(au<2?3:2)+' AU';
+ add('Distance',k==='Moon'?`${fd(d)} now · 384,400 km on average`:k==='Sun'?`${fd(d)} now · 1.000 AU on average`:`${fd(d)} now · ${fd(iAvg(k).d)} on average`);
+ if(k!=='Moon'){const mk=d*IAU/1e6;add('','= '+(mk>=1000?(mk/1000).toFixed(2)+' billion km':mk.toFixed(mk<100?1:0)+' million km'))}
+ const sz=2*deg(Math.atan(IRKM[k]/(d*IAU)));add('Size',`${(sz*3600).toFixed(k==='Sun'||k==='Moon'?0:1)}″ across${k==='Sun'||k==='Moon'?' ('+iDMS(sz)+')':''}`);
+ if(Hk)add('Heliocentric',iZod(Hk.lon,jd));
+ add('Today',iRTS(j=>{const b=JPL.body(k,j,{topo,speed:false});return b&&[b.ra,b.dec]},k==='Sun'||k==='Moon'?-0.833:-0.5667));
+ return {title:k,sub:k==='Sun'?'Star (our Sun)':k==='Moon'?'Moon':'Planet',rows}}
+/* the information page: a panel with an X that Escape closes; it follows the Time Machine */
+let ISEL=null,IJD=0;
+function infoShow(sel){if(sel)ISEL=sel;if(!ISEL||!K)return;const el=$('info');let d=null;try{d=infoRows(ISEL)}catch(e){console.error(e)}IJD=K.jd;
+ el.innerHTML=d?`<div class="ih"><b>${ISEL.t==='p'&&GLY[ISEL.k]?GLY[ISEL.k]+' ':''}${iEsc(d.title)}</b><span>${iEsc(d.sub)}</span><button class="x" id="infox" aria-label="Close information">×</button></div><dl>${d.rows.map(r=>`<dt>${iEsc(r[0])}</dt><dd>${iEsc(r[1])}</dd>`).join('')}</dl>`
+  :`<div class="ih"><b>${iEsc(ISEL.k||'Star')}</b><button class="x" id="infox" aria-label="Close information">×</button></div><p class="sub">Loading NASA data…</p>`;
+ el.hidden=false;$('infox').onclick=infoClose}
+function infoClose(){ISEL=null;$('info').hidden=true}
+function infoTick(){if(ISEL&&K&&Math.abs(K.jd-IJD)>1/1440)infoShow()}
+/* a gold ring around what is selected */
+function infoRing(g){if(!ISEL||!K)return;const v=ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i];if(!v)return;const p=proj(v);if(!p)return;
+ const r=ISEL.t==='p'?bodyR(K.bodies.find(b=>b.k===ISEL.k))+7:9;g.strokeStyle='rgba(209,171,116,.9)';g.lineWidth=1.5;g.beginPath();g.arc(p[0],p[1],r,0,7);g.stroke()}
+
 })();
 </script>
 
