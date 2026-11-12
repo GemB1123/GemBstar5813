@@ -31,6 +31,12 @@ button.on,button[aria-pressed="true"]{background:var(--gold);color:#1b1408;borde
 .sheet .pl{display:block;width:100%;text-align:left;margin-bottom:4px;font-weight:500}.sheet .pl small{color:var(--dim)}
 .sheet[hidden]{display:none}
 /* sub-menu rows (Gemini, Nov 12): holding Armillary or Orion slides up a row of smaller icons above the bar; tap = on/off, hold = its panel */
+/* camera overlays (Gemini, Nov 12): seen on screen only, never in photos or videos (those draw from the canvas) */
+.mixov{position:fixed;right:8px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;gap:6px;z-index:2;opacity:.55;color:#d1ab74;font-size:15px}
+body.camon .mixov{display:flex}.mixov:active,.mixov:focus-within{opacity:.95}
+.mixov input{writing-mode:vertical-lr;direction:rtl;width:22px;height:170px;accent-color:#d1ab74;margin:0}
+.stopov{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 66px);display:none;align-items:center;gap:8px;padding:9px 18px 9px 14px;border-radius:24px;border:1px solid rgba(255,255,255,.35);background:rgba(160,20,20,.85);color:#fff;font:600 15px -apple-system,Inter,sans-serif;z-index:3}
+.stopov i{width:13px;height:13px;border-radius:2px;background:#fff;display:block}body.recording .stopov{display:flex}body.rowopen .stopov{bottom:calc(env(safe-area-inset-bottom) + 122px)}
 .subbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;justify-content:space-around;gap:2px;padding:4px;background:rgba(10,12,22,.9);border:1px solid rgba(209,171,116,.35);border-radius:12px;z-index:2}
 .subbar[hidden]{display:none}.subbar button{flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
 .subbar button svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.subbar button[aria-pressed="true"]{background:rgba(209,171,116,.16)}.subbar button[aria-pressed="false"]{opacity:.55}
@@ -90,8 +96,12 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <div id="camm" class="sheet" hidden role="dialog" aria-label="Camera"><button class="x" data-close aria-label="Close">×</button><h3>Camera</h3><p class="sub">The live camera behind the sky. Selfie puts the sky behind you.</p><div class="row">
  <button data-cm="off">Off</button><button data-cm="environment">Back Camera</button><button data-cm="user">Selfie</button></div>
  <div class="cap">CAPTURE</div><div class="row"><button id="snapb">Take Photo</button><button id="recb">Record Video</button></div>
+ <label class="sl">Camera ↔ Stars <input type="range" id="cmix" min="0" max="100" step="5" aria-label="Camera to stars"><b id="cmixv"></b></label>
+ <div class="row"><button id="micb" aria-pressed="true">Microphone</button></div><p class="sub">With Microphone on, videos record sound.</p>
  <label class="sl">Match Camera <input type="range" id="cfov" min="30" max="100" step="1" aria-label="Camera field of view"><b id="cfovv"></b></label>
  <p class="sub">If the stars drift from the real ones toward the screen's edges, slide Match Camera until they line up.</p></div>
+<div class="mixov" aria-label="Camera and stars"><span aria-hidden="true">✦</span><input type="range" id="cmix2" min="0" max="100" step="5" aria-label="Camera to stars: up for more stars"><span aria-hidden="true">◉</span></div>
+<button class="stopov" id="stopov" aria-label="Stop recording"><i></i>Stop</button>
 <nav class="subbar" id="subbar" hidden aria-label="Sub-menu"></nav>
 <nav class="bar" aria-label="Sky Mode">
  <button class="f ic" id="mbtn" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -315,12 +325,12 @@ const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],[
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
 const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
- yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,armMem:null};
+ yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
- if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(typeof s.seeThru==='number')ST.seeThru=s.seeThru;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru:ST.seeThru,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,armMem:ST.armMem}))}catch(e){}};
+ if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(typeof s.seeThru==='number')ST.seeThru=s.seeThru;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru:ST.seeThru,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -459,8 +469,8 @@ function sphere(k,rp,L){const T=ptex(k);if(!T)return null;const n=Math.max(6,Mat
  const cv=c0?c0.cv:document.createElement('canvas');cv.width=cv.height=n;const g=cv.getContext('2d'),im=g.createImageData(n,n),o=im.data,rr=n/2,lit=k==='Sun',bf=k==='Moon'?1.15:k==='Venus'||k==='Uranus'?1:1.3;
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=(i+.5-rr)/rr,y=(rr-j-.5)/rr,q=x*x+y*y,p=(j*n+i)*4;if(q>1){o[p+3]=0;continue}
   const z=Math.sqrt(1-q),u=.5+Math.atan2(x,z)/(2*Math.PI),la=Math.asin(y),tx=Math.min(T.w-1,(u*T.w)|0),ty=Math.min(T.h-1,((.5-la/Math.PI)*T.h)|0),t=(ty*T.w+tx)*4;
-  /* the night side is truly dark (Gemini, Nov 12): no ghost of the full face; it turns clear, so the sky shows through, with a narrow soft terminator */
-  const c=x*L[0]+y*L[1]+z*L[2],sh=lit?1.2:Math.min(1,.35+c*1.6),al=lit?1:Math.max(0,Math.min(1,(c+.02)/.08));
+  /* the night side (Gemini, Nov 12): the full face at 20% under the lit phase at full strength, so a dark Moon still shows; a narrow soft terminator */
+  const c=x*L[0]+y*L[1]+z*L[2],tt=Math.max(0,Math.min(1,(c+.02)/.08)),sh=lit?1.2:.2+(Math.min(1,.35+c*1.6)-.2)*tt,al=1;
   o[p]=Math.min(255,T.px[t]*sh*bf);o[p+1]=Math.min(255,T.px[t+1]*sh*bf);o[p+2]=Math.min(255,T.px[t+2]*sh*bf);o[p+3]=Math.round(al*(q>.9?255*(1-q)/.1:255))}
  g.putImageData(im,0,0);SPH[k]={key,cv};return cv}
 /* planet labels (Gemini, Nov 12): the Device's glyphs (PLG), bold, in each planet's color with a dark edge, beside the planet */
@@ -512,9 +522,9 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
    const inn=pts.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H);if(inn.length>=3)lab.push([D.names[ab]||ab,inn.reduce((v,p)=>v+p[0],0)/inn.length,inn.reduce((v,p)=>v+p[1],0)/inn.length])}
   if(ST.cons)g.stroke();if(ST.cnames){g.fillStyle='rgba(160,180,225,.85)';g.font=`${12*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [n,x,y] of lab)g.fillText(n,x,y+18)}g.globalAlpha=1}
  /* stars, fading in daylight */
- const lim=ST.daystars?(sa>-6?4.5:5.6):(sa>-1?1.0:sa>-6?2.5:sa>-12?4.5:5.6);
+ const lim=camOn?5.6:ST.daystars?(sa>-6?4.5:5.6):(sa>-1?1.0:sa>-6?2.5:sa>-12?4.5:5.6),cb=camOn?1.4:1;   /* over the camera: every star, larger and brighter (Gemini, Nov 12) */
  g.fillStyle='#fff';for(let i=0;i<K.stars.length;i++){const v=K.stars[i];if(!v)continue;const m=D.stars[i][2];if(m>lim)continue;const p=proj(v);if(!p||p[0]<-5||p[0]>W+5||p[1]<-5||p[1]>H+5)continue;
-  g.globalAlpha=fade*Math.min(1,0.35+(lim-m)*0.25);g.beginPath();g.arc(p[0],p[1],Math.max(0.6,(3.2-m*0.5))*tiny,0,7);g.fill()}
+  g.globalAlpha=fade*Math.min(1,(camOn?0.6:0.35)+(lim-m)*0.25);g.beginPath();g.arc(p[0],p[1],Math.max(camOn?0.9:0.6,(3.2-m*0.5)*cb)*tiny,0,7);g.fill()}
  g.globalAlpha=1;
  if(ST.snames){g.globalAlpha=fade;g.fillStyle='rgba(255,255,255,.75)';g.font=`${11*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';for(const [i,n] of NAMED){const v=K.stars[i];if(!v||D.stars[i][2]>lim)continue;const p=proj(v);if(p)g.fillText(n,p[0]+5,p[1]-4)}g.globalAlpha=1}
  /* the ecliptic (gold) and Ana's sign glyphs in the band */
@@ -593,7 +603,7 @@ function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttr
  document.querySelectorAll('[data-pl]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pl===ST.plab));
  document.querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===ST.psize));
  document.querySelectorAll('[data-cm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cm===(ST.cam||'off')));
- $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on)}
+ $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on);document.body.classList.toggle('recording',REC.on)}
 /* the Armillary: tap turns all its circles off, and back on to the same ones (Gemini, Nov 12) */
 holdable('abtn',()=>{if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>toggleRow('arm'));
 /* Houses (Gemini, Nov 12): each tap steps through four states: lines, lines with degrees, lines with degree sign minute, off */
@@ -613,6 +623,12 @@ document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');if(
  save();sync()});
 $('mwbr').addEventListener('input',()=>{ST.mwBr=$('mwbr').value/100;$('mwbrv').textContent=$('mwbr').value+'%';save()});
 $('gst').addEventListener('input',()=>{ST.seeThru=$('gst').value/100;$('gstv').textContent=$('gst').value+'%';save()});
+/* Camera and Stars (Gemini, Nov 12): one slider from all camera to all stars; the middle shows both at full strength */
+function mixA(){const m=ST.camMix;return [Math.min(1,2*(1-m)),Math.min(1,2*m)]}
+function applyMix(){const a=ST.cam?mixA():[1,1];vid.style.opacity=a[0];cv.style.opacity=a[1];$('cmixv').textContent=ST.camMix<.5?'More camera':ST.camMix>.5?'More stars':'Both'}
+for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+$(id).value/100;$('cmix').value=$('cmix2').value=$(id).value;applyMix();save()});
+$('stopov').onclick=()=>{if(REC.on)recStop()};
+$('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
 $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').textContent=ST.camFov+'°';save()});
 /* ---- the clock: date and time at the chosen place (Gemini, Nov 12) ---- */
 const fig=' ',p2=n=>String(n).padStart(2,fig);
@@ -632,7 +648,7 @@ function barText(){const q=zparts(Date.now()+TOFF),h=q.h,m=q.mi,iso=x=>String(x)
  const inr=q.y>=1&&q.y<=9999;   /* the phone's date picker only knows years 1 to 9999 */
  if(document.activeElement!==$('din'))$('din').value=inr?`${String(q.y).padStart(4,'0')}-${iso(q.mo)}-${iso(q.d)}`:'';if(document.activeElement!==$('tin'))$('tin').value=`${iso(h)}:${iso(m)}`;sync()}
 setInterval(barText,1000);
-const LIM=[-3000,3000];   /* the years this sky is good for (see NOTES.md); further out the planets drift */
+const LIM=[-12900,16900];   /* NASA JPL DE441's span (Gemini, Nov 12: way back and way forward); stars use simple precession that far out until the Ages work (Vondrák) */
 const jump=ms=>{const y=new Date(ms).getUTCFullYear();if(y<LIM[0]-1||y>LIM[1]+1){say(`Sky Mode reaches ${-LIM[0]+1} BCE to ${LIM[1]} for now.`,3500);return}TOFF=Math.abs(ms-Date.now())<30000?0:ms-Date.now();SKY=null;K=null;barText()};
 $('din').addEventListener('change',()=>{const v=$('din').value;if(!v)return;const [y,mo,da]=v.split('-').map(Number),q=zparts(Date.now()+TOFF);jump(zms(y,mo,da,q.h,q.mi))});
 $('tin').addEventListener('change',()=>{const v=$('tin').value;if(!v)return;const [h,mi]=v.split(':').map(Number),q=zparts(Date.now()+TOFF);jump(zms(q.y,q.mo,q.d,h,mi))});
@@ -689,27 +705,29 @@ $('here').onclick=()=>{closeSheets();locateMe()};
 const vid=$('cam');let STREAM=null;
 async function camOn(mode){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser has no camera access. Open the page in Safari or Chrome.',5000);return}
  try{if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:mode},width:{ideal:1920},height:{ideal:1080}},audio:false});
-  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode==='user');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');sync()}
+  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode==='user');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');applyMix();sync()}
  catch(e){say('The camera did not open'+(e&&e.name==='NotAllowedError'?': camera permission was not given.':'.'),5000);camOff()}}
-function camOff(){if(REC.on)recStop();if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=null;vid.srcObject=null;vid.hidden=true;ST.cam=null;document.body.classList.remove('camon');sync()}
+function camOff(){if(REC.on)recStop();if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=null;vid.srcObject=null;vid.hidden=true;ST.cam=null;document.body.classList.remove('camon');applyMix();sync()}
 /* photos and video: the camera picture (cropped to fill, as on screen) with the sky drawn over it, onto one canvas */
 const REC={on:false,snap:false,cv:null,mr:null,chunks:[]};
 function compose(){if(!REC.cv)REC.cv=document.createElement('canvas');const c=REC.cv,w=cv.width,h=cv.height;if(c.width!==w||c.height!==h){c.width=w;c.height=h}const g=c.getContext('2d');
- if(ST.cam&&vid.videoWidth){const vw=vid.videoWidth,vh=vid.videoHeight,s=Math.max(w/vw,h/vh),dw=vw*s,dh=vh*s;g.save();if(ST.cam==='user'){g.translate(w,0);g.scale(-1,1)}g.drawImage(vid,(w-dw)/2,(h-dh)/2,dw,dh);g.restore()}
+ if(ST.cam&&vid.videoWidth){const vw=vid.videoWidth,vh=vid.videoHeight,s=Math.max(w/vw,h/vh),dw=vw*s,dh=vh*s;g.save();if(ST.cam==='user'){g.translate(w,0);g.scale(-1,1)}g.fillStyle='#000';g.fillRect(0,0,w,h);g.globalAlpha=mixA()[0];g.drawImage(vid,(w-dw)/2,(h-dh)/2,dw,dh);g.restore()}
  else{g.fillStyle='#04060f';g.fillRect(0,0,w,h)}
- g.drawImage(cv,0,0);if(ST.night){g.globalCompositeOperation='multiply';g.fillStyle='#ff2a10';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over'}
+ g.globalAlpha=ST.cam?mixA()[1]:1;g.drawImage(cv,0,0);g.globalAlpha=1;if(ST.night){g.globalCompositeOperation='multiply';g.fillStyle='#ff2a10';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over'}
  if(REC.snap){REC.snap=false;c.toBlob(b=>b&&deliver(b,'sky-'+stamp()+'.png'),'image/png')}}
 const stamp=()=>{const d=new Date(Date.now()+TOFF),i=x=>String(x).padStart(2,'0');return `${d.getFullYear()}-${i(d.getMonth()+1)}-${i(d.getDate())}-${i(d.getHours())}${i(d.getMinutes())}`};
 async function deliver(blob,name){const f=new File([blob],name,{type:blob.type});
  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e&&e.name==='AbortError')return}
  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
 $('snapb').onclick=()=>{REC.snap=true;closeSheets();say('Photo taken.',2500)};
-function recStart(){if(!window.MediaRecorder||!cv.captureStream&&!document.createElement('canvas').captureStream){say('Video recording is not available in this browser.',5000);return}
+async function recStart(){if(!window.MediaRecorder||!cv.captureStream&&!document.createElement('canvas').captureStream){say('Video recording is not available in this browser.',5000);return}
  compose();const types=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp9','video/webm'],type=types.find(t=>MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))||'';
- try{const mr=new MediaRecorder(REC.cv.captureStream(30),type?{mimeType:type,videoBitsPerSecond:8e6}:{});REC.chunks=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data)};
-  mr.onstop=()=>{const t=mr.mimeType||type||'video/mp4',b=new Blob(REC.chunks,{type:t});deliver(b,'sky-'+stamp()+(t.includes('webm')?'.webm':'.mp4'))};mr.start(1000);REC.mr=mr;REC.on=true;closeSheets();say('Recording. Tap the camera icon\'s menu, or hold it, to stop.',4000)}
+ const vs=REC.cv.captureStream(30);REC.mic=null;
+ if(ST.mic){try{REC.mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}});REC.mic.getAudioTracks().forEach(t=>vs.addTrack(t))}catch(e){say('Recording without sound: microphone permission was not given.',4000)}}
+ try{const mr=new MediaRecorder(vs,type?{mimeType:type,videoBitsPerSecond:8e6}:{});REC.chunks=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data)};
+  mr.onstop=()=>{const t=mr.mimeType||type||'video/mp4',b=new Blob(REC.chunks,{type:t});deliver(b,'sky-'+stamp()+(t.includes('webm')?'.webm':'.mp4'))};mr.start(1000);REC.mr=mr;REC.on=true;closeSheets();say('Recording. Tap Stop to finish.',3000)}
  catch(e){say('Video recording did not start.',5000)}sync()}
-function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();REC.on=false;say('Recording saved.',3000);sync()}
+function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();if(REC.mic){REC.mic.getTracks().forEach(t=>t.stop());REC.mic=null}REC.on=false;say('Recording saved.',3000);sync()}
 $('recb').onclick=()=>{REC.on?recStop():recStart()};
 $('zsel').innerHTML='<option value="trop">Tropical</option>'+PLN_AYAN.map(a=>`<option value="${a[0]}">Sidereal: ${a[1]}</option>`).join('');
 $('zsel').addEventListener('change',()=>{ST.zod=$('zsel').value;K=null;save();sync()});
@@ -749,10 +767,10 @@ const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP
 armIcon();
 document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
-$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cfovv').textContent=ST.camFov+'°';
+$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
 requestAnimationFrame(draw);
-window.__sky={ST,camera:()=>CAM,sky:()=>K};
+window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
 })();
 </script>
 
