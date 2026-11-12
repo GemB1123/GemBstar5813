@@ -1425,11 +1425,15 @@ function plnGroundSVG(){const C=PLN_CFG,P=plnS(),K=plnSky(),sun=K.bodies[0],W=C.
   for(let n=1;n<=12;n++){const cp=pr(...ecp(cu[n]));
    if(P.hsys==='placidus'){const f={10:[0,0],11:[-1/3,0],12:[-2/3,0],1:[-1,0],2:[-1,-1/3],3:[-1,-2/3],4:[0,-1],5:[1,2/3],6:[1,1/3],7:[1,0],8:[2/3,0],9:[1/3,0]}[n],pts=[],ext=[];
     /* Gemini, Nov 11: the lines used to stop where stars never rise or set (declination beyond 90° minus the latitude).
-       Placidus can't divide those arcs, so past that edge each line carries on dashed to the pole, treating an always-up
-       circle as all day and a never-up circle as all night, and the house lines meet at the poles. */
+       Placidus can't divide those arcs, so past that edge each line carries on (solid, Gemini asked) to the pole, where the
+       twelve lines meet evenly spaced. */
     const lim=90-Math.abs(K.w.lat),decs=[];for(let de=-89;de<=89;de+=2)decs.push(de);if(lim<89)decs.push(lim,-lim);decs.sort((a,b)=>a-b);
     for(const de of decs){const x=-Math.tan(phi)*Math.tan(rad(de)),out=Math.abs(x)>1+1e-9,edge=Math.abs(Math.abs(de)-lim)<1e-6,dsa=deg(Math.acos(Math.max(-1,Math.min(1,x)))),nsa=180-dsa;
-     const ha=n===4?180:n===10?0:Math.sign(f[0]||f[1])*(Math.abs(f[0])*dsa+Math.abs(f[1])*nsa),q=toAA(ha,de);pts.push(out?null:q);ext.push(out||edge?q:null)}
+     let ha=n===4?180:n===10?0:Math.sign(f[0]||f[1])*(Math.abs(f[0])*dsa+Math.abs(f[1])*nsa);
+     /* Gemini, Nov 11: past the edge, ease each line from where it leaves the edge to an even 30° spoke at the pole, so the
+        twelve lines fan into the pole like a wheel instead of four of them sliding down the meridian together */
+     if(out&&n!==4&&n!==10){const sp=-(((n-10+12)%12)>6?((n-10+12)%12)-12:((n-10+12)%12))*30,tt=(Math.abs(de)-lim)/(90-lim);ha=ha*(1-tt)+sp*tt}
+     const q=toAA(ha,de);pts.push(out?null:q);ext.push(out||edge?q:null)}
     d+=plnLine(pr,pts);dx+=plnLine(pr,ext)}
    else{const cv=(()=>{const q=plnEq(cu[n],0,K.eps),h2=K.aa(q[0],q[1]),A=rad(h2[0]),Z=rad(h2[1]);return [Math.cos(A)*Math.sin(Z),Math.cos(A)*Math.cos(Z),Math.sin(A)]})(),N=[0,1,0];
     const dt=cv[1],u=[cv[0],cv[1]-dt,cv[2]],m=Math.hypot(...u);if(m<1e-6)continue;const U=u.map(x=>x/m),pts=[];
