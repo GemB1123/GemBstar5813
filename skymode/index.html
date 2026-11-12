@@ -192,10 +192,10 @@ const D=window.EA_PLN_SKY,E=window.EA_EPH;
 const SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 const GLY={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆'};
 const PCOL={Sun:'#ffd75e',Moon:'#f2ecd8',Mercury:'#c9c0b0',Venus:'#fff3c4',Mars:'#ff8a5c',Jupiter:'#ffe2b0',Saturn:'#f0d08a',Uranus:'#a8e6e6',Neptune:'#8fb0ff'};
-const ST={lat:37.8044,lon:-122.2712,place:'Oakland',track:false,night:false,off:0,fov:60,sensors:false,
+const ST={lat:37.8044,lon:-122.2712,place:'Oakland',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:60,sensors:false,
  yaw:0,pitch:20,roll:0,M:null,cons:true,names:true,snames:true,zod:true,tapInfo:null,align:null};
-try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place}}catch(e){}
-const save=()=>{try{localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place}))}catch(e){}};
+try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}}catch(e){}
+const save=()=>{try{localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -330,15 +330,22 @@ $('align').onclick=()=>{const L=$('alist');if(!L.hidden){L.hidden=true;return}if
 document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);
 /* ---- the bar (Gemini, Nov 12): Menu, Date, Time, Location, Red Light; the whole screen is sky ---- */
 const fig=' ',p2=n=>String(n).padStart(2,fig);
-function barText(){const d=new Date(Date.now()+TOFF),h=d.getHours(),m=d.getMinutes();
+/* the clock shows the chosen place's own time (Gemini, Nov 12), with its daylight saving rules, from the place list's time zone;
+   'My Location' and no zone use the phone's clock */
+function zparts(ms){const tz=ST.tz;if(!tz){const d=new Date(ms);return {y:d.getFullYear(),mo:d.getMonth()+1,d:d.getDate(),h:d.getHours(),mi:d.getMinutes()}}
+ try{const o={};for(const x of new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}).formatToParts(new Date(ms)))o[x.type]=x.value;
+  return {y:+o.year,mo:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute}}catch(e){ST.tz=null;return zparts(ms)}}
+function zms(y,mo,d,h,mi){if(!ST.tz)return new Date(y,mo-1,d,h,mi,0,0).getTime();const want=Date.UTC(y,mo-1,d,h,mi);let ms=want;
+ for(let k=0;k<3;k++){const q=zparts(ms),got=Date.UTC(q.y,q.mo-1,q.d,q.h,q.mi);ms+=want-got}return ms}
+function barText(){const q=zparts(Date.now()+TOFF),d={getFullYear:()=>q.y,getMonth:()=>q.mo-1,getDate:()=>q.d},h=q.h,m=q.mi;
  $('dtx').textContent=`${p2(d.getMonth()+1)}/${p2(d.getDate())}/${d.getFullYear()}`;
  $('ttx').textContent=`${p2(h%12||12)}:${String(m).padStart(2,'0')}${h<12?'am':'pm'}`;
  $('ltx').textContent=ST.place;
  const iso=x=>String(x).padStart(2,'0');$('din').value=`${d.getFullYear()}-${iso(d.getMonth()+1)}-${iso(d.getDate())}`;if(document.activeElement!==$('tin'))$('tin').value=`${iso(h)}:${iso(m)}`}
 setInterval(barText,1000);barText();
 const jump=ms=>{TOFF=ms-Date.now();SKY=null;K=null;barText()};
-$('din').addEventListener('change',()=>{const v=$('din').value;if(!v)return;const [y,mo,da]=v.split('-').map(Number),d=new Date(Date.now()+TOFF);d.setFullYear(y,mo-1,da);jump(d.getTime())});
-$('tin').addEventListener('change',()=>{const v=$('tin').value;if(!v)return;const [h,mi]=v.split(':').map(Number),d=new Date(Date.now()+TOFF);d.setHours(h,mi,0,0);jump(d.getTime())});
+$('din').addEventListener('change',()=>{const v=$('din').value;if(!v)return;const [y,mo,da]=v.split('-').map(Number),q=zparts(Date.now()+TOFF);jump(zms(y,mo,da,q.h,q.mi))});
+$('tin').addEventListener('change',()=>{const v=$('tin').value;if(!v)return;const [h,mi]=v.split(':').map(Number),q=zparts(Date.now()+TOFF);jump(zms(q.y,q.mo,q.d,h,mi))});
 $('now').onclick=()=>{TOFF=0;SKY=null;K=null;barText();closeSheets()};
 /* sheets: the Menu and the Location search; X or Escape closes them (the Device's menu rule) */
 function closeSheets(){for(const id of ['menu','locs'])$(id).hidden=true;$('mbtn').setAttribute('aria-expanded','false')}
@@ -348,16 +355,16 @@ $('mbtn').onclick=()=>{const open=$('menu').hidden;closeSheets();$('menu').hidde
 $('lbtn').onclick=()=>{const open=$('locs').hidden;closeSheets();$('locs').hidden=!open;if(open){loadPlaces();setTimeout(()=>$('lq').focus(),50)}};
 /* places: the Device's GeoNames list (places.txt, CC BY 4.0), fetched only when needed */
 let PL=null,PLwait=null;
-function loadPlaces(){if(PL||PLwait)return PLwait;PLwait=(async()=>{for(const u of ['places.txt','../planetarium/places.txt']){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text(),L=t.split('\n');const a=[];
-  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([f[0],f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase()])}PL=a;return a}catch(e){}}PL=[];return PL})();return PLwait}
-function setPlace(name,lat,lon){ST.lat=lat;ST.lon=lon;ST.place=name;SKY=null;K=null;save();barText();closeSheets()}
+function loadPlaces(){if(PL||PLwait)return PLwait;PLwait=(async()=>{for(const u of ['places.txt','../planetarium/places.txt']){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text(),L=t.split('\n'),TZ=L[0].split(',');const a=[];
+  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([f[0],f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;return a}catch(e){}}PL=[];return PL})();return PLwait}
+function setPlace(name,lat,lon,tz){ST.lat=lat;ST.lon=lon;ST.place=name;ST.tz=tz||null;SKY=null;K=null;save();barText();closeSheets()}
 $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerCase(),R=$('lres');if(q.length<2){R.innerHTML='';return}await loadPlaces();
  const hit=[];for(const p of PL){if(p[4].startsWith(q))hit.push(p);if(hit.length>=12)break}
  if(hit.length<12)for(const p of PL){if(!p[4].startsWith(q)&&(p[4].includes(q)||p[5].includes(q)))hit.push(p);if(hit.length>=12)break}
  R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${p[1]} · ${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
- R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3])}}});
+ R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3],p[6])}}});
 function locateMe(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
-  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];save();barText()}},
+  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;save();barText()}},
  ()=>{$('msg').textContent='Location was not shared: tap the place name to choose one.'},{enableHighAccuracy:false,timeout:15000,maximumAge:6e5})}
 $('here').onclick=()=>{closeSheets();locateMe()};
 requestAnimationFrame(draw);
