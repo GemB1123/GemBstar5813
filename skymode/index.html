@@ -33,7 +33,9 @@ button.on,button[aria-pressed="true"]{background:var(--gold);color:#1b1408;borde
 .sheet .big{font-size:20px;font-weight:600;margin:0 0 8px;font-variant-numeric:tabular-nums}
 .sheet input[type=date],.sheet input[type=time]{font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px 10px;min-height:44px;color-scheme:dark}
 .sheet label.sl{display:flex;align-items:center;gap:10px;width:100%;margin-top:6px;font-size:14px}.sheet label.sl input{flex:1}
-.sheet button[disabled]{opacity:.45}input[type=range]{accent-color:var(--gold)}.sheet select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:44px}
+.sheet button[disabled]{opacity:.45}input[type=range]{accent-color:var(--gold)}.sheet .tm{display:flex;gap:4px;margin-top:4px}.sheet .tm button{flex:1;padding:9px 0;min-width:0}.sheet .tm #now2{flex:1.5}.sheet .tm2{margin-top:8px}.sheet .tm2 button{flex:0 0 52px;font-size:20px}
+.sheet .tm2 input,.sheet .tm2 select{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px;min-height:44px}
+.sheet select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:44px}
 video#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000}video#cam.selfie{transform:scaleX(-1)}video#cam[hidden]{display:none}
 canvas#sky{z-index:1}
 #start{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);font-size:18px;padding:16px 22px;background:var(--gold);color:#1b1408;z-index:3;box-shadow:0 8px 30px rgba(0,0,0,.6)}
@@ -61,7 +63,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <div id="clock" class="sheet" hidden role="dialog" aria-label="Date and time"><button class="x" data-close aria-label="Close">×</button><h3>Date And Time</h3>
  <p class="big"><span id="ktx"></span> <small id="ktag" class="sub"></small></p><p class="sub">Local time in <span id="kplace"></span>.</p>
  <div class="row"><input type="date" id="din" aria-label="Date"><input type="time" id="tin" aria-label="Time"></div>
- <div class="cap">STEP</div><div class="row"><button data-step="-24">−1 Day</button><button data-step="-1">−1 Hour</button><button id="now2">Now</button><button data-step="1">+1 Hour</button><button data-step="24">+1 Day</button></div></div>
+ <div class="cap">TIME MACHINE</div><div class="tm"><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button data-st="-1 min" aria-label="Back one minute">−M</button><button id="now2">Now</button><button data-st="1 min" aria-label="Forward one minute">+M</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button></div>
+ <div class="tm tm2"><button id="cminus" aria-label="Back by the step">−</button><input type="number" id="camt" value="1" min="1" inputmode="numeric" aria-label="Step amount"><select id="cunit" aria-label="Step unit"><option value="min">Minutes</option><option value="hour">Hours</option><option value="day">Days</option><option value="week">Weeks</option><option value="month">Months</option><option value="year" selected>Years</option><option value="century">Centuries</option><option value="millennium">Millennia</option></select><button id="cplus" aria-label="Forward by the step">+</button></div></div>
 <div id="locs" class="sheet" hidden role="dialog" aria-label="Location"><button class="x" data-close aria-label="Close">×</button><h3>Location</h3><p class="sub">Now: <span id="lcur"></span></p>
  <input type="search" id="lq" placeholder="Search for a city" autocomplete="off" aria-label="Search for a city">
  <button id="here" class="pl">Use My Location</button><div id="lres"></div></div>
@@ -565,20 +568,32 @@ $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').te
 const fig=' ',p2=n=>String(n).padStart(2,fig);
 /* the clock shows the chosen place's own time, with its daylight saving rules, from the place list's time zone;
    'My Location' and no zone use the phone's clock */
+/* any year: Date.UTC reads 0-99 as 1900-1999, so build UTC moments with setUTCFullYear; years are astronomical (0 = 1 BCE) */
+function U(y,mo,d,h,mi){const t=new Date(0);t.setUTCFullYear(y,mo-1,d);t.setUTCHours(h,mi,0,0);return t.getTime()}
 function zparts(ms){const tz=ST.tz;if(!tz){const d=new Date(ms);return {y:d.getFullYear(),mo:d.getMonth()+1,d:d.getDate(),h:d.getHours(),mi:d.getMinutes()}}
- try{const o={};for(const x of new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}).formatToParts(new Date(ms)))o[x.type]=x.value;
-  return {y:+o.year,mo:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute}}catch(e){ST.tz=null;return zparts(ms)}}
-function zms(y,mo,d,h,mi){if(!ST.tz)return new Date(y,mo-1,d,h,mi,0,0).getTime();const want=Date.UTC(y,mo-1,d,h,mi);let ms=want;
- for(let k=0;k<3;k++){const q=zparts(ms),got=Date.UTC(q.y,q.mo-1,q.d,q.h,q.mi);ms+=want-got}return ms}
+ try{const o={};for(const x of new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',era:'short',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric'}).formatToParts(new Date(ms)))o[x.type]=x.value;
+  const y=/^B/i.test(o.era||'')?1-(+o.year):+o.year;return {y,mo:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute}}catch(e){ST.tz=null;return zparts(ms)}}
+function zms(y,mo,d,h,mi){if(!ST.tz){const t=new Date(2000,0,1,0,0,0,0);t.setFullYear(y,mo-1,d);t.setHours(h,mi,0,0);return t.getTime()}const want=U(y,mo,d,h,mi);let ms=want;
+ for(let k=0;k<3;k++){const q=zparts(ms),got=U(q.y,q.mo,q.d,q.h,q.mi);ms+=want-got}return ms}
+const yrTxt=y=>y<=0?(1-y)+' BCE':String(y);
 function barText(){const q=zparts(Date.now()+TOFF),h=q.h,m=q.mi,iso=x=>String(x).padStart(2,'0');
- $('ktx').textContent=`${q.mo}/${q.d}/${q.y}, ${h%12||12}:${iso(m)}${h<12?'am':'pm'}`;$('kplace').textContent=ST.place;$('ktag').textContent=TOFF===0?'Now':'Not now';
+ $('ktx').textContent=`${q.mo}/${q.d}/${yrTxt(q.y)}, ${h%12||12}:${iso(m)}${h<12?'am':'pm'}`;$('kplace').textContent=ST.place;$('ktag').textContent=TOFF===0?'Now':'Not now';
  $('kbtn').setAttribute('aria-label','Date and time: '+$('ktx').textContent);$('lbtn').setAttribute('aria-label','Location: '+ST.place);$('lcur').textContent=ST.place;
- if(document.activeElement!==$('din'))$('din').value=`${q.y}-${iso(q.mo)}-${iso(q.d)}`;if(document.activeElement!==$('tin'))$('tin').value=`${iso(h)}:${iso(m)}`;sync()}
+ const inr=q.y>=1&&q.y<=9999;   /* the phone's date picker only knows years 1 to 9999 */
+ if(document.activeElement!==$('din'))$('din').value=inr?`${String(q.y).padStart(4,'0')}-${iso(q.mo)}-${iso(q.d)}`:'';if(document.activeElement!==$('tin'))$('tin').value=`${iso(h)}:${iso(m)}`;sync()}
 setInterval(barText,1000);
-const jump=ms=>{TOFF=Math.abs(ms-Date.now())<30000?0:ms-Date.now();SKY=null;K=null;barText()};
+const LIM=[-3000,3000];   /* the years this sky is good for (see NOTES.md); further out the planets drift */
+const jump=ms=>{const y=new Date(ms).getUTCFullYear();if(y<LIM[0]-1||y>LIM[1]+1){say(`Sky Mode reaches ${-LIM[0]+1} BCE to ${LIM[1]} for now.`,3500);return}TOFF=Math.abs(ms-Date.now())<30000?0:ms-Date.now();SKY=null;K=null;barText()};
 $('din').addEventListener('change',()=>{const v=$('din').value;if(!v)return;const [y,mo,da]=v.split('-').map(Number),q=zparts(Date.now()+TOFF);jump(zms(y,mo,da,q.h,q.mi))});
 $('tin').addEventListener('change',()=>{const v=$('tin').value;if(!v)return;const [h,mi]=v.split(':').map(Number),q=zparts(Date.now()+TOFF);jump(zms(q.y,q.mo,q.d,h,mi))});
-document.querySelectorAll('[data-step]').forEach(b=>b.onclick=()=>jump(Date.now()+TOFF+(+b.dataset.step)*36e5));
+/* the Time Machine (Gemini, Nov 12): −D −H −M Now +M +H +D, and a row beneath for any step (333 years, two millennia...) */
+const UNIT={min:6e4,hour:36e5,day:864e5,week:6048e5,month:'mo',year:'y',century:'c',millennium:'k'};
+function stepBy(n,u){const now=Date.now()+TOFF,f=UNIT[u];if(typeof f==='number')return jump(now+n*f);const q=zparts(now);
+ let y=q.y,mo=q.mo;if(f==='mo'){mo+=n;y+=Math.floor((mo-1)/12);mo=((mo-1)%12+12)%12+1}else y+=n*(f==='y'?1:f==='c'?100:1000);
+ const dim=new Date(U(y,mo+1,0,12,0)).getUTCDate();jump(zms(y,mo,Math.min(q.d,dim),q.h,q.mi))}
+document.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{const [n,u]=b.dataset.st.split(' ');stepBy(+n,u)});
+for(const [id,sg] of [['cminus',-1],['cplus',1]])$(id).onclick=()=>{const n=Math.max(0,Math.round(+$('camt').value||0));if(n)stepBy(sg*n,$('cunit').value);try{localStorage.setItem('skymode-step',$('camt').value+' '+$('cunit').value)}catch(e){}};
+try{const v=(localStorage.getItem('skymode-step')||'').split(' ');if(+v[0]>0&&UNIT[v[1]]){$('camt').value=v[0];$('cunit').value=v[1]}}catch(e){}
 $('now').onclick=$('now2').onclick=()=>{TOFF=0;SKY=null;K=null;barText()};
 $('kbtn').onclick=()=>openSheet('clock');
 $('lbtn').onclick=()=>{openSheet('locs');loadPlaces();setTimeout(()=>$('lq').focus(),50)};
