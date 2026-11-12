@@ -313,7 +313,7 @@ const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],['lgrid','Ecliptic Grid',false,'arm'],['egrid','Equatorial Grid',false,'arm'],['ggrid','Galactic Grid',false,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
-const ST={lat:37.8044,lon:-122.2712,place:'Oakland',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
+const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
  yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
@@ -648,13 +648,19 @@ addEventListener('keydown',e=>{if(e.key!=='Escape')return;const any=SHEETS.some(
 $('mbtn').onclick=()=>openSheet('menu');
 /* places: the Device's GeoNames list (places.txt, CC BY 4.0), fetched only when needed */
 let PL=null,PLwait=null;
+/* place labels (Gemini, Nov 12): U.S. places carry the state, as in Boston, MA, USA; other places carry the country name */
+let CN=null;try{CN=new Intl.DisplayNames(['en'],{type:'region'})}catch(e){}
+function plabel(n,cc,a1){if(cc==='US')return n+(a1&&/^[A-Z]{2}$/.test(a1)?', '+a1:'')+', USA';let c=cc;try{if(CN&&cc)c=CN.of(cc)||cc}catch(e){}return c?n+', '+c:n}
 function loadPlaces(){if(PL||PLwait)return PLwait;PLwait=(async()=>{for(const u of ['places.txt','../planetarium/places.txt']){try{const r=await fetch(u);if(!r.ok)continue;const t=await r.text(),L=t.split('\n'),TZ=L[0].split(',');const a=[];
-  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([f[0],f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;return a}catch(e){}}PL=[];return PL})();return PLwait}
+  for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([plabel(f[0],f[2],f[3]),f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;relabel();return a}catch(e){}}PL=[];return PL})();return PLwait}
+/* a place saved before the labels changed gets its state or country added */
+function relabel(){if(!ST.place||ST.place.includes(',')||ST.place==='My Location')return;const n=ST.place.toLowerCase();let b=null,bd=1e9;for(const q of PL){if(q[4]!==n)continue;const d=(q[2]-ST.lat)**2+(q[3]-ST.lon)**2;if(d<bd){bd=d;b=q}}if(b&&bd<0.01){ST.place=b[0];save();barText()}}
 function setPlace(name,lat,lon,tz){ST.lat=lat;ST.lon=lon;ST.place=name;ST.tz=tz||null;SKY=null;K=null;save();barText();closeSheets()}
+loadPlaces();
 $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerCase(),R=$('lres');if(q.length<2){R.innerHTML='';return}await loadPlaces();
  const hit=[];for(const p of PL){if(p[4].startsWith(q))hit.push(p);if(hit.length>=12)break}
  if(hit.length<12)for(const p of PL){if(!p[4].startsWith(q)&&(p[4].includes(q)||p[5].includes(q)))hit.push(p);if(hit.length>=12)break}
- R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${p[1]} · ${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
+ R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
  R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3],p[6])}}});
 function locateMe(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
   await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;save();barText()}},
