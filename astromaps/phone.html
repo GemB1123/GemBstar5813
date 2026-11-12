@@ -4337,7 +4337,7 @@ return {box,act,svg,mount,config:AGR_CFG,state:ST}};
 'use strict';
 const CFG={
  tilejson:'https://tiles.openfreemap.org/planet',
- maxZ:14,                 /* deepest tiles OpenFreeMap serves; we draw them larger past that */
+ maxZ:14,minZ:3,                 /* deepest tiles OpenFreeMap serves; we draw them larger past that */
  cache:260,
  credit:'OpenFreeMap © OpenMapTiles © OpenStreetMap',
  creditUrl:'https://www.openstreetmap.org/copyright',
@@ -4415,10 +4415,10 @@ const w180=x=>{x=((x%360)+360)%360;return x>180?x-360:x};
 /* V: {x,y,w,h (map box in drawing units), s (units per degree of longitude), sy (per degree of latitude), c0,c1 (center), k (screen px per unit), theme, land, water, alpha} */
 function paint(cv,V){const dpr=Math.min(2.5,window.devicePixelRatio||1)*V.k,W=Math.round(V.w*dpr),H=Math.round(V.h*dpr);if(cv.width!==W)cv.width=W;if(cv.height!==H)cv.height=H;
  const g=cv.getContext('2d');g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,W,H);if(ST.status!=='on'||V.alpha<=0)return;
- const zf=Math.log2(V.s*360/320),z=Math.max(0,Math.min(CFG.maxZ,Math.round(zf))),n=2**z,S=CFG.styles[V.theme]||CFG.styles.night;
+ const zf=Math.log2(V.s*360/320),z=Math.max(CFG.minZ||3,Math.min(CFG.maxZ,Math.round(zf))),n=2**z,S=CFG.styles[V.theme]||CFG.styles.night;
  const hx=V.w/2/V.s,hy=V.h/2/V.sy,laT=Math.min(85.05,V.c1+hy),laB=Math.max(-85.05,V.c1-hy);
  const ty0=Math.max(0,Math.floor(merY(laT)*n)),ty1=Math.min(n-1,Math.floor(merY(laB)*n)),tx0=Math.floor((V.c0-hx+180)/360*n),tx1=Math.floor((V.c0+hx+180)/360*n);
- if((tx1-tx0+1)*(ty1-ty0+1)>64)return;
+ if((tx1-tx0+1)*(ty1-ty0+1)>96)return;
  /* screen transform for a tile at (z,x,y): x is linear in longitude, y is close to linear in latitude across one tile */
  const tf=(tz,tx,ty,ext)=>{const nn=2**tz,lon0=tx/nn*360-180,lon1=(tx+1)/nn*360-180,la0=merLat(ty/nn),la1=merLat((ty+1)/nn);
   const off=w180(lon0-V.c0)-(lon0-V.c0),X0=V.w/2+(lon0-V.c0+off)*V.s,X1=X0+(lon1-lon0)*V.s,Y0=V.h/2-(la0-V.c1)*V.sy,Y1=V.h/2-(la1-V.c1)*V.sy;
@@ -4431,8 +4431,11 @@ function paint(cv,V){const dpr=Math.min(2.5,window.devicePixelRatio||1)*V.k,W=Ma
  g.globalAlpha=V.alpha;
  const zoomPx=2**(zf-14),wd=c=>Math.max(.45,CFG.width[c]*Math.max(.18,Math.min(2.6,zoomPx))**.75)*dpr;
  /* pass 1: ground (land, water, parks, buildings); pass 2: roads, cased in light mode; pass 3: names */
- for(const pass of [1,2])for(const j of jobs){const D=j.t.d;if(!D)continue;const T=tf(j.z,j.ux,j.y,D.ext);g.save();
-  const C=j.clip||T;g.beginPath();g.rect(C.X0*dpr-.5,C.Y0*dpr-.5,(C.X1-C.X0)*dpr+1,(C.Y1-C.Y0)*dpr+1);g.clip();
+ /* zoomed out, one tile spans many degrees and Mercator is not linear in latitude: draw it in bands, each with its own fit */
+ const tfB=(tz,tx,ty,ext,i,nb)=>{const nn=2**tz,T=tf(tz,tx,ty,ext);if(nb<=1)return T;const ya=(ty+i/nb)/nn,la=merLat(ya),lb=merLat((ty+(i+1)/nb)/nn),Ya=V.h/2-(la-V.c1)*V.sy,Yb=V.h/2-(lb-V.c1)*V.sy,va=ext*i/nb,d=(Yb-Ya)/(ext/nb)*dpr;
+  return {a:T.a,d,e:T.e,f:Ya*dpr-d*va,X0:T.X0,X1:T.X1,Y0:Ya,Y1:Yb}};
+ for(const pass of [1,2])for(const j of jobs){const D=j.t.d;if(!D)continue;const nb=j.z<=2?8:j.z<=4?4:j.z<=6?2:1;for(let bi=0;bi<nb;bi++){const T=tfB(j.z,j.ux,j.y,D.ext,bi,nb);g.save();
+  const K=j.clip,C=K?{X0:K.X0,X1:K.X1,Y0:Math.max(K.Y0,T.Y0),Y1:Math.min(K.Y1,T.Y1)}:T;if(C.Y1<=C.Y0){g.restore();continue}g.beginPath();g.rect(C.X0*dpr-.5,C.Y0*dpr-.5,(C.X1-C.X0)*dpr+1,(C.Y1-C.Y0)*dpr+1);g.clip();
   if(pass===1){g.fillStyle=V.land;g.fillRect(C.X0*dpr-.5,C.Y0*dpr-.5,(C.X1-C.X0)*dpr+1,(C.Y1-C.Y0)*dpr+1)}
   g.setTransform(T.a,0,0,T.d,T.e,T.f);const u=1/Math.abs(T.a);
   if(pass===1){const F=D.P.fill;
@@ -4446,8 +4449,8 @@ function paint(cv,V){const dpr=Math.min(2.5,window.devicePixelRatio||1)*V.k,W=Ma
    if(D.P.rail){g.strokeStyle=S.road.rail;g.lineWidth=wd('rail')*u;g.setLineDash([5*dpr*u,4*dpr*u]);g.stroke(D.P.rail);g.setLineDash([])}
    if(S.casing)for(const c of ROADS)if(D.P.road[c]&&c!=='path'){g.strokeStyle=S.casing;g.lineWidth=(wd(c)+1.6*dpr)*u;g.stroke(D.P.road[c])}
    for(const c of ROADS)if(D.P.road[c]){g.strokeStyle=S.road[c];g.lineWidth=wd(c)*u;if(c==='path')g.setLineDash([2.5*dpr*u,2.5*dpr*u]);g.stroke(D.P.road[c]);g.setLineDash([])}}
-  g.restore()}
- g.setTransform(1,0,0,1,0,0);names(g,jobs.filter(j=>!j.clip),tf,dpr,S,V,zf)}
+  g.restore()}}
+ g.setTransform(1,0,0,1,0,0);if(V.names!==false)names(g,jobs.filter(j=>!j.clip),tf,dpr,S,V,zf)}
 /* street names along the longest straight stretch, and place names, never overlapping */
 function names(g,jobs,tf,dpr,S,V,zf){const boxes=[],done=new Set(),fs=Math.round(11*dpr),ok=b=>boxes.every(o=>b[0]>o[2]||b[2]<o[0]||b[1]>o[3]||b[3]<o[1]);
  g.textAlign='center';g.textBaseline='middle';g.lineJoin='round';g.globalAlpha=V.alpha;
@@ -4496,7 +4499,8 @@ const AMP_CFG={
  primes:{greenwich:['Greenwich',0],giza:['Great Pyramid (Giza)',31.1342]},
  orbsWheel:{Conjunct:8,Opposite:8,Square:7,Trine:7,Sextile:5},
  modes:{mundo:'In Mundo',zodiaco:'In Zodiaco'},   /* In Mundo (default): the planet where it really is, latitude and all; In Zodiaco: the planet's zodiac degree, as if on the ecliptic */
- map:{y:128,below:146,maxZoom:24,streetZoom:16384,streetsIn:[16,32]},   /* street maps fade in from 16x to 32x and allow zoom to street level, where OpenFreeMap answers (Gemini, Nov 11) */   /* room on every side for the line labels, all off the map (Gemini, Nov 11) */      /* equirectangular, 2:1; wraps east and west without end (Gemini, Nov 11). Natural Earth 1:50m is drawn in 0.2° steps, so coasts turn blocky past about 24x */
+ map:{y:128,below:146,maxZoom:24,streetZoom:16384,osmNames:16,rasW:720,fullEvery:140},
+ labels:{sideGap:30,tbGap:26,topY:22,botY:44},   /* label spacing (Gemini, Nov 12: side labels were crunched) */   /* street maps fade in from 16x to 32x and allow zoom to street level, where OpenFreeMap answers (Gemini, Nov 11) */   /* room on every side for the line labels, all off the map (Gemini, Nov 11) */      /* equirectangular, 2:1; wraps east and west without end (Gemini, Nov 11). Natural Earth 1:50m is drawn in 0.2° steps, so coasts turn blocky past about 24x */
  globe:{maxZoom:6},
  /* cities and towns from the Device's place list (GeoNames, largest first): more appear as you zoom in */
  cities:{rank:z=>Math.round(320*z*z),max:z=>Math.min(900,90+70*z),cell:16,labels:z=>Math.min(90,14+8*z)},
@@ -4639,7 +4643,7 @@ function GLB(){const F=FR(),G=AMP_CFG.globe,b=BARY()-8,t=72;return {cx:F.w/2,cy:
 /* past about 4x the map's north-south scale grows toward 1/cos(latitude), so at city zoom streets keep their true shape (an equirectangular map squashes them) */
 const ASP=()=>{const t=Math.max(0,Math.min(1,(Math.log2(ST.mz||1)-2)/3));return 1+(1/Math.cos(Math.min(80,Math.abs(ST.mc[1]))*R)-1)*t};
 const MV=()=>{const M=MAPR(),s=M.w/360*ST.mz;return {M,s,sy:s*ASP(),cx:M.x+M.w/2,cy:M.y+M.h/2}};
-function clampMap(){ST.mz=Math.max(1,Math.min(MAPR().maxZoom,ST.mz||1));if(ST.mz>=8)streetsInit();for(let i=0;i<2;i++){const V=MV(),h=Math.max(0,90-V.M.h/2/V.sy);ST.mc=[w180(ST.mc[0]),Math.max(-h,Math.min(h,ST.mc[1]))]}}
+function clampMap(){ST.mz=Math.max(1,Math.min(MAPR().maxZoom,ST.mz||1));streetsInit();for(let i=0;i<2;i++){const V=MV(),h=Math.max(0,90-V.M.h/2/V.sy);ST.mc=[w180(ST.mc[0]),Math.max(-h,Math.min(h,ST.mc[1]))]}}
 function mapXY(lon,lat){const V=MV();return [V.cx+w180(lon-ST.mc[0])*V.s,V.cy-(lat-ST.mc[1])*V.sy]}
 function mapInv(x,y){const V=MV();return [w180(ST.mc[0]+(x-V.cx)/V.s),Math.max(-89.9,Math.min(89.9,ST.mc[1]-(y-V.cy)/V.sy))]}
 const inMap=(p,pad)=>{const M=MAPR();pad=pad||0;return p[0]>M.x+pad&&p[0]<M.x+M.w-pad&&p[1]>M.y+pad&&p[1]<M.y+M.h-pad};
@@ -4664,7 +4668,9 @@ const gridStep=sp=>[30,15,10,5,2,1,.5].find(t=>t*sp<120)||.5;
 /* the map's line labels, all off the map (Gemini, Nov 11): MC above, IC below, and each Rising, Setting and Local Space
    line on the side where it leaves the map (above or below when it never reaches a side). Crowded labels step apart,
    with a short tick back to where the line meets the edge. */
-function mapLabels(L,I){const M=MAPR(),xl=M.x,xr=M.x+M.w,yt=M.y,yb=M.y+M.h,side={l:[],r:[]},tb={t:[],b:[]},GAP=24;
+/* a glyph with its tag above (top row) or below (bottom row), so labels can sit side by side */
+function glyphTB(k,x,y,tag,I,up){const col=colOf(k);return `<g class="amp-lab">${ST.oob.has(k)?`<circle cx="${f1(x)}" cy="${f1(y)}" r="14" fill="${AMP_CFG.zod.oobGlow}" opacity=".55" filter="url(#amp-blur)"/>`:''}<circle cx="${f1(x)}" cy="${f1(y)}" r="10.5" fill="${I.bg}" stroke="${col}" stroke-width="1.3"/>${PGW(k,f1(x),f1(y),.5,col)}${tag?`<text x="${f1(x)}" y="${f1(up?y-14:y+22)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="${col}" stroke="${I.bg}" stroke-width="3" paint-order="stroke">${tag}</text>`:''}</g>`}
+function mapLabels(L,I){const M=MAPR(),xl=M.x,xr=M.x+M.w,yt=M.y,yb=M.y+M.h,side={l:[],r:[]},tb={t:[],b:[]},GAP=AMP_CFG.labels.sideGap,multi=[];
  for(const l of L){if(l.par!=null||ST.focus&&ST.focus!==l.k)continue;
   if(l.a==='MC'||l.a==='IC'){const x=mapXY(l.mer,0)[0];if(x>xl+4&&x<xr-4)tb[l.a==='MC'?'t':'b'].push({l,x});continue}
   /* walk the line in longitude measured from the map's center, unwrapping across the seam, so a line that leaves one edge
@@ -4677,15 +4683,21 @@ function mapLabels(L,I){const M=MAPR(),xl=M.x,xr=M.x+M.w,yt=M.y,yb=M.y+M.h,side=
     r=w180(P[i][0]-ST.mc[0])}
    pr=[r,y];if(y>=yt&&y<=yb){const x=V.cx+r*V.s;if(x>=xl&&x<=xr)last=[x,y]}}
   if(!cand.length&&!edge.length&&last)cand.push({s:last[0]<(xl+xr)/2?'l':'r',y:last[1]});   /* a line that ends inside the map (where Rising meets Setting near a pole): on the nearer side */
-  if(cand.length){const mid=(yt+yb)/2;cand.sort((a,b)=>Math.abs(a.y-mid)-Math.abs(b.y-mid));side[cand[0].s].push({l,y:cand[0].y})}
+  if(cand.length){const mid=(yt+yb)/2;cand.sort((a,b)=>Math.abs(a.y-mid)-Math.abs(b.y-mid));const o={l:cand.find(c=>c.s==='l'),r:cand.find(c=>c.s==='r')};if(o.l&&o.r)multi.push({l,o});else side[cand[0].s].push({l,y:cand[0].y})}
   else if(edge.length){const e=edge.find(x=>x.s==='t')||edge[0];tb[e.s].push({l,x:e.x})}}
+ /* a line that leaves by both sides goes to the less crowded side, so the labels spread out (Gemini, Nov 12) */
+ for(const m of multi){const sd=side.l.length<=side.r.length?'l':'r';side[sd].push({l:m.l,y:m.o[sd].y})}
  let out='';
  /* sides: step apart vertically */
  for(const sd of ['l','r']){const cap=Math.floor((yb-yt-20)/GAP)+1;let A=side[sd];if(A.length>cap){const pri=A.filter(a=>!a.l.asp&&!a.l.midpt),sec=A.filter(a=>a.l.asp||a.l.midpt);A=pri.slice(0,cap).concat(sec.slice(0,Math.max(0,cap-pri.length)))}   /* too many to fit: the planets' own lines keep their labels first */
   A=A.sort((a,b)=>a.y-b.y);for(let i=0;i<A.length;i++)A[i].py=Math.max(A[i].y,yt+10,i?A[i-1].py+GAP:-1e9);for(let i=A.length-1;i>=0;i--)A[i].py=Math.min(A[i].py,yb-10,i<A.length-1?A[i+1].py-GAP:1e9);
   const gx=sd==='l'?xl-15:xr+15,ex=sd==='l'?xl:xr;for(const a of A){if(Math.abs(a.py-a.y)>3)out+=`<line x1="${f1(ex)}" y1="${f1(a.y)}" x2="${f1(gx+(sd==='l'?8:-8))}" y2="${f1(a.py)}" stroke="${colOf(a.l.k)}" stroke-width="1" opacity=".7"/>`;out+=glyphAt(a.l.k,gx,a.py,TAG(a.l),I,sd==='l')}}
  /* top and bottom: rows, first free spot wins */
- for(const tbk of ['t','b']){const rows=tbk==='t'?[yt-18,yt-44]:[yb+38,yb+64],placed=[];for(const a of tb[tbk].sort((p,q)=>(p.l.asp||p.l.midpt?1:0)-(q.l.asp||q.l.midpt?1:0)||p.x-q.x)){const wd=30+TAG(a.l).length*7;let y=null;for(const r of rows)if(placed.every(p=>p[1]!==r||Math.abs(p[0]-a.x)>(p[2]+wd)/2)){y=r;break}if(y==null){if(a.l.asp||a.l.midpt)continue;y=rows[rows.length-1]}placed.push([a.x,y,wd]);out+=glyphAt(a.l.k,a.x,y,TAG(a.l),I)}}
+ /* top and bottom: one row, side by side, each joined to its line by a thin leader (Gemini, Nov 12: no stacking) */
+ for(const tbk of ['t','b']){const y=tbk==='t'?yt-AMP_CFG.labels.topY:yb+AMP_CFG.labels.botY,x0=xl-50,x1=xr+50;let A=tb[tbk].map(a=>({...a,w:Math.max(AMP_CFG.labels.tbGap,TAG(a.l).length*6.6+6)}));
+  const room=x1-x0;let need=A.reduce((t,a)=>t+a.w,0);if(need>room){const pri=A.filter(a=>!a.l.asp&&!a.l.midpt);A=pri;need=A.reduce((t,a)=>t+a.w,0);const sh=Math.min(1,room/need);A.forEach(a=>a.w*=sh)}
+  A.sort((p,q)=>p.x-q.x);for(let i=0;i<A.length;i++)A[i].px=Math.max(A[i].x,x0+A[i].w/2,i?A[i-1].px+(A[i-1].w+A[i].w)/2:-1e9);for(let i=A.length-1;i>=0;i--)A[i].px=Math.min(A[i].px,x1-A[i].w/2,i<A.length-1?A[i+1].px-(A[i+1].w+A[i].w)/2:1e9);
+  for(const a of A){const ey=tbk==='t'?yt:yb,ly=tbk==='t'?y+11:y-11;out+=`<line x1="${f1(a.x)}" y1="${f1(ey)}" x2="${f1(a.px)}" y2="${f1(ly)}" stroke="${colOf(a.l.k)}" stroke-width=".8" opacity=".75"/>`+glyphTB(a.l.k,a.px,y,TAG(a.l),I,tbk==='t')}}
  return out}
 function gratMap(I){const V=MV(),M=V.M,st=gridStep(V.s),half=M.w/2/V.s,c0=ST.mc[0];let s='';
  if(SH('grat'))for(let r=Math.ceil((c0-half)/st)*st;r<=c0+half;r+=st){const lo=w180(r),x=mapXY(lo,0)[0];if(x<M.x||x>M.x+M.w)continue;s+=`<line x1="${f1(x)}" y1="${M.y}" x2="${f1(x)}" y2="${M.y+M.h}" stroke="${Math.abs(lo)<1e-6?I.gratStrong:I.grat}"/>`}
@@ -4890,11 +4902,24 @@ function skyLabels(I){const M=MAPR(),jd=mjd(),eps=obl(jd),G=gmst(jd),ab=AMP_CFG.
 /* a Moon paran band: shaded between its latitudes, in the other planet's color, with fine edges */
 function bandMap(l){const M=MAPR(),y0=Math.max(M.y,mapXY(0,l.band[1])[1]),y1=Math.min(M.y+M.h,mapXY(0,l.band[0])[1]);if(y1<=y0)return '';const dim=ST.focus&&ST.focus!==l.k&&ST.focus!==l.k2,c=colOf(l.k==='Moon'?l.k2:l.k),op=AMP_CFG.par.bandOp*(dim?.3:1);
  return `<rect x="${M.x}" y="${f1(y0)}" width="${M.w}" height="${f1(y1-y0)}" fill="${c}" opacity="${op}" pointer-events="none"/><path d="M${M.x} ${f1(y0)}H${M.x+M.w}M${M.x} ${f1(y1)}H${M.x+M.w}" stroke="${c}" stroke-width=".8" stroke-dasharray="2 4" opacity="${dim?.2:.7}"/>`}
+/* Day And Night, planets above the horizon, and tides, painted once for the whole world and moved like the coastlines
+   while the map is dragged or zoomed (Gemini, Nov 12: zooming was twitchy and the fan ran; these used to be repainted
+   on every frame). Redrawn only when the moment, theme, or switches change. */
+let RAS={k:'',url:''};
+function worldRaster(){const c=chart();if(!c||c.jd==null)return '';const I=TH(),jd=mjd(),day=SH('daynight'),key=JSON.stringify([jd,ST.theme,day,ST.vis,ST.tide,ST.tideSun,ST.mode]);if(RAS.k===key)return RAS.url;
+ const Ls=skyShades();if(!day&&!Ls.length){RAS={k:key,url:''};return ''}
+ const W=AMP_CFG.map.rasW,H=W/2,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');if(!g)return '';
+ const img=g.createImageData(W,H),o=img.data,sp=sunPoint(jd),sd=Math.sin(sp[1]*R),cd=Math.cos(sp[1]*R),nc=hex(I.night),op=I.nightOp,P=[0,0,0];
+ for(let j=0;j<H;j++){const la=(90-(j+.5)*180/H)*R,sl=Math.sin(la),cl=Math.cos(la);for(let i=0;i<W;i++){const lo=(-180+(i+.5)*360/W)*R;let r=0,gg=0,b=0,a=0;
+  if(day){const alt=Math.asin(Math.max(-1,Math.min(1,sl*sd+cl*cd*Math.cos(lo-sp[0]*R))))/R,e=Math.max(0,Math.min(1,(.4-alt)/1.2)),t=Math.max(0,Math.min(1,-alt/18));a=op*e*(.42+.58*t);r=nc[0]*a;gg=nc[1]*a;b=nc[2]*a}
+  if(Ls.length){P[0]=cl*Math.cos(lo);P[1]=cl*Math.sin(lo);P[2]=sl;for(const L of Ls){const t=L.a(P);if(t<=0)continue;r=r*(1-t)+L.c[0]*t;gg=gg*(1-t)+L.c[1]*t;b=b*(1-t)+L.c[2]*t;a=a*(1-t)+t}}
+  const q=(j*W+i)*4;if(a>0){o[q]=r/a;o[q+1]=gg/a;o[q+2]=b/a;o[q+3]=Math.round(255*a)}}}
+ g.putImageData(img,0,0);RAS={k:key,url:cv.toDataURL('image/png')};return RAS.url}
+function rasterMap(){const u=worldRaster();if(!u)return '';return `<g class="amp-rast" transform="${landTf()}" pointer-events="none"><image id="amp-rasw" href="${u}" x="-900" y="-450" width="1800" height="900" preserveAspectRatio="none"/><use href="#amp-rasw" x="-1800"/><use href="#amp-rasw" x="1800"/></g>`}
 function mapVec(c,L){const I=TH();let s='';
- if(SH('daynight')&&c&&c.jd!=null)s+=nightMap(mjd(),I);
- s+=shadeMap(skyShades());s+=zodFills(I);s+=gratMap(I);s+=skyMap(I);s+=eclMap(I);s+=tideMarks(I,(lo,la)=>{const p=mapXY(lo,la);return inMap(p,2)?p:null},runsMap);
+ s+=zodFills(I);s+=gratMap(I);s+=skyMap(I);s+=eclMap(I);s+=tideMarks(I,(lo,la)=>{const p=mapXY(lo,la);return inMap(p,2)?p:null},runsMap);
  if(ST.geo)s+=geoMap(I);
- if(stA()<.5)s+=citiesMap(I);else CITY_SEEN=[];
+ if(stA()<.5||ST.mz<AMP_CFG.map.osmNames)s+=citiesMap(I);else CITY_SEEN=[];
  for(const l of L)if(l.band)s+=bandMap(l);
  for(const l of L)for(const run of runsMap(fine(l))){const d=dPath(run);s+=`<path d="${d}" ${lineStyle(l)}/>`;if(l.par!=null)s+=`<path d="${d}" ${lineStyle(l,1)}/>`}
  return s}
@@ -4911,12 +4936,13 @@ function streetsInit(){const T=STR();if(T.status()!=='idle')return;T.state.onCha
 /* how much the streets show: none on the world map, all of it from about city zoom */
 /* deep in, the street tiles carry land and water themselves, and the world coastlines (huge at that scale) are set aside */
 const noNE=()=>stA()>=1&&ST.mz>=192;
-function stA(){if(ST.view!=='map'||STR().status()!=='on')return 0;const a=AMP_CFG.map.streetsIn;return Math.max(0,Math.min(1,Math.log2(ST.mz/a[0])/Math.log2(a[1]/a[0])))}
-let SCV=null;
+/* OpenStreetMap at every zoom where it answers (Gemini, Nov 12: smoother coastlines even zoomed all the way out), in the theme's colors */
+function stA(){return ST.view==='map'&&STR().status()==='on'?1:0}
+let SCV=null;const STK={k:0,w:0};   /* screen pixels per drawing unit, measured once per full draw (measuring every frame forced a layout) */
 function paintStreets(sv){const fo=sv.querySelector('.amp-stf');if(!fo)return;const a=stA();fo.style.display=a>0?'':'none';if(a<=0)return;
  if(!SCV){SCV=document.createElement('canvas');SCV.style.cssText='width:100%;height:100%;display:block'}if(SCV.parentNode!==fo)fo.appendChild(SCV);
- const V=MV(),M=V.M,I=TH(),r=fo.getBoundingClientRect(),k=r.width>0?r.width/M.w:1;
- try{STR().paint(SCV,{w:M.w,h:M.h,s:V.s,sy:V.sy,c0:ST.mc[0],c1:ST.mc[1],k,theme:ST.theme,land:rgb(I.land),water:rgb(I.ocean),alpha:a})}catch(e){}
+ const V=MV(),M=V.M,I=TH();if(!STK.k||STK.w!==M.w){const r=fo.getBoundingClientRect();STK.k=r.width>0?r.width/M.w:0;STK.w=M.w}const k=STK.k||1;
+ try{STR().paint(SCV,{w:M.w,h:M.h,s:V.s,sy:V.sy,c0:ST.mc[0],c1:ST.mc[1],k,theme:ST.theme,land:rgb(I.land),water:rgb(I.ocean),alpha:a,names:ST.mz>=AMP_CFG.map.osmNames})}catch(e){}
  const cr=sv.querySelector('.amp-credit');if(cr)cr.setAttribute('opacity',a)}
 function creditSVG(){const a=stA();if(a<=0)return '';const M=MAPR(),I=TH(),C=STR().CFG;return `<a class="amp-credit" href="${C.creditUrl}" target="_blank" rel="noopener" opacity="${a}"><text x="${M.x+8}" y="${M.y+M.h-8}" font-size="10" fill="${I.dim}" stroke="${I.bg}" stroke-width="2.4" paint-order="stroke">${esc(C.credit)}</text></a>`}
 function mapBody(c,L){clampMap();const M=MAPR(),I=TH(),P=window.EA_PLN_MAP;
@@ -4924,6 +4950,8 @@ function mapBody(c,L){clampMap();const M=MAPR(),I=TH(),P=window.EA_PLN_MAP;
 <rect class="amp-sea" x="${M.x}" y="${M.y}" width="${M.w}" height="${M.h}" rx="6" fill="${noNE()?rgb(I.land):'url(#amp-sea)'}"/><g clip-path="url(#amp-clip)">`;
  if(P)s+=`<g class="amp-land" transform="${landTf()}"${noNE()?' style="display:none"':''}><g id="amp-landw"><path d="${P.land}" fill="${rgb(I.land)}" stroke="${I.landStroke}" stroke-opacity=".75" vector-effect="non-scaling-stroke" style="stroke-width:.8px"/>${SH('borders')?`<path d="${P.borders}" fill="none" stroke="${I.border}" vector-effect="non-scaling-stroke" style="stroke-width:.7px"/>`:''}</g><use href="#amp-landw" x="-1800"/><use href="#amp-landw" x="1800"/></g>`;
  s+=`<foreignObject class="amp-stf" x="${M.x}" y="${M.y}" width="${M.w}" height="${M.h}" pointer-events="none" style="display:none"></foreignObject>`;
+ s+=rasterMap();
+ {const V0=MV();ST.r0={mc:ST.mc.slice(),s:V0.s,sy:V0.sy,t:performance.now()}}
  s+=`<g class="amp-mvec">${mapVec(c,L)}</g></g><g class="amp-mlab">${mapLab(c,L)}</g>`;
  s+=`<rect x="${M.x}" y="${M.y}" width="${M.w}" height="${M.h}" rx="6" fill="none" stroke="${I.gratStrong}"/>`;
  return s+`<rect class="amp-hit" data-act="amphit" x="${M.x}" y="${M.y}" width="${M.w}" height="${M.h}" fill="transparent"><title>Drag to move the map, pinch or double tap to zoom in, tap a place to read its lines</title></rect>`+`<g class="amp-zw">${zoomCtl(M.x+M.w-44,M.y+M.h-118,I)}</g>`}
@@ -5002,7 +5030,7 @@ ${body}${c&&c.unknown?`<text x="${F.w/2}" y="${ST.view==='map'?MAPR().y+MAPR().h
 
 /* ---- the stage: clicks, drags and keys ---- */
 let STAGE=null;
-function redraw(scale){if(!STAGE)return;STAGE.innerHTML=svg(scale);mount(STAGE)}
+function redraw(scale){if(!STAGE)return;STK.k=0;STAGE.innerHTML=svg(scale);mount(STAGE)}
 function pick(P){ST.place=P;reading();}
 function reading(){const L=lines()||[],P=ST.place;if(!P){ST.hits=[];return}ST.hits=L.map(l=>({l,km:distKm(P,l)})).sort((a,b)=>a.km-b.km)}
 /* gestures (Gemini, Nov 11): drag moves the map or turns the globe, pinch zooms, double tap zooms in on that spot,
@@ -5031,7 +5059,7 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
  const toLocal=e=>{const m=sv.getScreenCTM();if(!m)return null;return new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse())};
  const toPlace=p=>ST.view==='map'?mapInv(Math.max(MAPR().x,Math.min(MAPR().x+MAPR().w,p.x)),p.y):gInv(view(),p.x,p.y);
  const PT=new Map();let G=null,raf=0;
- const sched=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(ST.view==='map')fastMap(sv);else fastGlobe(sv)})};
+ const sched=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(ST.view==='map')moveMap(sv);else fastGlobe(sv)})};
  const two=()=>{const [a,b]=[...PT.values()];return {d:Math.hypot(a.x-b.x,a.y-b.y)||1,m:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}};
  sv.addEventListener('pointerdown',e=>{if(!e.target.closest('.amp-hit'))return;const p=toLocal(e);if(!p)return;PT.set(e.pointerId,p);try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();try{sv.focus({preventScroll:true})}catch(_){}
   if(PT.size===1){let pin=false;if(ST.place){const q=ST.view==='map'?mapXY(ST.place[0],ST.place[1]):gProj(view(),ST.place[0],ST.place[1]);pin=!!q&&Math.hypot(q[0]-p.x,q[1]-p.y)<22}
@@ -5055,7 +5083,24 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
   TAP.t=now;TAP.x=p.x;TAP.y=p.y;clearTimeout(TAP.tm);TAP.tm=setTimeout(()=>{TAP.t=0;tapAt(p)},300)};
  sv.addEventListener('pointerup',end);sv.addEventListener('pointercancel',end);
  sv.addEventListener('dblclick',e=>{if(e.target.closest('.amp-hit'))e.preventDefault()});
- let wt=0;sv.addEventListener('wheel',e=>{if(!e.target.closest('.amp-hit'))return;e.preventDefault();const p=toLocal(e);if(!p)return;const k=Math.exp(-Math.max(-60,Math.min(60,e.deltaY))*(e.ctrlKey?.012:.004));zoomAbout(k,ST.view==='map'?p:null);sched();clearTimeout(wt);wt=setTimeout(()=>redraw(1.5),220)},{passive:false});
+ /* wheel and trackpad (Gemini, Nov 12): a trackpad pinch zooms (the browser sends it as a wheel event with ctrlKey), a
+    two-finger trackpad swipe moves the map or turns the globe, and a mouse wheel zooms gently. Events are gathered and
+    applied once per frame, so momentum scrolling no longer jerks the map. */
+ let wt=0,acc={z:1,dx:0,dy:0,p:null},wr=0;
+ const wflush=()=>{wr=0;const A2=acc;acc={z:1,dx:0,dy:0,p:null};if(A2.z!==1)zoomAbout(A2.z,ST.view==='map'?A2.p:null);
+  if(A2.dx||A2.dy){if(ST.view==='map'){const V=MV();ST.mc=[ST.mc[0]+A2.dx/V.s,ST.mc[1]-A2.dy/V.sy];clampMap()}else{const V=view();ST.rot=[w180(ST.rot[0]+A2.dx/V.r/R),Math.max(-85,Math.min(85,ST.rot[1]-A2.dy/V.r/R))]}}
+  if(ST.view==='map')moveMap(sv);else fastGlobe(sv)};
+ sv.addEventListener('wheel',e=>{const p=toLocal(e);if(!p)return;if(ST.view==='map'){const M=MAPR();if(p.x<M.x||p.x>M.x+M.w||p.y<M.y||p.y>M.y+M.h)return}else if(!e.target.closest('.amp-hit'))return;
+  if(e.target.closest('.amp-pop,.amp-zb'))return;e.preventDefault();
+  const px=e.deltaMode===1?16:e.deltaMode===2?400:1,dx=e.deltaX*px,dy=e.deltaY*px,wd=e.wheelDeltaY,mouse=e.deltaMode!==0||(wd?Math.abs(wd)>=120&&wd%120===0:Math.abs(dy)>=50&&!dx);
+  if(e.ctrlKey)acc.z*=Math.exp(-Math.max(-40,Math.min(40,dy))*.011);
+  else if(mouse&&!dx)acc.z*=Math.exp(-Math.max(-120,Math.min(120,dy))*.0018);
+  else{acc.dx+=dx;acc.dy+=dy}
+  acc.p=p;if(!wr)wr=requestAnimationFrame(wflush);clearTimeout(wt);wt=setTimeout(()=>redraw(1.5),260)},{passive:false});
+ /* Safari sends a trackpad pinch as gesture events instead */
+ let gs=1;sv.addEventListener('gesturestart',e=>{e.preventDefault();gs=1});
+ sv.addEventListener('gesturechange',e=>{e.preventDefault();const k=(e.scale||1)/gs;gs=e.scale||1;acc.z*=k;acc.p=toLocal(e);if(!wr)wr=requestAnimationFrame(wflush);clearTimeout(wt);wt=setTimeout(()=>redraw(1.5),260)});
+ sv.addEventListener('gestureend',e=>e.preventDefault());
  sv.addEventListener('keydown',e=>{const k=e.key;if(k==='+'||k==='='||k==='-'||k==='_'){e.preventDefault();zoomAbout(k==='-'||k==='_'?1/1.5:1.5,null);redraw(1.5);const s2=STAGE&&STAGE.querySelector('svg.amp');if(s2)s2.focus();return}
   const m={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,1],ArrowDown:[0,-1]}[k];if(!m)return;e.preventDefault();
   if(ST.view==='map'){const st=60/MV().s;ST.mc=[ST.mc[0]+m[0]*st,ST.mc[1]+m[1]*st];clampMap()}else{const st=8/ST.gz;ST.rot=[w180(ST.rot[0]+m[0]*st),Math.max(-85,Math.min(85,ST.rot[1]+m[1]*st))]}
@@ -5067,8 +5112,15 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
   const up=()=>{if(!st)return;st=null;const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   h.addEventListener('keydown',e=>{const m={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[e.key];if(!m||e.target.closest('button'))return;e.preventDefault();pp.style.left=(parseFloat(pp.style.left)+m[0])+'px';pp.style.top=(parseFloat(pp.style.top)+m[1])+'px';const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}})})}
 /* while the map moves: only the coastline transform changes; lines, night, grid, cities and labels are redrawn */
-function fastMap(sv){const c=chart(),L=drawnL(c&&!c.unknown?lines()||[]:[]),l=sv.querySelector('.amp-land'),v=sv.querySelector('.amp-mvec'),b=sv.querySelector('.amp-mlab'),zc=sv.querySelector('.amp-zw');clampMap();
- if(l){l.setAttribute('transform',landTf());l.style.display=noNE()?'none':''}const sea=sv.querySelector('.amp-sea');if(sea)sea.setAttribute('fill',noNE()?rgb(TH().land):'url(#amp-sea)');if(v)v.innerHTML=mapVec(c,L);if(b)b.innerHTML=mapLab(c,L);if(zc){const M=MAPR();zc.innerHTML=zoomCtl(M.x+M.w-44,M.y+M.h-118,TH())}paintStreets(sv)}
+/* while the map moves, the drawn lines, grid and night are slid and stretched as one picture (cheap), and fully redrawn a few
+   times a second and when the motion stops (Gemini, Nov 12: zooming was twitchy and the computer's fan ran) */
+function moveMap(sv){const r=ST.r0,v=sv.querySelector('.amp-mvec');if(!r||!v||performance.now()-r.t>AMP_CFG.map.fullEvery){fastMap(sv);return}
+ clampMap();const V=MV(),kx=V.s/r.s,ky=V.sy/r.sy,a=V.cx-V.cx*kx-w180(ST.mc[0]-r.mc[0])*V.s,b=V.cy-V.cy*ky+(ST.mc[1]-r.mc[1])*V.sy;
+ v.setAttribute('transform',`matrix(${kx.toFixed(5)} 0 0 ${ky.toFixed(5)} ${f1(a)} ${f1(b)})`);
+ paintStreets(sv);const l=sv.querySelector('.amp-land');if(l){l.setAttribute('transform',landTf());l.style.display=noNE()?'none':''}const ra=sv.querySelector('.amp-rast');if(ra)ra.setAttribute('transform',landTf());
+ const zc=sv.querySelector('.amp-zw');if(zc){const M=MAPR();zc.innerHTML=zoomCtl(M.x+M.w-44,M.y+M.h-118,TH())}}
+function fastMap(sv){{const V0=MV();ST.r0={mc:ST.mc.slice(),s:V0.s,sy:V0.sy,t:performance.now()};const v0=sv.querySelector('.amp-mvec');if(v0)v0.removeAttribute('transform')}const c=chart(),L=drawnL(c&&!c.unknown?lines()||[]:[]),l=sv.querySelector('.amp-land'),v=sv.querySelector('.amp-mvec'),b=sv.querySelector('.amp-mlab'),zc=sv.querySelector('.amp-zw');clampMap();
+ if(l){l.setAttribute('transform',landTf());l.style.display=noNE()?'none':''}const ra=sv.querySelector('.amp-rast');if(ra)ra.setAttribute('transform',landTf());const sea=sv.querySelector('.amp-sea');if(sea)sea.setAttribute('fill',noNE()?rgb(TH().land):'url(#amp-sea)');if(v)v.innerHTML=mapVec(c,L);if(b)b.innerHTML=mapLab(c,L);if(zc){const M=MAPR();zc.innerHTML=zoomCtl(M.x+M.w-44,M.y+M.h-118,TH())}paintStreets(sv)}
 /* while the place is dragged: move its marker and refresh the pop-ups, without redrawing the whole map */
 function live(sv){const P=ST.place;if(!P)return;const I=TH();let g=sv.querySelector('.amp-place');const pt=ST.view==='map'?mapXY(P[0],P[1]):gProj(view(),P[0],P[1]);if(pt&&ST.view==='map'&&!inMap(pt)){if(g)g.style.display='none';return}
  if(pt){if(!g){const tmp=document.createElementNS('http://www.w3.org/2000/svg','g');tmp.innerHTML=placeMark(0,0,I);g=tmp.firstChild;const hit=sv.querySelector('.amp-mlab')||sv;hit.appendChild(g)}g.setAttribute('transform',`translate(${f1(pt[0])} ${f1(pt[1])})`);g.style.display=''}else if(g)g.style.display='none';
@@ -7857,7 +7909,7 @@ document.addEventListener('click',e=>{
  const t=e.target.closest('[data-act],[data-slot],[data-corner],#box,.stage');const slot=e.target.closest('[data-slot]');
  const cor=e.target.closest('[data-corner]');
  if(cor){S.corner=cor.dataset.corner;S.open=null;renderAll();return}
- if(slot&&!e.target.closest('#box')){const id=slot.dataset.slot;pulsing=false;if(id==='tm'&&plnOn()){toast('In the Planetarium the Time Machine stays docked below the sky.');return}if(id==='tm'&&ctbOn()&&!PT_FRAME){toast('In Tables the Time Machine stays docked below the table.');return}if(id==='tm'&&S.dockTM){S.dockTM=false;S.open='tm';save();renderAll();return}if(id==='info')S.tip=null;if(['synodic','agrid','dial','chart','ground','harmonics'].includes(id))S.game='';if(id==='harmonics')harmShow(harmView(S.hsub||'hcharts'));else if(['chart','cycles','agrid','dial','ground','games'].includes(id))S.hv='';if(id==='cycles'&&(S.csub==='synodic'||S.csub==='pcycles'||S.csub==='tables')){S.synView=true;S.synKind=S.csub==='pcycles'?'pc':S.csub==='tables'?'tbl':'syn';S.gv='';if(S.csub==='tables')S.ptv='table';if(PT_FRAME&&(S.csub||'synodic')==='synodic'&&!S.synOld){S.synKind='tbl';S.ptv='start'}}if(PT_FRAME&&(id==='tables'||id==='space'||id==='ptearth')){S.synView=true;S.synKind='tbl';S.gv='';S.game='';S.ptv=id==='tables'?'table':id==='space'?'space':'earth'}if(id==='agrid'){S.gv='grid';S.synView=false;S.synA.on=false}if(id==='dial'){S.gv='dial';S.synView=false;S.synA.on=false}if(id==='ground'){S.gv='sky';S.synView=false;S.synA.on=false}if(id==='graphs'){S.gv='graph';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='astromaps'){if(S.gv!=='amap'){S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv='';S.open=null;try{amp().opened()}catch(e){}renderAll();return}   /* AstroMaps opens full, menu closed (Gemini, Nov 11); the tile or the Menu button then opens its menu */
+ if(slot&&!e.target.closest('#box')){const id=slot.dataset.slot;pulsing=false;if(id==='tm'&&plnOn()){toast('In the Planetarium the Time Machine stays docked below the sky.');return}if(id==='tm'&&ctbOn()&&!PT_FRAME){toast('In Tables the Time Machine stays docked below the table.');return}if(id==='tm'&&S.dockTM){S.dockTM=false;S.open='tm';save();renderAll();return}if(id==='info')S.tip=null;if(['synodic','agrid','dial','chart','ground','harmonics'].includes(id))S.game='';if(id==='harmonics')harmShow(harmView(S.hsub||'hcharts'));else if(['chart','cycles','agrid','dial','ground','games'].includes(id))S.hv='';if(id==='cycles'&&(S.csub==='synodic'||S.csub==='pcycles'||S.csub==='tables')){S.synView=true;S.synKind=S.csub==='pcycles'?'pc':S.csub==='tables'?'tbl':'syn';S.gv='';if(S.csub==='tables')S.ptv='table';if(PT_FRAME&&(S.csub||'synodic')==='synodic'&&!S.synOld){S.synKind='tbl';S.ptv='start'}}if(PT_FRAME&&(id==='tables'||id==='space'||id==='ptearth')){S.synView=true;S.synKind='tbl';S.gv='';S.game='';S.ptv=id==='tables'?'table':id==='space'?'space':'earth'}if(id==='agrid'){S.gv='grid';S.synView=false;S.synA.on=false}if(id==='dial'){S.gv='dial';S.synView=false;S.synA.on=false}if(id==='ground'){S.gv='sky';S.synView=false;S.synA.on=false}if(id==='graphs'){S.gv='graph';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='astromaps'){if(S.gv!=='amap'){S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv='';S.open=null;try{amp().opened()}catch(e){}if(!window.EA_PHONE&&window.__hideMenus)window.__hideMenus(true);renderAll();return}   /* and full screen with the Device's menus hidden (Gemini, Nov 12); Menus brings them back */   /* AstroMaps opens full, menu closed (Gemini, Nov 11); the tile or the Menu button then opens its menu */
 S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S.synView=false;S.gv=''}S.open=(S.open===id)?null:id;renderAll();return}
  if(S.open&&!(S.open==='tm'&&tmDocked())&&!e.target.closest('#box,#quitask,[data-pl],[data-act],.lb,.ib,[data-slot],[data-corner]')){S.open=null;renderAll();return}
  if(e.target.closest('[data-pl]'))return;
@@ -8161,7 +8213,7 @@ let PLN=null;function pln(){return PLN||(PLN=window.EA_WORLDS.planetarium({S,whe
  lg('l',L.gb,'Gemini Brett');lg('r',L.se,'School of Earthstrology');if(window.__gmLogoTint)window.__gmLogoTint();
  const b=document.createElement('button');b.type='button';b.id='hmb';b.className='ixb';st.appendChild(b);
  const set=on=>{st.classList.toggle('nomenu',on);b.textContent=on?'Menus':'Hide Menus';b.title=on?'Bring The Menus Back':'Hide The Side Menus (For Video)'};
- set(false);b.addEventListener('click',()=>{set(!st.classList.contains('nomenu'));const A=window.__app,pw=document.getElementById('gm-pop');if(A)A.S.gmPopXY=null;if(pw)pw.style.transform=''});   /* each layout has its own home for the Contemplations box */
+ set(false);window.__hideMenus=set;b.addEventListener('click',()=>{set(!st.classList.contains('nomenu'));const A=window.__app,pw=document.getElementById('gm-pop');if(A)A.S.gmPopXY=null;if(pw)pw.style.transform=''});   /* each layout has its own home for the Contemplations box */
 })();
 
 /* ---- Image export: Save As PNG / JPEG, Copy To Clipboard ---- */
