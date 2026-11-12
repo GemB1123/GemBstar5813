@@ -31,6 +31,12 @@ button.on,button[aria-pressed="true"]{background:var(--gold);color:#1b1408;borde
 .sheet .pl{display:block;width:100%;text-align:left;margin-bottom:4px;font-weight:500}.sheet .pl small{color:var(--dim)}
 .sheet[hidden]{display:none}
 /* sub-menu rows (Gemini, Nov 12): holding Armillary or Orion slides up a row of smaller icons above the bar; tap = on/off, hold = its panel */
+/* camera overlays (Gemini, Nov 12): seen on screen only, never in photos or videos (those draw from the canvas) */
+.mixov{position:fixed;right:8px;top:50%;transform:translateY(-50%);display:none;flex-direction:column;align-items:center;gap:6px;z-index:2;opacity:.55;color:#d1ab74;font-size:15px}
+body.camon .mixov{display:flex}.mixov:active,.mixov:focus-within{opacity:.95}
+.mixov input{writing-mode:vertical-lr;direction:rtl;width:22px;height:170px;accent-color:#d1ab74;margin:0}
+.stopov{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 66px);display:none;align-items:center;gap:8px;padding:9px 18px 9px 14px;border-radius:24px;border:1px solid rgba(255,255,255,.35);background:rgba(160,20,20,.85);color:#fff;font:600 15px -apple-system,Inter,sans-serif;z-index:3}
+.stopov i{width:13px;height:13px;border-radius:2px;background:#fff;display:block}body.recording .stopov{display:flex}body.rowopen .stopov{bottom:calc(env(safe-area-inset-bottom) + 122px)}
 .subbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;justify-content:space-around;gap:2px;padding:4px;background:rgba(10,12,22,.9);border:1px solid rgba(209,171,116,.35);border-radius:12px;z-index:2}
 .subbar[hidden]{display:none}.subbar button{flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
 .subbar button svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.subbar button[aria-pressed="true"]{background:rgba(209,171,116,.16)}.subbar button[aria-pressed="false"]{opacity:.55}
@@ -94,6 +100,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <div class="row"><button id="micb" aria-pressed="true">Microphone</button></div><p class="sub">With Microphone on, videos record sound.</p>
  <label class="sl">Match Camera <input type="range" id="cfov" min="30" max="100" step="1" aria-label="Camera field of view"><b id="cfovv"></b></label>
  <p class="sub">If the stars drift from the real ones toward the screen's edges, slide Match Camera until they line up.</p></div>
+<div class="mixov" aria-label="Camera and stars"><span aria-hidden="true">✦</span><input type="range" id="cmix2" min="0" max="100" step="5" aria-label="Camera to stars: up for more stars"><span aria-hidden="true">◉</span></div>
+<button class="stopov" id="stopov" aria-label="Stop recording"><i></i>Stop</button>
 <nav class="subbar" id="subbar" hidden aria-label="Sub-menu"></nav>
 <nav class="bar" aria-label="Sky Mode">
  <button class="f ic" id="mbtn" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
@@ -595,7 +603,7 @@ function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttr
  document.querySelectorAll('[data-pl]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.pl===ST.plab));
  document.querySelectorAll('[data-ps]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ps===ST.psize));
  document.querySelectorAll('[data-cm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cm===(ST.cam||'off')));
- $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on)}
+ $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on);document.body.classList.toggle('recording',REC.on)}
 /* the Armillary: tap turns all its circles off, and back on to the same ones (Gemini, Nov 12) */
 holdable('abtn',()=>{if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>toggleRow('arm'));
 /* Houses (Gemini, Nov 12): each tap steps through four states: lines, lines with degrees, lines with degree sign minute, off */
@@ -618,7 +626,8 @@ $('gst').addEventListener('input',()=>{ST.seeThru=$('gst').value/100;$('gstv').t
 /* Camera and Stars (Gemini, Nov 12): one slider from all camera to all stars; the middle shows both at full strength */
 function mixA(){const m=ST.camMix;return [Math.min(1,2*(1-m)),Math.min(1,2*m)]}
 function applyMix(){const a=ST.cam?mixA():[1,1];vid.style.opacity=a[0];cv.style.opacity=a[1];$('cmixv').textContent=ST.camMix<.5?'More camera':ST.camMix>.5?'More stars':'Both'}
-$('cmix').addEventListener('input',()=>{ST.camMix=+$('cmix').value/100;applyMix();save()});
+for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+$(id).value/100;$('cmix').value=$('cmix2').value=$(id).value;applyMix();save()});
+$('stopov').onclick=()=>{if(REC.on)recStop()};
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
 $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').textContent=ST.camFov+'°';save()});
 /* ---- the clock: date and time at the chosen place (Gemini, Nov 12) ---- */
@@ -716,7 +725,7 @@ async function recStart(){if(!window.MediaRecorder||!cv.captureStream&&!document
  const vs=REC.cv.captureStream(30);REC.mic=null;
  if(ST.mic){try{REC.mic=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false}});REC.mic.getAudioTracks().forEach(t=>vs.addTrack(t))}catch(e){say('Recording without sound: microphone permission was not given.',4000)}}
  try{const mr=new MediaRecorder(vs,type?{mimeType:type,videoBitsPerSecond:8e6}:{});REC.chunks=[];mr.ondataavailable=e=>{if(e.data&&e.data.size)REC.chunks.push(e.data)};
-  mr.onstop=()=>{const t=mr.mimeType||type||'video/mp4',b=new Blob(REC.chunks,{type:t});deliver(b,'sky-'+stamp()+(t.includes('webm')?'.webm':'.mp4'))};mr.start(1000);REC.mr=mr;REC.on=true;closeSheets();say('Recording. Tap the camera icon\'s menu, or hold it, to stop.',4000)}
+  mr.onstop=()=>{const t=mr.mimeType||type||'video/mp4',b=new Blob(REC.chunks,{type:t});deliver(b,'sky-'+stamp()+(t.includes('webm')?'.webm':'.mp4'))};mr.start(1000);REC.mr=mr;REC.on=true;closeSheets();say('Recording. Tap Stop to finish.',3000)}
  catch(e){say('Video recording did not start.',5000)}sync()}
 function recStop(){if(REC.mr&&REC.mr.state!=='inactive')REC.mr.stop();if(REC.mic){REC.mic.getTracks().forEach(t=>t.stop());REC.mic=null}REC.on=false;say('Recording saved.',3000);sync()}
 $('recb').onclick=()=>{REC.on?recStop():recStart()};
@@ -758,7 +767,7 @@ const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP
 armIcon();
 document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
-$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cmix').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
+$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
