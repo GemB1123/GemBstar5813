@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NASA JPL Ephemeris</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d18;--card:#151a2c;--ink:#efe3c8;--dim:#a99b80;--gold:#d1ab74;--line:#2a3150}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Inter,system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:22px;color:var(--gold);margin:0 0 4px}p{color:var(--dim);margin:4px 0 14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:14px}
+label{display:flex;flex-direction:column;font-size:12px;color:var(--dim);gap:4px}
+input,button{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+button{cursor:pointer;border-color:var(--gold);color:var(--gold)}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-variant-numeric:tabular-nums}
+th,td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}thead th{color:var(--gold);font-weight:600;font-size:13px}
+small{display:block;color:var(--dim);margin-top:12px}
+</style></head><body><main>
+<h1>NASA JPL Ephemeris</h1>
+<p>The shared ephemeris module for every Earthstrology app: NASA JPL DE441, about 13,000 BCE to 17,000 CE. Each century downloads only when you travel to it.</p>
+<div class="row">
+ <label>Date and Time (UT)<input id="dt" type="datetime-local" step="60"></label>
+ <label>Year (any, minus for BCE)<input id="yr" type="number" style="width:9em"></label>
+ <button id="now">Now</button><button id="go">Show</button>
+</div>
+<div class="wrap"><table><thead><tr><th>Body</th><th>Longitude</th><th>Latitude</th><th>Right Ascension</th><th>Declination</th><th>Distance</th><th>Daily Motion</th></tr></thead><tbody id="tb"></tbody></table></div>
+<small id="st"></small>
+<small>Data: NASA Jet Propulsion Laboratory, Planetary and Lunar Ephemeris DE441 (Park, Folkner, Williams and Boggs, 2021), public domain. Re-fitted for the Earthstrology Device and checked against JPL Horizons. Apparent places, tropical, true equinox of date.</small>
+</main>
+<script src="jpl.js"></script>
+<script>
+EA_JPL.config.bases=['de441/'];
+const SG=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const p2=n=>String(n).padStart(2,'0');
+const lonTxt=l=>{const t=Math.floor(l*60+.5)%21600;return p2(Math.floor(t%1800/60))+'°'+p2(t%60)+"' "+SG[Math.floor(t/1800)]};
+const sd=x=>{const t=Math.floor(Math.abs(x)*60+.5);return (x<0?'−':'+')+Math.floor(t/60)+'°'+p2(t%60)+"'"};
+const raTxt=x=>{const s=Math.floor(x/15*3600+.5)%86400;return Math.floor(s/3600)+'h '+p2(Math.floor(s%3600/60))+'m '+p2(s%60)+'s'};
+const dt=document.getElementById('dt'),yr=document.getElementById('yr');
+let jd=Date.now()/864e5+2440587.5;
+function jdFromCal(y,mo,d,h){if(mo<=2){y--;mo+=12}const A=Math.floor(y/100),B=(y<1582||(y===1582&&(mo<10||(mo===10&&d<15))))?0:2-A+Math.floor(A/4);
+ return Math.floor(365.25*(y+4716))+Math.floor(30.6001*(mo+1))+d+B-1524.5+h/24}
+function fill(){const ms=(jd-2440587.5)*864e5,D=new Date(ms);if(isFinite(ms)&&D.getUTCFullYear()>0&&D.getUTCFullYear()<10000)dt.value=D.toISOString().slice(0,16);yr.value=Math.round(2000+(jd-2451545)/365.25)}
+function show(){const tb=document.getElementById('tb'),st=document.getElementById('st');
+ if(!EA_JPL.has(jd)){tb.innerHTML='<tr><td colspan="7">Downloading this century…</td></tr>';EA_JPL.need(jd).then(show,()=>{tb.innerHTML='<tr><td colspan="7">Outside DE441 (about 13,000 BCE to 17,000 CE).</td></tr>'});return}
+ tb.innerHTML=EA_JPL.NAMES.map(n=>{const b=EA_JPL.body(n,jd);return `<tr><td>${n}</td><td>${lonTxt(b.lon)}</td><td>${sd(b.lat)}</td><td>${raTxt(b.ra)}</td><td>${sd(b.dec)}</td><td>${n==='Moon'?Math.round(b.dist*149597870.7).toLocaleString()+' km':b.dist.toFixed(4)+' AU'}</td><td>${(b.lonSpeed<0?'−':'')+sd(Math.abs(b.lonSpeed)).slice(1)}${b.lonSpeed<0?' R':''}</td></tr>`}).join('');
+ st.textContent='Julian Day '+jd.toFixed(5)+' UT · Delta T '+Math.round(EA_JPL.deltaT(2000+(jd-2451545)/365.25))+' s · century files loaded: '+EA_JPL.loaded().map(EA_JPL.fileOf).join(', ')}
+document.getElementById('now').onclick=()=>{jd=Date.now()/864e5+2440587.5;fill();show()};
+document.getElementById('go').onclick=()=>{const y=+yr.value,cur=Math.round(2000+(jd-2451545)/365.25);
+ if(yr.value!==''&&y!==cur){jd=jdFromCal(y,1,1,12)}else if(dt.value){const [d,t]=dt.value.split('T'),[Y,M,Dd]=d.split('-').map(Number),[h,m]=t.split(':').map(Number);jd=jdFromCal(Y,M,Dd,h+m/60)}
+ fill();show()};
+fill();show();
+</script></body></html>
