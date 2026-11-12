@@ -407,6 +407,11 @@ function draw(){const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=no
  if(camOn)g.clearRect(0,0,W,H);else{g.fillStyle=`rgb(${Math.round(4+40*day)},${Math.round(6+80*day)},${Math.round(16+130*day)})`;g.fillRect(0,0,W,H)}
  const dark=Math.max(0,Math.min(1,(-sa-4)/10));
  if(ST.mw)mwDraw(g,(camOn?.55:.9)*dark);
+ /* the ground: the horizon is a straight line in this projection, so the ground is the part of the screen on the nadir's
+    side of it. See-through and drawn first, so the stars and figures below the horizon still show (Gemini, Nov 12) */
+ if(!camOn){const C=CAM,val=(x,y)=>C.f[2]+((x-W/2)/C.F)*C.r[2]-((y-H/2)/C.F)*C.u[2],pts=[[-2,-2],[W+2,-2],[W+2,H+2],[-2,H+2]],out=[];
+  for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4],va=val(...a),vb=val(...b);if(va<0)out.push(a);if((va<0)!==(vb<0)){const t=va/(va-vb);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}
+  if(out.length>2){g.fillStyle=ST.night?'rgb(20,6,6)':'rgb(14,20,16)';g.globalAlpha=.55;g.beginPath();g.moveTo(out[0][0],out[0][1]);for(const q of out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}}
  /* the azimuthal (horizon) grid, very thin */
  if(ST.agrid){g.strokeStyle=CFG.gridCol;g.globalAlpha=.28;g.lineWidth=.5;g.beginPath();for(const a of AGRID)poly(g,a);g.stroke();g.globalAlpha=1}
  /* the zodiac band in the Planetarium's sign colors, 10° either side of the ecliptic */
@@ -420,14 +425,14 @@ function draw(){const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=no
  if(ST.houses&&K.hs){g.strokeStyle=CFG.houseCol;for(const h of K.hs){const ang=h.i%3===1;g.lineWidth=ang?1.6:.9;g.globalAlpha=ang?.85:.55;g.beginPath();poly(g,h.pts);g.stroke()}g.globalAlpha=.9;
   g.fillStyle=CFG.houseCol;g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p)g.fillText(h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i),p[0],p[1])}g.globalAlpha=1;g.textBaseline='alphabetic'}
  /* constellation figures */
- const fade=camOn?1:1-.8*day;   /* daylight dims the figures, names, and stars (Gemini, Nov 12) */
+ const fade=1;   /* Gemini, Nov 12: stars and figures stay bright in the daytime sky */
  if(ST.cons||ST.cnames){g.globalAlpha=fade;g.strokeStyle=CFG.figCol;g.lineWidth=1;g.beginPath();const lab=[];
   for(const ab in D.figs){const f=D.figs[ab],pts=[];for(let i=0;i+1<f.length;i+=2){const a=K.stars[f[i]],b=K.stars[f[i+1]];if(!a||!b)continue;const pa=proj(a),pb=proj(b);if(!pa||!pb)continue;
     if(Math.abs(pa[0]-pb[0])>W||Math.abs(pa[1]-pb[1])>H)continue;if(ST.cons){g.moveTo(pa[0],pa[1]);g.lineTo(pb[0],pb[1])}pts.push(pa,pb)}
    const inn=pts.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H);if(inn.length>=3)lab.push([D.names[ab]||ab,inn.reduce((v,p)=>v+p[0],0)/inn.length,inn.reduce((v,p)=>v+p[1],0)/inn.length])}
   if(ST.cons)g.stroke();if(ST.cnames){g.fillStyle='rgba(160,180,225,.85)';g.font=`${12*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [n,x,y] of lab)g.fillText(n,x,y+18)}g.globalAlpha=1}
  /* stars, fading in daylight */
- const lim=sa>-1?1.0:sa>-6?2.5:sa>-12?4.5:5.6;
+ const lim=sa>-6?4.5:5.6;   /* more stars by day too (Gemini, Nov 12) */
  g.fillStyle='#fff';for(let i=0;i<K.stars.length;i++){const v=K.stars[i];if(!v)continue;const m=D.stars[i][2];if(m>lim)continue;const p=proj(v);if(!p||p[0]<-5||p[0]>W+5||p[1]<-5||p[1]>H+5)continue;
   g.globalAlpha=fade*Math.min(1,0.35+(lim-m)*0.25);g.beginPath();g.arc(p[0],p[1],Math.max(0.6,(3.2-m*0.5))*tiny,0,7);g.fill()}
  g.globalAlpha=1;
@@ -437,11 +442,6 @@ function draw(){const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=no
  if(ST.glyphs){const gs=Math.max(16,Math.min(30,CAM.F*rad(7)));for(let s=0;s<12;s++){const e=K.ecl.find(x=>x.L===s*30+15),p=e&&proj(e.v);if(!p)continue;const im=glyph(s);
    if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);else{g.fillStyle=CFG.glyCols[s%4];g.font=`${gs*.8}px 'Apple Symbols','Segoe UI Symbol',sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'][s]+'︎',p[0],p[1]);g.textBaseline='alphabetic'}}}
  /* the ground (none over the camera: the real ground shows), the horizon, and the directions */
- /* the ground: the horizon is a straight line in this projection, so the ground is the part of the screen on the nadir's
-    side of it (Gemini, Nov 12: the old 10° patches left gaps looking down, where stars showed through bright) */
- if(!camOn){const C=CAM,val=(x,y)=>C.f[2]+((x-W/2)/C.F)*C.r[2]-((y-H/2)/C.F)*C.u[2],pts=[[-2,-2],[W+2,-2],[W+2,H+2],[-2,H+2]],out=[];
-  for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4],va=val(...a),vb=val(...b);if(va<0)out.push(a);if((va<0)!==(vb<0)){const t=va/(va-vb);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}
-  if(out.length>2){g.fillStyle=ST.night?'rgb(20,6,6)':'rgb(14,20,16)';g.globalAlpha=.96;g.beginPath();g.moveTo(out[0][0],out[0][1]);for(const q of out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}}
  g.strokeStyle=CFG.horCol;g.lineWidth=1.6;g.beginPath();poly(g,HORZ);g.stroke();
  g.font=`bold ${16*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [az,n] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){const p=proj(azV(az,0));if(p){g.fillStyle=n==='N'?'#ff8a7a':'#cfe3cf';g.fillText(n,p[0],p[1]+22)}}
  /* Sun, Moon, and planets, drawn last so they sit above the ground line when they are low */
