@@ -45,8 +45,11 @@ body.camon #cbtn svg{stroke:#ff4d40}body.camon #cbtn{background:rgba(255,77,64,.
 .chrow{display:flex;gap:6px;margin:4px 0}.chrow .chn{flex:1;text-align:left}.chrow .chfav{width:44px;padding:0;font-size:18px;color:var(--gold)}
 #charts{max-height:70vh;overflow:auto}#chq,.fl input{width:100%;box-sizing:border-box;font:inherit;font-size:16px;color:var(--ink);background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:10px;padding:9px 10px;min-height:44px;margin:4px 0}
 .fl{display:block;flex:1;font-size:13px;color:var(--dim);margin:4px 0}body.chartview #info{bottom:calc(env(safe-area-inset-bottom) + 60px)}
+.bar .ic.hold::before{content:'';position:absolute;right:3px;bottom:3px;width:0;height:0;border-left:6px solid transparent;border-bottom:6px solid rgba(209,171,116,.75);pointer-events:none}
+.subbar .hold::before{content:'';position:absolute;right:4px;bottom:4px;width:0;height:0;border-left:5px solid transparent;border-bottom:5px solid rgba(209,171,116,.75);pointer-events:none}
+.sheet .row button{font-size:13px;padding:7px 10px;min-height:40px}   /* smaller named buttons (Gemini, Nov 13) */
 .subbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;justify-content:space-around;gap:2px;padding:4px;background:rgba(10,12,22,.9);border:1px solid rgba(209,171,116,.35);border-radius:12px;z-index:2}
-.subbar[hidden]{display:none}.subbar button{flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
+.subbar[hidden]{display:none}.subbar button{position:relative;flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
 .subbar button svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.subbar button[aria-pressed="true"]{background:rgba(209,171,116,.16)}.subbar button[aria-pressed="false"]{opacity:.55}
 body.rowopen .sheet{bottom:calc(env(safe-area-inset-bottom) + 118px)}body.rowopen #info{bottom:calc(env(safe-area-inset-bottom) + 122px)}
 .sheet .sub{margin:2px 0 8px;font-size:13px;color:var(--dim)}.sheet .cap{margin:10px 0 6px;font-size:11px;letter-spacing:.08em;color:var(--dim)}
@@ -104,11 +107,11 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <div id="s-circ" class="sheet" hidden role="dialog" aria-label="Circles"><button class="x" data-close aria-label="Close">×</button><h3>Circles</h3><div class="row"><button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button></div></div>
 <div id="s-agrid" class="sheet" hidden role="dialog" aria-label="Horizon Grid"><button class="x" data-close aria-label="Close">×</button><h3>Horizon Grid</h3><p class="sub">Altitude every 10°, azimuth every 15°.</p><div class="row"><button data-sw="agrid">Horizon Grid</button></div></div>
 <div id="s-zod" class="sheet" hidden role="dialog" aria-label="Zodiac"><button class="x" data-close aria-label="Close">×</button><h3>Zodiac</h3><div class="row"><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div><div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select></div>
-<div id="s-grids" class="sheet" hidden role="dialog" aria-label="Grids"><button class="x" data-close aria-label="Close">×</button><h3>Grids</h3><p class="sub">Any of them together.</p><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button></div></div>
+<div id="s-grids" class="sheet" hidden role="dialog" aria-label="Grids"><button class="x" data-close aria-label="Close">×</button><h3>Grids</h3><p class="sub">Any of them together.</p><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button><button data-sw="agrid">Horizon Grid</button></div></div>
 <div id="hou" class="sheet" hidden role="dialog" aria-label="Houses"><button class="x" data-close aria-label="Close">×</button><h3>Houses</h3><p class="sub">Tap the Houses icon to step through lines, degrees, degree sign minute, and off. Each house line runs through its cusp's zodiac degree and the poles of the ecliptic (In Zodiaco).</p><div class="row">
- <button data-sw="houses">Show Houses</button></div><div class="cap">CUSP LABELS</div><div class="row"><button data-hl="0">None</button><button data-hl="1">Degrees</button><button data-hl="2">Degree Sign Minute</button></div>
+ <button data-sw="houses">Show Houses</button></div><div class="cap">CUSP LABELS</div><div class="row"><button data-hl="0">None</button><button data-hl="1">Degrees</button><button data-hl="2">Degree Sign Minute</button></div><label class="sl">Label Size <input type="range" id="hszr" min="60" max="250" step="10" aria-label="House label size"><b id="hszv"></b></label><div class="row"><button data-sw="nong">Nonagesimals</button></div><p class="sub">Small gold circles on the ecliptic, 90° from the Ascendant: the highest point of the ecliptic, and its lowest, below the horizon.</p>
  <div class="cap">HOUSE SYSTEM</div><div class="row" id="hlist"></div></div>
-<div id="s-cons" class="sheet" hidden role="dialog" aria-label="Constellations"><button class="x" data-close aria-label="Close">×</button><h3>Constellations</h3><div class="row"><button data-sw="cons">Constellation Lines</button><button data-sw="cnames">Constellation Names</button><button disabled title="Coming soon">Constellation Art (Coming Soon)</button></div></div>
+<div id="s-cons" class="sheet" hidden role="dialog" aria-label="Constellations"><button class="x" data-close aria-label="Close">×</button><h3>Constellations</h3><div class="row"><button data-sw="cons">Constellation Lines</button><button data-sw="cnames">Constellation Names</button><button disabled title="Coming soon">Constellation Art (Coming Soon)</button></div><label class="sl">Line Thickness <input type="range" id="cwid" min=".5" max="4" step=".25" aria-label="Constellation line thickness"><b id="cwidv"></b></label></div>
 <div id="s-stars" class="sheet" hidden role="dialog" aria-label="Stars"><button class="x" data-close aria-label="Close">×</button><h3>Stars</h3><div class="row"><button data-sw="snames">Star Names</button><button data-sw="daystars">Daytime Stars</button></div></div>
 <div id="s-plan" class="sheet" hidden role="dialog" aria-label="Planets"><button class="x" data-close aria-label="Close">×</button><h3>Planets</h3><div class="row"><button data-sw="planets">Show Planets</button></div><div class="cap">PLANET LABELS</div><div class="row"><button data-pl="gly">Glyphs</button><button data-pl="name">Names</button><button data-pl="none">None</button></div><div class="cap">PLANET SIZE</div><div class="row"><button data-ps="big">Enlarged</button><button data-ps="real">Realistic</button></div></div>
 <div id="s-mw" class="sheet" hidden role="dialog" aria-label="Milky Way"><button class="x" data-close aria-label="Close">×</button><h3>Milky Way</h3><div class="row"><button data-sw="mw">Milky Way</button></div><label class="sl">Brightness <input type="range" id="mwbr" min="20" max="200" step="5" aria-label="Milky Way brightness"><b id="mwbrv"></b></label></div>
@@ -387,7 +390,7 @@ const CFG={
  /* the Planetarium's sign colors (Aries red, Taurus green, Gemini yellow, Cancer blue; Cardinal boldest) and glyph colors */
  zodCols:[['#f0614f','#c8402f','#ff9a8a'],['#5cc183','#3d9c62','#94dfb0'],['#e8c35a','#c9a136','#f6de95'],['#5b8ff0','#3d6ed6','#98baff']],
  glyCols:['#ec6a5c','#7fc79a','#e3c77c','#7fa6f0'],bandOp:.3,bandHalf:10,lgridCol:'#e8c25a',egridCol:'#4f8fe0',ggridCol:'#c79be8',
- ground:{night:[4,6,5],day:[30,44,32],red:[16,4,4]},
+ ground:{night:[10,30,14],day:[46,78,42],red:[16,4,4]},   /* green by day and night (Gemini, Nov 13) */
  /* Enlarged planet sizes (radius in pixels), and the diameters (km) for Realistic */
  big:{Sun:15,Moon:15,Venus:8,Jupiter:8.5,Saturn:7.5,Mars:6.5,Mercury:5.5,Uranus:5,Neptune:5},
  km:{Sun:1392700,Moon:3474.8,Mercury:4879,Venus:12104,Mars:6779,Jupiter:139820,Saturn:116460,Uranus:50724,Neptune:49244},
@@ -396,14 +399,14 @@ const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
 /* every switch: [key, label, default, group]. Armillary = the sky's circles (tap the Armillary to turn them all off or on) */
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],['lgrid','Ecliptic Grid',false,'arm'],['egrid','Equatorial Grid',false,'arm'],['ggrid','Galactic Grid',false,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
- ['houses','Houses',false,'hou']];
+ ['houses','Houses',false,'hou'],['nong','Nonagesimals',true,'hou']];
 const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:40,view:'sky',sensors:false,
- yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.55,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
+ yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.7,cw:1.5,hsz:1.3,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
- if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru2==='number')ST.seeThru=s.seeThru2;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru2:ST.seeThru,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
+ if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -461,7 +464,7 @@ function sky(){const jd=jdNow(),eps=obl(jd),gm=E.gmst(jd),lst=n360(gm+ST.lon),ph
  let hs=null,non=null;if(ST.houses){const h0=cuspsFor(jd,ST.lat,ST.lon),c=houseSystem(h0,ST.hsys);hs=[];for(let i=1;i<=12;i++){const L=c[i],pts=[];for(let b=-90;b<=90;b+=3)pts.push(ev(L,b));
   const nx=c[i%12+1],mid=n360(L+(((nx-L)%360+360)%360)/2);hs.push({i,L,pts,lab:ev(mid,-CFG.bandHalf-3),deg:ev(L,CFG.bandHalf+3.5)})}
   /* the nonagesimals (Gemini, Nov 12): 90° from the Ascendant, above and below, marked in every house system */
-  non=[n360(h0[1]-90),n360(h0[1]+90)].map(L=>[ev(L,-2.6),ev(L,2.6)])}
+  non=[n360(h0[1]-90),n360(h0[1]+90)].map(L=>[ev(L,-2.6),ev(L,2.6),ev(L,0)])}
  const sunAlt=deg(Math.asin(sv[2]));
  /* J2000 equatorial to east, north, up, for the photo Milky Way */
  const t=rad(lst),ct=Math.cos(t),st=Math.sin(t),cp=Math.cos(phi),sp=Math.sin(phi);
@@ -549,15 +552,17 @@ function sphere(k,rp,L){const T=ptex(k);if(!T)return null;const n=Math.max(6,Mat
  const cv=c0?c0.cv:document.createElement('canvas');cv.width=cv.height=n;const g=cv.getContext('2d'),im=g.createImageData(n,n),o=im.data,rr=n/2,lit=k==='Sun',bf=k==='Moon'?1.15:k==='Venus'||k==='Uranus'?1:1.3;
  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=(i+.5-rr)/rr,y=(rr-j-.5)/rr,q=x*x+y*y,p=(j*n+i)*4;if(q>1){o[p+3]=0;continue}
   const z=Math.sqrt(1-q),u=.5+Math.atan2(x,z)/(2*Math.PI),la=Math.asin(y),tx=Math.min(T.w-1,(u*T.w)|0),ty=Math.min(T.h-1,((.5-la/Math.PI)*T.h)|0),t=(ty*T.w+tx)*4;
-  /* the night side (Gemini, Nov 12): the full face at 20% under the lit phase at full strength, so a dark Moon still shows; a narrow soft terminator */
-  const c=x*L[0]+y*L[1]+z*L[2],tt=Math.max(0,Math.min(1,(c+.02)/.08)),sh=lit?1.2:.2+(Math.min(1,.75+c*1.2)-.2)*tt,al=1;
+  /* the night side (Gemini, Nov 12; brighter Nov 13): the full face at about 36% under the lit phase at full strength, so a dark Moon still shows; a narrow soft terminator */
+  const c=x*L[0]+y*L[1]+z*L[2],tt=Math.max(0,Math.min(1,(c+.02)/.08)),sh=lit?1.2:.36+(Math.min(1,.75+c*1.2)-.36)*tt,al=1;
   o[p]=Math.min(255,T.px[t]*sh*bf);o[p+1]=Math.min(255,T.px[t+1]*sh*bf);o[p+2]=Math.min(255,T.px[t+2]*sh*bf);o[p+3]=Math.round(al*(q>.9?255*(1-q)/.1:255))}
  g.putImageData(im,0,0);SPH[k]={key,cv};return cv}
 /* planet labels (Gemini, Nov 12): the Device's glyphs (PLG), bold, in each planet's color with a dark edge, beside the planet */
 const PGI={};function pglyph(k){if(PGI[k]!==undefined)return PGI[k];PGI[k]=null;const G=PLG[k];if(!G)return null;const w=s=>G.replace('stroke-width="6"','stroke-width="'+s+'"');
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-16 -16 32 32"><g fill="none" stroke="#04060f" color="#04060f" stroke-opacity=".85" stroke-linecap="round" stroke-linejoin="round">${w(15)}</g><g fill="none" stroke="${PCOL[k]}" color="${PCOL[k]}" stroke-linecap="round" stroke-linejoin="round">${w(10)}</g></svg>`;
  const im=new Image();im.onload=()=>{PGI[k]=im};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);return null}
-function bodyR(b){if(ST.psize==='real')return Math.max(b.k==='Sun'||b.k==='Moon'?2:1.2,CAM.F*Math.tan(b.ang/2));return CFG.big[b.k]*(W<500?.9:1)}
+/* grows when zooming in, shrinks when zooming out (Gemini, Nov 13); 1 at the startup zoom */
+const zsc=(lo,hi)=>Math.max(lo,Math.min(hi,40/Math.max(1,ST.cam?ST.camFov*.6:ST.fov)));
+function bodyR(b){if(ST.psize==='real')return Math.max(b.k==='Sun'||b.k==='Moon'?2:1.2,CAM.F*Math.tan(b.ang/2));return CFG.big[b.k]*(W<500?.9:1)*Math.pow(zsc(.35,12),.85)}
 function drawBody(g,b,p,r){const sun=K.bodies.find(x=>x.k==='Sun');let L=[0,0,1];
  if(b.k!=='Sun'){const t=sun.v.map((x,i)=>x-dot(sun.v,b.v)*b.v[i]);let sx=dot(t,CAM.r),sy=dot(t,CAM.u);const m=Math.hypot(sx,sy)||1;sx/=m;sy/=m;const i=rad(b.ph||0);L=[Math.sin(i)*sx,Math.sin(i)*sy,Math.cos(i)]}
  const sp=r>=3?sphere(b.k,r,L):null;
@@ -594,16 +599,18 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.mer){g.strokeStyle=CFG.merCol;g.lineWidth=1.3;g.beginPath();poly(g,MER);g.stroke()}
  /* houses In Zodiaco: lines through the cusps and the poles of the ecliptic, angles bolder */
  if(ST.houses&&K.hs){g.strokeStyle=CFG.houseCol;for(const h of K.hs){const ang=h.i%3===1;g.lineWidth=ang?1.6:.9;g.globalAlpha=ang?.85:.55;g.beginPath();poly(g,h.pts);g.stroke()}g.globalAlpha=.9;
-  g.fillStyle=CFG.houseCol;g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p)g.fillText(h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i),p[0],p[1])}
+  const hf=13*tiny*ST.hsz*Math.pow(zsc(.6,4),.5);g.fillStyle=CFG.houseCol;g.font=`600 ${hf}px -apple-system,Inter,sans-serif`;g.lineJoin='round';g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p)g.fillText(h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i),p[0],p[1])}
   /* cusp labels (Gemini, Nov 12): Degrees (rounded, the band shows the sign), or Degree Sign Minute */
-  if(ST.hlab)for(const h of K.hs){const p=proj(h.deg);if(!p)continue;const t=Math.round(n360(h.L-K.z)*60)%21600,sg=Math.floor(t/1800),w=t%1800,dg=Math.floor(w/60),mn=w%60;
-   if(ST.hlab===1){g.textAlign='center';g.fillText(((dg+(mn>=30?1:0))%30)+'°',p[0],p[1])}
-   else{const gs=14*tiny,im=glyph(sg);g.textAlign='right';g.fillText(dg+'°',p[0]-gs/2-1,p[1]);if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);g.textAlign='left';g.fillText(String(mn).padStart(2,'0')+"'",p[0]+gs/2+1,p[1])}}
+  /* cusp degrees sit inside the band's colors, or near the ecliptic when the band is off (Gemini, Nov 13), with a dark edge */
+  const halo=(t,x,y)=>{g.strokeStyle='rgba(4,6,15,.85)';g.lineWidth=3;g.strokeText(t,x,y);g.fillText(t,x,y)};
+  if(ST.hlab)for(const h of K.hs){const p=proj(K.ev(h.L,ST.band?CFG.bandHalf-3.2:3));if(!p)continue;const t=Math.round(n360(h.L-K.z)*60)%21600,sg=Math.floor(t/1800),w=t%1800,dg=Math.floor(w/60),mn=w%60;
+   if(ST.hlab===1){g.textAlign='center';halo(((dg+(mn>=30?1:0))%30)+'°',p[0],p[1])}
+   else{const gs=hf*1.1,im=glyph(sg);g.textAlign='right';halo(dg+'°',p[0]-gs/2-1,p[1]);if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);g.textAlign='left';halo(String(mn).padStart(2,'0')+"'",p[0]+gs/2+1,p[1])}}
   g.globalAlpha=1;g.textBaseline='alphabetic';
-  if(K.non){g.strokeStyle=CFG.eclCol;g.lineWidth=2.2;g.beginPath();for(const n of K.non)poly(g,n);g.stroke()}}
+  if(K.non&&ST.nong){g.strokeStyle=CFG.eclCol;g.lineWidth=1.8;for(const n of K.non){const p=proj(n[2]);if(p){g.beginPath();g.arc(p[0],p[1],5.5*Math.pow(zsc(.6,4),.4),0,7);g.stroke()}}}}   /* small circles (Gemini, Nov 13) */
  /* constellation figures */
  const fade=camOn||ST.daystars?1:1-.8*day;   /* Daytime Stars (Gemini, Nov 12, on by default): stars and figures stay bright by day; off, they fade with the daylight */
- if(ST.cons||ST.cnames){g.globalAlpha=fade;g.strokeStyle=CFG.figCol;g.lineWidth=1;g.beginPath();const lab=[];
+ if(ST.cons||ST.cnames){g.globalAlpha=fade;g.strokeStyle=CFG.figCol;g.lineWidth=ST.cw;g.beginPath();const lab=[];
   for(const ab in D.figs){const f=D.figs[ab],pts=[];for(let i=0;i+1<f.length;i+=2){const a=K.stars[f[i]],b=K.stars[f[i+1]];if(!a||!b)continue;const pa=proj(a),pb=proj(b);if(!pa||!pb)continue;
     if(Math.abs(pa[0]-pb[0])>W||Math.abs(pa[1]-pb[1])>H)continue;if(ST.cons){g.moveTo(pa[0],pa[1]);g.lineTo(pb[0],pb[1])}pts.push(pa,pb)}
    const inn=pts.filter(p=>p[0]>0&&p[0]<W&&p[1]>0&&p[1]<H);if(inn.length>=3)lab.push([D.names[ab]||ab,inn.reduce((v,p)=>v+p[0],0)/inn.length,inn.reduce((v,p)=>v+p[1],0)/inn.length])}
@@ -616,7 +623,7 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.snames){g.globalAlpha=fade;g.fillStyle='rgba(255,255,255,.75)';g.font=`${11*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';for(const [i,n] of NAMED){const v=K.stars[i];if(!v||D.stars[i][2]>lim)continue;const p=proj(v);if(p)g.fillText(n,p[0]+5,p[1]-4)}g.globalAlpha=1}
  /* the ecliptic (gold) and Ana's sign glyphs in the band */
  if(ST.ecl){g.strokeStyle=CFG.eclCol;g.lineWidth=1.5;g.globalAlpha=.9;g.beginPath();poly(g,K.ecl.map(e=>e.v));g.stroke();g.globalAlpha=1}
- if(ST.glyphs){const gs=Math.max(16,Math.min(30,CAM.F*rad(7)));for(let s=0;s<12;s++){const p=proj(K.glyphV[s]);if(!p)continue;const im=glyph(s);
+ if(ST.glyphs){const gs=Math.max(14,Math.min(80,26*Math.pow(zsc(.5,8),.6)));for(let s=0;s<12;s++){const p=proj(K.glyphV[s]);if(!p)continue;const im=glyph(s);
    if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);else{g.fillStyle=CFG.glyCols[s%4];g.font=`${gs*.8}px 'Apple Symbols','Segoe UI Symbol',sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'][s]+'︎',p[0],p[1]);g.textBaseline='alphabetic'}}}
  /* the ground (none over the camera: the real ground shows), laid over the stars and figures below the horizon so they show
     dimly through it; darker at night (Gemini, Nov 13: about half shows through at night by default), then the horizon and the directions */
@@ -625,11 +632,11 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  g.font=`bold ${16*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [az,n] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){const p=proj(azV(az,0));if(p){g.fillStyle=n==='N'?'#ff8a7a':'#cfe3cf';g.fillText(n,p[0],p[1]+22)}}
  /* Sun, Moon, and planets, drawn last so they sit above the ground line when they are low */
  if(ST.planets)for(const b of K.bodies){const p=proj(b.v);if(!p||p[0]<-40||p[0]>W+40||p[1]<-40||p[1]>H+40)continue;const below=b.v[2]<0,r=bodyR(b);g.globalAlpha=below&&!camOn?0.45:1;
-  drawBody(g,b,p,r);if(ST.plab==='gly'){const im=pglyph(b.k),gs=22*tiny;if(im)g.drawImage(im,p[0]+r+4,p[1]-gs/2,gs,gs)}else if(ST.plab==='name'){g.fillStyle=PCOL[b.k];g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';g.fillText(b.k,p[0]+r+5,p[1]+4)}}
+  drawBody(g,b,p,r);if(ST.plab==='gly'){const im=pglyph(b.k),gs=22*tiny*Math.pow(zsc(.6,4),.5);if(im)g.drawImage(im,p[0]+r+4,p[1]-gs/2,gs,gs)}else if(ST.plab==='name'){g.fillStyle=PCOL[b.k];g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';g.fillText(b.k,p[0]+r+5,p[1]+4)}}
  g.globalAlpha=1;
  infoRing(g);infoTick();
  /* the aim ring */
- if(!camOn){g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1;g.beginPath();g.arc(W/2,H/2,18,0,7);g.stroke()}   /* none over the camera (Gemini, Nov 13: it got in the way of selfies) */
+ /* no aim circle (Gemini, Nov 13: it is not something we see in the sky) */
  if(REC.on||REC.snap)compose();
  requestAnimationFrame(draw)}
 /* ---- taps: what is that? ---- */
@@ -674,7 +681,7 @@ $('align').onclick=()=>{closeSheets();const L=$('alist');if(!L.hidden){L.hidden=
 document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);
 /* ---- the bar (Gemini, Nov 12): Menu, Clock, Globe, Armillary, Houses, Constellations, Camera, Red Light ----
    Tap an icon to turn its layer on or off; hold it (half a second) for its settings. Every sheet has an X and closes with Escape. */
-function holdable(id,tap,hold){const b=typeof id==='string'?$(id):id;let t=0,held=false;
+function holdable(id,tap,hold){const b=typeof id==='string'?$(id):id;let t=0,held=false;b.classList.add('hold');   /* a small corner mark says: hold me (Gemini, Nov 13) */
  b.addEventListener('pointerdown',e=>{held=false;clearTimeout(t);t=setTimeout(()=>{held=true;if(navigator.vibrate)try{navigator.vibrate(12)}catch(x){}hold()},480)});
  for(const ev of ['pointerup','pointerleave','pointercancel'])b.addEventListener(ev,()=>clearTimeout(t));
  b.addEventListener('contextmenu',e=>e.preventDefault());
@@ -693,11 +700,11 @@ function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttr
  document.querySelectorAll('[data-cm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cm===(ST.cam||'off')));
  $('recb').textContent=REC.on?'Stop Recording':'Record Video';$('recb').setAttribute('aria-pressed',REC.on);$('cbtn').classList.toggle('rec',REC.on);document.body.classList.toggle('recording',REC.on)}
 /* the Armillary: tap turns all its circles off, and back on to the same ones (Gemini, Nov 12) */
-holdable('abtn',()=>{if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>toggleRow('arm'));
+holdable('abtn',()=>{if(ROW==='arm'){toggleRow('arm');return}if(armOn()){ST.armMem=ARM.filter(k=>ST[k]);for(const k of ARM)ST[k]=false}else{const m=ST.armMem&&ST.armMem.length?ST.armMem:SW.filter(x=>x[3]==='arm'&&x[2]).map(x=>x[0]);for(const k of m)ST[k]=true}save();sync()},()=>toggleRow('arm'));
 /* Houses (Gemini, Nov 12): each tap steps through four states: lines, lines with degrees, lines with degree sign minute, off */
 holdable('hbtn',()=>{if(!ST.houses){ST.houses=true;ST.hlab=0}else if(ST.hlab<2)ST.hlab++;else{ST.houses=false;ST.hlab=0}K=null;save();sync();
  say(ST.houses?CFG.houses.find(h=>h[0]===ST.hsys)[1]+' houses'+['',', degrees',', degree sign minute'][ST.hlab]+'. Hold for more.':'Houses off.',3000)},()=>openSheet('hou'));
-holdable('obtn',()=>{ST.cons=!ST.cons;save();sync()},()=>toggleRow('obj'));
+holdable('obtn',()=>{if(ROW==='obj'){toggleRow('obj');return}ST.cons=!ST.cons;save();sync()},()=>toggleRow('obj'));
 holdable('cbtn',()=>{if(ST.cam)camOff();else camOn(ST.lastCam||'environment')},()=>openSheet('camm'));
 document.addEventListener('click',e=>{const r=e.target.closest('[data-row]');if(r){closeSheets();toggleRow(r.dataset.row,true);return}
  const pj=e.target.closest('[data-proj]');if(pj){ST.proj=pj.dataset.proj;if(ST.proj==='gnomo')ST.fov=Math.min(100,ST.fov);save();sync();return}
@@ -719,6 +726,8 @@ for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+
 $('stopov').onclick=()=>{if(REC.on)recStop()};
 $('flipov').onclick=()=>{if(ST.cam)camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
+$('cwid').addEventListener('input',()=>{ST.cw=+$('cwid').value;$('cwidv').textContent=ST.cw.toFixed(2).replace(/0$/,'')+' px';save()});
+$('hszr').addEventListener('input',()=>{ST.hsz=+$('hszr').value/100;$('hszv').textContent=$('hszr').value+'%';save()});
 $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').textContent=ST.camFov+'°';save()});
 /* ---- the clock: date and time at the chosen place (Gemini, Nov 12) ---- */
 const fig=' ',p2=n=>String(n).padStart(2,fig);
@@ -825,7 +834,7 @@ $('zsel').addEventListener('change',()=>{ST.zod=$('zsel').value;K=null;save();sy
 const SUBS={arm:[['circ','Circles',['ecl','equ','mer'],'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-22 12 12)"/><ellipse cx="12" cy="12" rx="3.5" ry="9"/>'],
   ['agrid','Horizon',['agrid'],'<path d="M3 17a9 9 0 0 1 18 0M3 17h18M12 8v9M7.5 9.5L9 17M16.5 9.5L15 17M4.5 13h15"/>'],
   ['zod','Zodiac',['band','glyphs'],'<ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-20 12 12)" stroke-width="3.6"/><circle cx="12" cy="12" r="1.3" fill="#d1ab74" stroke="none"/>'],
-  ['grids','Grids',['lgrid','egrid','ggrid'],'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5 7.5h14M5 16.5h14M7.5 4.5c-2 5-2 10 0 15M16.5 4.5c2 5 2 10 0 15"/>']],
+  ['grids','Grids',['lgrid','egrid','ggrid','agrid'],'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5 7.5h14M5 16.5h14M7.5 4.5c-2 5-2 10 0 15M16.5 4.5c2 5 2 10 0 15"/>']],
  obj:[['cons','Figures',['cons','cnames'],'<path d="M3 8l5 6 4-5 4 7 5-6"/><g fill="#d1ab74" stroke="none"><circle cx="3" cy="8" r="1.6"/><circle cx="8" cy="14" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="16" r="1.6"/><circle cx="21" cy="10" r="1.6"/></g>'],
   ['stars','Star Names',['snames'],'<path d="M12 3l1.8 6.2L20 12l-6.2 1.8L12 21l-1.8-7.2L4 12l6.2-2.8z"/>'],
   ['plan','Planets',['planets'],'<circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10" ry="3.2" transform="rotate(-18 12 12)"/>'],
@@ -857,7 +866,7 @@ const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP
 armIcon();
 document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
-$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
+$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cwid').value=ST.cw;$('cwidv').textContent=ST.cw+' px';$('hszr').value=Math.round(ST.hsz*100);$('hszv').textContent=Math.round(ST.hsz*100)+'%';$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
@@ -878,7 +887,11 @@ const iEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'
 /* constellation names: sidereal uses the sign names, since sidereal signs and constellations line up (Planetarium rule) */
 const ISIDN={Ari:'Aries',Tau:'Taurus',Gem:'Gemini',Cnc:'Cancer',Leo:'Leo',Vir:'Virgo',Lib:'Libra',Sco:'Scorpio',Sgr:'Sagittarius',Cap:'Capricorn',Aqr:'Aquarius',Psc:'Pisces'};
 const iCN=k=>(ST.zod!=='trop'&&ISIDN[k])||(D.names&&D.names[k])||k;
-function iZod(lon,jd){const l=n360(lon-zoff(jd)),si=Math.floor(l/30);return `${iDMS(l-si*30)} ${SIGNS[si]}${ST.zod==='trop'?'':' (sidereal)'}`}
+/* degree, minute, and second in the sign (Gemini, Nov 13: arc seconds) */
+function iDMSS(x){const t=Math.round(x*3600),d=Math.floor(t/3600),m=Math.floor(t/60)%60,s=t%60;return d+'°'+String(m).padStart(2,'0')+'′'+String(s).padStart(2,'0')+'″'}
+function iZod(lon,jd,trop){const l=n360(lon-(trop?0:zoff(jd))),t=Math.round(l*3600)%1296000,si=Math.floor(t/108000);return `${iDMSS(t/3600-si*30)} ${SIGNS[si]}`}
+/* the zodiac rows: the chosen ayanamsa's zodiac first when sidereal, then always the tropical one (Gemini, Nov 13) */
+function iZods(add,lon,jd){if(ST.zod!=='trop'){const a=PLN_AYAN.find(x=>x[0]===ST.zod);add(((a&&a[1])||'Sidereal')+' Zodiac',iZod(lon,jd))}add('Tropical Zodiac',iZod(lon,jd,true))}
 /* apparent magnitude (Astronomical Almanac formulas as Meeus gives them; Saturn with its rings' tilt), i = phase angle */
 function iMag(k,r,d,R,i,lon,lat,jd){const lg=5*Math.log10(Math.max(1e-9,r*d));
  switch(k){case 'Sun':return -26.74+5*Math.log10(d);case 'Moon':return -12.73+0.026*i+4e-9*i**4;
@@ -916,14 +929,14 @@ function infoRows(sel){const jd=K.jd,rows=[],add=(a,b)=>rows.push([a,b]),topo={l
  if(sel.t==='s'){const s=D.stars[sel.i],f=D.info&&D.info[sel.i]||[];const [hr,hd,bay,fl,cn0,plx,sp,com,vr]=f,gen=D.gen||{},cn=cn0||(window.plnConAt?plnConAt(s[0],s[1]):'');
   const des=[bay&&gen[cn]?bay+' '+gen[cn]:'',fl&&gen[cn]?fl+' '+gen[cn]:'',hr?'HR '+hr:'',hd?'HD '+hd:''].filter(Boolean),name=com||des[0]||('HR '+hr);
   const st=SKY&&SKY.st[sel.i],ra=st?st.ra:s[0],de=st?st.de:s[1],[l,b]=eqToEcl(ra,de,obl(jd));
-  add('Catalog',des.filter(t=>t!==name).join(' · ')||'—');add('Constellation',cn?iCN(cn):'—');add('Zodiac',iZod(l,jd));add('Long, Lat',`${n360(l).toFixed(2)}° · ${iDMS(b,1)}`);
+  add('Catalog',des.filter(t=>t!==name).join(' · ')||'—');add('Constellation',cn?iCN(cn):'—');iZods(add,l,jd);add('Long / Lat',`${n360(l).toFixed(2)}° · ${iDMS(b,1)}`);
   add('RA, Dec',`${iHMS(ra)} · ${iDMS(de,1)}`);if(K.stars[sel.i])azalt(K.stars[sel.i]);
-  const El=iElong(l,b,sl);add('Elongation',`${iDMS(El.e)} ${El.east?'east':'west'} of the Sun`);add('Morning/Evening',El.e<15?'Too close to the Sun to see':El.east?'Evening star':'Morning star');
+  const El=iElong(l,b,sl);add('Elongation',`${iDMS(El.e)} ${El.e<15?'· too close to the Sun to see':El.east?'Evening Star':'Morning Star'}`);
   add('Magnitude',`${s[2].toFixed(2)}${vr?' (variable)':''}`);
   add('Distance',plx>0?`About ${Math.round(3.2616/plx).toLocaleString('en-US')} light-years`:'Not in this catalog yet');if(sp)add('Spectral Type',sp);
   add('Today',iRTS(()=>[ra,de],-0.5667));return {title:name,sub:'Star',rows}}
  const k=sel.k,G=JPL.body(k,jd),T=JPL.body(k,jd,{topo,speed:false});if(!G||!T)return null;
- add('Zodiac',iZod(G.lon,jd));add('Long, Lat',`${n360(G.lon).toFixed(2)}° · ${iDMS(G.lat,1)}`);
+ iZods(add,G.lon,jd);add('Long / Lat',`${n360(G.lon).toFixed(2)}° · ${iDMS(G.lat,1)}`);
  add('RA, Dec',`${iHMS(T.ra)} · ${iDMS(T.dec,1)}${Math.abs(G.dec!=null?G.dec:T.dec)>obl(jd)&&k!=='Sun'?' · Out Of Bounds':''}`);
  const bv=K.bodies.find(b=>b.k===k);if(bv)azalt(bv.v);
  if(window.plnConAt){const p=-(5028.796195*(jd-2451545)/36525)/3600,q=eclToEq(G.lon+p,G.lat,23.4392911),cn=plnConAt(q[0],q[1]);if(cn)add('Constellation',iCN(cn))}
@@ -933,21 +946,22 @@ function infoRows(sel){const jd=K.jd,rows=[],add=(a,b)=>rows.push([a,b]),topo={l
  const d=G.dist,He=JPL.helio('Earth',jd),R=He?He.r:1,Hk=k==='Sun'||k==='Moon'?null:JPL.helio(k,jd);let pa=0;
  if(k!=='Sun'){const El=iElong(G.lon,G.lat,sl);
   if(k==='Moon')pa=180-El.e;else if(Hk){const r=Hk.r;pa=deg(Math.acos(Math.max(-1,Math.min(1,(r*r+d*d-R*R)/(2*r*d)))))}
-  add('Elongation',`${iDMS(El.e)} ${El.east?'east':'west'} of the Sun`);add('Phase',`Phase angle ${Math.round(pa)}° · ${Math.round((1+Math.cos(rad(pa)))/2*100)}% lit`);
-  add('Morning/Evening',El.e<(k==='Moon'?8:12)?'Too close to the Sun to see':k==='Moon'?(El.east?'Waxing, evening sky':'Waning, morning sky'):El.east?'Evening star':'Morning star')}
+  add('Elongation',`${iDMS(El.e)} ${El.e<(k==='Moon'?8:12)?'· too close to the Sun to see':k==='Moon'?(El.east?'Waxing, evening sky':'Waning, morning sky'):El.east?'Evening Star':'Morning Star'}`);add('Phase',`Phase angle ${Math.round(pa)}° · ${Math.round((1+Math.cos(rad(pa)))/2*100)}% lit`);
+  }
  const mag=iMag(k,Hk?Hk.r:R,d,R,pa,G.lon,G.lat,jd);
  if(k==='Sun'||k==='Moon')add('Magnitude',mag.toFixed(2));else{const av=iAvg(k);add('Magnitude',`${mag.toFixed(2)} now · ${av.m.toFixed(2)} on average`)}
  const fd=au=>k==='Moon'?Math.round(au*IAU).toLocaleString('en-US')+' km':au.toFixed(au<2?3:2)+' AU';
  add('Distance',k==='Moon'?`${fd(d)} now · 384,400 km on average`:k==='Sun'?`${fd(d)} now · 1.000 AU on average`:`${fd(d)} now · ${fd(iAvg(k).d)} on average`);
  if(k!=='Moon'){const mk=d*IAU/1e6;add('','= '+(mk>=1000?(mk/1000).toFixed(2)+' billion km':mk.toFixed(mk<100?1:0)+' million km'))}
  const sz=2*deg(Math.atan(IRKM[k]/(d*IAU)));add('Size',`${(sz*3600).toFixed(k==='Sun'||k==='Moon'?0:1)}″ across${k==='Sun'||k==='Moon'?' ('+iDMS(sz)+')':''}`);
- if(Hk)add('Heliocentric',iZod(Hk.lon,jd));
+ if(Hk)add('Heliocentric',iZod(Hk.lon,jd,true)+' (tropical)');
  add('Today',iRTS(j=>{const b=JPL.body(k,j,{topo,speed:false});return b&&[b.ra,b.dec]},k==='Sun'||k==='Moon'?-0.833:-0.5667));
  return {title:k,sub:k==='Sun'?'Star (our Sun)':k==='Moon'?'Moon':'Planet',rows}}
 /* the information page: a panel with an X that Escape closes; it follows the Time Machine */
 let ISEL=null,IJD=0;
 function infoShow(sel){if(sel)ISEL=sel;if(!ISEL||!K)return;const el=$('info');let d=null;try{d=infoRows(ISEL)}catch(e){console.error(e)}IJD=K.jd;
- el.innerHTML=d?`<div class="ih"><b>${ISEL.t==='p'&&GLY[ISEL.k]?GLY[ISEL.k]+' ':''}${iEsc(d.title)}</b><span>${iEsc(d.sub)}</span><button class="x" id="infox" aria-label="Close information">×</button></div><dl>${d.rows.map(r=>`<dt>${iEsc(r[0])}</dt><dd>${iEsc(r[1])}</dd>`).join('')}</dl>`
+ const gi=ISEL.t==='p'?pglyph(ISEL.k):null;   /* the Device's own planet glyphs (Gemini, Nov 13) */
+ el.innerHTML=d?`<div class="ih"><b>${gi?`<img src="${gi.src}" alt="" style="width:22px;height:22px;vertical-align:-5px;margin-right:4px">`:''}${iEsc(d.title)}</b><span>${iEsc(d.sub)}</span><button class="x" id="infox" aria-label="Close information">×</button></div><dl>${d.rows.map(r=>`<dt>${iEsc(r[0])}</dt><dd>${iEsc(r[1])}</dd>`).join('')}</dl>`
   :`<div class="ih"><b>${iEsc(ISEL.k||'Star')}</b><button class="x" id="infox" aria-label="Close information">×</button></div><p class="sub">Loading NASA data…</p>`;
  el.hidden=false;$('infox').onclick=infoClose}
 function infoClose(){ISEL=null;$('info').hidden=true}
