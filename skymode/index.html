@@ -71,6 +71,7 @@ canvas#sky{z-index:1}
 #alist p{margin:0 0 4px;width:100%;font-size:13px;color:var(--dim)}
 #msg{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);text-align:center;font-size:13px;color:var(--dim);pointer-events:none}
 body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightness(.75)}
+.cc label{display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:2px 8px 2px 0}.cc input[type=color]{width:34px;height:28px;padding:0;border:1px solid #6b5a3a;border-radius:6px;background:none}
 </style></head><body>
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
@@ -87,6 +88,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <p class="sub">Tip: tap an icon to turn it on or off, hold it for its settings. Holding Armillary or Orion opens a row of smaller icons.</p></div>
 <div id="charts" class="sheet" hidden role="dialog" aria-label="Charts"><button class="x" data-close aria-label="Close">×</button><h3>Charts</h3>
  <p class="sub">Showing: <b id="chcur"></b></p><div class="row"><button id="chnew">Enter Chart Data</button><button id="chnow">Now</button></div>
+ <div class="cap">WHEEL STYLE</div><div class="row"><button data-csty="basic">Basic</button><button data-csty="ea">Earthstrology</button></div><div class="cap">WHEEL COLORS</div><div class="row cc"><label>Fire <input type="color" id="ccf0"></label><label>Earth <input type="color" id="ccf1"></label><label>Air <input type="color" id="ccf2"></label><label>Water <input type="color" id="ccf3"></label></div>
+ <div class="row cc"><label>Wheel <input type="color" id="ccdisc"></label><label>Sign Glyphs <input type="color" id="ccsg"></label><label>Planet Glyphs <input type="color" id="ccpg"></label><button id="ccreset">Reset Colors</button></div>
  <div class="cap">CENTER OF THE WHEEL</div><div class="row"><button data-casp="major">Major Aspects</button><button data-casp="minor">Minor Aspects</button><button data-casp="sym">Midpoints</button><button data-casp="none">No Aspects, Large Earth</button></div>
  <div class="row"><button data-cetx="gray">Gray Earth</button><button data-cetx="real">Realistic Earth</button><button id="cenl">City Lights</button></div>
  <div class="cap">RECENT</div><div id="chlists"><div id="chrec"></div><div class="row"><button id="chclr">Clear Recents</button></div>
@@ -563,7 +566,7 @@ function sphere(k,rp,L){const T=ptex(k);if(!T)return null;const n=Math.max(6,Mat
  g.putImageData(im,0,0);SPH[k]={key,cv};return cv}
 /* planet labels (Gemini, Nov 12): the Device's glyphs (PLG), bold, in each planet's color with a dark edge, beside the planet */
 const PGI={};function pglyph(k){if(PGI[k]!==undefined)return PGI[k];PGI[k]=null;const G=PLG[k];if(!G)return null;const w=s=>G.replace('stroke-width="6"','stroke-width="'+s+'"');
- const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-16 -16 32 32"><g fill="none" stroke="#04060f" color="#04060f" stroke-opacity=".85" stroke-linecap="round" stroke-linejoin="round">${w(15)}</g><g fill="none" stroke="${PCOL[k]}" color="${PCOL[k]}" stroke-linecap="round" stroke-linejoin="round">${w(10)}</g></svg>`;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-16 -16 32 32"><g fill="none" stroke="#04060f" color="#04060f" stroke-opacity=".85" stroke-linecap="round" stroke-linejoin="round">${w(15)}</g><g fill="none" stroke="#e8c46a" color="#e8c46a" stroke-linecap="round" stroke-linejoin="round">${w(10)}</g></svg>`;
  const im=new Image();im.onload=()=>{PGI[k]=im};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);return null}
 /* grows when zooming in, shrinks when zooming out (Gemini, Nov 13); 1 at the startup zoom */
 const zsc=(lo,hi)=>Math.max(lo,Math.min(hi,40/Math.max(1,ST.cam?ST.camFov*.6:ST.fov)));
@@ -1021,9 +1024,9 @@ $('cfboth').onclick=()=>{const r=chFromForm();if(!r)return;chOpen(CHS.save(r))};
 /* ---- the wheel ---- */
 let CHB={jd:null,list:null};
 function chBodies(jd){if(CHB.jd===jd&&CHB.list)return CHB.list;const out=[];
- for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune']){let b=null;try{b=JPL&&JPL.body(k,jd)}catch(e){}
+ for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto']){let b=null;try{b=JPL&&JPL.body(k,jd)}catch(e){}
   if(b)out.push({k,lon:b.lon,lat:b.lat||0,spd:b.lonSpeed||0});else{const kb=K.bodies.find(x=>x.k===k);if(kb)out.push({k,lon:kb.lon,lat:0,spd:1})}}
- if(out.length===9)CHB={jd,list:out};return out}
+ if(out.length>=9)CHB={jd,list:out};return out}
 let CHSTAR={pjd:null,list:null};
 function chStars(jd){if(CHSTAR.pjd===SKY.pjd&&CHSTAR.list)return CHSTAR.list;const e=obl(jd),L=[];
  SKY.st.forEach((s,i)=>{if(!s)return;const [l,b]=eqToEcl(s.ra,s.de,e);L[i]=[l,b,s.mag]});CHSTAR={pjd:SKY.pjd,list:L};return L}
@@ -1034,8 +1037,9 @@ let CHMW=null,CHMWK='',CHHIT=[];
    silhouette) is the default; Realistic uses the true-color texture with City Lights on the night side. The Sun's glow sits
    on the subsolar point and the terminator divides day from night. Aspects: Major, Minor (Major And Minor), Midpoints (Main's
    Symmetry: midpoint pictures A/B = C, colored by harmonic), or None, which makes the Earth large. ---- */
-const CHO={etx:'gray',nl:true,asp:'major'};
-try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp}catch(e){}
+const CHDEF={sf:['#482027','#243c33','#5c4c37','#242c52'],disc:'#22307a',sg:'#f2e6c8',pg:'#e8c46a'};
+const CHO={etx:'gray',nl:true,asp:'major',style:'basic',col:JSON.parse(JSON.stringify(CHDEF))};
+try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp;if(o.style==='ea')CHO.style='ea';const hx=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);if(o.col){if(Array.isArray(o.col.sf)&&o.col.sf.length===4&&o.col.sf.every(hx))CHO.col.sf=o.col.sf;for(const k of ['disc','sg','pg'])if(hx(o.col[k]))CHO.col[k]=o.col[k]}}catch(e){}
 const chSave=()=>{try{localStorage.setItem('skymode-chart',JSON.stringify(CHO))}catch(e){}};
 const ETXI={};let CHE={key:'',cv:null};
 function eImg(k){if(ETXI[k])return ETXI[k].ok?ETXI[k]:null;const T=window.APP_PTEX||{},rec=ETXI[k]={ok:false};if(!T[k])return null;const im=new Image();
@@ -1100,12 +1104,15 @@ function chLines(g,P,R){const f=R/380;g.save();g.lineCap='round';g.lineJoin='rou
  else{const L=chAspects(P).map(([a,b,s])=>[a,b,s,Math.max(.8,(1.2+3.6*(1-s.o/Math.max(s.o,s.lim)))*f)]).sort((x,y)=>x[3]-y[3]);
   for(const [a,b,s,w] of L){g.strokeStyle=s.A[2];g.globalAlpha=.14;g.lineWidth=w+4*f;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();g.globalAlpha=.88;g.lineWidth=w;g.stroke()}}
  g.restore()}
-function chCenterUI(){document.querySelectorAll('[data-casp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.casp===CHO.asp));document.querySelectorAll('[data-cetx]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cetx===CHO.etx));
+function chCenterUI(){document.querySelectorAll('[data-casp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.casp===CHO.asp));document.querySelectorAll('[data-csty]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.csty===CHO.style));document.querySelectorAll('[data-cetx]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cetx===CHO.etx));
+ for(const [id,v] of [['ccf0',CHO.col.sf[0]],['ccf1',CHO.col.sf[1]],['ccf2',CHO.col.sf[2]],['ccf3',CHO.col.sf[3]],['ccdisc',CHO.col.disc],['ccsg',CHO.col.sg],['ccpg',CHO.col.pg]]){const e=$(id);if(e&&e.value!==v)e.value=v}
  const nl=$('cenl');if(nl){nl.setAttribute('aria-pressed',CHO.nl);nl.disabled=CHO.etx!=='real'}}
-$('charts').addEventListener('click',e=>{const a=e.target.closest('[data-casp]'),t=e.target.closest('[data-cetx]');if(a)CHO.asp=a.dataset.casp;else if(t)CHO.etx=t.dataset.cetx;else if(e.target.id==='cenl')CHO.nl=!CHO.nl;else return;CHE.key='';chSave();chCenterUI()});
+$('charts').addEventListener('click',e=>{const a=e.target.closest('[data-casp]'),t=e.target.closest('[data-cetx]'),y=e.target.closest('[data-csty]');if(y)CHO.style=y.dataset.csty;else if(a)CHO.asp=a.dataset.casp;else if(t)CHO.etx=t.dataset.cetx;else if(e.target.id==='cenl')CHO.nl=!CHO.nl;else return;CHE.key='';chSave();chCenterUI()});
 chCenterUI();
 
-function drawChart(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z;
+function drawChart(g){if(CHO.style!=='ea'){drawBasic(g);return}
+ drawEA(g)}
+function drawEA(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z;
  g.fillStyle=ST.night?'#0a0202':'#05070f';g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}const AS=cu?cu[1]:n360(K.bodies.find(b=>b.k==='Sun').lon);
  const A=L=>Math.PI+rad(L-AS),XY=(L,r)=>[cx+r*Math.cos(A(L)),cy-r*Math.sin(A(L))];
@@ -1155,6 +1162,54 @@ function chView(v){ST.view=v;$('chbtn').setAttribute('aria-pressed',v==='chart')
 holdable('chbtn',()=>chView(ST.view==='chart'?'sky':'chart'),()=>{chList();openSheet('charts')});
 /* Align moved from the Menu to holding the Track Sky icon */
 holdable('tbtn',()=>tbtnTap(),()=>$('align').click());
+
+/* ---- Basic chart (Gemini, Nov 13): the Earthstrology wheel is too much for a phone, so the default is the Planetary Tables wheel
+   (worlds/cycles/phone wheel(), the one Gemini and Kepler use): sign ring, blue disc, black center with the aspect lines,
+   house numbers on the inner circle, gold planet glyphs with degree and minute, both lunar Nodes (mean). The Earthstrology
+   wheel stays as Wheel Style > Earthstrology. With No Aspects, Large Earth, the Earth fills the black center. ---- */
+const CHGOLD='#e8c46a',CHSF=['#482027','#243c33','#5c4c37','#242c52'],CHCREAM='#f2e6c8';
+const CGI={};function creamGlyph(i){const ck=i+CHO.col.sg;if(CGI[ck])return CGI[ck];const im=glyph(i);if(!im||!im.complete||!im.naturalWidth)return null;const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);x.globalCompositeOperation='source-in';x.fillStyle=CHO.col.sg;x.fillRect(0,0,c.width,c.height);return CGI[ck]=c}
+function chSpread(L,gap){let C=L.map(x=>({m:[Object.assign(x,{u:x.l})]}));const ctr=c=>c.m.reduce((t,x)=>t+x.u,0)/c.m.length,put=c=>{const n=c.m.length,m=ctr(c);c.m.forEach((x,i)=>x.d=m+(i-(n-1)/2)*gap)};C.forEach(put);
+ for(let it=0;it<60&&C.length>1;it++){let hit=-1;for(let i=0;i<C.length;i++){const a=C[i],b=C[(i+1)%C.length],w=i===C.length-1?360:0;if(b.m[0].d+w-a.m[a.m.length-1].d<gap-1e-6){hit=i;break}}
+  if(hit<0)break;const a=C[hit],wrap=hit===C.length-1,b=C[wrap?0:hit+1];if(wrap)b.m.forEach(x=>x.u+=360);const m={m:a.m.concat(b.m)};put(m);if(wrap){C.splice(hit,1);C.splice(0,1);C.push(m)}else C.splice(hit,2,m)}
+ L.forEach(x=>{x.d=n360(x.d)})}
+const GGI={};function goldGlyph(k0){const col=CHO.col.pg,k=k0,ck=k0+col;if(GGI[ck]!==undefined)return GGI[ck];GGI[ck]=null;const G=PLG[k];if(!G)return null;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="-16 -16 32 32"><g fill="none" stroke="${col}" color="${col}" stroke-linecap="round" stroke-linejoin="round">${G}</g></svg>`;const im=new Image();im.onload=()=>{GGI[ck]=im};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);return null}
+function drawBasic(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z,u=R/172;
+ g.fillStyle=ST.night?'#0a0202':'#05070f';g.fillRect(0,0,W,H);
+ let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}const rot=cu?cu[1]:z;
+ const A=L=>Math.PI+rad(L-rot),XY=(L,r)=>[cx+r*u*Math.cos(A(L)),cy-r*u*Math.sin(A(L))],arc=(r)=>{g.beginPath();g.arc(cx,cy,r*u,0,7)};
+ const R0=172,R1=140,RH=88,RA=78;
+ arc(R0);g.fillStyle='#0b0f26';g.fill();
+ for(let i=0;i<12;i++){const a0=A(z+i*30),a1=A(z+i*30+30);g.beginPath();g.arc(cx,cy,R0*u,-a0,-a1,true);g.arc(cx,cy,R1*u,-a1,-a0,false);g.closePath();g.globalAlpha=Math.min(1,ST.bandOp/.3);g.fillStyle=CHO.col.sf[i%4];g.fill();g.globalAlpha=1;g.strokeStyle='#c9b27a';g.lineWidth=.8*u;g.stroke();
+  const [x,y]=XY(z+i*30+15,(R0+R1)/2),gs=20*u,im=creamGlyph(i);if(im)g.drawImage(im,x-gs/2,y-gs/2,gs,gs)}
+ const BG=g.createRadialGradient(cx,cy,0,cx,cy,R1*u);const dc=CHO.col.disc,dk='#'+[1,3,5].map(j=>Math.round(parseInt(dc.slice(j,j+2),16)*.55).toString(16).padStart(2,'0')).join('');BG.addColorStop(0,dc);BG.addColorStop(1,dk);arc(R1);g.fillStyle=BG;g.fill();g.strokeStyle='#c9b27a';g.lineWidth=u;g.stroke();
+ arc(RH);g.fillStyle='#000';g.fill();g.strokeStyle='rgba(201,178,122,.53)';g.lineWidth=.8*u;g.stroke();
+ const font=(px,w)=>`${w||400} ${Math.max(7,px*u)}px Inter,-apple-system,system-ui,sans-serif`;g.textAlign='center';g.textBaseline='middle';
+ if(cu){for(let i=1;i<=12;i++){const ax=i%3===1,a=XY(cu[i],ax?R0:R1),b=XY(cu[i],RH);g.strokeStyle=ax?'#f3e7c4':'rgba(201,178,122,.6)';g.lineWidth=(ax?1.8:.8)*u;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke();
+   const m=cu[i%12+1],mid=cu[i]+n360(m-cu[i])/2,n=XY(mid,RH-8);g.fillStyle='rgba(201,178,122,.8)';g.font=font(7);g.fillText(String(i),n[0],n[1])}
+  g.fillStyle='#f3e7c4';g.font=font(7.5,700);for(const [l,t,dd] of [[cu[1],'AS',-4.5],[cu[10],'MC',4.5]]){const p=XY(l+dd,RH+6);g.fillText(t,p[0],p[1])}}
+ /* the planets and both Nodes: gold glyphs spread so none overlap, a tick at the true degree, then degree and minute */
+ CHHIT=[];const B=chBodies(jd).map(b=>({k:b.k,l:n360(b.lon),rx:b.spd<0})),Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);
+ B.push({k:'NNode',l:nn,rx:true},{k:'SNode',l:n360(nn+180),rx:true});
+ const dot=B.filter(()=>ST.planets).sort((a,b)=>a.l-b.l);chSpread(dot,14);
+ for(const x of dot){const gp=XY(x.d,122),tp=XY(x.d,101),tk=XY(x.l,R1),tk2=XY(x.l,R1-6),mm=Math.floor(x.l*60+.5)%21600,dg=Math.floor(mm/60)%30,mn=mm%60;
+  g.strokeStyle=CHO.col.pg;g.lineWidth=1.4*u;g.beginPath();g.moveTo(tk[0],tk[1]);g.lineTo(tk2[0],tk2[1]);g.stroke();
+  if(Math.abs(n360(x.d-x.l+180)-180)>.8){const e=XY(x.d,122+(R1-6-122)*.45);g.lineWidth=.7*u;g.globalAlpha=.75;g.beginPath();g.moveTo(tk2[0],tk2[1]);g.lineTo(e[0],e[1]);g.stroke();g.globalAlpha=1}
+  const gs=20*u,im=goldGlyph(x.k);if(im)g.drawImage(im,gp[0]-gs/2,gp[1]-gs/2,gs,gs);
+  const nodeR=x.k==='NNode'||x.k==='SNode';g.fillStyle=x.rx&&!nodeR?'#ff9a8a':'#f3e7c4';g.font=font(8,600);g.fillText(`${dg}°${String(mn).padStart(2,'0')}${x.rx&&!nodeR?' R':''}`,tp[0],tp[1]);
+  if(!nodeR)CHHIT.push([x.k,gp[0],gp[1]])}
+ /* the center: aspect lines (Major, Minor, Midpoints), or the Earth filling it */
+ if(CHO.asp==='none')chEarth(g,cx,cy,(RH-1)*u,(L,r)=>XY(L,r/u),rot);
+ else if(ST.planets){const P=dot.filter(x=>x.k!=='SNode').map(x=>{const [px,py]=XY(x.l,RA);return {k:x.k,lon:x.l,x:px,y:py}});chLines(g,P,R*1.05);g.strokeStyle='rgba(201,178,122,.27)';g.lineWidth=.6*u;arc(RA);g.stroke()}
+ g.textBaseline='alphabetic';
+ const cur=chCur(),q=zparts(Date.now()+TOFF);g.fillStyle='#d1ab74';g.textAlign='center';g.font='600 16px -apple-system,Inter,sans-serif';g.fillText(cur?cur.name:(TOFF===0?'Now':'Time Machine'),W/2,24);
+ g.fillStyle='#a99f8a';g.font='12px -apple-system,Inter,sans-serif';g.fillText(`${q.mo}/${q.d}/${yrTxt(q.y)} ${q.h%12||12}:${String(q.mi).padStart(2,'0')}${q.h<12?'am':'pm'} · ${ST.place}${ST.zod==='trop'?'':' · sidereal'}`,W/2,42)}
+
+/* wheel colors (Gemini, Nov 13): the four element colors of the sign ring, the disc, the sign glyphs, and the planet glyphs */
+$('charts').addEventListener('input',e=>{const t=e.target,m=/^ccf(\d)$/.exec(t.id);if(m)CHO.col.sf[+m[1]]=t.value;else if(t.id==='ccdisc')CHO.col.disc=t.value;else if(t.id==='ccsg')CHO.col.sg=t.value;else if(t.id==='ccpg')CHO.col.pg=t.value;else return;chSave()});
+$('charts').addEventListener('click',e=>{if(e.target.id!=='ccreset')return;CHO.col=JSON.parse(JSON.stringify(CHDEF));chSave();chCenterUI()});
+chCenterUI();
 
 })();
 </script>
