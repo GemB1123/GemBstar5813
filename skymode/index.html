@@ -237,17 +237,23 @@ window.EA_CHARTS=API})();
        colors   overrides for any theme color: {bg, ringA, ringB, rinkA, rinkB, ringEdge, house, line, axis, ink, soft, ret, aspBg, el:[fire, earth, air, water]}
                 rinkA / rinkB 'el' = sign glyphs in their element color
        label    accessible name
+   planetColors 'element' (default), 'gold', 'planet' (AstroMaps colors, dark-tuned), or {Sun:'#..', ...}
+   window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (and ctrl/trackpad zoom) for every wheel under root; EAWheel.zoomReset().
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
      tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
    Other Worlds: build {pos, ret, cusps} from your own ephemeris and pass the glyph and sign providers you have. */
 (function(){
 const ELC=['#a8382f','#2f6b53','#9a7333','#33408f'];   /* fire, earth, air, water, deepened from the wheel colors so they read on paper */
-const ELD=['#e8806f','#7fc7a2','#e3c27e','#8e9cf0'];   /* the same on a dark wheel */
+const ELD=['#c0675c','#6f9a86','#c9a96e','#7d86c2'];   /* on a dark wheel: the Main wheel colors (fire #77322d, earth #3e5f56, air #c7a16d, water #363a7d) lifted just enough to read on navy, not neon (Gemini, Nov 13) */
+/* planet colors: 'element' (the Color Rule), 'gold' (all one gold), 'planet' (each planet its own color, from AstroMaps; Saturn and Pluto
+   rethought for dark: Saturn antique sand instead of grey, Pluto plum instead of dark grey, so neither disappears on navy) */
+const PCD={Sun:'#e8b021',Moon:'#cdd2dc',Mercury:'#8fd3ff',Venus:'#43c46e',Mars:'#ff3b30',Jupiter:'#ff9326',Saturn:'#c9b68a',Uranus:'#4f86ff',Neptune:'#2fe0cf',Pluto:'#b07cc6',Node:'#c9a0ff',SNode:'#c9a0ff'};
+const PCL={Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'#d0201a',Jupiter:'#d96a00',Saturn:'#6f747c',Uranus:'#1f4fd8',Neptune:'#0d9488',Pluto:'#3f434a',Node:'#7b4fc4',SNode:'#7b4fc4'};
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋'};
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',rinkA:'el',rinkB:'el',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#9a7a2e',pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',rinkA:'el',rinkB:'el',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#d4b46a',pl:PCD,el:ELD}};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
@@ -272,7 +278,7 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
  const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
- let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif">`;
+ let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;touch-action:none">`;
  h+=`<circle r="199" fill="${T.bg}"/>`;
  /* zodiac ring: twelve segments, alternating, with the sign glyphs */
  for(let i=0;i<12;i++){const A=xy(i*30,R0),B=xy(i*30,R1),Cc=xy(i*30+30,R1),D=xy(i*30+30,R0),g=xy(i*30+15,(R0+R1)/2);
@@ -289,7 +295,7 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
  else for(let i=0;i<12;i++){const a=xy(i*30,R1),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
  const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,big?8:13.5);   /* 13.5 degrees keeps the degree and minute text of a tight cluster apart on a phone (Posidonius, Nov 13) */
- const rg=big?149:143,rd=122,rs=105,rm=90,col=k=>T.el[Math.floor(n360(P[k])/30)%4];
+ const rg=big?149:143,rd=122,rs=105,rm=90,pm=opts.planetColors||T.pcol||'element',col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
  L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,R1-2.5);
   h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="2.4" fill="${c}"/>`;
   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,rg+10),t2=xy(x.l,R1-5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
@@ -308,11 +314,29 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
  if(opts.setLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
-function attach(root,cb){if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
+/* pinch to zoom on phones (Gemini, Nov 13: an imperative wherever the wheel appears on mobile): two fingers zoom about their
+   midpoint, one finger pans while zoomed, ctrl/trackpad wheel zooms on desktop; the view survives re-renders */
+const ZV={k:1,x:0,y:0};
+function zApply(sv){const w=400/ZV.k;sv.setAttribute('viewBox',`${f(ZV.x-w/2)} ${f(ZV.y-w/2)} ${f(w)} ${f(w)}`)}
+function zClamp(){ZV.k=Math.max(1,Math.min(6,ZV.k));const m=200-200/ZV.k;ZV.x=Math.max(-m,Math.min(m,ZV.x));ZV.y=Math.max(-m,Math.min(m,ZV.y));if(ZV.k===1){ZV.x=0;ZV.y=0}}
+function zoomable(root){if(root.__eawz)return;root.__eawz=1;const pts=new Map();let st=null;
+ const sv=()=>root.querySelectorAll?root.querySelectorAll('svg.eaw'):[];
+ const loc=(s,cx,cy)=>{const r=s.getBoundingClientRect(),w=400/ZV.k;return [ZV.x-w/2+(cx-r.left)/r.width*w,ZV.y-w/2+(cy-r.top)/r.height*w]};
+ new MutationObserver(()=>{if(ZV.k!==1)sv().forEach(zApply)}).observe(root.documentElement||root,{childList:true,subtree:true});
+ root.addEventListener('pointerdown',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s||e.pointerType==='mouse')return;pts.set(e.pointerId,[e.clientX,e.clientY]);st=null},true);
+ root.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const s=e.target.closest&&e.target.closest('svg.eaw')||sv()[0];if(!s)return;pts.set(e.pointerId,[e.clientX,e.clientY]);const P=[...pts.values()];
+  if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),cx=(P[0][0]+P[1][0])/2,cy=(P[0][1]+P[1][1])/2;
+   if(!st||st.n!==2){st={n:2,d,k:ZV.k,p:loc(s,cx,cy)};return}const r=s.getBoundingClientRect();ZV.k=st.k*d/st.d;zClamp();const w=400/ZV.k;
+   ZV.x=st.p[0]-((cx-r.left)/r.width-.5)*w;ZV.y=st.p[1]-((cy-r.top)/r.height-.5)*w;zClamp();sv().forEach(zApply);e.preventDefault()}
+  else if(ZV.k>1){if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y};return}const r=s.getBoundingClientRect(),w=400/ZV.k;ZV.x=st.x-(P[0][0]-st.c[0])/r.width*w;ZV.y=st.y-(P[0][1]-st.c[1])/r.height*w;zClamp();sv().forEach(zApply);e.preventDefault()}},{passive:false});
+ const up=e=>{pts.delete(e.pointerId);st=null};root.addEventListener('pointerup',up,true);root.addEventListener('pointercancel',up,true);
+ root.addEventListener('wheel',e=>{if(!e.ctrlKey)return;const s=e.target.closest&&e.target.closest('svg.eaw');if(!s)return;e.preventDefault();const p=loc(s,e.clientX,e.clientY),k0=ZV.k;ZV.k=k0*Math.exp(-e.deltaY*.01);zClamp();const q=ZV.k/k0;ZV.x=p[0]+(ZV.x-p[0])/q;ZV.y=p[1]+(ZV.y-p[1])/q;zClamp();sv().forEach(zApply)},{passive:false})}
+function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply)}
+function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
  root.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
   if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
-window.EAWheel={svg,attach,themes:THEMES,spread};
+window.EAWheel={svg,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
 </script>
 <script>/* ---------- Stargazing precise Sun and Moon (Nov 7, 2026) ----------
@@ -772,16 +796,18 @@ cv.addEventListener('click',ev=>{if(dragged)return;if(!K)return;if(ST.view==='ch
 let dragging=null,dragged=false;
 /* pinch to zoom (Gemini, Nov 12): two fingers set the field of view; a pinch never turns tracking off */
 const PTS=new Map();let pinch=null;
-cv.addEventListener('pointerdown',e=>{PTS.set(e.pointerId,[e.clientX,e.clientY]);if(PTS.size===2){const [a,b]=[...PTS.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,fov:ST.fov};dragging=null;dragged=true;return}
+cv.addEventListener('pointerdown',e=>{PTS.set(e.pointerId,[e.clientX,e.clientY]);if(PTS.size===2){const [a,b]=[...PTS.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,fov:ST.fov,cd:Math.hypot(a[0]-b[0],a[1]-b[1])||1};dragging=null;dragged=true;return}
  if(PTS.size>2)return;dragging=[e.clientX,e.clientY];dragged=false});
 for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{PTS.delete(e.pointerId);if(PTS.size<2)pinch=null;if(!PTS.size)dragging=null});
 cv.addEventListener('pointermove',e=>{if(!PTS.has(e.pointerId))return;PTS.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&PTS.size===2){const [a,b]=[...PTS.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
+ if(ST.view==='chart'){if(CHO.style==='basic'){chZoom(d/pinch.cd,(a[0]+b[0])/2,(a[1]+b[1])/2);pinch.cd=d}return}
  if(ST.cam){say('Zoom is set by the camera while it is on: use Match Camera in the Camera menu.',3000);return}ST.fov=Math.max(5,Math.min(stereo()?180:100,pinch.fov*pinch.d/d))}});
 /* tap and drag turns tracking off and leaves the sky where it was (Gemini, Nov 7); Track Sky turns it back on */
 addEventListener('pointermove',e=>{if(!dragging||pinch)return;const dx=e.clientX-dragging[0],dy=e.clientY-dragging[1];if(!dragged&&Math.abs(dx)+Math.abs(dy)<6)return;
+ if(ST.view==='chart'){dragged=true;dragging=[e.clientX,e.clientY];if(CHO.style==='basic')chPan(dx,dy);return}
  if(!dragged){dragged=true;if(ST.track&&CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt;ST.track=false;trackBtn()}}
  dragging=[e.clientX,e.clientY];const k=fovNow()/H;ST.yaw=n360(ST.yaw-dx*k);ST.pitch=Math.max(-89,Math.min(89,ST.pitch+dy*k))});
-addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;ST.fov=Math.max(5,Math.min(stereo()?180:100,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:true});
+addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;if(ST.view==='chart'){if(CHO.style==='basic'&&e.target===cv){e.preventDefault();chZoom(Math.exp(-e.deltaY*(e.ctrlKey?.01:.002)),e.clientX,e.clientY)}return}ST.fov=Math.max(5,Math.min(stereo()?180:100,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:false});
 /* ---- buttons ---- */
 const $=id=>document.getElementById(id);
 function start(){const go=()=>{addEventListener('deviceorientationabsolute',e=>onOrient(e,true));addEventListener('deviceorientation',e=>onOrient(e,false));$('start').hidden=true;
@@ -1439,7 +1465,7 @@ function drawEA(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/
  /* the title: the chart's name, its moment, and place */
  const cur=chCur(),q=zparts(Date.now()+TOFF);g.fillStyle='#d1ab74';g.textAlign='center';g.font='600 16px -apple-system,Inter,sans-serif';g.fillText(cur?cur.name:(TOFF===0?'Now':'Time Machine'),W/2,24);
  g.fillStyle='#a99f8a';g.font='12px -apple-system,Inter,sans-serif';g.fillText(`${q.mo}/${q.d}/${yrTxt(q.y)} ${q.h%12||12}:${String(q.mi).padStart(2,'0')}${q.h<12?'am':'pm'} · ${ST.place}${ST.zod==='trop'?'':' · sidereal'}`,W/2,42)}
-function chartTap(ev){let best=null,bd=26;for(const [k,x,y] of CHHIT){const d=Math.hypot(x-ev.clientX,y-ev.clientY);if(d<bd){bd=d;best=k}}if(best)infoShow({t:'p',k:best});else infoClose()}
+let CHDT=0;function chartTap(ev){const t=performance.now();if(CHO.style==='basic'&&t-CHDT<320){CHDT=0;chReset();return}CHDT=t;let best=null,bd=26;for(const [k,x,y] of CHHIT){const d=Math.hypot(x-ev.clientX,y-ev.clientY);if(d<bd){bd=d;best=k}}if(best)infoShow({t:'p',k:best});else infoClose()}
 function chView(v){ST.view=v;$('chbtn').setAttribute('aria-pressed',v==='chart');document.body.classList.toggle('chartview',v==='chart');if(v==='chart')say('Chart. Tap the wheel button to go back to the sky; hold it for Charts.',3500)}
 holdable('chbtn',()=>chView(ST.view==='chart'?'sky':'chart'),()=>{chList();openSheet('charts')});
 /* Align moved from the Menu to holding the Track Sky icon */
@@ -1460,14 +1486,21 @@ function swOpts(){const S=CHO.sw,col={};if(S.el.some(Boolean))col.el=S.el.slice(
  const sign=S.glyEl?swSign:(i,x,y,sz)=>swSign(i,x,y,sz,S.sg);
  const asp=CHO.asp==='none'?false:CHO.asp==='sym'?undefined:p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));const minor=CHO.asp==='minor';return chAspects(P).map(([a,b,s])=>({a:a.k,b:b.k,angle:s.A[1],color:s.A[2],minor:s.A[3]===2,name:s.A[0]}))};
  const pics=CHO.asp==='sym'?p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));return chPictures(P).map(q=>({a:q.a.k,b:q.b.k,c:q.c.k,color:chFamCol(q.fn)}))}:null;
- const o={theme:CHO.theme,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};if(pics)o.pictures=pics;return o}
-function drawSimple(g){const top=58,bot=66,S=Math.max(120,Math.min(W-12,H-top-bot-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z,u=S/400,TH=(window.EAWheel&&EAWheel.themes[CHO.theme])||{bg:'#0b0f26'};
+ const pcol=S.glyEl?'element':Object.fromEntries(Object.keys(PLG).concat(['Node','SNode']).map(k=>[k,S.pg])),o={theme:CHO.theme,planetColors:pcol,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};if(pics)o.pictures=pics;return o}
+/* pinch to zoom and drag to pan the wheel (Gemini: imperative on mobile); double tap goes back to fit */
+const CHZ={s:1,x:0,y:0};
+function chZoom(f,px,py){const s0=CHZ.s,s1=Math.max(1,Math.min(6,s0*f)),top=58,bot=66,ox=W/2,oy=top+(H-top-bot)/2,k=s1/s0;
+ CHZ.x=(px-ox)-(px-ox-CHZ.x)*k;CHZ.y=(py-oy)-(py-oy-CHZ.y)*k;CHZ.s=s1;if(s1===1){CHZ.x=0;CHZ.y=0}chClamp()}
+function chClamp(){const m=Math.max(0,(CHZ.s-1))*Math.min(W,H)*.55;CHZ.x=Math.max(-m,Math.min(m,CHZ.x));CHZ.y=Math.max(-m,Math.min(m,CHZ.y))}
+function chPan(dx,dy){if(CHZ.s<=1)return;CHZ.x+=dx;CHZ.y+=dy;chClamp()}
+function chReset(){CHZ.s=1;CHZ.x=0;CHZ.y=0}
+function drawSimple(g){const top=58,bot=66,S0=Math.max(120,Math.min(W-12,H-top-bot-4)),S=S0*CHZ.s,cx=W/2+CHZ.x,cy=top+(H-top-bot)/2+CHZ.y,jd=K.jd,z=K.z,u=S/400,TH=(window.EAWheel&&EAWheel.themes[CHO.theme])||{bg:'#0b0f26'};
  g.fillStyle=CHO.theme==='light'?'#e6e8ec':(ST.night?'#0a0202':'#05070f');g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}
  const pos={},ret={};for(const b of chBodies(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z);
  const cus=cu?cu.map(c=>c==null?c:n360(c-z)):null;
- const key=[Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
- if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg({pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="800" height="800" ').replace('width="100%" height="100%"','');
+ const RES=800*Math.min(4,Math.ceil(CHZ.s*(devicePixelRatio||1)*S0/800)),key=[RES,Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
+ if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg({pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ',`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${RES}" height="${RES}" `).replace('width="100%" height="100%"','');
   const im=new Image();im.onload=()=>{if(CHSW.pend===key){CHSW.img=im;CHSW.key=key;CHSW.pend=''}};im.onerror=()=>{CHSW.pend=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
  if(CHSW.img)g.drawImage(CHSW.img,cx-S/2,cy-S/2,S,S);
  const rot=cus?cus[1]:0,XY=(L,r)=>{const t=rad(180+L-rot);return [cx+r*u*Math.cos(t),cy-r*u*Math.sin(t)]};
