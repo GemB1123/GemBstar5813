@@ -2564,10 +2564,10 @@ window.__sky&&(window.__sky.sgz=SGZ);
    Oct 24 1975, 7:39 PM): whole sign, no houses, the constellations, the Milky Way, the ecliptic with latitude, glowing gold
    planet glyphs, and a small silver Earth with the major aspects. "Earthstrology Sky" at the top and Gemini's two logos,
    in Earth silver, at the lower left and right. The wheel spins from six hours before her birth up to the birth moment, then grows toward the eyes and fades to the sky beneath it:
-   about 4 seconds the first time, 2 seconds after that. A tap skips it. ---- */
+   about 6 seconds the first time, 3 seconds after that (Gemini, Nov 13). A tap skips it. ---- */
 const SPLB={ms:Date.UTC(1975,9,24,23,39,0),lat:42.3601,lon:-71.0589},SPLBJD=Date.UTC(1975,9,24,23,39,0)/864e5+2440587.5;
 const SPL={el:null,t0:performance.now(),done:false,drawn:false};
-(function(){let first=true;try{first=!localStorage.getItem('skymode-opened')}catch(e){}SPL.dur=first?4000:2000;
+(function(){let first=true;try{first=!localStorage.getItem('skymode-opened')}catch(e){}SPL.dur=6000;   /* Gemini, Nov 13: 6 s every time while testing; later first?6000:3000 */
  const L=window.EA_LOGOS||{},el=document.createElement('div');el.id='splash';el.setAttribute('aria-label','Earthstrology Sky');
  el.innerHTML=`<canvas id="splcv" aria-hidden="true"></canvas><div class="spt">Earthstrology Sky</div>${L.gb?`<div class="splg l" style="--lg:url(${L.gb})" role="img" aria-label="Gemini Brett"></div>`:''}${L.se?`<div class="splg r" style="--lg:url(${L.se})" role="img" aria-label="School of Earthstrology"></div>`:''}`;
  document.body.appendChild(el);SPL.el=el;el.addEventListener('pointerdown',()=>splEnd(true));})();
@@ -2589,7 +2589,7 @@ function splTick(){if(SPL.done||!K)return;const el=SPL.el,now=performance.now();
  if(!SPL.drawn){let gl=true;for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'])if(!pglyph(k))gl=false;for(let i=0;i<12;i++)if(!glyph(i))gl=false;
   if(!gl&&now-SPL.t0<700)return;splDraw();SPL.full=splReady();SPL.shown=now;$('splcv').style.transform='rotate(-90.25deg)';return}
  if(!SPL.full&&!SPL.moving&&splReady()){SPL.full=true;splDraw()}
- const hold=SPL.dur>2500?1200:500;if(SPL.moving||now-SPL.shown<hold)return;SPL.moving=true;const D=SPL.dur-hold;
+ const hold=SPL.dur>4000?1500:700;if(SPL.moving||now-SPL.shown<hold)return;SPL.moving=true;const D=SPL.dur-hold;
  /* the sky turns about 90 degrees in six hours, so the wheel spins from six hours ago up to now as it grows toward the eyes */
  $('splcv').animate([{transform:'rotate(-90.25deg) scale(1)',opacity:1},{transform:'rotate(-35deg) scale(1.15)',opacity:1,offset:.45},{transform:'rotate(0deg) scale(3.2)',opacity:0}],{duration:D,easing:'ease-in',fill:'forwards'});
  const late={duration:D*.55,delay:D*.45,fill:'forwards'};
