@@ -1984,17 +1984,17 @@ const plnSpd=v=>Math.abs(v)<1/60?Math.round(Math.abs(v)*3600)+'″':plnDMS(Math.
 const plnOrd=n=>n+(n%100>10&&n%100<14?'th':['th','st','nd','rd'][n%10]||'th');
 function plnZodTxt(lon,jd){const P=plnS(),sid=P.zod==='sid',l=n360(lon-(sid?plnAyan(P.ayan,jd):0)),si=Math.floor(l/30);
  return `${plnDMS(l-si*30)} ${PLN_SIGNS[si]}${sid?' (sidereal)':''}`}
-/* rises, culminates, and sets on the local day of the moment; radec(jd) gives the position of date */
+/* the four Rs (Gemini, Nov 13): Rise, Reach (culminates), Rest (sets), Root (lower culmination) on the local day of the moment; radec(jd) gives the position of date */
 function plnRTS(radec,K,h0){const w=K.w,pt=parts(w.ms,w.tz),day0=w.ms-((pt.h*60+pt.mi)*60+pt.s)*1000,j0=jdOf(day0);
  const node=[];for(let i=0;i<=12;i++)node.push(radec(j0+i/12));
  const at=f=>{const x=f*12,i=Math.min(11,Math.floor(x)),t=x-i,a=node[i],b=node[i+1];let dr=((b[0]-a[0]+540)%360)-180;return [a[0]+dr*t,a[1]+(b[1]-a[1])*t]};
- const lst=jd=>n360(280.46061837+360.98564736629*(jd-2451545)+w.lon);let rise=null,set=null,cul=null,pa=null,ph=null,up=0,hi=-99;
+ const lst=jd=>n360(280.46061837+360.98564736629*(jd-2451545)+w.lon);let rise=null,set=null,cul=null,root=null,pa=null,ph=null,up=0,hi=-99;
  for(let i=0;i<=144;i++){const f=i/144,jd=j0+f,q=at(f),hh=plnAltAz(q[0],q[1],lst(jd),w.lat),a=hh[0]-h0,H=((lst(jd)-q[0]+540)%360)-180;hi=Math.max(hi,hh[0]);if(a>0)up++;
   if(pa!=null){const fr=pa/(pa-a),t=day0+(f-1/144+fr/144)*864e5;if(pa<0&&a>=0&&rise==null)rise=t;if(pa>0&&a<=0&&set==null)set=t}
-  if(ph!=null&&ph<0&&H>=0&&cul==null)cul=day0+(f-1/144+(-ph/(H-ph))/144)*864e5;pa=a;ph=H}
+  if(ph!=null&&ph<0&&H>=0&&cul==null)cul=day0+(f-1/144+(-ph/(H-ph))/144)*864e5;if(ph!=null&&ph>90&&H<-90&&root==null)root=day0+(f-1/144+((180-ph)/(H+360-ph))/144)*864e5;pa=a;ph=H}
  const tf=t=>t==null?'—':new Intl.DateTimeFormat('en-US',{timeZone:w.tz,hour:'numeric',minute:'2-digit'}).format(new Date(t));
- if(rise==null&&set==null)return up?'Up all day (never sets)':'Below the horizon all day';
- return `Rise ${tf(rise)} · Top ${tf(cul)} · Set ${tf(set)}`}
+ if(rise==null&&set==null)return up?`Up all day (never rests) · Reach ${tf(cul)} · Root ${tf(root)}`:`Below the horizon all day · Reach ${tf(cul)} · Root ${tf(root)}`;
+ return `Rise ${tf(rise)} · Reach ${tf(cul)} · Rest ${tf(set)} · Root ${tf(root)}`}   /* Gemini, Nov 13: the four Rs */
 let PLN_INFO={key:'',html:''};
 /* the selected body: {t:'p',k:'Mars',ring:''} or {t:'s',i:123} */
 function plnInfoRows(K){const P=plnS(),sel=P.sel;if(!sel)return null;const rows=[],add=(a,b)=>rows.push([a,b]),sl=K.bodies[0].lon;
@@ -2531,7 +2531,7 @@ window.EA_EPH={moonGeo,sunGeo,deltaT,moon,sun,obliq,gmst,eq,moonTopo,sunTopo,sep
 </script>
 <script>/* ---------- Stargazing World (slot 2.6): naked-eye sky viewing ----------
    Gemini, Nov 7, 2026: tap Stargazing and read a paragraph of recommended sky viewing for the day and the week; tabs hold
-   rise / culminate / set / anti-culminate times, parans, and the year's sky calendar (meteor showers, Milky Way gates,
+   Rise / Reach / Rest / Root times (the four Rs), parans, and the year's sky calendar (meteor showers, Milky Way gates,
    zodiacal light, constellations). Links both ways with the Planetarium (Feet On The Ground).
    Registers window.EA_WORLDS.stargazing; the core calls it lazily with its API and gets back {box, act}.
    Positions come from the core (longitudes) and the Planetarium (latitudes, obliquity, precession), so all three agree.
@@ -2633,7 +2633,7 @@ const SG_CONS=[['Orion',84,2],['The Big Dipper',178,55],['Cassiopeia',15,60],['T
  ['The Ram',40,20],['The Bull',66,16],['The Twins',110,24],['The Crab',129,20],['The Lion',160,15],['The Priestess',195,-3],['The Scales',228,-15],['The Scorpion',252,-30],
  ['The Archer',285,-28],['The SeaGoat',315,-18],['The Water Bearer',334,-10],['The Fishes',10,12]];
 const SG_TABS=[['tonight','Tonight'],['moon','Moon'],['rise','Rise And Set'],['parans','Parans'],['events','Sky Events'],['occ','Occultations'],['ecl','Eclipses'],['cal','Sky Calendar']];
-const SG_EV=[['rise','rising'],['cul','culminating'],['set','setting'],['anti','anti-culminating']];
+const SG_EV=[['rise','rising'],['cul','reaching'],['set','resting'],['anti','rooting']];   /* Gemini, Nov 13: the four Rs, Rise, Reach, Rest, Root */
 const SG_DEF={tab:'tonight',beh:false,ecl:false,bri:false,cons:false,consAll:false,extra:[],sq:'',ssug:[],orb:4,pp:true,loc:null,date:null,chart:null,q:'',sug:[],pick:false,where:false,occDays:30,anim:null,geo:false,mph:'p12',mt:''};
 function sgS(){if(!S.stg)S.stg=Object.assign({},SG_DEF);for(const k in SG_DEF)if(!(k in S.stg))S.stg[k]=SG_DEF[k];return S.stg}
 
@@ -2816,19 +2816,19 @@ function consRanges(ds,pl){const D=window.EA_PLN_SKY,G=sgS();if(!D||!D.figs)retu
   const rng=v=>v.length?[Math.min(...v),Math.max(...v)]:null;return {ab,name:D.names[ab]||ab,n:st.length,rise:rng(ev.rise),cul:rng(ev.cul),set:rng(ev.set),up,down}}).filter(Boolean)}
 function consHTML(ds,pl){const G=sgS(),R=consRanges(ds,pl),span=(r)=>r?(hm(r[0],pl)===hm(r[1],pl)?hm(r[0],pl):hm(r[0],pl)+' \u2013 '+hm(r[1],pl)):'\u2014';
  return `<div class="segs"><button class="seg ${!G.consAll?'on':''}" data-act="stgconsall" data-id="0">Zodiac</button><button class="seg ${G.consAll?'on':''}" data-act="stgconsall" data-id="1">All 88</button></div>
- <div class="stgtbl"><table><thead><tr><th scope="col">Constellation</th><th scope="col">Rising</th><th scope="col">Culminating</th><th scope="col">Setting</th></tr></thead><tbody>${R.map(c=>`<tr><th scope="row">${esc(c.name)}</th>${c.down===c.n?'<td colspan="3">Never rises from here</td>':`<td>${span(c.rise)}</td><td>${span(c.cul)}</td><td>${span(c.set)}</td>`}</tr>${c.up||(c.down&&c.down<c.n)?`<tr><td></td><td colspan="3"><small>${c.up?c.up+' of '+c.n+' stars never set':''}${c.up&&c.down?'; ':''}${c.down&&c.down<c.n?c.down+' of '+c.n+' stars never rise':''}</small></td></tr>`:''}`).join('')}</tbody></table></div>
+ <div class="stgtbl"><table><thead><tr><th scope="col">Constellation</th><th scope="col">Rise</th><th scope="col">Reach</th><th scope="col">Rest</th></tr></thead><tbody>${R.map(c=>`<tr><th scope="row">${esc(c.name)}</th>${c.down===c.n?'<td colspan="3">Never rises from here</td>':`<td>${span(c.rise)}</td><td>${span(c.cul)}</td><td>${span(c.set)}</td>`}</tr>${c.up||(c.down&&c.down<c.n)?`<tr><td></td><td colspan="3"><small>${c.up?c.up+' of '+c.n+' stars never set':''}${c.up&&c.down?'; ':''}${c.down&&c.down<c.n?c.down+' of '+c.n+' stars never rise':''}</small></td></tr>`:''}`).join('')}</tbody></table></div>
  <small class="note">Each range runs from the first star of the figure to the last: the constellation starts rising when its first star clears the horizon and has fully risen when its last star does. Figures are the Device\u2019s own constellation lines.</small>`}
 function riseHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),rows=riseRows(ds,pl),sd=sunDay(t0,pl);
  const tw=`<div class="stgtw"><span>Dawn ${hm(sd.astroUp,pl)||'—'}</span><span>Sunrise ${hm(sd.riseUp,pl)||'—'}</span><span>Sunset ${hm(sd.riseDn,pl)||'—'}</span><span>Dark ${hm(sd.astroDn,pl)||'—'}</span></div>`;
- const tr=r=>`<tr${SG_STARS[r.k]?' class="st"':''}><th scope="row">${GLY[r.k]?`<span class="gl">${GLY[r.k]}</span> `:''}${esc(tblName(r.k))}</th>${r.note==='Never rises'||r.note==='Below the horizon all day'?`<td colspan="4">Never rises from here</td>`:r.note?`<td>Never sets</td><td>${go(r.cul,r.k,0,hm(r.cul,pl))}${r.cul?` <small>${Math.round(r.culAlt)}\u00b0</small>`:''}</td><td>Never sets</td><td>${hm(r.anti,pl)}</td>`:`<td>${go(r.rise,r.k,0,hm(r.rise,pl)||'—',1)}</td><td>${go(r.cul,r.k,0,hm(r.cul,pl)||'—')}${r.cul?` <small>${Math.round(r.culAlt)}°</small>`:''}</td><td>${go(r.set,r.k,0,hm(r.set,pl)||'—',1)}</td><td>${go(r.anti,r.k,0,hm(r.anti,pl)||'—')}</td>`}</tr>`;
- return `${tw}${starToggles(true)}${G.cons?consHTML(ds,pl):''}<div class="stgtbl"><table><thead><tr><th scope="col">Body</th><th scope="col">Rises</th><th scope="col">Culminates</th><th scope="col">Sets</th><th scope="col">Anti-Culminates</th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table></div>
- <small class="note">Times for ${esc(pl.label)}, ${esc(pl.tz||'UTC')}. Culminating is crossing the meridian, highest in the sky (its height shown); anti-culminating is the lowest point, under the North or South pole. Brightest Stars are the first-magnitude stars (magnitude 1.5 or brighter); Behenian Stars are the fifteen stars of the medieval Hermetic tradition; Ecliptic Stars are bright stars the Moon and planets pass.</small>`}
+ const tr=r=>`<tr${SG_STARS[r.k]?' class="st"':''}><th scope="row">${GLY[r.k]?`<span class="gl">${GLY[r.k]}</span> `:''}${esc(tblName(r.k))}</th>${r.note==='Never rises'||r.note==='Below the horizon all day'?`<td colspan="4">Never rises from here</td>`:r.note?`<td>Never rests</td><td>${go(r.cul,r.k,0,hm(r.cul,pl))}${r.cul?` <small>${Math.round(r.culAlt)}\u00b0</small>`:''}</td><td>Never rests</td><td>${hm(r.anti,pl)}</td>`:`<td>${go(r.rise,r.k,0,hm(r.rise,pl)||'—',1)}</td><td>${go(r.cul,r.k,0,hm(r.cul,pl)||'—')}${r.cul?` <small>${Math.round(r.culAlt)}°</small>`:''}</td><td>${go(r.set,r.k,0,hm(r.set,pl)||'—',1)}</td><td>${go(r.anti,r.k,0,hm(r.anti,pl)||'—')}</td>`}</tr>`;
+ return `${tw}${starToggles(true)}${G.cons?consHTML(ds,pl):''}<div class="stgtbl"><table><thead><tr><th scope="col">Body</th><th scope="col">Rise</th><th scope="col">Reach</th><th scope="col">Rest</th><th scope="col">Root</th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table></div>
+ <small class="note">Times for ${esc(pl.label)}, ${esc(pl.tz||'UTC')}. The four Rs: Rise over the eastern horizon; Reach the meridian, highest in the sky (its height shown); Rest below the western horizon; Root at the lowest point, under the North or South pole. Brightest Stars are the first-magnitude stars (magnitude 1.5 or brighter); Behenian Stars are the fifteen stars of the medieval Hermetic tradition; Ecliptic Stars are bright stars the Moon and planets pass.</small>`}
 function paransHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),rows=riseRows(ds,pl),P=parans(rows,pl);
  const orbs=[[2,'2 Minutes'],[4,'4 Minutes (1°)'],[8,'8 Minutes (2°)'],[15,'15 Minutes']];
  return `${starToggles()}<div class="segs">${orbs.map(([v,t])=>`<button class="seg ${G.orb===v?'on':''}" data-act="stgorb" data-id="${v}">${t}</button>`).join('')}</div>
  <div class="segs"><button class="seg ${G.pp?'on':''}" data-act="stgtgl" data-id="pp" aria-pressed="${G.pp}">Planet With Planet</button></div>
  ${P.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Time</th><th scope="col">Paran</th><th scope="col">Apart</th></tr></thead><tbody>${P.map(p=>`<tr><td>${go(p.t,p.a.k,0,hm(p.t,pl))}</td><td><b>${esc(tblName(p.a.k))}</b> ${p.a.e} as <b>${esc(tblName(p.b.k))}</b> ${p.b.e}</td><td>${p.gap} min</td></tr>`).join('')}</tbody></table></div>`:`<p>No parans within ${G.orb} minutes today.${!G.beh&&!G.ecl&&!G.bri?' Switch on Brightest, Behenian or Ecliptic Stars to add star parans.':''}</p>`}
- <small class="note">A paran is two bodies on the angles at the same moment (rising, culminating, setting or anti-culminating) for the latitude of ${esc(pl.label)}. Four minutes of time is one degree of the turning sky. No delineations yet.</small>`}
+ <small class="note">A paran is two bodies on the angles at the same moment (rising, reaching, resting, or rooting) for the latitude of ${esc(pl.label)}. Four minutes of time is one degree of the turning sky. No delineations yet.</small>`}
 function calHTML(){const pl=sgPlace(),ds=sgDate(pl),[yy]=ymd(ds),t0=midnight(ds,pl);pl0=pl;
  /* meteor showers this year, with the Moon at each peak */
  const met=SG_METEORS.map(m=>{const pk=localToMs(m[2][0]<m[1][0]?yy:yy,m[2][0],m[2][1],0,0,0,pl),ill=moonPhase(jdAt(pk)).ill;
@@ -3111,7 +3111,7 @@ function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=E
  ${row('Longitude',SG_SIGNS[sg]+' '+dms(inS,true),'tropical')}${row('Latitude',dms(D.lat)+(D.lat>=0?' N':' S'),D.asc?'heading north (after the North Node)':'heading south (after the South Node)')}
  ${row('Right ascension',hms(D.ra),'geocentric, of date')}${row('Declination',dms(D.dec)+(D.dec>=0?' N':' S'),Math.abs(D.dec)>D.eps?'<b>out of bounds</b> (beyond the Sun\u2019s greatest declination, '+dms(D.eps)+')':'within bounds')}
  ${row('Altitude',(D.alt<0?'−':'')+dms(D.alt)+(D.alt<0?' (below the horizon)':''),'seen from '+esc(pl.label)+', parallax included')}${row('Azimuth',dms(D.az)+' '+dirOf(D.az),'from north through east')}
- ${row('Today',`rises ${go(rs.rise,'Moon',0,hm(rs.rise,pl)||'\u2014',1)} · culminates ${go(rs.cul,'Moon',0,hm(rs.cul,pl)||'\u2014')} · sets ${go(rs.set,'Moon',0,hm(rs.set,pl)||'\u2014',1)}`)}</tbody></table></div>
+ ${row('Today',`Rise ${go(rs.rise,'Moon',0,hm(rs.rise,pl)||'\u2014',1)} · Reach ${go(rs.cul,'Moon',0,hm(rs.cul,pl)||'\u2014')} · Rest ${go(rs.set,'Moon',0,hm(rs.set,pl)||'\u2014',1)}`)}</tbody></table></div>
  <div class="cap">CONSTELLATION AND MANSIONS</div><div class="stgtbl"><table><tbody>
  ${row('Constellation',esc(conName||'\u2014'),'IAU borders')}${row('Arabic lunar mansion',man?mi+'. '+esc(man):'\u2014','28 equal mansions from 0° Aries, tropical')}
  ${row('Nakshatra',nak?(Math.floor(sid/(360/27))+1)+'. '+esc(nak)+', pada '+pada:'\u2014','27 equal nakshatras, sidereal (Lahiri)')}
