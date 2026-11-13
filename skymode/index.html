@@ -2578,18 +2578,21 @@ function splDraw(){const c=$('splcv'),dpr=Math.min(2,devicePixelRatio||1),w=inne
  ST.cons=true;ST.mw=true;ST.planets=true;CHO.asp='major';CHO.earth='small';CHO.etx='gray';CHO.hide=[];
  try{drawEA(g,{cx:w/2,cy:top+(h-top-bot)/2,R,whole:true})}catch(e){console.error(e)}
  ST.cons=keep.cons;ST.mw=keep.mw;ST.planets=keep.planets;CHO.asp=keep.asp;CHO.earth=keep.earth;CHO.etx=keep.etx;CHO.hide=keep.hide;CHMWK='';SPL.drawn=true}
-/* called from the draw loop: wait for the sky (and briefly for NASA's ephemeris and the Milky Way photo), draw once, then play */
+/* called from the draw loop: the chart is drawn as soon as the sky and the glyphs are ready (Gemini, Nov 13: it must open on
+   the chart, never a dark screen), held still for a moment (redrawn once if NASA's ephemeris or the Milky Way photo arrives),
+   and then it spins and grows */
+function splReady(){return (typeof mwTex!=='function'||mwTex())&&(!JPL||(()=>{try{return !!JPL.body('Sun',K.jd)}catch(e){return false}})())}
 function splTick(){if(SPL.done||!K)return;const el=SPL.el,now=performance.now();
  if(!SPL.drawn){let gl=true;for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'])if(!pglyph(k))gl=false;for(let i=0;i<12;i++)if(!glyph(i))gl=false;
-  const ready=gl&&(typeof mwTex!=='function'||mwTex())&&(!JPL||JPL.body&&(()=>{try{return !!JPL.body('Sun',K.jd)}catch(e){return false}})());
-  if(!ready&&now-SPL.t0<1500)return;splDraw();SPL.start=now;const D=SPL.dur,hold=D*.4;
-  const o={duration:D-hold,delay:hold,easing:'cubic-bezier(.55,0,.85,.45)',fill:'forwards'};
-  /* the sky turns about 90 degrees in six hours, so the wheel spins from six hours ago up to now as it grows (Gemini, Nov 13) */
-  $('splcv').animate([{transform:'rotate(-90.25deg)'},{transform:'rotate(0deg)'}],{duration:D,easing:'cubic-bezier(.25,.6,.35,1)',fill:'forwards',composite:'add'});
-  $('splcv').animate([{transform:'scale(1)',opacity:1},{transform:'scale(3.2)',opacity:0}],{...o,composite:'add'});
-  el.animate([{backgroundColor:'rgba(5,7,15,1)'},{backgroundColor:'rgba(5,7,15,0)'}],o);
-  for(const x of el.querySelectorAll('.spt,.splg'))x.animate([{opacity:1},{opacity:0}],{duration:(D-hold)*.6,delay:hold,fill:'forwards'});
-  setTimeout(()=>splEnd(false),D+60)}}
+  if(!gl&&now-SPL.t0<700)return;splDraw();SPL.full=splReady();SPL.shown=now;$('splcv').style.transform='rotate(-90.25deg)';return}
+ if(!SPL.full&&!SPL.moving&&splReady()){SPL.full=true;splDraw()}
+ const hold=SPL.dur>2500?1200:500;if(SPL.moving||now-SPL.shown<hold)return;SPL.moving=true;const D=SPL.dur-hold;
+ /* the sky turns about 90 degrees in six hours, so the wheel spins from six hours ago up to now as it grows toward the eyes */
+ $('splcv').animate([{transform:'rotate(-90.25deg) scale(1)',opacity:1},{transform:'rotate(-35deg) scale(1.15)',opacity:1,offset:.45},{transform:'rotate(0deg) scale(3.2)',opacity:0}],{duration:D,easing:'ease-in',fill:'forwards'});
+ const late={duration:D*.55,delay:D*.45,fill:'forwards'};
+ el.animate([{backgroundColor:'rgba(5,7,15,1)'},{backgroundColor:'rgba(5,7,15,0)'}],late);
+ for(const x of el.querySelectorAll('.spt,.splg'))x.animate([{opacity:1},{opacity:0}],{duration:D*.5,delay:D*.3,fill:'forwards'});
+ setTimeout(()=>splEnd(false),D+60)}
 window.__sky&&(window.__sky.spl=SPL);
 
 })();</script>
