@@ -12,6 +12,9 @@
        glyph    k => inner SVG of a planet glyph in a -15..15 box, stroked with currentColor (Device: PLG)
        sign     (i,x,y,size,color) => SVG of sign glyph i (Device: agSvg, Ana's glyphs)
        aspects  p => [{a,b,angle,color,minor}]  (Device: the shared aspect set); false for none
+       aspectTypes {conjunction: 8, quincunx: 3, septile: false, ...} (by key or angle; orb in degrees, true = default orb, false = off)
+                used when aspects is not given; EAWheel.ASPECTS lists every type with its default orb (minor types start off)
+       aspectAngles false leaves AS and MC out of the aspects
        pictures p => [{a,b,c,color}]  midpoint pictures, drawn instead of aspects (Symmetry)
        setLabel short name of the aspect set, written small at the foot of the aspect circle (e.g. 'Major')
        big      true draws the large aspect circle
@@ -55,8 +58,29 @@ const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#ffffff','#dde2ea','#aab2c1','#7d8597'],pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#e6ecf6','#b9c3d6','#7f8aa3','#4a5368'],pl:PCD,el:ELD}};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
-const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
- for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
+/* aspect types with default orbs (Gemini, Nov 13: turn any aspect type on or off and choose its orb).
+   opts.aspectTypes {angle: orb | false} overrides any row; a row with on:false starts off (minor types). */
+const ASPECTS=[
+ {angle:0,key:'conjunction',name:'Conjunction',orb:8,color:'#6b6150',on:true},
+ {angle:180,key:'opposition',name:'Opposition',orb:8,color:'#c0392b',on:true},
+ {angle:120,key:'trine',name:'Trine',orb:8,color:'#2f55c4',on:true},
+ {angle:90,key:'square',name:'Square',orb:8,color:'#c0392b',on:true},
+ {angle:60,key:'sextile',name:'Sextile',orb:6,color:'#2f55c4',on:true},
+ {angle:150,key:'quincunx',name:'Quincunx',orb:3,color:'#2e8b57',minor:true},
+ {angle:30,key:'semisextile',name:'Semisextile',orb:2,color:'#2e8b57',minor:true},
+ {angle:45,key:'semisquare',name:'Semisquare',orb:2,color:'#c0392b',minor:true},
+ {angle:135,key:'sesquisquare',name:'Sesquisquare',orb:2,color:'#c0392b',minor:true},
+ {angle:72,key:'quintile',name:'Quintile',orb:2,color:'#7b3fa0',minor:true},
+ {angle:144,key:'biquintile',name:'Biquintile',orb:2,color:'#7b3fa0',minor:true},
+ {angle:360/7,key:'septile',name:'Septile',orb:1,color:'#c2508a',minor:true},
+ {angle:40,key:'novile',name:'Novile',orb:1,color:'#b8902a',minor:true}];
+/* the built-in aspect finder: types {angle|key: orb | true | false}; angles false leaves out AS and MC */
+function findAspects(p,types,angles){const T=types||{},on=[];
+ for(const A of ASPECTS){let v=T[A.key];if(v===undefined)v=T[A.angle];if(v===undefined)v=T[f(A.angle)];if(v===undefined)v=A.on?A.orb:false;if(v===false||v==null)continue;on.push([A,v===true?A.orb:+v])}
+ const L=Object.keys(p).filter(k=>angles!==false||(k!=='AS'&&k!=='MC')),out=[];
+ for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);let best=null;
+  for(const [A,o] of on){const e=Math.abs(d-A.angle);if(e<=o&&(!best||e<best.orb))best={a:L[i],b:L[j],angle:A.angle,name:A.name,color:A.color,minor:!!A.minor,orb:e}}
+  if(best)out.push(best)}return out}
 /* spread glyphs apart: keep each at least gap degrees from its neighbours, moving as little as possible */
 function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.length;if(n<2)return;if(n*gap>=360){L.forEach((x,i)=>x.d=L[0].l+i*360/n);return}
  /* start after the widest empty arc so a cluster never straddles the seam, then merge any glyphs closer than gap into a group
@@ -139,8 +163,8 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
  const at=k=>pp[k]!=null?xy(pp[k],RI-2):null;
  h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Tap for the next set, double tap to ${big?'make smaller':'make larger'}" style="cursor:pointer;touch-action:manipulation;outline:none"><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
- else if(opts.aspects!==false){for(const A of (opts.aspects||majors)(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
-  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}</title></line>`}}
+ else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
+  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  if(opts.setLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
@@ -169,5 +193,5 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
 function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
  const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
  return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
-window.EAWheel={svg,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+window.EAWheel={svg,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
