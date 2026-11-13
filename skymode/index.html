@@ -108,7 +108,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button id="here" class="pl">Use My Location</button><div id="lres"></div></div>
 <div id="s-circ" class="sheet" hidden role="dialog" aria-label="Circles"><button class="x" data-close aria-label="Close">×</button><h3>Circles</h3><div class="row"><button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button></div></div>
 <div id="s-agrid" class="sheet" hidden role="dialog" aria-label="Horizon Grid"><button class="x" data-close aria-label="Close">×</button><h3>Horizon Grid</h3><p class="sub">Altitude every 10°, azimuth every 15°.</p><div class="row"><button data-sw="agrid">Horizon Grid</button></div></div>
-<div id="s-zod" class="sheet" hidden role="dialog" aria-label="Zodiac"><button class="x" data-close aria-label="Close">×</button><h3>Zodiac</h3><div class="row"><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div><div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select></div>
+<div id="s-zod" class="sheet" hidden role="dialog" aria-label="Zodiac"><button class="x" data-close aria-label="Close">×</button><h3>Zodiac</h3><div class="row"><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div><label class="sl">Band Brightness <input type="range" id="zbr" min="5" max="80" step="5" aria-label="Zodiac band brightness"><b id="zbrv"></b></label><div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select></div>
 <div id="s-grids" class="sheet" hidden role="dialog" aria-label="Grids"><button class="x" data-close aria-label="Close">×</button><h3>Grids</h3><p class="sub">Any of them together.</p><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button><button data-sw="agrid">Horizon Grid</button></div></div>
 <div id="hou" class="sheet" hidden role="dialog" aria-label="Houses"><button class="x" data-close aria-label="Close">×</button><h3>Houses</h3><p class="sub">Tap the Houses icon to step through lines, degrees, degree sign minute, and off. Each house line runs through its cusp's zodiac degree and the poles of the ecliptic (In Zodiaco).</p><div class="row">
  <button data-sw="houses">Show Houses</button></div><div class="cap">CUSP LABELS</div><div class="row"><button data-hl="0">None</button><button data-hl="1">Degrees</button><button data-hl="2">Degree Sign Minute</button></div><label class="sl">Label Size <input type="range" id="hszr" min="60" max="250" step="10" aria-label="House label size"><b id="hszv"></b></label><div class="row"><button data-sw="nong">Nonagesimals</button></div><p class="sub">Small gold circles on the ecliptic, 90° from the Ascendant: the highest point of the ecliptic, and its lowest, below the horizon.</p>
@@ -406,12 +406,12 @@ const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],[
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou'],['nong','Nonagesimals',true,'hou']];
 const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:40,view:'sky',sensors:false,
- yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.7,cw:1.5,hsz:1.3,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
+ yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.7,cw:1.5,hsz:1.3,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null,bandOp:.3};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
- if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
+ if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(typeof s.bandOp==='number')ST.bandOp=s.bandOp;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -467,7 +467,7 @@ function sky(){const jd=jdNow(),eps=obl(jd),gm=E.gmst(jd),lst=n360(gm+ST.lon),ph
  const equ=[];for(let ra=0;ra<=360;ra+=3)equ.push(v(ra,0));
  /* houses In Zodiaco: each cusp's line runs through its zodiac degree and both poles of the ecliptic */
  let hs=null,non=null;if(ST.houses){const h0=cuspsFor(jd,ST.lat,ST.lon),c=houseSystem(h0,ST.hsys);hs=[];for(let i=1;i<=12;i++){const L=c[i],pts=[];for(let b=-90;b<=90;b+=3)pts.push(ev(L,b));
-  const nx=c[i%12+1],mid=n360(L+(((nx-L)%360+360)%360)/2);hs.push({i,L,pts,lab:ev(mid,-CFG.bandHalf-3),deg:ev(L,CFG.bandHalf+3.5)})}
+  const nx=c[i%12+1],mid=n360(L+(((nx-L)%360+360)%360)/2);hs.push({i,L,pts,lab:ev(L,0),deg:ev(L,CFG.bandHalf+3.5)})}
   /* the nonagesimals (Gemini, Nov 12): 90° from the Ascendant, above and below, marked in every house system */
   non=[n360(h0[1]-90),n360(h0[1]+90)].map(L=>[ev(L,-2.6),ev(L,2.6),ev(L,0)])}
  const sunAlt=deg(Math.asin(sv[2]));
@@ -596,7 +596,7 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  for(const [k,c] of [['l',CFG.lgridCol],['e',CFG.egridCol],['g',CFG.ggridCol]]){const L=K.grids[k];if(!L)continue;g.strokeStyle=c;g.globalAlpha=.32;g.lineWidth=.8;g.beginPath();for(const a of L)poly(g,a);g.stroke()}
  if(K.grids.geq){g.strokeStyle=CFG.ggridCol;g.globalAlpha=.75;g.lineWidth=1.3;g.beginPath();poly(g,K.grids.geq);g.stroke()}g.globalAlpha=1;
  /* the zodiac band in the Planetarium's sign colors, 10° either side of the ecliptic */
- if(ST.band){g.globalAlpha=CFG.bandOp;for(let s=0;s<12;s++){g.fillStyle=SC(s);g.beginPath();for(let k=s*6;k<s*6+6;k++){const q=[K.band[k][0],K.band[k+1][0],K.band[k+1][1],K.band[k][1]].map(proj);if(q.some(x=>!x))continue;
+ if(ST.band){g.globalAlpha=ST.bandOp;for(let s=0;s<12;s++){g.fillStyle=SC(s);g.beginPath();for(let k=s*6;k<s*6+6;k++){const q=[K.band[k][0],K.band[k+1][0],K.band[k+1][1],K.band[k][1]].map(proj);if(q.some(x=>!x))continue;
     g.moveTo(q[0][0],q[0][1]);for(let j=1;j<4;j++)g.lineTo(q[j][0],q[j][1]);g.closePath()}g.fill()}g.globalAlpha=1;
   g.lineWidth=1;for(let s=0;s<12;s++){g.strokeStyle=SC(s);g.globalAlpha=.7;g.beginPath();poly(g,[K.band[s*6][0],K.band[s*6][2],K.band[s*6][3],K.band[s*6][1]]);g.stroke()}g.globalAlpha=1}
  /* the celestial equator (blue) and the meridian (green, like the horizon) */
@@ -604,7 +604,7 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.mer){g.strokeStyle=CFG.merCol;g.lineWidth=1.3;g.beginPath();poly(g,MER);g.stroke()}
  /* houses In Zodiaco: lines through the cusps and the poles of the ecliptic, angles bolder */
  if(ST.houses&&K.hs){g.strokeStyle=CFG.houseCol;for(const h of K.hs){const ang=h.i%3===1;g.lineWidth=ang?1.6:.9;g.globalAlpha=ang?.85:.55;g.beginPath();poly(g,h.pts);g.stroke()}g.globalAlpha=.9;
-  const hf=13*tiny*ST.hsz*Math.pow(zsc(.6,4),.5);g.fillStyle=CFG.houseCol;g.font=`600 ${hf}px -apple-system,Inter,sans-serif`;g.lineJoin='round';g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p)g.fillText(h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i),p[0],p[1])}
+  const hf=13*tiny*ST.hsz*Math.pow(zsc(.6,4),.5);g.fillStyle=CFG.houseCol;g.font=`600 ${hf}px -apple-system,Inter,sans-serif`;g.lineJoin='round';g.textAlign='center';g.textBaseline='middle';for(const h of K.hs){const p=proj(h.lab);if(p){const t=h.i===1?'AS':h.i===10?'MC':h.i===7?'DS':h.i===4?'IC':String(h.i);g.strokeStyle='rgba(4,6,15,.85)';g.lineWidth=3.2;g.strokeText(t,p[0],p[1]);g.fillStyle=CFG.houseCol;g.fillText(t,p[0],p[1])}}   /* on the ecliptic, at each cusp's own degree (Gemini, Nov 13) */
   /* cusp labels (Gemini, Nov 12): Degrees (rounded, the band shows the sign), or Degree Sign Minute */
   /* cusp degrees sit inside the band's colors, or near the ecliptic when the band is off (Gemini, Nov 13), with a dark edge */
   const halo=(t,x,y)=>{g.strokeStyle='rgba(4,6,15,.85)';g.lineWidth=3;g.strokeText(t,x,y);g.fillText(t,x,y)};
@@ -731,6 +731,7 @@ for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+
 $('stopov').onclick=()=>{if(REC.on)recStop()};
 $('flipov').onclick=()=>{if(ST.cam)camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
+$('zbr').addEventListener('input',()=>{ST.bandOp=+$('zbr').value/100;$('zbrv').textContent=$('zbr').value+'%';save()});
 $('cwid').addEventListener('input',()=>{ST.cw=+$('cwid').value;$('cwidv').textContent=ST.cw.toFixed(2).replace(/0$/,'')+' px';save()});
 $('hszr').addEventListener('input',()=>{ST.hsz=+$('hszr').value/100;$('hszv').textContent=$('hszr').value+'%';save()});
 $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').textContent=ST.camFov+'°';save()});
@@ -871,7 +872,7 @@ const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP
 armIcon();
 document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
-$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cwid').value=ST.cw;$('cwidv').textContent=ST.cw+' px';$('hszr').value=Math.round(ST.hsz*100);$('hszv').textContent=Math.round(ST.hsz*100)+'%';$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
+$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cwid').value=ST.cw;$('zbr').value=Math.round(ST.bandOp*100);$('zbrv').textContent=Math.round(ST.bandOp*100)+'%';$('cwidv').textContent=ST.cw+' px';$('hszr').value=Math.round(ST.hsz*100);$('hszv').textContent=Math.round(ST.hsz*100)+'%';$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
@@ -1125,7 +1126,7 @@ function drawChart(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bo
  if(ST.snames){g.fillStyle='rgba(255,255,255,.7)';g.font=`${10}px -apple-system,Inter,sans-serif`;g.textAlign='left';for(const [i,n] of NAMED){const s=SL[i];if(!s||Math.abs(s[1])>29)continue;const p=XY(s[0],rB(s[1]));g.fillText(n,p[0]+4,p[1]-3)}}
  /* rings: the ecliptic, the zodiac, and the hub */
  g.strokeStyle=CFG.eclCol;g.lineWidth=1.4;g.globalAlpha=.9;g.beginPath();g.arc(cx,cy,rE,0,7);g.stroke();g.globalAlpha=1;
- for(let s=0;s<12;s++){const a0=A(z+s*30),a1=A(z+s*30+30);g.fillStyle=SC(s);g.globalAlpha=.32;g.beginPath();g.arc(cx,cy,rZo,-a0,-a1,true);g.arc(cx,cy,rZi,-a1,-a0,false);g.closePath();g.fill();g.globalAlpha=1;
+ for(let s=0;s<12;s++){const a0=A(z+s*30),a1=A(z+s*30+30);g.fillStyle=SC(s);g.globalAlpha=Math.min(1,ST.bandOp*1.07);g.beginPath();g.arc(cx,cy,rZo,-a0,-a1,true);g.arc(cx,cy,rZi,-a1,-a0,false);g.closePath();g.fill();g.globalAlpha=1;
   const [x,y]=XY(z+s*30+15,(rZo+rZi)/2),gs=Math.max(14,(rZo-rZi)*.72),im=glyph(s);if(im)g.drawImage(im,x-gs/2,y-gs/2,gs,gs)}
  g.strokeStyle='rgba(233,220,192,.55)';g.lineWidth=1;for(const r of [rZo,rZi,rGi]){g.beginPath();g.arc(cx,cy,r,0,7);g.stroke()}
  for(let s=0;s<12;s++){const p=XY(z+s*30,rZo),q=XY(z+s*30,rZi);g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke()}
