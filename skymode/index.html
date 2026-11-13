@@ -37,6 +37,11 @@ body.camon .mixov{display:flex}.mixov:active,.mixov:focus-within{opacity:.95}
 .mixov input{writing-mode:vertical-lr;direction:rtl;width:22px;height:170px;accent-color:#d1ab74;margin:0}
 .stopov{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 66px);display:none;align-items:center;gap:8px;padding:9px 18px 9px 14px;border-radius:24px;border:1px solid rgba(255,255,255,.35);background:rgba(160,20,20,.85);color:#fff;font:600 15px -apple-system,Inter,sans-serif;z-index:3}
 .stopov i{width:13px;height:13px;border-radius:2px;background:#fff;display:block}body.recording .stopov{display:flex}body.rowopen .stopov{bottom:calc(env(safe-area-inset-bottom) + 122px)}
+.flipov{position:fixed;right:10px;top:calc(env(safe-area-inset-top) + 10px);display:none;width:46px;height:46px;min-height:46px;padding:0;border-radius:50%;background:rgba(10,12,22,.6);border:1px solid rgba(255,255,255,.35);z-index:3;align-items:center;justify-content:center}
+.flipov svg{width:26px;height:26px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}body.camon .flipov{display:flex}
+.camtag{position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 14px);display:none;align-items:center;gap:6px;padding:5px 11px 5px 9px;border-radius:14px;background:rgba(200,30,25,.85);color:#fff;font:600 13px -apple-system,Inter,sans-serif;z-index:3;pointer-events:none}
+.camtag::before{content:'';width:8px;height:8px;border-radius:50%;background:#fff}body.camon .camtag{display:flex}
+body.camon #cbtn svg{stroke:#ff4d40}body.camon #cbtn{background:rgba(255,77,64,.16)}
 .subbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;justify-content:space-around;gap:2px;padding:4px;background:rgba(10,12,22,.9);border:1px solid rgba(209,171,116,.35);border-radius:12px;z-index:2}
 .subbar[hidden]{display:none}.subbar button{flex:1;min-width:0;max-width:76px;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;border-radius:9px;padding:5px 0 3px;min-height:50px;color:var(--ink);font-size:10px;font-weight:600;-webkit-touch-callout:none}
 .subbar button svg{width:24px;height:24px;stroke:var(--gold);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.subbar button[aria-pressed="true"]{background:rgba(209,171,116,.16)}.subbar button[aria-pressed="false"]{opacity:.55}
@@ -103,6 +108,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <label class="sl">Match Camera <input type="range" id="cfov" min="30" max="100" step="1" aria-label="Camera field of view"><b id="cfovv"></b></label>
  <p class="sub">If the stars drift from the real ones toward the screen's edges, slide Match Camera until they line up.</p></div>
 <div class="mixov" aria-label="Camera and stars"><span aria-hidden="true">✦</span><input type="range" id="cmix2" min="0" max="100" step="5" aria-label="Camera to stars: up for more stars"><span aria-hidden="true">◉</span></div>
+<button class="flipov" id="flipov" aria-label="Flip camera"><svg viewBox="0 0 24 24"><path d="M3 8.5a2 2 0 0 1 2-2h2.5L9 4.5h6l1.5 2H19a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8.5 12.5a3.5 3.5 0 0 1 6-2.4M15.5 13.5a3.5 3.5 0 0 1-6 2.4"/><path d="M14.7 8.3v1.9h-1.9M9.3 17.7v-1.9h1.9"/></svg></button>
+<div class="camtag" id="camtag" aria-live="polite">Camera</div>
 <button class="stopov" id="stopov" aria-label="Stop recording"><i></i>Stop</button>
 <nav class="subbar" id="subbar" hidden aria-label="Sub-menu"></nav>
 <nav class="bar" aria-label="Sky Mode">
@@ -565,7 +572,7 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  g.globalAlpha=1;
  infoRing(g);infoTick();
  /* the aim ring */
- g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1;g.beginPath();g.arc(W/2,H/2,18,0,7);g.stroke();
+ if(!camOn){g.strokeStyle='rgba(255,255,255,.5)';g.lineWidth=1;g.beginPath();g.arc(W/2,H/2,18,0,7);g.stroke()}   /* none over the camera (Gemini, Nov 13: it got in the way of selfies) */
  if(REC.on||REC.snap)compose();
  requestAnimationFrame(draw)}
 /* ---- taps: what is that? ---- */
@@ -653,6 +660,7 @@ function mixA(){const m=ST.camMix;return [Math.min(1,2*(1-m)),Math.min(1,2*m)]}
 function applyMix(){const a=ST.cam?mixA():[1,1];vid.style.opacity=a[0];cv.style.opacity=a[1];$('cmixv').textContent=ST.camMix<.5?'More camera':ST.camMix>.5?'More stars':'Both'}
 for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+$(id).value/100;$('cmix').value=$('cmix2').value=$(id).value;applyMix();save()});
 $('stopov').onclick=()=>{if(REC.on)recStop()};
+$('flipov').onclick=()=>{if(ST.cam)camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
 $('cfov').addEventListener('input',()=>{ST.camFov=+$('cfov').value;$('cfovv').textContent=ST.camFov+'°';save()});
 /* ---- the clock: date and time at the chosen place (Gemini, Nov 12) ---- */
@@ -730,7 +738,7 @@ $('here').onclick=()=>{closeSheets();locateMe()};
 const vid=$('cam');let STREAM=null;
 async function camOn(mode){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser has no camera access. Open the page in Safari or Chrome.',5000);return}
  try{if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:mode},width:{ideal:1920},height:{ideal:1080}},audio:false});
-  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode==='user');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');applyMix();sync()}
+  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode==='user');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');$('camtag').textContent=mode==='user'?'Selfie':'Camera';applyMix();sync()}
  catch(e){say('The camera did not open'+(e&&e.name==='NotAllowedError'?': camera permission was not given.':'.'),5000);camOff()}}
 function camOff(){if(REC.on)recStop();if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=null;vid.srcObject=null;vid.hidden=true;ST.cam=null;document.body.classList.remove('camon');applyMix();sync()}
 /* photos and video: the camera picture (cropped to fill, as on screen) with the sky drawn over it, onto one canvas */
