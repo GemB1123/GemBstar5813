@@ -140,6 +140,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button id="here" class="pl">Use My Location</button><div id="lres"></div></div>
 <div id="s-circ" class="sheet" hidden role="dialog" aria-label="Circles"><button class="x" data-close aria-label="Close">×</button><h3>Circles</h3><div class="row"><button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button></div></div>
 <div id="s-agrid" class="sheet" hidden role="dialog" aria-label="Horizon Grid"><button class="x" data-close aria-label="Close">×</button><h3>Horizon Grid</h3><p class="sub">Altitude every 10°, azimuth every 15°.</p><div class="row"><button data-sw="agrid">Horizon Grid</button></div></div>
+<div id="s-div" class="sheet" hidden role="dialog" aria-label="Divisions"><button class="x" data-close aria-label="Close">×</button><h3>Divisions</h3><p class="sub">Marks on the zodiac band (or along the ecliptic when the band is off), in the chosen zodiac.</p><div class="row"><button data-sw="decd">Decan Dashes</button><button data-sw="decl">Decan Lines</button><button data-sw="dwad">Dwad Dashes</button></div><div class="cap">BOUNDS</div><div class="row"><button data-sw="egb">Egyptian Bounds</button><button data-sw="ptb">Ptolemaic Bounds</button></div><p class="sub">Each bound shows its Guide's glyph: Egyptian in the band's lower half, Ptolemaic in the upper half.</p></div>
+<div id="s-decn" class="sheet" hidden role="dialog" aria-label="Declination"><button class="x" data-close aria-label="Close">×</button><h3>Declination</h3><div class="row"><button data-sw="sol">Solstice Lines</button><button data-sw="lsl">Lunar Standstills</button><button data-sw="scp">Sign Cusp Parallels</button><button data-sw="rbw">Declination Rainbow</button></div><label class="sl">Rainbow Brightness <input type="range" id="rbr" min="5" max="60" step="1" aria-label="Declination rainbow brightness"><b id="rbrv"></b></label><p class="sub">Each rainbow band is shared by the two signs that reach the same declinations. The zodiac band's colors step aside while the rainbow is on.</p></div>
 <div id="s-zod" class="sheet" hidden role="dialog" aria-label="Zodiac"><button class="x" data-close aria-label="Close">×</button><h3>Zodiac</h3><div class="row"><button data-sw="band">Zodiac Band</button><button data-sw="glyphs">Sign Glyphs</button></div><label class="sl">Band Brightness <input type="range" id="zbr" min="5" max="80" step="5" aria-label="Zodiac band brightness"><b id="zbrv"></b></label><div class="cap">ZODIAC</div><select id="zsel" aria-label="Zodiac"></select></div>
 <div id="s-grids" class="sheet" hidden role="dialog" aria-label="Grids"><button class="x" data-close aria-label="Close">×</button><h3>Grids</h3><p class="sub">Any of them together.</p><div class="row"><button data-sw="lgrid">Ecliptic Grid</button><button data-sw="egrid">Equatorial Grid</button><button data-sw="ggrid">Galactic Grid</button><button data-sw="agrid">Horizon Grid</button></div></div>
 <div id="hou" class="sheet" hidden role="dialog" aria-label="Houses"><button class="x" data-close aria-label="Close">×</button><h3>Houses</h3><p class="sub">Tap the Houses icon to step through lines, degrees, degree sign minute, and off. Each house line runs through its cusp's zodiac degree and the poles of the ecliptic (In Zodiaco).</p><div class="row">
@@ -558,17 +560,24 @@ const CFG={
  km:{Sun:1392700,Moon:3474.8,Mercury:4879,Venus:12104,Mars:6779,Jupiter:139820,Saturn:116460,Uranus:50724,Neptune:49244},
  houses:[['placidus','Placidus'],['whole','Whole Sign'],['equal','Equal'],['porphyry','Porphyry'],['alcabitius','Alcabitius'],['regio','Regiomontanus'],['campanus','Campanus'],['koch','Koch'],['morinus','Morinus']]};
 const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
+/* the bounds (terms), each sign's five Guides and their lengths in degrees: Egyptian (as in Time Lords) and Ptolemaic (Tetrabiblos I.21) */
+const BND={egyptian:[[['Jupiter',6],['Venus',6],['Mercury',8],['Mars',5],['Saturn',5]],[['Venus',8],['Mercury',6],['Jupiter',8],['Saturn',5],['Mars',3]],[['Mercury',6],['Jupiter',6],['Venus',5],['Mars',7],['Saturn',6]],[['Mars',7],['Venus',6],['Mercury',6],['Jupiter',7],['Saturn',4]],[['Jupiter',6],['Venus',5],['Saturn',7],['Mercury',6],['Mars',6]],[['Mercury',7],['Venus',10],['Jupiter',4],['Mars',7],['Saturn',2]],[['Saturn',6],['Mercury',8],['Jupiter',7],['Venus',7],['Mars',2]],[['Mars',7],['Venus',4],['Mercury',8],['Jupiter',5],['Saturn',6]],[['Jupiter',12],['Venus',5],['Mercury',4],['Saturn',5],['Mars',4]],[['Mercury',7],['Jupiter',7],['Venus',8],['Saturn',4],['Mars',4]],[['Mercury',7],['Venus',6],['Jupiter',7],['Mars',5],['Saturn',5]],[['Venus',12],['Jupiter',4],['Mercury',3],['Mars',9],['Saturn',2]]],
+ ptolemaic:[[['Jupiter',6],['Venus',8],['Mercury',7],['Mars',5],['Saturn',4]],[['Venus',8],['Mercury',7],['Jupiter',7],['Saturn',2],['Mars',6]],[['Mercury',7],['Jupiter',6],['Venus',7],['Mars',6],['Saturn',4]],[['Mars',6],['Jupiter',7],['Mercury',7],['Venus',7],['Saturn',3]],[['Saturn',6],['Mercury',7],['Venus',6],['Jupiter',6],['Mars',5]],[['Mercury',7],['Venus',6],['Jupiter',5],['Saturn',6],['Mars',6]],[['Saturn',6],['Venus',5],['Mercury',5],['Jupiter',8],['Mars',6]],[['Mars',6],['Jupiter',8],['Venus',7],['Mercury',6],['Saturn',3]],[['Jupiter',8],['Venus',6],['Mercury',5],['Saturn',6],['Mars',5]],[['Venus',6],['Mercury',6],['Jupiter',7],['Saturn',6],['Mars',5]],[['Saturn',6],['Mercury',6],['Venus',8],['Jupiter',5],['Mars',5]],[['Venus',8],['Jupiter',6],['Mercury',6],['Mars',5],['Saturn',5]]]};
+/* the Declination Rainbow's colors, top band to bottom (AstroGraphs), and the sign pairs of each band */
+const DCOL=['#e4574f','#ee9a3c','#e9d24a','#5fbf73','#4f8fe0','#8a63cf'],DPRS=[[2,3],[1,4],[0,5],[11,6],[10,7],[9,8]];
 /* every switch: [key, label, default, group]. Armillary = the sky's circles (tap the Armillary to turn them all off or on) */
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],['lgrid','Ecliptic Grid',false,'arm'],['egrid','Equatorial Grid',false,'arm'],['ggrid','Galactic Grid',false,'arm'],
+ ['decl','Decan Lines',false,'arm'],['decd','Decan Dashes',true,'arm'],['dwad','Dwad Dashes',false,'arm'],['egb','Egyptian Bounds',false,'arm'],['ptb','Ptolemaic Bounds',false,'arm'],
+ ['sol','Solstice Lines',false,'arm'],['lsl','Lunar Standstills',false,'arm'],['scp','Sign Cusp Parallels',false,'arm'],['rbw','Declination Rainbow',false,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou'],['nong','Nonagesimals',true,'hou']];
 const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:40,view:'sky',sensors:false,
- yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.7,cw:1.5,hsz:1.3,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null,bandOp:.3,hw:.9,hnum:'all'};
+ yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.7,cw:1.5,hsz:1.3,proj:'stereo',zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null,bandOp:.3,hw:.9,hnum:'all',rbOp:.22};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
- if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(typeof s.bandOp==='number')ST.bandOp=s.bandOp;if(typeof s.hw==='number')ST.hw=s.hw;if(/^(all|ang|none)$/.test(s.hnum))ST.hnum=s.hnum;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,hw:ST.hw,hnum:ST.hnum}))}catch(e){}};
+ if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(typeof s.bandOp==='number')ST.bandOp=s.bandOp;if(typeof s.rbOp==='number')ST.rbOp=s.rbOp;if(typeof s.hw==='number')ST.hw=s.hw;if(/^(all|ang|none)$/.test(s.hnum))ST.hnum=s.hnum;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,rbOp:ST.rbOp,hw:ST.hw,rbOp:ST.rbOp,hnum:ST.hnum}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -753,9 +762,32 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  for(const [k,c] of [['l',CFG.lgridCol],['e',CFG.egridCol],['g',CFG.ggridCol]]){const L=K.grids[k];if(!L)continue;g.strokeStyle=c;g.globalAlpha=.32;g.lineWidth=.8;g.beginPath();for(const a of L)poly(g,a);g.stroke()}
  if(K.grids.geq){g.strokeStyle=CFG.ggridCol;g.globalAlpha=.75;g.lineWidth=1.3;g.beginPath();poly(g,K.grids.geq);g.stroke()}g.globalAlpha=1;
  /* the zodiac band in the Planetarium's sign colors, 10° either side of the ecliptic */
- if(ST.band){g.globalAlpha=ST.bandOp;for(let s=0;s<12;s++){g.fillStyle=SC(s);g.beginPath();for(let k=s*6;k<s*6+6;k++){const q=[K.band[k][0],K.band[k+1][0],K.band[k+1][1],K.band[k][1]].map(proj);if(q.some(x=>!x))continue;
+ /* Declination (Gemini, Nov 13; Galileo's Planetarium and AstroGraphs): rainbow bands between circles of declination, each
+    shared by the two signs whose degrees reach the same declinations, plus solstice, sign cusp, and lunar standstill lines.
+    The zodiac band's colors step aside while the rainbow is on. */
+ if(ST.rbw||ST.sol||ST.lsl||ST.scp){const e=obl(K.jd),dl=l=>deg(Math.asin(Math.sin(rad(e))*Math.sin(rad(l)))),DE=[e,dl(60),dl(30),0,-dl(30),-dl(60),-e],
+   circ=de=>{const v=[];for(let ra=0;ra<=360;ra+=3)v.push(K.v(ra,de));return v};
+  if(ST.rbw&&ST.rbOp>0){g.globalAlpha=ST.rbOp;for(let i=0;i<6;i++){g.fillStyle=DCOL[i];g.beginPath();for(let ra=0;ra<360;ra+=6){const q=[K.v(ra,DE[i+1]),K.v(ra+6,DE[i+1]),K.v(ra+6,DE[i]),K.v(ra,DE[i])].map(proj);if(q.some(x=>!x))continue;g.moveTo(q[0][0],q[0][1]);for(let j=1;j<4;j++)g.lineTo(q[j][0],q[j][1]);g.closePath()}g.fill()}g.globalAlpha=1;
+   const gs=Math.max(13,Math.min(40,18*Math.pow(zsc(.5,8),.5))),lst=n360(E.gmst(K.jd)+ST.lon);for(let i=0;i<6;i++){const p=proj(K.v(lst,(DE[i]+DE[i+1])/2));if(!p)continue;const [a1,b1]=DPRS[i];for(const [s1,dx] of [[a1,-gs*.6],[b1,gs*.6]]){const im=glyph(s1);if(im)g.drawImage(im,p[0]+dx-gs/2,p[1]-gs/2,gs,gs)}}}
+  g.lineWidth=1;if(ST.sol){g.strokeStyle='rgba(255,255,255,.6)';g.setLineDash([6,5]);g.beginPath();poly(g,circ(e));poly(g,circ(-e));g.stroke();g.setLineDash([])}
+  if(ST.scp){g.strokeStyle='rgba(255,255,255,.42)';g.beginPath();for(const de of [DE[1],DE[2],DE[4],DE[5]])poly(g,circ(de));g.stroke()}
+  if(ST.lsl){g.lineCap='round';for(const [de,maj] of [[e+5.145,1],[-(e+5.145),1],[e-5.145,0],[-(e-5.145),0]]){g.strokeStyle=maj?'rgba(217,222,245,.7)':'rgba(217,222,245,.5)';g.lineWidth=maj?1.2:.9;g.setLineDash(maj?[2,4]:[1.5,5]);g.beginPath();poly(g,circ(de));g.stroke()}g.setLineDash([]);g.lineCap='butt';
+   const lst=n360(E.gmst(K.jd)+ST.lon);g.font='11px -apple-system,Inter,sans-serif';g.textAlign='center';g.fillStyle='rgba(217,222,245,.85)';for(const [de,t] of [[e+5.145,'Major Standstill'],[e-5.145,'Minor Standstill'],[-(e-5.145),'Minor Standstill'],[-(e+5.145),'Major Standstill']]){const p=proj(K.v(lst+35,de));if(p)g.fillText(t,p[0],p[1]-4)}}
+  if(ST.sol){const lst=n360(E.gmst(K.jd)+ST.lon);g.font='11px -apple-system,Inter,sans-serif';g.textAlign='center';g.fillStyle='rgba(255,255,255,.8)';for(const [de,t] of [[e,'Summer Solstice'],[-e,'Winter Solstice']]){const p=proj(K.v(lst-35,de));if(p)g.fillText(ST.lat<0?(de>0?'Winter Solstice':'Summer Solstice'):t,p[0],p[1]-4)}}}
+ if(ST.band&&!ST.rbw){g.globalAlpha=ST.bandOp;for(let s=0;s<12;s++){g.fillStyle=SC(s);g.beginPath();for(let k=s*6;k<s*6+6;k++){const q=[K.band[k][0],K.band[k+1][0],K.band[k+1][1],K.band[k][1]].map(proj);if(q.some(x=>!x))continue;
     g.moveTo(q[0][0],q[0][1]);for(let j=1;j<4;j++)g.lineTo(q[j][0],q[j][1]);g.closePath()}g.fill()}g.globalAlpha=1;
   g.lineWidth=1;for(let s=0;s<12;s++){g.strokeStyle=SC(s);g.globalAlpha=.7;g.beginPath();poly(g,[K.band[s*6][0],K.band[s*6][2],K.band[s*6][3],K.band[s*6][1]]);g.stroke()}g.globalAlpha=1}
+ /* Divisions on the band (Gemini, Nov 13): Decan lines or dashes, Dwad dashes, Egyptian and Ptolemaic bounds with their
+    Guides' glyphs (Egyptian in the band's lower half, Ptolemaic in the upper), following the chosen zodiac */
+ if(ST.decl||ST.decd||ST.dwad||ST.egb||ST.ptb){const bh=ST.band?CFG.bandHalf:3,z=K.z,tick=(L,b0,b1,col,w,a)=>{g.strokeStyle=col;g.lineWidth=w;g.globalAlpha=a;g.beginPath();poly(g,[K.ev(L+z,b0),K.ev(L+z,(b0+b1)/2),K.ev(L+z,b1)]);g.stroke()};
+  for(let sg=0;sg<12;sg++){const c=SC(sg),L0=sg*30;
+   if(ST.decl)for(const d of [10,20])tick(L0+d,-bh,bh,c,1,.8);
+   else if(ST.decd)for(const d of [10,20]){tick(L0+d,bh,bh-2.2,c,1.4,.9);tick(L0+d,-bh,-bh+2.2,c,1.4,.9)}
+   if(ST.dwad)for(let k=1;k<12;k++)if(k%4){tick(L0+k*2.5,bh,bh-1.1,c,1,.75);tick(L0+k*2.5,-bh,-bh+1.1,c,1,.75)}
+   for(const [on,T,sd] of [[ST.egb,BND.egyptian,-1],[ST.ptb,BND.ptolemaic,1]]){if(!on)continue;let a0=0;
+    for(const [pl,len] of T[sg]){const a1=a0+len;if(a1<30)tick(L0+a1,sd*bh,sd*(bh-3.6),c,1.2,.85);
+     const p=proj(K.ev(L0+(a0+a1)/2+z,sd*(ST.band?bh-1.9:5))),im=pglyph(pl);if(p&&im){const gs=Math.max(12,Math.min(30,15*Math.pow(zsc(.5,8),.5)));g.globalAlpha=.95;g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs)}a0=a1}}}
+  g.globalAlpha=1}
  /* the celestial equator (blue) and the meridian (green, like the horizon) */
  if(ST.equ){g.strokeStyle=CFG.equCol;g.lineWidth=1.3;g.beginPath();poly(g,K.equ);g.stroke()}
  if(ST.mer){g.strokeStyle=CFG.merCol;g.lineWidth=1.3;g.beginPath();poly(g,MER);g.stroke()}
@@ -891,6 +923,7 @@ $('stopov').onclick=()=>{if(REC.on)recStop()};
 $('flipov').onclick=()=>{if(ST.cam)camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-hn]');if(!b)return;ST.hnum=b.dataset.hn;save();document.querySelectorAll('[data-hn]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.hn===ST.hnum))});
+$('rbr').addEventListener('input',()=>{ST.rbOp=+$('rbr').value/100;$('rbrv').textContent=$('rbr').value+'%';save()});
 $('hwr').addEventListener('input',()=>{ST.hw=+$('hwr').value/10;$('hwv').textContent=ST.hw.toFixed(1)+' px';save()});
 $('zbr').addEventListener('input',()=>{ST.bandOp=+$('zbr').value/100;$('zbrv').textContent=$('zbr').value+'%';save()});
 $('cwid').addEventListener('input',()=>{ST.cw=+$('cwid').value;$('cwidv').textContent=ST.cw.toFixed(2).replace(/0$/,'')+' px';save()});
@@ -941,7 +974,7 @@ $('now').onclick=$('now2').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K
 $('kbtn').onclick=()=>openSheet('clock');
 $('lbtn').onclick=()=>{openSheet('locs');loadPlaces();setTimeout(()=>$('lq').focus(),50)};
 /* sheets: X or Escape closes them (the Device's menu rule) */
-const SHEETS=['menu','charts','chform','locs','clock','hou','camm','s-circ','s-agrid','s-zod','s-grids','s-cons','s-stars','s-plan','s-mw','s-sky'];
+const SHEETS=['menu','charts','chform','locs','clock','hou','camm','s-circ','s-agrid','s-zod','s-grids','s-div','s-decn','s-cons','s-stars','s-plan','s-mw','s-sky'];
 function closeSheets(){for(const id of SHEETS)$(id).hidden=true;}
 function openSheet(id){const was=!$(id).hidden;closeSheets();$('alist').hidden=true;if(was)return;$(id).hidden=false;sync()}
 document.querySelectorAll('.sheet [data-close]').forEach(b=>b.onclick=closeSheets);
@@ -1001,13 +1034,15 @@ $('zsel').addEventListener('change',()=>{ST.zod=$('zsel').value;K=null;save();sy
 const SUBS={arm:[['circ','Circles',['ecl','equ','mer'],'<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="9" ry="3.5" transform="rotate(-22 12 12)"/><ellipse cx="12" cy="12" rx="3.5" ry="9"/>'],
   ['agrid','Horizon',['agrid'],'<path d="M3 17a9 9 0 0 1 18 0M3 17h18M12 8v9M7.5 9.5L9 17M16.5 9.5L15 17M4.5 13h15"/>'],
   ['zod','Zodiac',['band','glyphs'],'<ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-20 12 12)" stroke-width="3.6"/><circle cx="12" cy="12" r="1.3" fill="#d1ab74" stroke="none"/>'],
+  ['div','Divisions',['decl','decd','dwad','egb','ptb'],'<path d="M3 12h18"/><path d="M5 8v8M12 7v10M19 8v8M8.5 10v4M15.5 10v4" stroke-width="1.4"/>'],
+  ['decn','Declination',['sol','lsl','scp','rbw'],'<path d="M3 6h18" stroke="#e4574f"/><path d="M3 10h18" stroke="#e9d24a"/><path d="M3 14h18" stroke="#5fbf73"/><path d="M3 18h18" stroke="#8a63cf"/>'],
   ['grids','Grids',['lgrid','egrid','ggrid','agrid'],'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18M5 7.5h14M5 16.5h14M7.5 4.5c-2 5-2 10 0 15M16.5 4.5c2 5 2 10 0 15"/>']],
  obj:[['cons','Figures',['cons','cnames'],'<path d="M3 8l5 6 4-5 4 7 5-6"/><g fill="#d1ab74" stroke="none"><circle cx="3" cy="8" r="1.6"/><circle cx="8" cy="14" r="1.6"/><circle cx="12" cy="9" r="1.6"/><circle cx="16" cy="16" r="1.6"/><circle cx="21" cy="10" r="1.6"/></g>'],
   ['stars','Star Names',['snames'],'<path d="M12 3l1.8 6.2L20 12l-6.2 1.8L12 21l-1.8-7.2L4 12l6.2-2.8z"/>'],
   ['plan','Planets',['planets'],'<circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10" ry="3.2" transform="rotate(-18 12 12)"/>'],
   ['mw','Milky Way',['mw'],'<path d="M2 18C8 15 10 9 22 6" stroke-width="5" stroke-opacity=".35"/><path d="M2 18C8 15 10 9 22 6"/><g fill="#d1ab74" stroke="none"><circle cx="6" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="4" r="1"/></g>'],
   ['sky','Sky',['atm'],'<path d="M2 17h20M6.5 17a5.5 5.5 0 0 1 11 0M12 5.5V8M5.3 9.3l1.6 1.6M18.7 9.3l-1.6 1.6"/>']]};
-const SUBI={},SUBMEM={},SUBDEF={grids:['lgrid'],stars:['snames'],cons:['cons']};
+const SUBI={},SUBMEM={},SUBDEF={grids:['lgrid'],div:['decd'],decn:['sol','lsl'],stars:['snames'],cons:['cons']};
 for(const r in SUBS)for(const x of SUBS[r])SUBI[x[0]]={label:x[1],keys:x[2]};
 let ROW=null;
 function toggleRow(r,force){const bar=$('subbar');if(ROW===r&&!force){ROW=null;bar.hidden=true;document.body.classList.remove('rowopen');closeSheets();return}
@@ -1033,7 +1068,7 @@ const GDK=[];function glyphDark(i){if(GDK[i])return GDK[i];const src=(window.APP
 armIcon();
 document.addEventListener('gesturestart',e=>e.preventDefault());   /* Safari: never zoom the page itself */
 /* ---- start ---- */
-$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cwid').value=ST.cw;$('hwr').value=Math.round(ST.hw*10);$('hwv').textContent=ST.hw.toFixed(1)+' px';$('zbr').value=Math.round(ST.bandOp*100);$('zbrv').textContent=Math.round(ST.bandOp*100)+'%';$('cwidv').textContent=ST.cw+' px';$('hszr').value=Math.round(ST.hsz*100);$('hszv').textContent=Math.round(ST.hsz*100)+'%';$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
+$('rbr').value=Math.round(ST.rbOp*100);$('rbrv').textContent=Math.round(ST.rbOp*100)+'%';$('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwBr*100)+'%';$('gst').value=Math.round(ST.seeThru*100);$('gstv').textContent=Math.round(ST.seeThru*100)+'%';$('cfov').value=ST.camFov;$('cwid').value=ST.cw;$('hwr').value=Math.round(ST.hw*10);$('hwv').textContent=ST.hw.toFixed(1)+' px';$('zbr').value=Math.round(ST.bandOp*100);$('zbrv').textContent=Math.round(ST.bandOp*100)+'%';$('cwidv').textContent=ST.cw+' px';$('hszr').value=Math.round(ST.hsz*100);$('hszv').textContent=Math.round(ST.hsz*100)+'%';$('cmix').value=$('cmix2').value=Math.round(ST.camMix*100);$('micb').setAttribute('aria-pressed',ST.mic);applyMix();$('cfovv').textContent=ST.camFov+'°';
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
