@@ -334,7 +334,7 @@ const SC=n=>CFG.zodCols[n%4][[0,1,2][n%3]];
 const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],['mer','Meridian',true,'arm'],['agrid','Horizon Grid',true,'arm'],['band','Zodiac Band',true,'arm'],['glyphs','Sign Glyphs',true,'arm'],['lgrid','Ecliptic Grid',false,'arm'],['egrid','Equatorial Grid',false,'arm'],['ggrid','Galactic Grid',false,'arm'],
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
-const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:90,sensors:false,
+const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:40,sensors:false,
  yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
@@ -439,7 +439,8 @@ function resize(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=inne
 addEventListener('resize',resize);resize();
 let K=null,lastSky=0,CAM=null;
 /* the field of view: the camera's own when it is on (Match Camera, in the Camera menu), otherwise the zoom */
-function fovNow(){if(!ST.cam)return ST.fov;const t=Math.tan(rad(ST.camFov/2));return H>=W?ST.camFov:2*deg(Math.atan(t*H/W))}
+/* the zoom is set on the screen's short side, as Stellarium does (Gemini, Nov 13: start at 40°, like Stellarium's opening view) */
+function fovNow(){if(!ST.cam){return H>=W?2*deg(Math.atan(Math.tan(rad(ST.fov/2))*H/Math.max(1,W))):ST.fov}const t=Math.tan(rad(ST.camFov/2));return H>=W?ST.camFov:2*deg(Math.atan(t*H/W))}
 function camera(){let M=ST.track&&ST.M?ST.M:dragMatrix();M=rotUp(M,ST.off);const ang=(screen.orientation&&screen.orientation.angle)||window.orientation||0,t=rad(ang);
  /* the selfie camera looks out of the screen, so the sky behind you is shown, mirrored like the camera's own picture */
  const sf=ST.cam==='user'&&ST.track,r=col(M,0),u=col(M,1),f=col(M,2).map(x=>sf?x:-x),c=Math.cos(t),s=Math.sin(t);
@@ -500,9 +501,9 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.mw)mwDraw(g,(camOn?.55:.9)*dark);
  /* the ground: the horizon is a straight line in this projection, so the ground is the part of the screen on the nadir's
     side of it. See-through and drawn first, so the stars and figures below the horizon still show (Gemini, Nov 12) */
- if(!camOn){const C=CAM,val=(x,y)=>C.f[2]+((x-W/2)/C.F)*C.r[2]-((y-H/2)/C.F)*C.u[2],pts=[[-2,-2],[W+2,-2],[W+2,H+2],[-2,H+2]],out=[];
+ let GP=null;if(!camOn){const C=CAM,val=(x,y)=>C.f[2]+((x-W/2)/C.F)*C.r[2]-((y-H/2)/C.F)*C.u[2],pts=[[-2,-2],[W+2,-2],[W+2,H+2],[-2,H+2]],out=[];
   for(let i=0;i<4;i++){const a=pts[i],b=pts[(i+1)%4],va=val(...a),vb=val(...b);if(va<0)out.push(a);if((va<0)!==(vb<0)){const t=va/(va-vb);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}
-  if(out.length>2){const G0=ST.night?CFG.ground.red:CFG.ground.night,G1=ST.night?CFG.ground.red:CFG.ground.day,gc=G0.map((x,i)=>Math.round(x+(G1[i]-x)*day));g.fillStyle=`rgb(${gc})`;   /* darker at night (Gemini, Nov 12) */g.globalAlpha=1-ST.seeThru;g.beginPath();g.moveTo(out[0][0],out[0][1]);for(const q of out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}}
+  if(out.length>2){const G0=ST.night?CFG.ground.red:CFG.ground.night,G1=ST.night?CFG.ground.red:CFG.ground.day;GP={out,c:`rgb(${G0.map((x,i)=>Math.round(x+(G1[i]-x)*day))})`}}}
  /* the azimuthal (horizon) grid, very thin */
  if(ST.agrid){g.strokeStyle=CFG.gridCol;g.globalAlpha=.4;g.lineWidth=.9;g.beginPath();for(const a of AGRID)poly(g,a);g.stroke();g.globalAlpha=1}
  /* the ecliptic, equatorial, and galactic grids: any of them at once, each in its own color */
@@ -541,7 +542,9 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.ecl){g.strokeStyle=CFG.eclCol;g.lineWidth=1.5;g.globalAlpha=.9;g.beginPath();poly(g,K.ecl.map(e=>e.v));g.stroke();g.globalAlpha=1}
  if(ST.glyphs){const gs=Math.max(16,Math.min(30,CAM.F*rad(7)));for(let s=0;s<12;s++){const p=proj(K.glyphV[s]);if(!p)continue;const im=glyph(s);
    if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);else{g.fillStyle=CFG.glyCols[s%4];g.font=`${gs*.8}px 'Apple Symbols','Segoe UI Symbol',sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'][s]+'︎',p[0],p[1]);g.textBaseline='alphabetic'}}}
- /* the ground (none over the camera: the real ground shows), the horizon, and the directions */
+ /* the ground (none over the camera: the real ground shows), laid over the stars and figures below the horizon so they show
+    dimly through it; darker at night (Gemini, Nov 13: darker than before, not as black as Stellarium's), then the horizon and the directions */
+ if(GP){g.fillStyle=GP.c;g.globalAlpha=1-ST.seeThru*(.65+.35*day);g.beginPath();g.moveTo(GP.out[0][0],GP.out[0][1]);for(const q of GP.out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}
  g.strokeStyle=CFG.horCol;g.lineWidth=1.6;g.beginPath();poly(g,HORZ);g.stroke();
  g.font=`bold ${16*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [az,n] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){const p=proj(azV(az,0));if(p){g.fillStyle=n==='N'?'#ff8a7a':'#cfe3cf';g.fillText(n,p[0],p[1]+22)}}
  /* Sun, Moon, and planets, drawn last so they sit above the ground line when they are low */
@@ -566,12 +569,12 @@ cv.addEventListener('pointerdown',e=>{PTS.set(e.pointerId,[e.clientX,e.clientY])
  if(PTS.size>2)return;dragging=[e.clientX,e.clientY];dragged=false});
 for(const ev of ['pointerup','pointercancel'])addEventListener(ev,e=>{PTS.delete(e.pointerId);if(PTS.size<2)pinch=null;if(!PTS.size)dragging=null});
 cv.addEventListener('pointermove',e=>{if(!PTS.has(e.pointerId))return;PTS.set(e.pointerId,[e.clientX,e.clientY]);if(pinch&&PTS.size===2){const [a,b]=[...PTS.values()],d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
- if(ST.cam){say('Zoom is set by the camera while it is on: use Match Camera in the Camera menu.',3000);return}ST.fov=Math.max(10,Math.min(130,pinch.fov*pinch.d/d))}});
+ if(ST.cam){say('Zoom is set by the camera while it is on: use Match Camera in the Camera menu.',3000);return}ST.fov=Math.max(5,Math.min(100,pinch.fov*pinch.d/d))}});
 /* tap and drag turns tracking off and leaves the sky where it was (Gemini, Nov 7); Track Sky turns it back on */
 addEventListener('pointermove',e=>{if(!dragging||pinch)return;const dx=e.clientX-dragging[0],dy=e.clientY-dragging[1];if(!dragged&&Math.abs(dx)+Math.abs(dy)<6)return;
  if(!dragged){dragged=true;if(ST.track&&CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt;ST.track=false;trackBtn()}}
  dragging=[e.clientX,e.clientY];const k=fovNow()/H;ST.yaw=n360(ST.yaw-dx*k);ST.pitch=Math.max(-89,Math.min(89,ST.pitch+dy*k))});
-addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;ST.fov=Math.max(10,Math.min(130,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:true});
+addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;ST.fov=Math.max(5,Math.min(100,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:true});
 /* ---- buttons ---- */
 const $=id=>document.getElementById(id);
 function start(){const go=()=>{addEventListener('deviceorientationabsolute',e=>onOrient(e,true));addEventListener('deviceorientation',e=>onOrient(e,false));$('start').hidden=true;
@@ -587,7 +590,7 @@ $('tbtn').onclick=()=>{if(!ST.sensors){say($('start').hidden?'No motion sensors 
  if(ST.track){if(CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt}ST.track=false}else ST.track=true;trackBtn()};
 $('track').onclick=()=>{ST.track=true;trackBtn();closeSheets()};
 $('night').onclick=()=>{ST.night=!ST.night;document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);save()};
-$('zin').onclick=()=>{ST.fov=Math.max(10,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(130,ST.fov*1.3)};
+$('zin').onclick=()=>{ST.fov=Math.max(5,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(100,ST.fov*1.3)};
 /* Align: put something bright you can see in the ring, pick it, and the compass error is corrected */
 $('align').onclick=()=>{closeSheets();const L=$('alist');if(!L.hidden){L.hidden=true;return}if(!K)return;const up=K.bodies.filter(b=>b.v[2]>0&&b.k!=='Sun').map(b=>[b.k,GLY[b.k]+' '+b.k,b.v]).concat(NAMED.filter(([i])=>K.stars[i]&&K.stars[i][2]>0.08).map(([i,n])=>[n,n,K.stars[i]]));
  L.innerHTML=`<p>Point the ring at one of these in the real sky, then tap its name.</p>`+up.map((x,j)=>`<button data-j="${j}">${x[1]}</button>`).join('')+`<button data-j="reset">Reset Alignment</button>`;L.hidden=false;
