@@ -8122,6 +8122,12 @@ document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('
   /* Nov 10: the phone's Favorites star: null for a chart that isn't saved */
   isFav:k=>{const r=cpRec(k),c=r&&savedOf(r);return c?isFav(c.id):null},fav:k=>{const r=cpRec(k),c=r&&savedOf(r);if(!c)return null;S.favs=isFav(c.id)?S.favs.filter(x=>x!==c.id):S.favs.concat(c.id);saveCharts();return isFav(c.id)},
   /* Nov 10: Planetary Tables inside the Device opens on the chart that is up in main (read from the parent page; base sets it in the frame without saving) */
+  /* Nov 13 (Gemini): a favorite star on any chart, saved or not. The chart up in main: isFavBase / favBase (saving it first if needed);
+     any other moment (Current Transits, a table line): favNew saves it as an Event chart and stars it. home = the Current Transits place. */
+  isFavBase:()=>{const c=S.baseRec&&savedOf(S.baseRec);return !!(c&&isFav(c.id))},
+  favBase:()=>{if(!S.baseRec)return false;let c=savedOf(S.baseRec);if(!c){c=Object.assign({},S.baseRec,{id:'c'+Date.now()});S.charts.push(c);S.baseRec=c}S.favs=isFav(c.id)?S.favs.filter(x=>x!==c.id):S.favs.concat(c.id);saveCharts();return isFav(c.id)},
+  favNew:r=>{r=Object.assign({type:'Event',cal:'a',unknown:false,ut:'noon',notes:''},r,{id:'c'+Date.now()});S.charts.push(r);S.favs.push(r.id);saveCharts();return r.id},
+  home:()=>({label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}),
   rec:()=>S.baseRec?JSON.parse(JSON.stringify(S.baseRec)):null,key:()=>BIRTH.name+'|'+BIRTH.jd,base:r=>{if(r)setBase(r)},
   pick:k=>{const r=cpRec(k);if(!r)return false;setBase(r);addRecent(r);saveCharts();save();return true},
   credits:()=>CREDITS,
@@ -8760,6 +8766,15 @@ body.vtmoo .vtvs [data-w=eve]{display:none}
 
 /* Gemini, Nov 10: Chart Play */
 #vt-cw .cwbar{margin:6px auto 4px;width:100%;max-width:560px}
+
+/* Gemini, Nov 13: chart header with a favorite star, place line, Edit and Clear (every app) */
+#vt-cw .cwh{align-items:flex-start}
+#vt-cw .cwstar{flex:0 0 40px;height:40px;border:0;background:none;color:#e8c46a;font-size:28px;line-height:1;padding:0;cursor:pointer}
+#vt-cw .cwstar[aria-pressed=true]{color:#ffd24a;text-shadow:0 0 8px #ffd24a88}
+#vt-cw .cwh small{display:block}
+#vt-cw .cwed{display:flex;gap:8px;margin-top:6px}
+#vt-cw .cwed button{font:600 13px Inter,system-ui,sans-serif;color:#efe3c8;background:none;border:1.5px solid #c9b27a;border-radius:8px;padding:5px 14px;cursor:pointer;min-height:32px}
+#vt-cw .cwed button:hover{background:#c9b27a22}
 </style><script>/* Simple Wheel (Painter World, Gemini, Nov 13 2026): one easy-to-read chart wheel that every World and app can use,
    on a phone or a desktop. Our own look (Gemini asked that it not resemble other apps): a zodiac ring of alternating
    silver and titanium segments with Ana's glyphs (the ring Kepler made for Planetary Tables), house cusp degrees just
@@ -9292,7 +9307,7 @@ function xpRead(){const f=V.xp,g=id=>document.getElementById(id);if(g('xp-date')
 function xpShow(){const p=$('#vt-pop');p.innerHTML=xpDraw();const q=$('#xp-name')||$('#xp-q')||p;if(p.dataset.fx!==V.xp.step+V.xp.list){if(q===p)p.setAttribute('tabindex','-1');q.focus({preventScroll:true});p.dataset.fx=V.xp.step+V.xp.list}}   /* Gemini, Nov 5: the birth fields all show; nothing opens until the user taps one */
 function xpOpen(){V.xp=xpNew();V.open=true;const p=$('#vt-pop');p.hidden=false;p.dataset.fx='';xpShow()}
 function xpClose(){V.xp=null;V.open=false;$('#vt-pop').hidden=true;const b=$(ME()?'#vt-chartb':'#vt-explore');if(b)b.focus()}
-function xpDone(){prefSet('vt-me','1');V.xp=null;V.open=false;$('#vt-pop').hidden=true;stop();V.ms=null;V.memo=null;V.side=null;V.ex=null;V.rk='';draw(true);scrollTo(0,0);$('#vt-note').textContent=`Showing the Venus cycle you were born in.`}
+function xpDone(){prefSet('vt-me','1');V.xp=null;V.open=false;$('#vt-pop').hidden=true;stop();V.ms=null;V.memo=null;V.side=null;V.ex=null;V.rk='';draw(true);scrollTo(0,0);$('#vt-note').textContent=`Showing the Venus cycle you were born in.`;{const o=$('#vt-cw');if(o&&!o.hidden){const c=T.chart();chartOpen(c.ms,c.name,false)}}}   /* Nov 13: Edit in the chart header: the chosen chart opens in the Chart view */
 function xpKeep(how){const f=V.xp,rec={name:f.name.trim()||'My Chart',type:'Birth',date:f.date,time:f.unknown?'12:00:00':(f.time.length===5?f.time+':00':f.time),unknown:!!f.unknown,place:f.place};
  if(how==='no')T.use(rec);else T.save(rec,how==='fav');xpDone()}
 function xpClick(t){const f=V.xp;
@@ -9557,7 +9572,7 @@ const hd2=n=>{const [a,b]=String(n).replace(/&amp;/g,'&').split('\n');   /* name
 /* Gemini, Nov 11: only one window at a time. Opening Chart, Space, Earth, Historical or About closes (and stops) any other,
    so the view buttons and the table's stage buttons always reach the window that is showing */
 function oneWin(keep){[['vt-cw',()=>{cwStop();CW.p=1}],['vt-spc',()=>spcStop()],['vt-ea',()=>eaStop()],['vt-hs',null],['vt-ab',null]].forEach(([id,st])=>{if(id===keep)return;const o=document.getElementById(id);if(o&&!o.hidden){try{if(st)st()}catch(e){}o.hidden=true}})}
-function chartOpen(ms,name,bw){oneWin('vt-cw');ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
+function chartOpen(ms,name,bw){oneWin('vt-cw');CW.favId=null;ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
   o.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.cwm){CW.mode=t.dataset.cwm;chartDraw()}else if(t.dataset.cwa){ASET_OV=t.dataset.cwa;asetSet(t.dataset.cwa);chartDraw()}else if(t.id==='cw-hs'){CW.hsOpen=!CW.hsOpen;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.dataset.hsy){prefSet('vt-hsys',t.dataset.hsy);CW.hsOpen=false;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.id==='cw-x'){cwStop();CW.p=1;o.hidden=true;document.body.classList.remove('vtcw')}})}
  o.hidden=false;document.body.classList.add('vtcw');ewAttach();chartDraw();$('#cw-x').focus()}
 /* the cycle the chart sits in (the same cycle Space draws), and the moment Play has reached */
@@ -9600,9 +9615,27 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
  if(t.id==='cw-a'){cwAnim();return}
  if(t.id==='cw-sb'){const p=CW.p;CW.sp=CW.sp?0:1;try{localStorage.setItem('vt-cwsp',CW.sp)}catch(x){}$('#cw-sn').textContent=SPD[CW.sp][0];t.setAttribute('aria-label',`Speed ${SPD[CW.sp][0]}, tap to change`);if(CW.on)CW.t0=performance.now()-p*cwDur()}});
 document.addEventListener('input',e=>{if(e.target.id!=='cw-s')return;CW.p=Math.min(.99999,+e.target.value/1000);if(CW.on)CW.t0=performance.now()-CW.p*cwDur();else cwUpd()});
+/* Gemini, Nov 13 (every app): the chart header. A star to favorite any chart, saved or not; the name, a date and time line, and a
+   place line; Edit and Clear. With no chart cast it reads "Current Transits"; Clear always returns there. */
+function cwKind(){const ch=ME()?T.chart():null;if(ch&&(CW.bms!=null||Math.abs(ch.ms-CW.ms)<6e4))return 'natal';return CW.name==='Current Transits'&&Math.abs(Date.now()-CW.ms)<36e5?'now':'moment'}
+function cwPlace(){const r=cwKind()==='natal'&&T.rec?T.rec():null;if(r&&r.place)return r.place;try{return T.home?T.home():null}catch(e){return null}}
+function cwTime(ms,tz){try{return new Intl.DateTimeFormat('en-US',{timeZone:tz||undefined,hour:'numeric',minute:'2-digit'}).format(new Date(ms)).toLowerCase().replace(' ','')}catch(e){return ''}}
+function cwFav(){const kd=cwKind();try{if(kd==='natal')return !!(T.isFavBase&&T.isFavBase());return !!CW.favId}catch(e){return false}}
+function cwHead(k){const kd=cwKind(),pl=cwPlace(),ch=kd==='natal'?T.chart():null,ms=kd==='natal'&&CW.bms==null?ch.ms:CW.ms,fav=cwFav(),
+  rr=kd==='natal'&&CW.bms==null&&T.rec?T.rec():null,rt=rr&&/^\d{1,2}:\d{2}/.test(rr.time||'')?(([h,m])=>`${h%12||12}:${String(m).padStart(2,'0')}${h<12?'am':'pm'}`)(rr.time.split(':').map(Number)):null,
+  tl=`${T.date(ms)}${CW.unk&&kd==='natal'?'':' · '+(rt||cwTime(ms,pl&&pl.tz))}${CW.cu0?' · '+hsysN(k):CW.unk?' · Birth time unknown':''}`;
+ return `<div class="cwh"><button class="cwstar" id="cw-fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button><div>${kd==='now'?'<b>Current Transits</b>':hd2(CW.name)}<small>${tl}</small>${pl&&pl.label?`<small class="cwpl">${esc(pl.label)}</small>`:''}`
+ +`<span class="cwed"><button id="cw-ed">Edit</button>${kd==='now'?'':'<button id="cw-cl">Clear</button>'}</span></div><button class="vtbtn" id="cw-x">Close</button></div>`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#cw-fav,#cw-ed,#cw-cl');if(!b)return;
+ if(b.id==='cw-fav'){const kd=cwKind();try{if(kd==='natal')T.favBase&&T.favBase();else if(CW.favId){CW.favId=null}else if(T.favNew){const pl=cwPlace()||{},d=new Date(CW.ms),z=n=>String(n).padStart(2,'0'),
+   p=(()=>{try{const o={};new Intl.DateTimeFormat('en-US',{timeZone:pl.tz||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d).forEach(x=>o[x.type]=x.value);return o}catch(x){return {year:d.getFullYear(),month:z(d.getMonth()+1),day:z(d.getDate()),hour:z(d.getHours()),minute:z(d.getMinutes())}}})(),
+   nm=(kd==='now'?'Transits ':String(CW.name).split('\n')[0].replace(/<[^>]+>/g,'')+' ')+`${+p.month}/${+p.day}/${p.year}`;
+   CW.favId=T.favNew({name:nm,date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`,place:pl.label?{label:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz}:undefined})}}catch(x){}chartDraw();const q=$('#cw-fav');if(q)q.focus();return}
+ if(b.id==='cw-ed'){xpOpen();return}
+ if(b.id==='cw-cl'){if(ME()){try{localStorage.removeItem('vt-me')}catch(x){}stop();V.ms=Date.now();V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true)}chartOpen(Date.now(),'Current Transits',false)}});
 function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
  const k=hsysK();
- o.innerHTML=`<div class="cwh"><div>${hd2(CW.name)}<small>${T.date(CW.ms)}${CW.cu0?' · '+hsysN(k):CW.unk?' · Birth time unknown · Tropical Zodiac':''}</small></div><button class="vtbtn" id="cw-x">Close</button></div>`
+ o.innerHTML=cwHead(k)
  +(CW.bms!=null?`<div class="cwbw"><span><i style="background:#bfe0ff"></i>Inside: ${esc(CW.bn)}, birth</span><span><i style="background:${GOLD}"></i>Outside: ${esc(String(CW.name).split('\n')[0])}</span></div>`:'')
  +`<div class="cww" id="cw-w">${cwWheel()}</div>`
  +`<div class="spcbar cwbar"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><div class="spcsp"><button class="spcsb" id="cw-sb" aria-label="Speed ${SPD[CW.sp][0]}, tap to change">Speed: <b id="cw-sn">${SPD[CW.sp][0]}</b></button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle"></div></div>`
@@ -9886,7 +9919,7 @@ addEventListener('load',()=>setTimeout(()=>{if(WIDE())wdStart()},9000));
 function ptView(v){if(!T||!$('#vt-list'))return setTimeout(()=>ptView(v),400);if(v==='start'||v==='table'&&WIDE())v=STARTV();const map={space:'space',earth:'lem',chart:'chart',table:'table'};
  if(v==='hist'){hsOpen();return}const to=map[v];if(!to)return;const k=vxCur();if(k===to&&to!=='table')return;
  if(k==='space')spcClose();else if(k==='lem')eaClose();else if(k==='chart'){const o=$('#vt-cw');if(o)o.hidden=true;document.body.classList.remove('vtcw')}
- const hs=$('#vt-hs');if(hs&&!hs.hidden)hsClose();if(to==='table')return;const b=$('#vt-list li.now [data-sm]');let ms=b?+b.dataset.sm:V.ms,nm=b?b.dataset.cn:'Today';if(ME()){const c=T.chart();ms=c.ms;nm=c.name}else if(to==='chart'){ms=Date.now();nm='This Moment'}
+ const hs=$('#vt-hs');if(hs&&!hs.hidden)hsClose();if(to==='table')return;const b=$('#vt-list li.now [data-sm]');let ms=b?+b.dataset.sm:V.ms,nm=b?b.dataset.cn:'Today';if(ME()){const c=T.chart();ms=c.ms;nm=c.name}else if(to==='chart'){ms=Date.now();nm='Current Transits'}
  if(to==='space')spcOpen(ms,nm);else if(to==='lem')eaOpen(ms,nm);else chartOpen(ms,nm,false);wdT=1}
 addEventListener('message',e=>{const d=e.data;if(d&&d.pt==='view')ptView(d.v);if(d&&d.type==='aspSet'&&d.set){prefSet('vt-aset',d.set);const o=$('#vt-cw');if(o&&!o.hidden)chartDraw()}});
 {const m=/[#&]v=([a-z]+)/.exec(location.hash);if(m)addEventListener('load',()=>setTimeout(()=>ptView(m[1]),2600))}
@@ -10349,7 +10382,7 @@ document.addEventListener('keydown',e=>{const t=e.target;if(e.key!=='Enter'||!t|
 /* Gemini, Nov 10: inside the Device, open on the cycle of the chart that is up in main, with that chart */
 function devChart(){if(!V.dev||!V.dev.nat)return false;if(V.dev.rec&&T&&T.base){T.base(V.dev.rec);V.dev.rec=null}return true}
 function devSync(){if(!devChart()){if(!V.devMe)return;V.devMe=false;try{localStorage.removeItem('vt-me')}catch(e){}stop();V.ms=Date.now();V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true);   /* back on the Clock: today's cycle and this moment */
-  const k=vxCur();if(k==='chart')chartOpen(Date.now(),'This Moment',false);else if(k==='space'){spcStop();spcOpen(Date.now(),'Today')}else if(k==='lem'){eaStop();eaOpen(Date.now(),'Today')}return}V.devMe=true;prefSet('vt-me','1');stop();V.ms=null;V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true);
+  const k=vxCur();if(k==='chart')chartOpen(Date.now(),'Current Transits',false);else if(k==='space'){spcStop();spcOpen(Date.now(),'Today')}else if(k==='lem'){eaStop();eaOpen(Date.now(),'Today')}return}V.devMe=true;prefSet('vt-me','1');stop();V.ms=null;V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true);
  const k=vxCur(),c=T.chart();if(k==='chart')chartOpen(c.ms,c.name,false);else if(k==='space'){spcStop();spcOpen(c.ms,c.name)}else if(k==='lem'){eaStop();eaOpen(c.ms,c.name)}}
 addEventListener('message',e=>{if(!e.data||e.data.pt!=='chart')return;V.dev={rec:e.data.rec||null,nat:!!e.data.nat};if(T&&$('#vt-list'))devSync()});
 function go(){T=window.__app&&window.__app.tbl;if(!T)return setTimeout(go,150);try{localStorage.removeItem('vt-me')}catch(e){}if(devChart()){prefSet('vt-me','1');V.devMe=true}   /* Gemini, Nov 5: for now every opening is today's cycle with the 13-star header, even after a chart was chosen (the header after a chart is next) */
