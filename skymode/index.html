@@ -131,7 +131,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <div class="row"><button data-cetx="gray">Gray Earth</button><button data-cetx="real">Realistic Earth</button><button id="cenl">City Lights</button></div>
 <div class="cap">WHEEL COLORS</div><div class="row cc"><label>Fire <input type="color" id="ccf0"></label><label>Earth <input type="color" id="ccf1"></label><label>Air <input type="color" id="ccf2"></label><label>Water <input type="color" id="ccf3"></label></div>
  <div class="row cc"><label>Band <input type="color" id="ccband"></label><label>Wheel <input type="color" id="ccdisc"></label></div>
- <p class="cap">PLANET GLYPHS</p><div class="row"><button data-cpc="planet">Planet Colors</button><button data-cpc="element">Element Colors</button><button data-cpc="one">One Color</button></div><div class="row cc"><label>Sign Glyphs <input type="color" id="ccsg"></label><label>Planet Glyphs <input type="color" id="ccpg"></label><button id="ccreset">Reset Colors</button></div></div>
+ <p class="cap">PLANET GLYPHS</p><div class="row"><button data-cpc="gold">Shiny Gold</button><button data-cpc="planet">Planet Colors</button><button data-cpc="element">Element Colors</button><button data-cpc="one">One Color</button></div><div class="row cc"><label>Sign Glyphs <input type="color" id="ccsg"></label><label>Planet Glyphs <input type="color" id="ccpg"></label><button id="ccreset">Reset Colors</button></div></div>
 <div id="chform" class="sheet" hidden role="dialog" aria-label="Enter chart data"><button class="x" data-close aria-label="Close">×</button><h3>Enter Chart Data</h3>
  <label class="fl">Name <input id="cfn" type="text" autocomplete="off"></label>
  <div class="row"><label class="fl">Date <input id="cfd" type="date"></label><label class="fl">Time <input id="cft" type="time"></label></div>
@@ -259,7 +259,7 @@ window.EA_CHARTS=API})();
        colors   overrides for any theme color: {bg, ringFill:[fire, earth, air, water] (dark: colored ring, white glyphs), ringA, ringB, rinkA, rinkB, ringEdge, house, line, axis, ink, soft, ret, aspBg, el:[fire, earth, air, water]}
                 rinkA / rinkB 'el' = sign glyphs in their element color
        label    accessible name
-   planetColors 'planet' (default: each planet its own color, AstroMaps, dark-tuned), 'element', 'gold', or {Sun:'#..', ...}
+   planetColors 'gold' (default: shiny gold with a soft glow, AstroSynth's gold), 'planet' (AstroMaps colors, dark-tuned), 'element'; sign glyphs keep their element colors (signColors:'planet' to follow the planet), or {Sun:'#..', ...}
    window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root; EAWheel.zoomReset().
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
      tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
@@ -274,8 +274,8 @@ const PCL={Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋'};
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#9a7a2e',pl:PCL,el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#d4b46a',pl:PCD,el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,bezel:['#ffffff','#c9d0dc','#7d8597','#3a4050','#a7b0c2'],pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,bezel:['#eef3fb','#cfd8ea','#8e9ab3','#262c3e','#8e9ab3'],pl:PCD,el:ELD}};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
@@ -289,43 +289,50 @@ function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.le
  for(let it=0;it<n*2;it++){let hit=-1;for(let i=0;i<G.length-1;i++)if(G[i+1][0].d-G[i][G[i].length-1].d<gap-1e-6){hit=i;break}if(hit<0)break;G.splice(hit,2,G[hit].concat(G[hit+1]));pos(G[hit])}
  A.forEach(a=>a.x.d=a.d)}
 function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
+ const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
+ if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
  const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big;
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]};
- /* cusp labels 199..184, zodiac ring 182..160, planets 160..RH, house numbers RH..RI, aspects inside RI.
-    The aspect circle is small so the planet degrees can be large (Gemini, Nov 13); double tap makes it large. */
- const RC=191,R0=182,R1=160,RI=big?136:58,RH=big?RI:72;
+ /* bezel 199..190, zodiac ring 190..168, house cusp degree / sign / minutes 168..152 (on the wheel, Gemini Nov 13),
+    planets 152..RH, house numbers RH..RI, aspects inside RI. The aspect circle is small so the planet degrees can be large;
+    double tap makes it large. */
+ const RB=194.5,R0=190,R1=168,RC=160,RP=152,RI=big?128:56,RH=big?RI:70;
  const glyph=opts.glyph,sign=opts.sign,ink=T.ink;
  const sg=(i,x,y,sz,col)=>sign?sign(i,x,y,sz,col):`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${SGN[i]}︎</text>`;
- const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
+ const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col.startsWith('url')?T.gold:col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
  const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
  let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;touch-action:none">`;
- h+=`<defs><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${opts.signBold==null?.5:opts.signBold}"/></filter></defs><circle r="199" fill="${T.bg}"/>`;
+ h+=`<defs><linearGradient id="eawbz" x1="0" y1="0" x2="1" y2="1">${T.bezel.map((c,i)=>`<stop offset="${[0,.22,.5,.78,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${opts.signBold==null?.5:opts.signBold}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
+ /* bezel: a thin metal rim around the zodiac ring (after Gemini's AstroSynth wheel, Nov 13) */
+ h+=`<circle r="${RB}" fill="none" stroke="url(#eawbz)" stroke-width="9"/><circle r="${RB+4.4}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width=".8"/><circle r="${R0+.4}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".9"/>`;
  /* sign glyphs are drawn bolder on the ring and in the planet positions (Gemini, Nov 13) */
  const sgb=(i,x,y,sz,col)=>`<g filter="url(#eawbold)">${sg(i,x,y,sz,col)}</g>`;
  /* zodiac ring: twelve segments, alternating, with the sign glyphs */
  for(let i=0;i<12;i++){const A=xy(i*30,R0),B=xy(i*30,R1),Cc=xy(i*30+30,R1),D=xy(i*30+30,R0),g=xy(i*30+15,(R0+R1)/2);
   h+=`<path d="M${f(A[0])} ${f(A[1])}L${f(B[0])} ${f(B[1])}A${R1} ${R1} 0 0 0 ${f(Cc[0])} ${f(Cc[1])}L${f(D[0])} ${f(D[1])}A${R0} ${R0} 0 0 1 ${f(A[0])} ${f(A[1])}Z" fill="${T.ringFill?T.ringFill[i%4]:i%2?T.ringB:T.ringA}" stroke="${T.ringEdge}" stroke-width=".6"/>`+sgb(i,g[0],g[1],14,rink(i))}
- h+=`<circle r="${R0}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/><circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/>`;
+ h+=`<circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/><circle r="${RP}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
- if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],R1),b=xy(cu[i],RI);
-   h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/>`;
-   const q=dms(cu[i]),pd=xy(cu[i]-3.6,RC),ps=xy(cu[i],RC),pm=xy(cu[i]+3.6,RC),cc=ax?T.axis:T.soft;
+ if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
+   h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
+   const q=dms(cu[i]),pd=xy(cu[i]-4.4,RC),ps=xy(cu[i]-.1,RC),pm=xy(cu[i]+4.4,RC),cc=ax?T.axis:T.soft;
    h+=tx(q.d+'°',pd[0],pd[1],9.5,ax?T.axis:ink,ax?800:600)+sgb(q.s,ps[0],ps[1],10.5,T.el[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],8,cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
-  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,R1-7);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
- else for(let i=0;i<12;i++){const a=xy(i*30,R1),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
+  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
+ else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
  const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,big?8:13.5);   /* 13.5 degrees keeps the degree and minute text of a tight cluster apart on a phone (Posidonius, Nov 13) */
- const rg=big?149:143,rd=122,rs=105,rm=90,pm=opts.planetColors||T.pcol||'planet',col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
- L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,R1-2.5);
+ const rg=big?140:136,rd=117,rs=101,rm=87,pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
+ /* sign glyphs keep their own (element) colors whatever the planet colors are (Gemini, Nov 13) */
+ const scol=s=>opts.signColors==='planet'?null:T.el[s%4];
+ L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,RP-2.5);
   h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="2.4" fill="${c}"/>`;
-  if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,rg+10),t2=xy(x.l,R1-5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+  if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,rg+10),t2=xy(x.l,RP-5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
   const g=xy(x.d,rg),rx=RX[x.k];
-  h+=`<g class="eawp" data-pl="${x.k}"><title>${x.k} ${q.d}° ${['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+pg(x.k,g[0],g[1],big?17:22,c);
-  if(!big){const d=xy(x.d,rd),s=xy(x.d,rs),m=xy(x.d,rm);h+=tx(q.d+'°',d[0],d[1],13.5,rx?T.ret:ink,700)+sgb(q.s,s[0],s[1],13.5,c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],10.5,rx?T.ret:T.soft,500)}
+  h+=`<g class="eawp" data-pl="${x.k}"><title>${x.k} ${q.d}° ${['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(shiny?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],big?17:22,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],big?17:22,c));
+  if(!big){const d=xy(x.d,rd),s=xy(x.d,rs),m=xy(x.d,rm);h+=tx(q.d+'°',d[0],d[1],13.5,rx?T.ret:ink,700)+sgb(q.s,s[0],s[1],13.5,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],10.5,rx?T.ret:T.soft,500)}
   else if(rx){const d=xy(x.d,rg-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
   h+='</g>'});
  /* aspect circle: tap for the next aspect set, double tap to make it large */
@@ -1490,10 +1497,10 @@ let CHMW=null,CHMWK='',CHHIT=[];
    silhouette) is the default; Realistic uses the true-color texture with City Lights on the night side. The Sun's glow sits
    on the subsolar point and the terminator divides day from night. Aspects: Major, Minor (Major And Minor), Midpoints (Main's
    Symmetry: midpoint pictures A/B = C, colored by harmonic), or None, which makes the Earth large. ---- */
-const SWDEF={el:[null,null,null,null],band:null,bg:null,glyEl:true,pc:'planet',sg:'#e8c46a',pg:'#e8c46a'};
+const SWDEF={el:[null,null,null,null],band:null,bg:null,glyEl:true,pc:'gold',pcv:2,sg:'#e8c46a',pg:'#e8c46a'};
 const CHO={etx:'gray',nl:true,asp:'major',style:'basic',theme:'light',sw:JSON.parse(JSON.stringify(SWDEF))};
 try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp;if(o.style==='ea')CHO.style='ea';if(o.theme==='dark')CHO.theme='dark';
- const h=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v),w=o.sw;if(w){if(Array.isArray(w.el)&&w.el.length===4)CHO.sw.el=w.el.map(c=>h(c)?c:null);for(const k of ['band','bg','sg','pg'])if(h(w[k]))CHO.sw[k]=w[k];if(/^(planet|element|one)$/.test(w.pc))CHO.sw.pc=w.pc;else if(w.glyEl===false)CHO.sw.pc='one';if(w.glyEl===false)CHO.sw.glyEl=false}}catch(e){}
+ const h=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v),w=o.sw;if(w){if(Array.isArray(w.el)&&w.el.length===4)CHO.sw.el=w.el.map(c=>h(c)?c:null);for(const k of ['band','bg','sg','pg'])if(h(w[k]))CHO.sw[k]=w[k];if(w.pcv===2&&/^(gold|planet|element|one)$/.test(w.pc))CHO.sw.pc=w.pc;else if(w.glyEl===false)CHO.sw.pc='one';if(w.glyEl===false)CHO.sw.glyEl=false}}catch(e){}
 const chSave=()=>{try{localStorage.setItem('skymode-chart',JSON.stringify(CHO))}catch(e){}};
 const ETXI={};let CHE={key:'',cv:null};
 function eImg(k){if(ETXI[k])return ETXI[k].ok?ETXI[k]:null;const T=window.APP_PTEX||{},rec=ETXI[k]={ok:false};if(!T[k])return null;const im=new Image();
@@ -1625,14 +1632,14 @@ const CHSW={key:'',img:null,pend:''};
 const hx=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v);
 function swSign(i,x,y,sz,col){const src=(window.APP_GLY||[])[i];if(!src)return '';const id='sgc'+String(col).replace(/[^0-9a-z]/gi,'');
  return `<filter id="${id}" x="0" y="0" width="1" height="1"><feFlood flood-color="${col}"/><feComposite in2="SourceAlpha" operator="in"/></filter><image href="${src}" x="${(x-sz*.6).toFixed(1)}" y="${(y-sz*.6).toFixed(1)}" width="${(sz*1.2).toFixed(1)}" height="${(sz*1.2).toFixed(1)}" filter="url(#${id})"/>`}
-function swGlyph(k){const G=PLG[k==='Node'?'NNode':k];if(!G)return '';const c=CHO.sw.pc==='one'?CHO.sw.pg:null;return c?`<g stroke="${c}" color="${c}">${G}</g>`:G}
+function swGlyph(k){const G=PLG[k==='Node'?'NNode':k];if(!G)return '';const c=null;return c?`<g stroke="${c}" color="${c}">${G}</g>`:G}
 /* Leo's rings alternate two tones: the Band color and a shade of it */
 const swShade=(c,k)=>'#'+[1,3,5].map(i=>{const v=parseInt(c.slice(i,i+2),16),w=k<0?v*(1+k):v+(255-v)*k;return Math.round(Math.max(0,Math.min(255,w))).toString(16).padStart(2,'0')}).join('');
 function swOpts(){const S=CHO.sw,col={};if(S.el.some(Boolean))col.el=S.el.slice();if(S.band){col.ringA=S.band;col.ringB=swShade(S.band,CHO.theme==='light'?-.35:.18)}if(S.bg)col.bg=S.bg;
  const sign=S.pc!=='one'?swSign:(i,x,y,sz)=>swSign(i,x,y,sz,S.sg);
  const asp=CHO.asp==='none'?false:CHO.asp==='sym'?undefined:p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));const minor=CHO.asp==='minor';return chAspects(P).map(([a,b,s])=>({a:a.k,b:b.k,angle:s.A[1],color:s.A[2],minor:s.A[3]===2,name:s.A[0]}))};
  const pics=CHO.asp==='sym'?p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));return chPictures(P).map(q=>({a:q.a.k,b:q.b.k,c:q.c.k,color:chFamCol(q.fn)}))}:null;
- const pcol=S.pc==='element'?'element':S.pc==='planet'?'planet':Object.fromEntries(Object.keys(PLG).concat(['Node','SNode']).map(k=>[k,S.pg])),o={theme:CHO.theme,planetColors:pcol,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};if(pics)o.pictures=pics;return o}
+ if(S.pc==='one')col.gold=S.pg;const pcol=S.pc==='element'?'element':S.pc==='planet'?'planet':'gold',o={theme:CHO.theme,planetColors:pcol,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};if(pics)o.pictures=pics;return o}
 /* pinch to zoom and drag to pan the wheel (Gemini: imperative on mobile); double tap goes back to fit */
 const CHZ={s:1,x:0,y:0};
 function chZoom(f,px,py){const s0=CHZ.s,s1=Math.max(1,Math.min(6,s0*f)),top=58,bot=66,ox=W/2,oy=top+(H-top-bot)/2,k=s1/s0;
