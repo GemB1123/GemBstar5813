@@ -20,6 +20,8 @@
                 rinkA / rinkB 'el' = sign glyphs in their element color
        label    accessible name
    planetColors 'gold' (default: shiny gold with a soft glow, AstroSynth's gold), 'planet' (AstroMaps colors, dark-tuned), 'element'; sign glyphs keep their element colors (signColors:'planet' to follow the planet), or {Sun:'#..', ...}
+   chart.rings  [{pos, ret, label, color}, ...] up to two more charts drawn in rings outside the main one (bi- and tri-wheels);
+                chart.label names the main chart. EAWheel.legend(chart, opts) returns a small HTML legend (dot + label per ring).
    window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root; EAWheel.zoomReset().
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
      tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
@@ -34,8 +36,8 @@ const PCL={Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋'};
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,bezel:['#ffffff','#c9d0dc','#7d8597','#3a4050','#a7b0c2'],pl:PCL,el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,bezel:['#eef3fb','#cfd8ea','#8e9ab3','#262c3e','#8e9ab3'],pl:PCD,el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],bezel:['#ffffff','#c9d0dc','#7d8597','#3a4050','#a7b0c2'],pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],bezel:['#eef3fb','#cfd8ea','#8e9ab3','#262c3e','#8e9ab3'],pl:PCD,el:ELD}};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
@@ -83,18 +85,30 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
   if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
- const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,big?8:13.5);   /* 13.5 degrees keeps the degree and minute text of a tight cluster apart on a phone (Posidonius, Nov 13) */
- const rg=big?140:136,rd=117,rs=101,rm=87,pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
+ const pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
  /* sign glyphs keep their own (element) colors whatever the planet colors are (Gemini, Nov 13) */
  const scol=s=>opts.signColors==='planet'?null:T.el[s%4];
- L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,RP-2.5);
-  h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="2.4" fill="${c}"/>`;
-  if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,rg+10),t2=xy(x.l,RP-5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-  const g=xy(x.d,rg),rx=RX[x.k];
-  h+=`<g class="eawp" data-pl="${x.k}"><title>${x.k} ${q.d}° ${['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(shiny?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],big?17:22,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],big?17:22,c));
-  if(!big){const d=xy(x.d,rd),s=xy(x.d,rs),m=xy(x.d,rm);h+=tx(q.d+'°',d[0],d[1],13.5,rx?T.ret:ink,700)+sgb(q.s,s[0],s[1],13.5,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],10.5,rx?T.ret:T.soft,500)}
-  else if(rx){const d=xy(x.d,rg-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
-  h+='</g>'});
+ const SN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+ /* bi- and tri-wheels (Gemini, Nov 13): chart.rings = [{pos, ret, label, color}, ...] are drawn in bands outside the main chart,
+    the last one outermost; each ring's glyphs take its color so the legend dot matches. The main chart stays innermost. */
+ const rings=big?[]:(chart.rings||[]).filter(r=>r&&r.pos).slice(0,2),nb=1+rings.length,H=(RP-RH)/nb;
+ const RCOL=T.ringCols||[];
+ const band=(Pp,RXp,t,ci,main)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
+  const mode=big?'big':nb===1?'full':nb===2?'bi':'tri';spread(list,{big:8,full:13.5,bi:11,tri:10}[mode]);
+  const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  const cf=main?col:()=>ci,sh=main&&shiny;
+  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
+   h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="${nb>1?2:2.4}" fill="${c}"/>`;
+   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   const g=xy(x.d,R.g),gs=R.gs||17;
+   h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
+   h+='</g>'});return list};
+ rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
+ const L=band(P,RX,RP-H*rings.length,null,true);
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
  const at=k=>pp[k]!=null?xy(pp[k],RI-2):null;
@@ -126,5 +140,9 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
  root.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
   if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
-window.EAWheel={svg,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+/* legend for bi- and tri-wheels: one line per ring, inner to outer, a dot in the ring's color and its label */
+function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
+ const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
+ return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
+window.EAWheel={svg,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
