@@ -2567,7 +2567,7 @@ window.__sky&&(window.__sky.sgz=SGZ);
    about 6 seconds the first time, 3 seconds after that (Gemini, Nov 13). A tap skips it. ---- */
 const SPLB={ms:Date.UTC(1975,9,24,23,39,0),lat:42.3601,lon:-71.0589},SPLBJD=Date.UTC(1975,9,24,23,39,0)/864e5+2440587.5;
 const SPL={el:null,t0:performance.now(),done:false,drawn:false};
-(function(){let first=true;try{first=!localStorage.getItem('skymode-opened')}catch(e){}SPL.dur=first?6000:3000;
+(function(){let first=true;try{first=!localStorage.getItem('skymode-opened')}catch(e){}SPL.dur=6000;   /* Gemini, Nov 13: 6 s every time while testing; later first?6000:3000 */
  const L=window.EA_LOGOS||{},el=document.createElement('div');el.id='splash';el.setAttribute('aria-label','Earthstrology Sky');
  el.innerHTML=`<canvas id="splcv" aria-hidden="true"></canvas><div class="spt">Earthstrology Sky</div>${L.gb?`<div class="splg l" style="--lg:url(${L.gb})" role="img" aria-label="Gemini Brett"></div>`:''}${L.se?`<div class="splg r" style="--lg:url(${L.se})" role="img" aria-label="School of Earthstrology"></div>`:''}`;
  document.body.appendChild(el);SPL.el=el;el.addEventListener('pointerdown',()=>splEnd(true));})();
