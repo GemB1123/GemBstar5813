@@ -2560,11 +2560,12 @@ $('sgzbtn').addEventListener('click',sgzOpen);
 $('skygazer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||!SGZ.api)return;const a=b.dataset.act;if(!/^stg/.test(a))return;e.preventDefault();SGZ.api.act(a,b.dataset.id)});
 window.__sky&&(window.__sky.sgz=SGZ);
 
-/* ---- the opening (Gemini, Nov 13): a full Earthstrology chart for this moment at the phone's place (Oakland until a
-   place is shared): whole sign, no houses, the constellations, the Milky Way, the ecliptic with latitude, glowing gold
+/* ---- the opening (Gemini, Nov 13): a full Earthstrology chart, Gemini's own birth chart (her Easter egg: Boston,
+   Oct 24 1975, 7:39 PM): whole sign, no houses, the constellations, the Milky Way, the ecliptic with latitude, glowing gold
    planet glyphs, and a small silver Earth with the major aspects. "Earthstrology Sky" at the top and Gemini's two logos,
-   in Earth silver, at the lower left and right. Then the chart grows toward the eyes and fades to the sky beneath it:
+   in Earth silver, at the lower left and right. The wheel spins from six hours before her birth up to the birth moment, then grows toward the eyes and fades to the sky beneath it:
    about 4 seconds the first time, 2 seconds after that. A tap skips it. ---- */
+const SPLB={ms:Date.UTC(1975,9,24,23,39,0),lat:42.3601,lon:-71.0589},SPLBJD=Date.UTC(1975,9,24,23,39,0)/864e5+2440587.5;
 const SPL={el:null,t0:performance.now(),done:false,drawn:false};
 (function(){let first=true;try{first=!localStorage.getItem('skymode-opened')}catch(e){}SPL.dur=first?4000:2000;
  const L=window.EA_LOGOS||{},el=document.createElement('div');el.id='splash';el.setAttribute('aria-label','Earthstrology Sky');
@@ -2576,12 +2577,14 @@ function splDraw(){const c=$('splcv'),dpr=Math.min(2,devicePixelRatio||1),w=inne
  const top=Math.max(64,h*.1),bot=Math.max(70,h*.12),R=Math.min(w/2-6,(h-top-bot)/2);
  const keep={cons:ST.cons,mw:ST.mw,planets:ST.planets,asp:CHO.asp,earth:CHO.earth,etx:CHO.etx,hide:CHO.hide};
  ST.cons=true;ST.mw=true;ST.planets=true;CHO.asp='major';CHO.earth='small';CHO.etx='gray';CHO.hide=[];
- try{drawEA(g,{cx:w/2,cy:top+(h-top-bot)/2,R,whole:true})}catch(e){console.error(e)}
+ const was={toff:TOFF,lat:ST.lat,lon:ST.lon,K};TOFF=SPLB.ms-Date.now();ST.lat=SPLB.lat;ST.lon=SPLB.lon;SKY=null;
+ try{K=sky();drawEA(g,{cx:w/2,cy:top+(h-top-bot)/2,R,whole:true})}catch(e){console.error(e)}
+ TOFF=was.toff;ST.lat=was.lat;ST.lon=was.lon;SKY=null;K=was.K;
  ST.cons=keep.cons;ST.mw=keep.mw;ST.planets=keep.planets;CHO.asp=keep.asp;CHO.earth=keep.earth;CHO.etx=keep.etx;CHO.hide=keep.hide;CHMWK='';SPL.drawn=true}
 /* called from the draw loop: the chart is drawn as soon as the sky and the glyphs are ready (Gemini, Nov 13: it must open on
    the chart, never a dark screen), held still for a moment (redrawn once if NASA's ephemeris or the Milky Way photo arrives),
    and then it spins and grows */
-function splReady(){return (typeof mwTex!=='function'||mwTex())&&(!JPL||(()=>{try{return !!JPL.body('Sun',K.jd)}catch(e){return false}})())}
+function splReady(){return (typeof mwTex!=='function'||mwTex())&&(!JPL||(()=>{try{return !!JPL.body('Sun',SPLBJD)}catch(e){return false}})())}
 function splTick(){if(SPL.done||!K)return;const el=SPL.el,now=performance.now();
  if(!SPL.drawn){let gl=true;for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'])if(!pglyph(k))gl=false;for(let i=0;i<12;i++)if(!glyph(i))gl=false;
   if(!gl&&now-SPL.t0<700)return;splDraw();SPL.full=splReady();SPL.shown=now;$('splcv').style.transform='rotate(-90.25deg)';return}
