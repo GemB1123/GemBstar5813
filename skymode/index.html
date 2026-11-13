@@ -87,6 +87,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <p class="sub">Tip: tap an icon to turn it on or off, hold it for its settings. Holding Armillary or Orion opens a row of smaller icons.</p></div>
 <div id="charts" class="sheet" hidden role="dialog" aria-label="Charts"><button class="x" data-close aria-label="Close">×</button><h3>Charts</h3>
  <p class="sub">Showing: <b id="chcur"></b></p><div class="row"><button id="chnew">Enter Chart Data</button><button id="chnow">Now</button></div>
+ <div class="cap">CENTER OF THE WHEEL</div><div class="row"><button data-casp="major">Major Aspects</button><button data-casp="minor">Minor Aspects</button><button data-casp="sym">Midpoints</button><button data-casp="none">No Aspects, Large Earth</button></div>
+ <div class="row"><button data-cetx="gray">Gray Earth</button><button data-cetx="real">Realistic Earth</button><button id="cenl">City Lights</button></div>
  <div class="cap">RECENT</div><div id="chlists"><div id="chrec"></div><div class="row"><button id="chclr">Clear Recents</button></div>
  <div class="cap">FAVORITES</div><div id="chfavs"></div>
  <div class="cap">OPEN SAVED CHART</div><input id="chq" type="search" placeholder="Search names and notes" aria-label="Search saved charts" autocomplete="off"><div id="chsav"></div></div></div>
@@ -346,6 +348,9 @@ function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==
    n[11]=ascAt(t-2*dsa/3);n[12]=ascAt(t-dsa/3);n[2]=ascAt(t+dsa/3);n[3]=ascAt(t+2*dsa/3)}
   n[4]=n360(n[10]+180);n[7]=n360(n[1]+180);n[5]=n360(n[11]+180);n[6]=n360(n[12]+180);n[8]=n360(n[2]+180);n[9]=n360(n[3]+180)}
  if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc}if(sys==='whole')n.even=true;return n}
+const EMASK='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';let ETEX=null,ECK='',ECU='';
+function earthTex(){if(ETEX)return ETEX;const TW=720,TH=360,b=atob(EMASK),t=new Uint8Array(TW*TH);let p=0;const rd=()=>{let n=0,sh=0,c;do{c=b.charCodeAt(p++);n|=(c&127)<<sh;sh+=7}while(c&128);return n};
+ for(let y=0;y<TH;y++){const k=rd();let x=0,v=0;for(let i=0;i<k;i++){const n=rd();if(v)for(let q=0;q<n;q++)t[y*TW+x+q]=255;x+=n;v^=1}}return ETEX=t}
 const PLG = {
 Earth: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><circle cx="50" cy="50" r="38"/><path d="M50 12V88"/><path d="M12 50H88"/></g>',
 Sun: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><path d="M50.054 11A39 39 0 1 1 49.946 11Z"/><path fill="currentColor" fill-rule="evenodd" stroke-width="1.2" d="M50.054 45.667A4.333 4.333 0 1 1 49.946 45.667Z"/></g>',
@@ -1022,11 +1027,88 @@ let CHSTAR={pjd:null,list:null};
 function chStars(jd){if(CHSTAR.pjd===SKY.pjd&&CHSTAR.list)return CHSTAR.list;const e=obl(jd),L=[];
  SKY.st.forEach((s,i)=>{if(!s)return;const [l,b]=eqToEcl(s.ra,s.de,e);L[i]=[l,b,s.mag]});CHSTAR={pjd:SKY.pjd,list:L};return L}
 let CHMW=null,CHMWK='',CHHIT=[];
+/* ---- the center of the wheel (Gemini, Nov 13): Main's Earth and aspect lines.
+   The Earth is Main's globe (earthURL, earthProj, earthSun, earthDot), turned for the chart's moment and seen from above the
+   ecliptic, north up; from a southern place it is seen from below, with the South Pole showing. Gray (Main's land-and-sea
+   silhouette) is the default; Realistic uses the true-color texture with City Lights on the night side. The Sun's glow sits
+   on the subsolar point and the terminator divides day from night. Aspects: Major, Minor (Major And Minor), Midpoints (Main's
+   Symmetry: midpoint pictures A/B = C, colored by harmonic), or None, which makes the Earth large. ---- */
+const CHO={etx:'gray',nl:true,asp:'major'};
+try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp}catch(e){}
+const chSave=()=>{try{localStorage.setItem('skymode-chart',JSON.stringify(CHO))}catch(e){}};
+const ETXI={};let CHE={key:'',cv:null};
+function eImg(k){if(ETXI[k])return ETXI[k].ok?ETXI[k]:null;const T=window.APP_PTEX||{},rec=ETXI[k]={ok:false};if(!T[k])return null;const im=new Image();
+ im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);rec.w=c.width;rec.h=c.height;rec.d=x.getImageData(0,0,c.width,c.height).data;rec.ok=true;CHE.key=''}catch(e){}};im.src=T[k];return null}
+/* the globe's frame: (dx,dy) is the screen direction of 90° on the wheel, where the North Pole leans */
+function chEB(gm,dx,dy){const T=rad(23.4),ax=Math.sin(T)*dx,ay=Math.sin(T)*dy,az=Math.cos(T);let ux=-ax*az,uy=-ay*az,uz=1-az*az;const ul=Math.hypot(ux,uy,uz);ux/=ul;uy/=ul;uz/=ul;
+ return {ax,ay,az,ux,uy,uz,ex:-(ay*uz-az*uy),ey:-(az*ux-ax*uz),ez:-(ax*uy-ay*ux),lon0:270-gm}}
+function chEarthImg(n,gm,sunL,south,dx,dy,sx,sy){const RT=CHO.etx==='real'?eImg('earth'):null,NL=RT&&CHO.nl?eImg('earthNight'):null,
+  key=[n,!!RT,!!NL,Math.round(gm*10),Math.round(sunL*10),south,dx.toFixed(3),dy.toFixed(3)].join();if(CHE.key===key&&CHE.cv)return CHE.cv;
+ const tex=earthTex(),TW=720,TH=360,RAD=Math.PI/180,C=n/2,R=C*.98,cv=document.createElement('canvas');cv.width=cv.height=n;const ctx=cv.getContext('2d'),img=ctx.createImageData(n,n),Dd=img.data,SEA=[36,44,82];
+ const tx=(x,y)=>{x=((x%TW)+TW)%TW;y=y<0?0:(y>TH-1?TH-1:y);return tex[y*TW+x]};
+ const land=(lon,lat)=>{const fx=(lon+180)*2-.5,fy=(90-lat)*2-.5,x0=Math.floor(fx),y0=Math.floor(fy),u=fx-x0,v=fy-y0;return ((tx(x0,y0)*(1-u)+tx(x0+1,y0)*u)*(1-v)+(tx(x0,y0+1)*(1-u)+tx(x0+1,y0+1)*u)*v)/255};
+ const {ax,ay,az,ux,uy,uz,ex,ey,ez,lon0}=chEB(gm,dx,dy);
+ const eps=23.44*RAD,sl=sunL*RAD,dec=Math.asin(Math.sin(eps)*Math.sin(sl)),ra=Math.atan2(Math.cos(eps)*Math.sin(sl),Math.cos(sl))/RAD,sLon=ra-gm,sd=Math.sin(dec),cd=Math.cos(dec);
+ for(let j=0;j<n;j++)for(let i=0;i<n;i++){const x=(i+.5-C)/R,y=(j+.5-C)/R;let r2=x*x+y*y;const k=(j*n+i)*4;if(r2>=1+2.2/R)continue;const cov=Math.min(1,(1-Math.sqrt(r2))*R+.5);if(cov<=0)continue;if(r2>.9999)r2=.9999;
+  const zz=Math.sqrt(1-r2),z=south?-zz:zz,s=x*ax+y*ay+z*az,lat=Math.asin(s),cl=Math.cos(lat),dl=Math.atan2(x*ex+y*ey+z*ez,x*ux+y*uy+z*uz)/RAD,lon=lon0+dl;
+  let a=land(lon,lat/RAD);a=a<.5?a*a*2:1-(1-a)*(1-a)*2;a*=.8;
+  const dif=Math.max(0,x*sx+y*sy)*.8+.2*zz*zz,lim=.55+.45*Math.pow(zz,.6),cs=s*sd+cl*cd*Math.cos((lon-sLon)*RAD);let day=cs<=-.09?0:(cs>=.09?1:(cs+.09)/.18);day=day*day*(3-2*day);
+  const lit=.3+.7*day,sh=.62+.38*dif,sr=(62+105*sh*.8)*lim,sg=(70+108*sh*.8)*lim,sb=(88+112*sh*.8)*lim,wr=(196+48*dif)*lim,wg=(202+44*dif)*lim,wb=(214+33*dif)*lim;
+  if(RT){const px=(o,L)=>{const u=((L+180)/360)%1,ix=Math.min(o.w-1,Math.floor((u<0?u+1:u)*o.w)),iy=Math.min(o.h-1,Math.max(0,Math.floor((90-lat/RAD)/180*o.h)));return (iy*o.w+ix)*4},t=px(RT,lon),dl2=(.16+.84*day)*(.7+.3*dif)*lim*1.15;
+   const lf=Math.min(1,a/.8),sl2=dl2*1.3/1.15,mx=(c,w)=>c*dl2*lf+w*sl2*(1-lf);let r=mx(RT.d[t],SEA[0]),g2=mx(RT.d[t+1],SEA[1]),b=mx(RT.d[t+2],SEA[2]);
+   if(NL){const q=px(NL,lon),nf=(1-day)*1.25;r+=NL.d[q]*nf;g2+=NL.d[q+1]*nf;b+=NL.d[q+2]*nf*.8}
+   Dd[k]=Math.min(255,r);Dd[k+1]=Math.min(255,g2);Dd[k+2]=Math.min(255,b);Dd[k+3]=Math.round(255*cov);continue}
+  Dd[k]=Math.min(255,(sr+(wr-sr)*a)*lit);Dd[k+1]=Math.min(255,(sg+(wg-sg)*a)*lit);Dd[k+2]=Math.min(255,(sb+(wb-sb)*a)*lit);Dd[k+3]=Math.round(255*cov)}
+ ctx.putImageData(img,0,0);CHE={key,cv};return cv}
+/* latitude and longitude to the disc, in units of its radius; null on the far side unless any */
+function chEP(lat,lon,B,south,any){const la=rad(lat),dl=rad(lon-B.lon0),cl=Math.cos(la),sa=Math.sin(la),c1=cl*Math.cos(dl),c2=cl*Math.sin(dl);
+ const x=c1*B.ux+c2*B.ex+sa*B.ax,y=c1*B.uy+c2*B.ey+sa*B.ay,z=c1*B.uz+c2*B.ez+sa*B.az,hid=south?z>=1e-3:z<=-1e-3;return hid&&!any?null:[x,y,!hid]}
+function chGlow(g,x,y,col,core,r,gl){const G=g.createRadialGradient(x,y,0,x,y,gl);G.addColorStop(0,col+'e6');G.addColorStop(.35,col+'73');G.addColorStop(1,col+'00');g.fillStyle=G;g.beginPath();g.arc(x,y,gl,0,7);g.fill();
+ g.fillStyle=core;g.strokeStyle=col;g.lineWidth=1.2;g.beginPath();g.arc(x,y,r,0,7);g.fill();g.stroke()}
+function chEarth(g,cx,cy,rEa,XY,AS){const jd=K.jd,gm=n360(280.46061837+360.98564736629*(jd-2451545)),sb=K.bodies.find(b=>b.k==='Sun'),sunL=n360(sb?sb.lon:0),south=ST.lat<0;
+ const P=(L)=>{const [x,y]=XY(L,1);return [x-cx,y-cy]},[dx,dy]=P(90),[sx,sy]=P(sunL),dpr=Math.min(2,devicePixelRatio||1),n=Math.max(64,Math.min(520,Math.round(2*rEa*dpr/.98)));
+ /* the atmosphere's soft blue glow */
+ const gl=rEa*1.13,AG=g.createRadialGradient(cx,cy,0,cx,cy,gl),k0=rEa/gl;AG.addColorStop(0,'rgba(127,178,255,0)');AG.addColorStop(Math.max(0,k0-.001),'rgba(127,178,255,0)');AG.addColorStop(k0,'rgba(127,178,255,.55)');AG.addColorStop(Math.min(1,k0+.03),'rgba(95,143,255,.28)');AG.addColorStop(1,'rgba(63,111,255,0)');
+ g.fillStyle=AG;g.beginPath();g.arc(cx,cy,gl,0,7);g.fill();
+ const cv=chEarthImg(n,gm,sunL,south,dx,dy,sx,sy),sz=2*rEa/.98;g.drawImage(cv,cx-sz/2,cy-sz/2,sz,sz);
+ const B=chEB(gm,dx,dy),k=Math.max(.55,Math.min(1.3,rEa/120));
+ /* the Sun's glow on the subsolar point; behind the Earth only the glow shows at the edge */
+ const eps=rad(23.44),sl=rad(sunL),dec=deg(Math.asin(Math.sin(eps)*Math.sin(sl))),ra=deg(Math.atan2(Math.cos(eps)*Math.sin(sl),Math.cos(sl))),q=chEP(dec,ra-gm,B,south,true);
+ let gx=cx+sx*rEa,gy=cy+sy*rEa;if(q){const d=Math.hypot(q[0],q[1]);if(q[2]){gx=cx+q[0]*rEa;gy=cy+q[1]*rEa}else if(d>1e-3){gx=cx+q[0]/d*rEa;gy=cy+q[1]/d*rEa}}
+ const SG=g.createRadialGradient(gx,gy,0,gx,gy,24*k);SG.addColorStop(0,'#fff4be');SG.addColorStop(.3,'rgba(255,210,110,.7)');SG.addColorStop(1,'rgba(255,190,60,0)');g.fillStyle=SG;g.beginPath();g.arc(gx,gy,24*k,0,7);g.fill();
+ if(q&&q[2])chGlow(g,gx,gy,'#ffd26e','#fff4be',3*k,10*k);
+ /* the poles, and the chart's place: red on the Realistic Earth, blue on the Gray */
+ for(const la of [90,-90]){const p=chEP(la,0,B,south);if(p)chGlow(g,cx+p[0]*rEa,cy+p[1]*rEa,'#ffffff','#ffffff',2.6*k,9*k)}
+ const pp=chEP(ST.lat,ST.lon,B,south);if(pp){const real=CHO.etx==='real';chGlow(g,cx+pp[0]*rEa,cy+pp[1]*rEa,real?'#ff4a3d':'#5fb4ff',real?'#ffd9d4':'#d9eeff',3.2*k,11*k)}
+ g.strokeStyle='rgba(233,220,192,.55)';g.lineWidth=1;g.beginPath();g.arc(cx,cy,rEa,0,7);g.stroke()}
+/* Main's aspects (ASPG) and orbs (the Aspect Grid's defaults, plus 2° for the Sun and Moon) */
+const CHASP=[['Sextile',60,'#4a5bb0',1,6],['Square',90,'#9c3f4c',1,8],['Trine',120,'#4a5bb0',1,8],['Opposite',180,'#9c3f4c',1,8],['Semisextile',30,'#6aa38a',2,2],['Semisquare',45,'#c4a077',2,2],['Sesquiquadrate',135,'#d38c98',2,2],['Quincunx',150,'#6aa38a',2,3]];
+function chAspects(P){const out=[],minor=CHO.asp==='minor';for(let i=1;i<P.length;i++)for(let j=0;j<i;j++){const a=P[i],b=P[j];let d=Math.abs(n360(a.lon)-n360(b.lon));if(d>180)d=360-d;
+  const lum=/^(Sun|Moon)$/.test(a.k)||/^(Sun|Moon)$/.test(b.k)?2:0;let best=null;
+  for(const A of CHASP){if(A[3]===2&&!minor)continue;const lim=A[4]+(A[3]===1?lum:0),o=Math.abs(d-A[1]);if(o<=lim&&(!best||o<best.o))best={A,o,lim}}if(best)out.push([a,b,best])}return out}
+/* Midpoints: Main's Symmetry pictures A/B = C (90° dial, 1.5° orb, figure fit 95%), colored by the harmonic of the figure */
+function chFamCol(n){if(!n)return 'rgb(143,138,122)';let m=n,k=0;while(m%2===0){m/=2;k++}const base=m%7===0?[236,120,186]:m%5===0?[160,110,230]:m%3===0?[90,142,224]:m===1?[224,90,90]:[209,171,116];const t=Math.min(.5,k*.12);return `rgb(${base.map(v=>Math.round(v+(255-v)*t)).join(',')})`}
+function chFigN(arm){for(let n=1;n<=180;n++){const st=360/n,r=arm%st,f=1-Math.min(r,st-r)/st;if(f>=.95-1e-9)return n}return 0}
+function chPictures(P){const dist=(x,y)=>{const d=Math.abs(n360(x-y));return Math.min(d,360-d)},mids=[],out=[];
+ for(let i=0;i<P.length;i++)for(let j=i+1;j<P.length;j++){const a=P[i].lon,b=P[j].lon,d=((b-a+540)%360)-180;mids.push({a:P[i],b:P[j],lon:n360(a+d/2)})}
+ for(const C of P)for(const m of mids){if(m.a===C||m.b===C)continue;const r=n360(C.lon-m.lon)%90,off=Math.min(r,90-r);if(off>1.5)continue;out.push({a:m.a,b:m.b,c:C,off,fn:chFigN((dist(C.lon,m.a.lon)+dist(C.lon,m.b.lon))/2)})}
+ return out}
+function chLines(g,P,R){const f=R/380;g.save();g.lineCap='round';g.lineJoin='round';
+ if(CHO.asp==='sym'){for(const q of chPictures(P)){const col=chFamCol(q.fn);g.beginPath();g.moveTo(q.a.x,q.a.y);g.lineTo(q.c.x,q.c.y);g.lineTo(q.b.x,q.b.y);g.closePath();g.globalAlpha=.05;g.fillStyle=col;g.fill();
+   g.beginPath();g.moveTo(q.a.x,q.a.y);g.lineTo(q.c.x,q.c.y);g.lineTo(q.b.x,q.b.y);g.globalAlpha=.8;g.strokeStyle=col;g.lineWidth=Math.max(1,1.6*f);g.stroke()}}
+ else{const L=chAspects(P).map(([a,b,s])=>[a,b,s,Math.max(.8,(1.2+3.6*(1-s.o/Math.max(s.o,s.lim)))*f)]).sort((x,y)=>x[3]-y[3]);
+  for(const [a,b,s,w] of L){g.strokeStyle=s.A[2];g.globalAlpha=.14;g.lineWidth=w+4*f;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();g.globalAlpha=.88;g.lineWidth=w;g.stroke()}}
+ g.restore()}
+function chCenterUI(){document.querySelectorAll('[data-casp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.casp===CHO.asp));document.querySelectorAll('[data-cetx]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cetx===CHO.etx));
+ const nl=$('cenl');if(nl){nl.setAttribute('aria-pressed',CHO.nl);nl.disabled=CHO.etx!=='real'}}
+$('charts').addEventListener('click',e=>{const a=e.target.closest('[data-casp]'),t=e.target.closest('[data-cetx]');if(a)CHO.asp=a.dataset.casp;else if(t)CHO.etx=t.dataset.cetx;else if(e.target.id==='cenl')CHO.nl=!CHO.nl;else return;CHE.key='';chSave();chCenterUI()});
+chCenterUI();
+
 function drawChart(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z;
  g.fillStyle=ST.night?'#0a0202':'#05070f';g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}const AS=cu?cu[1]:n360(K.bodies.find(b=>b.k==='Sun').lon);
  const A=L=>Math.PI+rad(L-AS),XY=(L,r)=>[cx+r*Math.cos(A(L)),cy-r*Math.sin(A(L))];
- const rZo=R,rZi=.86*R,rGo=rZi,rGi=.76*R,rE=.5*R,sL=(.74*R-rE)/30,rIn=.2*R,rB=b=>rE+Math.max(-28,Math.min(28,b))*sL;
+ const rZo=R,rZi=.86*R,rGo=rZi,rGi=.76*R,rE=.5*R,sL=(.74*R-rE)/30,rIn=.2*R,rEa=CHO.asp==='none'?.44*R:rIn,rB=b=>rE+Math.max(-28,Math.min(28,b))*sL;
  /* the Milky Way photo, placed by ecliptic longitude and latitude */
  const T=mwTex();if(T&&ST.mw){const s=.5,w=Math.ceil(2*.75*R*s),key=[w,AS.toFixed(2),ST.mwBr,K.jd.toFixed(3)].join();
   if(key!==CHMWK){if(!CHMW)CHMW=document.createElement('canvas');CHMW.width=CHMW.height=w;const x=CHMW.getContext('2d'),im=x.createImageData(w,w),O=im.data,Q=K.Q,I2PI=1/(2*Math.PI),br=ST.mwBr;
@@ -1045,12 +1127,16 @@ function drawChart(g){const top=58,bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bo
  g.strokeStyle=CFG.eclCol;g.lineWidth=1.4;g.globalAlpha=.9;g.beginPath();g.arc(cx,cy,rE,0,7);g.stroke();g.globalAlpha=1;
  for(let s=0;s<12;s++){const a0=A(z+s*30),a1=A(z+s*30+30);g.fillStyle=SC(s);g.globalAlpha=.32;g.beginPath();g.arc(cx,cy,rZo,-a0,-a1,true);g.arc(cx,cy,rZi,-a1,-a0,false);g.closePath();g.fill();g.globalAlpha=1;
   const [x,y]=XY(z+s*30+15,(rZo+rZi)/2),gs=Math.max(14,(rZo-rZi)*.72),im=glyph(s);if(im)g.drawImage(im,x-gs/2,y-gs/2,gs,gs)}
- g.strokeStyle='rgba(233,220,192,.55)';g.lineWidth=1;for(const r of [rZo,rZi,rGi,rIn]){g.beginPath();g.arc(cx,cy,r,0,7);g.stroke()}
+ g.strokeStyle='rgba(233,220,192,.55)';g.lineWidth=1;for(const r of [rZo,rZi,rGi]){g.beginPath();g.arc(cx,cy,r,0,7);g.stroke()}
  for(let s=0;s<12;s++){const p=XY(z+s*30,rZo),q=XY(z+s*30,rZi);g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke()}
  /* houses */
- if(cu){for(let i=1;i<=12;i++){const ang=i%3===1;g.strokeStyle=CFG.houseCol;g.globalAlpha=ang?.9:.4;g.lineWidth=ang?1.6:.8;const p=XY(cu[i],rIn),q=XY(cu[i],ang?rZo+8:rZi);g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();
-   const nx=cu[i%12+1],mid=cu[i]+(((nx-cu[i])%360+360)%360)/2,[x,y]=XY(mid,rIn*.72);g.globalAlpha=.75;g.fillStyle=CFG.houseCol;g.font=`600 ${Math.max(9,R*.04)}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(String(i),x,y)}
+ if(cu){for(let i=1;i<=12;i++){const ang=i%3===1;g.strokeStyle=CFG.houseCol;g.globalAlpha=ang?.9:.4;g.lineWidth=ang?1.6:.8;const p=XY(cu[i],rEa),q=XY(cu[i],ang?rZo+8:rZi);g.beginPath();g.moveTo(p[0],p[1]);g.lineTo(q[0],q[1]);g.stroke();
+   const nx=cu[i%12+1],mid=cu[i]+(((nx-cu[i])%360+360)%360)/2,[x,y]=XY(mid,rEa+Math.max(9,R*.045));g.globalAlpha=.75;g.fillStyle=CFG.houseCol;g.font=`600 ${Math.max(9,R*.04)}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(String(i),x,y)}
   g.globalAlpha=1;g.fillStyle=CFG.houseCol;g.font=`700 ${Math.max(10,R*.045)}px -apple-system,Inter,sans-serif`;for(const [i,t] of [[1,'AS'],[10,'MC'],[7,'DS'],[4,'IC']]){let [x,y]=XY(cu[i],rZo+18);x=Math.max(14,Math.min(W-14,x));g.fillText(t,x,i===1||i===7?y-12:y)}g.textBaseline='alphabetic'}
+ /* the aspect lines between the planets' dots (and the AS and MC on the ecliptic), then the Earth over the center */
+ if(ST.planets&&CHO.asp!=='none'){const P=chBodies(jd).map(b=>{const [x,y]=XY(b.lon,rB(b.lat));return {k:b.k,lon:b.lon,x,y}});
+  if(cu)for(const [i,k] of [[1,'AS'],[10,'MC']]){const [x,y]=XY(cu[i],rE);P.push({k,lon:cu[i],x,y})}chLines(g,P,R)}
+ chEarth(g,cx,cy,rEa,XY,AS);
  /* the planets: a dot at the true longitude and latitude, the glyph and degree in the ring, spread so none overlap */
  CHHIT=[];if(ST.planets){const B=chBodies(jd).slice().sort((a,b)=>n360(a.lon-AS)-n360(b.lon-AS)),need=deg(Math.max(18,R*.085)/((rGo+rGi)/2)),pos=B.map(b=>n360(b.lon-AS));
   for(let it=0;it<30;it++){let mv=false;for(let i=0;i<pos.length;i++){const j=(i+1)%pos.length;let d=n360(pos[j]-pos[i]);if(pos.length>1&&d<need){const sh=(need-d)/2;pos[i]-=sh;pos[j]+=sh;mv=true}}if(!mv)break}
