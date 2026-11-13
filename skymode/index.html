@@ -66,6 +66,9 @@ canvas#sky{z-index:1}
 #info .ih{display:flex;align-items:baseline;gap:8px;padding-right:40px;margin-bottom:6px}#info .ih span{color:var(--dim);font-size:13px}#info .x{position:absolute;top:4px;right:4px;min-height:36px;width:36px;padding:0;border:0;background:none;font-size:20px;color:var(--dim)}
 #info dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 10px}#info dt{color:var(--dim);white-space:nowrap}#info dd{margin:0}
 #info b{color:var(--gold);font-size:16px}#info .ib{display:flex;gap:8px;margin:0 0 8px}#info .ib button{min-height:34px;padding:4px 12px;font-size:13px}
+#chmenu{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 112px);right:10px;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:18px;z-index:2;display:none}body.chartview #chmenu{display:block}body.chrows #chmenu{bottom:calc(env(safe-area-inset-bottom) + 198px)}
+.ctabs{display:flex;gap:0;margin:0 40px 6px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden;position:sticky;top:-10px;z-index:1;background:var(--panel)}.ctabs button{flex:1;border:0;border-radius:0;min-height:36px}.ctabs button+button{border-left:1px solid var(--line)}.ctabs button[aria-pressed=true]{background:var(--gold);color:#1a1408}
+.sheet .row.hscroll{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px}.sheet .row.hscroll button{flex:none}
 #chtheme{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 64px);right:10px;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:18px;z-index:2;display:none}body.chartview #chtheme{display:block}
 #alist{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom) + 60px);max-height:50vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:6px;z-index:2}
 .pbar{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 54px);display:flex;align-items:center;gap:6px;padding:5px 6px;background:rgba(10,12,22,.92);border:1px solid rgba(255,150,215,.45);border-radius:12px;z-index:3;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
@@ -122,7 +125,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
 <button id="start">Start Sky Mode</button>
-<div id="chhead" hidden></div><div id="chrow2" hidden><div class="chrr"><button data-chr="tr">Transits</button><button data-chr="pr">Progressions</button><button data-chr="sa">Solar Arc</button><button data-chr="syn">Synastry</button><button data-chr="swap" hidden aria-label="Swap inside and outside">⇄ Swap</button><button data-chr="davison">Davison</button><button data-chr="composite">Composite</button></div><div class="chrr chtm"><button data-chp="-1" aria-label="Play backward">◀</button><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button id="chtnow">Now</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button><button data-chp="1" aria-label="Play forward">▶</button></div></div><button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
+<div id="chhead" hidden></div><div id="chrow2" hidden><div class="chrr"><button data-chr="tr">Transits</button><button data-chr="pr">Progressions</button><button data-chr="sa">Solar Arc</button><button data-chr="syn">Synastry</button><button data-chr="swap" hidden aria-label="Swap inside and outside">⇄ Swap</button><button data-chr="davison">Davison</button><button data-chr="composite">Composite</button></div><div class="chrr chtm"><button data-chp="-1" aria-label="Play backward">◀</button><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button id="chtnow">Now</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button><button data-chp="1" aria-label="Play forward">▶</button></div></div><button id="chmenu" aria-label="Chart menu" title="Chart menu">☰</button><button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
 <video id="cam" playsinline muted autoplay hidden></video>
 <div id="menu" class="sheet" hidden role="dialog" aria-label="Menu"><button class="x" data-close aria-label="Close">×</button><h3>Sky Mode</h3><div class="row">
  <button id="track" hidden>Track Sky</button>
@@ -133,16 +136,20 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button data-row="arm">Armillary</button><button data-open="hou">Houses</button><button data-row="obj">Sky Objects</button><button data-open="camm">Camera</button></div>
  <p class="sub">Tip: tap an icon to turn it on or off, hold it for its settings. Holding Armillary or Orion opens a row of smaller icons.</p></div>
 <div id="charts" class="sheet" hidden role="dialog" aria-label="Charts"><button class="x" data-close aria-label="Close">×</button><h3>Charts</h3>
- <p class="sub">Showing: <b id="chcur"></b></p><div class="row"><button id="chnew">Enter Chart Data</button><button id="chnow">Current Transits</button></div>
+ <div class="ctabs" role="tablist"><button data-ctab="data" role="tab">Data</button><button data-ctab="display" role="tab">Display</button><button data-ctab="design" role="tab">Design</button></div>
+ <div data-cpane="data" id="chpane"><p class="sub">Showing: <b id="chcur"></b></p><div class="row"><button id="chnew">Enter Chart Data</button><button id="chnow">Current Transits</button></div>
  <div id="chpick"><div class="cap">RECENT</div><div id="chlists"><div id="chrec"></div><div class="row"><button id="chclr">Clear Recents</button></div>
  <div class="cap">FAVORITES</div><div id="chfavs"></div>
- <div class="cap">OPEN SAVED CHART</div><input id="chq" type="search" placeholder="Search names and notes" aria-label="Search saved charts" autocomplete="off"><div id="chsav"></div></div></div>
- <div class="cap">WHEEL STYLE</div><div class="row"><button data-csty="basic">Simple</button><button data-csty="ea">Earthstrology</button></div><div class="row"><button data-cthm="dark">Dark</button><button data-cthm="light">Light</button></div><div class="cap">RING STYLE</div><div class="row"><button data-crs="signs">Signs</button><button data-crs="houses">Houses Only</button></div><div class="cap">DECANS (single wheel)</div><div class="row"><button data-cdec="">Off</button><button data-cdec="chaldean">Traditional</button><button data-cdec="element">By Element</button><button data-cdec="modern">Modern</button></div><div class="cap">BOUNDS (single wheel)</div><div class="row"><button data-cbnd="">Off</button><button data-cbnd="egyptian">Egyptian</button><button data-cbnd="ptolemaic">Ptolemaic</button></div>
- <div class="cap">CENTER OF THE WHEEL</div><div class="row"><button data-casp="major">Major Aspects</button><button data-casp="minor">Minor Aspects</button><button data-casp="sym">Midpoints</button><button data-casp="none">No Aspects, Large Earth</button></div>
- <div class="row"><button data-cetx="gray">Gray Earth</button><button data-cetx="real">Realistic Earth</button><button id="cenl">City Lights</button></div>
-<div class="cap">WHEEL COLORS</div><div class="row cc"><label>Fire <input type="color" id="ccf0"></label><label>Earth <input type="color" id="ccf1"></label><label>Air <input type="color" id="ccf2"></label><label>Water <input type="color" id="ccf3"></label></div>
+ <div class="cap">OPEN SAVED CHART</div><input id="chq" type="search" placeholder="Search names and notes" aria-label="Search saved charts" autocomplete="off"><div id="chsav"></div></div></div></div>
+ <div data-cpane="display" hidden><div class="cap">HOUSES</div><div class="row hscroll" id="chhs"></div>
+ <div class="cap">PLANETS (tap to show or hide)</div><div class="row"><button data-chide="Sun">Sun</button><button data-chide="Moon">Moon</button><button data-chide="Mercury">Mercury</button><button data-chide="Venus">Venus</button><button data-chide="Mars">Mars</button><button data-chide="Jupiter">Jupiter</button><button data-chide="Saturn">Saturn</button><button data-chide="Uranus">Uranus</button><button data-chide="Neptune">Neptune</button><button data-chide="Pluto">Pluto</button><button data-chide="Node">Nodes</button></div>
+ <div class="cap">ASPECTS</div><div class="row"><button data-casp="major">Major</button><button data-casp="minor">Major And Minor</button><button data-casp="sym">Symmetry Pictures</button><button data-casp="none">None, Large Earth</button></div><p class="sub">Turning each aspect on or off with its own orb is coming next.</p>
+ <div class="cap">RINGS</div><div class="row"><button data-crs="signs">Signs</button><button data-crs="houses">Houses Only</button></div><div class="cap">DECANS (single wheel)</div><div class="row"><button data-cdec="">Off</button><button data-cdec="chaldean">Traditional</button><button data-cdec="element">By Element</button><button data-cdec="modern">Modern</button></div><div class="cap">BOUNDS (single wheel)</div><div class="row"><button data-cbnd="">Off</button><button data-cbnd="egyptian">Egyptian</button><button data-cbnd="ptolemaic">Ptolemaic</button></div></div>
+ <div data-cpane="design" hidden><div class="cap">WHEEL STYLE</div><div class="row"><button data-csty="basic">Simple</button><button data-csty="ea">Earthstrology</button></div><div class="row"><button data-cthm="dark">Dark</button><button data-cthm="light">Light</button></div>
+ <div class="cap">EARTH AT THE CENTER</div><div class="row"><button data-cetx="gray">Gray Earth</button><button data-cetx="real">Realistic Earth</button><button id="cenl">City Lights</button></div>
+ <div class="cap">WHEEL COLORS</div><div class="row cc"><label>Fire <input type="color" id="ccf0"></label><label>Earth <input type="color" id="ccf1"></label><label>Air <input type="color" id="ccf2"></label><label>Water <input type="color" id="ccf3"></label></div>
  <div class="row cc"><label>Band <input type="color" id="ccband"></label><label>Wheel <input type="color" id="ccdisc"></label></div>
- <p class="cap">PLANET GLYPHS</p><div class="row"><button data-cpc="gold">Shiny Gold</button><button data-cpc="planet">Planet Colors</button><button data-cpc="element">Element Colors</button><button data-cpc="one">One Color</button></div><div class="row cc"><label>Sign Glyphs <input type="color" id="ccsg"></label><label>Planet Glyphs <input type="color" id="ccpg"></label><button id="ccreset">Reset Colors</button></div></div>
+ <p class="cap">PLANET GLYPHS</p><div class="row"><button data-cpc="gold">Shiny Gold</button><button data-cpc="planet">Planet Colors</button><button data-cpc="element">Element Colors</button><button data-cpc="one">One Color</button></div><div class="row cc"><label>Sign Glyphs <input type="color" id="ccsg"></label><label>Planet Glyphs <input type="color" id="ccpg"></label><button id="ccreset">Reset Colors</button></div></div></div>
 <div id="chform" class="sheet" hidden role="dialog" aria-label="Enter chart data"><button class="x" data-close aria-label="Close">×</button><h3>Enter Chart Data</h3>
  <label class="fl">Name <input id="cfn" type="text" autocomplete="off"></label>
  <div class="row"><label class="fl">Date <input id="cfd" type="date"></label><label class="fl">Time <input id="cft" type="time"></label></div>
@@ -1132,6 +1139,7 @@ function toggleRow(r,force){const bar=$('subbar');if(ROW===r&&!force){ROW=null;b
    if(on.length){SUBMEM[b.dataset.sub]=on;for(const k of it.keys)ST[k]=false}else for(const k of SUBMEM[b.dataset.sub]||SUBDEF[b.dataset.sub]||it.keys)ST[k]=true;K=null;save();sync()},()=>openSheet('s-'+b.dataset.sub));
  sync()}
 $('hlist').innerHTML=CFG.houses.map(h=>`<button data-hs="${h[0]}">${h[1]}</button>`).join('');
+if($('chhs'))$('chhs').innerHTML=$('hlist').innerHTML;
 /* the Armillary icon (Gemini, Nov 12): a sphere with a thick zodiac band across its front, Capricorn on the left through
    Aquarius, Pisces, Aries, and Taurus to Gemini on the right, in the icons' gold with Ana's glyphs */
 function armIcon(){const c=$('armi'),g=c.getContext('2d'),S=c.width/32;g.setTransform(S,0,0,S,0,0);g.clearRect(0,0,32,32);g.lineCap='round';
@@ -1545,6 +1553,7 @@ const CHBM=new Map();function chBodies(jd){if(CHBM.has(jd))return CHBM.get(jd);c
  for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto']){let b=null;try{b=JPL&&JPL.body(k,jd)}catch(e){}
   if(b)out.push({k,lon:b.lon,lat:b.lat||0,spd:b.lonSpeed||0});else{const kb=K.bodies.find(x=>x.k===k);if(kb)out.push({k,lon:kb.lon,lat:0,spd:1})}}
  if(out.length>=9){CHBM.set(jd,out);if(CHBM.size>12)CHBM.delete(CHBM.keys().next().value)}return out}
+const chVis=jd=>chBodies(jd).filter(b=>!CHO.hide.includes(b.k)),chNodes=(pos,jd,z)=>{if(CHO.hide.includes('Node'))return;const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z)};
 let CHSTAR={pjd:null,list:null};
 function chStars(jd){if(CHSTAR.pjd===SKY.pjd&&CHSTAR.list)return CHSTAR.list;const e=obl(jd),L=[];
  SKY.st.forEach((s,i)=>{if(!s)return;const [l,b]=eqToEcl(s.ra,s.de,e);L[i]=[l,b,s.mag]});CHSTAR={pjd:SKY.pjd,list:L};return L}
@@ -1556,8 +1565,8 @@ let CHMW=null,CHMWK='',CHHIT=[];
    on the subsolar point and the terminator divides day from night. Aspects: Major, Minor (Major And Minor), Midpoints (Main's
    Symmetry: midpoint pictures A/B = C, colored by harmonic), or None, which makes the Earth large. ---- */
 const SWDEF={el:[null,null,null,null],band:null,bg:null,glyEl:true,pc:'gold',pcv:2,sg:'#e8c46a',pg:'#e8c46a'};
-const CHO={etx:'gray',nl:true,asp:'major',style:'basic',theme:'light',rs:'signs',dec:'',bnd:'',sw:JSON.parse(JSON.stringify(SWDEF))};
-try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp;if(o.style==='ea')CHO.style='ea';if(o.theme==='dark')CHO.theme='dark';if(o.rs==='houses')CHO.rs='houses';if(/^(chaldean|element|modern)$/.test(o.dec))CHO.dec=o.dec;if(/^(egyptian|ptolemaic)$/.test(o.bnd))CHO.bnd=o.bnd;
+const CHO={etx:'gray',nl:true,asp:'major',style:'basic',theme:'light',rs:'signs',dec:'',bnd:'',hide:[],tab:'data',sw:JSON.parse(JSON.stringify(SWDEF))};
+try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(/^(major|minor|sym|none)$/.test(o.asp))CHO.asp=o.asp;if(o.style==='ea')CHO.style='ea';if(o.theme==='dark')CHO.theme='dark';if(o.rs==='houses')CHO.rs='houses';if(Array.isArray(o.hide))CHO.hide=o.hide.filter(k=>typeof k==='string'&&/^[A-Za-z]{2,10}$/.test(k));if(/^(chaldean|element|modern)$/.test(o.dec))CHO.dec=o.dec;if(/^(egyptian|ptolemaic)$/.test(o.bnd))CHO.bnd=o.bnd;
  const h=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v),w=o.sw;if(w){if(Array.isArray(w.el)&&w.el.length===4)CHO.sw.el=w.el.map(c=>h(c)?c:null);for(const k of ['band','bg','sg','pg'])if(h(w[k]))CHO.sw[k]=w[k];if(w.pcv===2&&/^(gold|planet|element|one)$/.test(w.pc))CHO.sw.pc=w.pc;else if(w.glyEl===false)CHO.sw.pc='one';if(w.glyEl===false)CHO.sw.glyEl=false}}catch(e){}
 const chSave=()=>{try{localStorage.setItem('skymode-chart',JSON.stringify(CHO))}catch(e){}};
 const ETXI={};let CHE={key:'',cv:null};
@@ -1623,10 +1632,10 @@ function chLines(g,P,R){const f=R/380;g.save();g.lineCap='round';g.lineJoin='rou
  else{const L=chAspects(P).map(([a,b,s])=>[a,b,s,Math.max(.8,(1.2+3.6*(1-s.o/Math.max(s.o,s.lim)))*f)]).sort((x,y)=>x[3]-y[3]);
   for(const [a,b,s,w] of L){g.strokeStyle=s.A[2];g.globalAlpha=.14;g.lineWidth=w+4*f;g.beginPath();g.moveTo(a.x,a.y);g.lineTo(b.x,b.y);g.stroke();g.globalAlpha=.88;g.lineWidth=w;g.stroke()}}
  g.restore()}
-function chCenterUI(){document.querySelectorAll('[data-casp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.casp===CHO.asp));document.querySelectorAll('[data-csty]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.csty===CHO.style));document.querySelectorAll('[data-cthm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cthm===CHO.theme));for(const [a,k] of [['crs','rs'],['cdec','dec'],['cbnd','bnd']])document.querySelectorAll(`[data-${a}]`).forEach(b=>b.setAttribute('aria-pressed',b.dataset[a]===CHO[k]));if($('chtheme'))$('chtheme').textContent=CHO.theme==='light'?'☾':'☀︎';document.querySelectorAll('[data-cetx]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cetx===CHO.etx));
+function chCenterUI(){document.querySelectorAll('[data-casp]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.casp===CHO.asp));document.querySelectorAll('[data-csty]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.csty===CHO.style));document.querySelectorAll('[data-cthm]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cthm===CHO.theme));document.querySelectorAll('[data-ctab]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.ctab===CHO.tab));document.querySelectorAll('[data-cpane]').forEach(d=>d.hidden=d.dataset.cpane!==CHO.tab);document.querySelectorAll('[data-chide]').forEach(b=>b.setAttribute('aria-pressed',!CHO.hide.includes(b.dataset.chide)));for(const [a,k] of [['crs','rs'],['cdec','dec'],['cbnd','bnd']])document.querySelectorAll(`[data-${a}]`).forEach(b=>b.setAttribute('aria-pressed',b.dataset[a]===CHO[k]));if($('chtheme'))$('chtheme').textContent=CHO.theme==='light'?'☾':'☀︎';document.querySelectorAll('[data-cetx]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cetx===CHO.etx));
  {const D=swDefaults(),S=CHO.sw;for(const [id,v] of [['ccf0',S.el[0]||D.el[0]],['ccf1',S.el[1]||D.el[1]],['ccf2',S.el[2]||D.el[2]],['ccf3',S.el[3]||D.el[3]],['ccband',S.band||D.band],['ccdisc',S.bg||D.bg],['ccsg',S.sg],['ccpg',S.pg]]){const e=$(id);if(e&&e.value!==v)e.value=v}document.querySelectorAll('[data-cpc]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.cpc===S.pc));for(const id of ['ccsg','ccpg']){const e=$(id);if(e)e.disabled=S.glyEl}}
  const nl=$('cenl');if(nl){nl.setAttribute('aria-pressed',CHO.nl);nl.disabled=CHO.etx!=='real'}}
-$('charts').addEventListener('click',e=>{const rs=e.target.closest('[data-crs]'),dc=e.target.closest('[data-cdec]'),bd=e.target.closest('[data-cbnd]');if(rs||dc||bd){if(rs)CHO.rs=rs.dataset.crs;if(dc)CHO.dec=dc.dataset.cdec;if(bd)CHO.bnd=bd.dataset.cbnd;CHE.key='';chSave();chCenterUI();return}const a=e.target.closest('[data-casp]'),t=e.target.closest('[data-cetx]'),y=e.target.closest('[data-csty]'),th=e.target.closest('[data-cthm]');if(th)CHO.theme=th.dataset.cthm;else if(y)CHO.style=y.dataset.csty;else if(a)CHO.asp=a.dataset.casp;else if(t)CHO.etx=t.dataset.cetx;else if(e.target.id==='cenl')CHO.nl=!CHO.nl;else return;CHE.key='';chSave();chCenterUI()});
+$('charts').addEventListener('click',e=>{const tb=e.target.closest('[data-ctab]'),hd=e.target.closest('[data-chide]');if(tb){CHO.tab=tb.dataset.ctab;chCenterUI();$('charts').scrollTop=0;return}if(hd){const k=hd.dataset.chide,i=CHO.hide.indexOf(k);if(i<0)CHO.hide.push(k);else CHO.hide.splice(i,1);CHBM.clear();CHE.key='';chSave();chCenterUI();return}const rs=e.target.closest('[data-crs]'),dc=e.target.closest('[data-cdec]'),bd=e.target.closest('[data-cbnd]');if(rs||dc||bd){if(rs)CHO.rs=rs.dataset.crs;if(dc)CHO.dec=dc.dataset.cdec;if(bd)CHO.bnd=bd.dataset.cbnd;CHE.key='';chSave();chCenterUI();return}const a=e.target.closest('[data-casp]'),t=e.target.closest('[data-cetx]'),y=e.target.closest('[data-csty]'),th=e.target.closest('[data-cthm]');if(th)CHO.theme=th.dataset.cthm;else if(y)CHO.style=y.dataset.csty;else if(a)CHO.asp=a.dataset.casp;else if(t)CHO.etx=t.dataset.cetx;else if(e.target.id==='cenl')CHO.nl=!CHO.nl;else return;CHE.key='';chSave();chCenterUI()});
 chCenterUI();
 
 function drawChart(g){if(CHO.style!=='ea'){drawSimple(g);return}
@@ -1661,11 +1670,11 @@ function drawEA(g){const top=CHTOP(),bot=CHBOT(),R=Math.max(60,Math.min(W/2-8,(H
    const nx=cu[i%12+1],mid=cu[i]+(((nx-cu[i])%360+360)%360)/2,[x,y]=XY(mid,rEa+Math.max(9,R*.045));g.globalAlpha=.75;g.fillStyle=CFG.houseCol;g.font=`600 ${Math.max(9,R*.04)}px -apple-system,Inter,sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(String(i),x,y)}
   g.globalAlpha=1;g.fillStyle=CFG.houseCol;g.font=`700 ${Math.max(10,R*.045)}px -apple-system,Inter,sans-serif`;for(const [i,t] of [[1,'AS'],[10,'MC'],[7,'DS'],[4,'IC']]){let [x,y]=XY(cu[i],rZo+18);x=Math.max(14,Math.min(W-14,x));g.fillText(t,x,i===1||i===7?y-12:y)}g.textBaseline='alphabetic'}
  /* the aspect lines between the planets' dots (and the AS and MC on the ecliptic), then the Earth over the center */
- if(ST.planets&&CHO.asp!=='none'){const P=chBodies(jd).map(b=>{const [x,y]=XY(b.lon,rB(b.lat));return {k:b.k,lon:b.lon,x,y}});
+ if(ST.planets&&CHO.asp!=='none'){const P=chVis(jd).map(b=>{const [x,y]=XY(b.lon,rB(b.lat));return {k:b.k,lon:b.lon,x,y}});
   if(cu)for(const [i,k] of [[1,'AS'],[10,'MC']]){const [x,y]=XY(cu[i],rE);P.push({k,lon:cu[i],x,y})}chLines(g,P,R)}
  chEarth(g,cx,cy,rEa,XY,AS);
  /* the planets: a dot at the true longitude and latitude, the glyph and degree in the ring, spread so none overlap */
- CHHIT=[];if(ST.planets){const B=chBodies(jd).slice().sort((a,b)=>n360(a.lon-AS)-n360(b.lon-AS)),need=deg(Math.max(18,R*.085)/((rGo+rGi)/2)),pos=B.map(b=>n360(b.lon-AS));
+ CHHIT=[];if(ST.planets){const B=chVis(jd).slice().sort((a,b)=>n360(a.lon-AS)-n360(b.lon-AS)),need=deg(Math.max(18,R*.085)/((rGo+rGi)/2)),pos=B.map(b=>n360(b.lon-AS));
   for(let it=0;it<30;it++){let mv=false;for(let i=0;i<pos.length;i++){const j=(i+1)%pos.length;let d=n360(pos[j]-pos[i]);if(pos.length>1&&d<need){const sh=(need-d)/2;pos[i]-=sh;pos[j]+=sh;mv=true}}if(!mv)break}
   B.forEach((b,i)=>{const L=AS+pos[i],[dx,dy]=XY(b.lon,rB(b.lat)),[gx,gy]=XY(L,(rGo+rGi)/2+R*.012),[tx,ty]=XY(b.lon,rGi);
    g.strokeStyle=PCOL[b.k];g.globalAlpha=.55;g.lineWidth=.8;g.beginPath();g.moveTo(dx,dy);g.lineTo(tx,ty);g.stroke();g.globalAlpha=1;
@@ -1677,7 +1686,8 @@ function drawEA(g){const top=CHTOP(),bot=CHBOT(),R=Math.max(60,Math.min(W/2-8,(H
  chHead()}
 let CHDT=0;function chartTap(ev){const t=performance.now();if(CHO.style==='basic'&&t-CHDT<320){CHDT=0;chReset();return}CHDT=t;let best=null,bd=26;for(const [k,x,y] of CHHIT){const d=Math.hypot(x-ev.clientX,y-ev.clientY);if(d<bd){bd=d;best=k}}if(best)infoShow({t:'p',k:best});else infoClose()}
 function chView(v){ST.view=v;$('chbtn').setAttribute('aria-pressed',v==='chart');document.body.classList.toggle('chartview',v==='chart');$('chhead').hidden=v!=='chart';CHHK='';if(v==='chart')say('Chart. Tap the wheel button to go back to the sky; hold it for Charts.',3500)}
-holdable('chbtn',()=>chView(ST.view==='chart'?'sky':'chart'),()=>{chPickTo('charts');openSheet('charts')});
+function chMenu(){CHO.tab='data';chPickTo('chpane');chCenterUI();openSheet('charts')}
+holdable('chbtn',()=>chView(ST.view==='chart'?'sky':'chart'),chMenu);$('chmenu').addEventListener('click',chMenu);
 /* Align moved from the Menu to holding the Track Sky icon */
 holdable('tbtn',()=>tbtnTap(),()=>$('align').click());
 
@@ -1707,7 +1717,7 @@ function chReset(){CHZ.s=1;CHZ.x=0;CHZ.y=0}
 function drawSimple(g){const top=CHTOP(),bot=CHBOT(),S0=Math.max(120,Math.min(W-12,H-top-bot-4)),S=S0*CHZ.s,cx=W/2+CHZ.x,cy=top+(H-top-bot)/2+CHZ.y,jd=K.jd,z=K.z,u=S/400,TH=(window.EAWheel&&EAWheel.themes[CHO.theme])||{bg:'#0b0f26'};
  g.fillStyle=CHO.theme==='light'?'#e6e8ec':(ST.night?'#0a0202':'#05070f');g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}
- const pos={},ret={};for(const b of chBodies(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z);
+ const pos={},ret={};for(const b of chVis(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}chNodes(pos,jd,z);
  const cus=cu?cu.map(c=>c==null?c:n360(c-z)):null;
  const MW=chMulti(jd,z);const RES=800*Math.min(4,Math.ceil(CHZ.s*(devicePixelRatio||1)*S0/800)),key=[MW?MW.key:'',RES,Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
  if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg(MW?MW.chart:{pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ',`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${RES}" height="${RES}" `).replace('width="100%" height="100%"','');
@@ -1715,7 +1725,7 @@ function drawSimple(g){const top=CHTOP(),bot=CHBOT(),S0=Math.max(120,Math.min(W-
  if(CHSW.img)g.drawImage(CHSW.img,cx-S/2,cy-S/2,S,S);
  const rot=cus?cus[1]:0,XY=(L,r)=>{const t=rad(180+L-rot);return [cx+r*u*Math.cos(t),cy-r*u*Math.sin(t)]};
  if(CHO.asp==='none')chEarth(g,cx,cy,84*u,(L,r)=>XY(L-z,r/u),rot);
- CHHIT=[];if(ST.planets&&!MW)for(const b of chBodies(jd)){const [x,y]=XY(n360(b.lon-z),160);CHHIT.push([b.k,x,y])}
+ CHHIT=[];if(ST.planets&&!MW)for(const b of chVis(jd)){const [x,y]=XY(n360(b.lon-z),160);CHHIT.push([b.k,x,y])}
  chHead()}
 /* wheel colors (Gemini, Nov 13): the four element colors, the outer band, the wheel, and the glyphs (element colors, or one color each) */
 function swDefaults(){const T=(window.EAWheel&&EAWheel.themes[CHO.theme])||{el:['#a8382f','#2f6b53','#9a7333','#33408f'],ringA:'#8f939c',bg:'#f7f8fa'};return Object.assign({band:T.ringA||T.band},T)}
@@ -1750,7 +1760,7 @@ const RINGN={tr:'Transits',pr:'Progressions',sa:'Solar Arc',syn:'Synastry'};
 const chRecJd=r=>CHS.ms(r)/864e5+2440587.5;
 function chRecParts(r){const [y,mo,d]=(r.date||'2000-01-01').split('-').map(Number),[h,mi]=(r.time||'12:00').split(':').map(Number);return {y,mo,d,h,mi}}
 function chAt(jd,lat,lon,z){let cu=null;try{cu=houseSystem(cuspsFor(jd,lat,lon),ST.hsys)}catch(e){}
- const pos={},ret={};for(const b of chBodies(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z);
+ const pos={},ret={};for(const b of chVis(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}chNodes(pos,jd,z);
  return {pos,ret,cusps:cu?cu.map(c=>c==null?c:n360(c-z)):null}}
 const mid=(a,b)=>n360(a+((((b-a)%360)+540)%360-180)/2);
 const chOf=r=>chAt(chRecJd(r),r.place.lat,r.place.lon,K.z);
