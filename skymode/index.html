@@ -108,6 +108,11 @@ body.camon #globe{top:calc(env(safe-area-inset-top) + 60px)}
 #chhead .chstar{min-height:32px;width:32px;padding:0;border:0;background:none;font-size:21px;color:var(--gold)}#chhead .chstar[aria-pressed="true"]{color:#ffd24a;text-shadow:0 0 8px rgba(255,210,74,.6)}
 #chhead .chl{font-size:12.5px;color:#a99f8a;line-height:1.35}#chhead .chb{display:flex;justify-content:center;gap:8px;margin-top:4px}#chhead .chb button{min-height:30px;padding:2px 14px;font-size:12.5px}
 #chhead.light{color:#7a5a20}#chhead.light .chl{color:#6b604c}#chhead.light .chstar{color:#7a5a20}
+#chrow2{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 58px);z-index:2;display:flex;flex-direction:column;gap:5px}
+#chrow2[hidden]{display:none}#chrow2 .chrr{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px}#chrow2 .chrr::-webkit-scrollbar{display:none}
+#chrow2 button{flex:0 0 auto;min-height:36px;padding:4px 11px;font-size:13px;white-space:nowrap}#chrow2 button[aria-pressed="true"]{background:rgba(209,171,116,.25);border-color:var(--gold)}
+#chrow2 .chtm{justify-content:center}#chrow2 .chtm button{flex:1 1 0;min-width:0;max-width:64px;padding:4px 0}
+#chhead .chlg{display:flex;justify-content:center;font-size:12px;margin-top:2px;pointer-events:none}
 #alist[hidden],#info[hidden],button[hidden]{display:none}
 #alist p{margin:0 0 4px;width:100%;font-size:13px;color:var(--dim)}
 #msg{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);text-align:center;font-size:13px;color:var(--dim);pointer-events:none}
@@ -117,7 +122,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
 <button id="start">Start Sky Mode</button>
-<div id="chhead" hidden></div><button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
+<div id="chhead" hidden></div><div id="chrow2" hidden><div class="chrr"><button data-chr="tr">Transits</button><button data-chr="pr">Progressions</button><button data-chr="sa">Solar Arc</button><button data-chr="syn">Synastry</button><button data-chr="swap" hidden aria-label="Swap inside and outside">⇄ Swap</button><button data-chr="davison">Davison</button><button data-chr="composite">Composite</button></div><div class="chrr chtm"><button data-chp="-1" aria-label="Play backward">◀</button><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button id="chtnow">Now</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button><button data-chp="1" aria-label="Play forward">▶</button></div></div><button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
 <video id="cam" playsinline muted autoplay hidden></video>
 <div id="menu" class="sheet" hidden role="dialog" aria-label="Menu"><button class="x" data-close aria-label="Close">×</button><h3>Sky Mode</h3><div class="row">
  <button id="track" hidden>Track Sky</button>
@@ -240,6 +245,8 @@ const API={
   const U=(Y,M,D,H,N)=>{const t=new Date(0);t.setUTCFullYear(Y,M-1,D);t.setUTCHours(H,N,0,0);return t.getTime()};const want=U(y,mo,d,h,mi);if(!tz)return want;
   let ms=want;try{const f=new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',hourCycle:'h23',era:'short'});
    for(let i=0;i<3;i++){const o={};for(const p of f.formatToParts(new Date(ms)))o[p.type]=p.value;const yy=/^B/i.test(o.era||'')?1-(+o.year):+o.year;ms+=want-U(yy,+o.month,+o.day,(+o.hour)%24,+o.minute)}}catch(e){}return ms},
+ /* favorite any chart, saved or not: saves it first when needed; returns the saved record (Gemini, Nov 13: universal) */
+ favRec(rec){if(!rec)return null;const r=rec.id?(API.saved().find(c=>c.id===rec.id)||API.save(rec)):API.save(rec);if(!API.isFav(r.id))API.toggleFav(r.id);return r},
  onChange(fn){listeners.push(fn)}
 };
 window.EA_CHARTS=API})();
@@ -266,6 +273,8 @@ window.EA_CHARTS=API})();
                 rinkA / rinkB 'el' = sign glyphs in their element color
        label    accessible name
    planetColors 'gold' (default: shiny gold with a soft glow, AstroSynth's gold), 'planet' (AstroMaps colors, dark-tuned), 'element'; sign glyphs keep their element colors (signColors:'planet' to follow the planet), or {Sun:'#..', ...}
+   chart.rings  [{pos, ret, label, color}, ...] up to two more charts drawn in rings outside the main one (bi- and tri-wheels);
+                chart.label names the main chart. EAWheel.legend(chart, opts) returns a small HTML legend (dot + label per ring).
    window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root; EAWheel.zoomReset().
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
      tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
@@ -280,8 +289,8 @@ const PCL={Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋'};
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,bezel:['#ffffff','#c9d0dc','#7d8597','#3a4050','#a7b0c2'],pl:PCL,el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,bezel:['#eef3fb','#cfd8ea','#8e9ab3','#262c3e','#8e9ab3'],pl:PCD,el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],bezel:['#ffffff','#c9d0dc','#7d8597','#3a4050','#a7b0c2'],pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],bezel:['#eef3fb','#cfd8ea','#8e9ab3','#262c3e','#8e9ab3'],pl:PCD,el:ELD}};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
@@ -329,18 +338,30 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
   if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
- const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,big?8:13.5);   /* 13.5 degrees keeps the degree and minute text of a tight cluster apart on a phone (Posidonius, Nov 13) */
- const rg=big?140:136,rd=117,rs=101,rm=87,pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
+ const pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
  /* sign glyphs keep their own (element) colors whatever the planet colors are (Gemini, Nov 13) */
  const scol=s=>opts.signColors==='planet'?null:T.el[s%4];
- L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,RP-2.5);
-  h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="2.4" fill="${c}"/>`;
-  if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,rg+10),t2=xy(x.l,RP-5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-  const g=xy(x.d,rg),rx=RX[x.k];
-  h+=`<g class="eawp" data-pl="${x.k}"><title>${x.k} ${q.d}° ${['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'][q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(shiny?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],big?17:22,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],big?17:22,c));
-  if(!big){const d=xy(x.d,rd),s=xy(x.d,rs),m=xy(x.d,rm);h+=tx(q.d+'°',d[0],d[1],13.5,rx?T.ret:ink,700)+sgb(q.s,s[0],s[1],13.5,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],10.5,rx?T.ret:T.soft,500)}
-  else if(rx){const d=xy(x.d,rg-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
-  h+='</g>'});
+ const SN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+ /* bi- and tri-wheels (Gemini, Nov 13): chart.rings = [{pos, ret, label, color}, ...] are drawn in bands outside the main chart,
+    the last one outermost; each ring's glyphs take its color so the legend dot matches. The main chart stays innermost. */
+ const rings=big?[]:(chart.rings||[]).filter(r=>r&&r.pos).slice(0,2),nb=1+rings.length,H=(RP-RH)/nb;
+ const RCOL=T.ringCols||[];
+ const band=(Pp,RXp,t,ci,main)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
+  const mode=big?'big':nb===1?'full':nb===2?'bi':'tri';spread(list,{big:8,full:13.5,bi:11,tri:10}[mode]);
+  const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  const cf=main?col:()=>ci,sh=main&&shiny;
+  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
+   h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="${nb>1?2:2.4}" fill="${c}"/>`;
+   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   const g=xy(x.d,R.g),gs=R.gs||17;
+   h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
+   h+='</g>'});return list};
+ rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
+ const L=band(P,RX,RP-H*rings.length,null,true);
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
  const at=k=>pp[k]!=null?xy(pp[k],RI-2):null;
@@ -372,7 +393,11 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
  root.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
   if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
-window.EAWheel={svg,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+/* legend for bi- and tri-wheels: one line per ring, inner to outer, a dot in the ring's color and its label */
+function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
+ const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
+ return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
+window.EAWheel={svg,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
 </script>
 <script>document.write('<script src="../shared/simplewheel.js?v='+Math.floor(Date.now()/3e5)+'"><\/script>')</script>
@@ -1484,15 +1509,16 @@ $('cfp').addEventListener('input',async()=>{const q=$('cfp').value.trim().toLowe
 function chFromForm(){const name=$('cfn').value.trim(),date=$('cfd').value,time=$('cft').value||'12:00',pl=CHF.place;
  if(!date){$('cfmsg').textContent='Please enter a date.';return null}if(!pl){$('cfmsg').textContent='Please pick a place from the list.';return null}
  return Object.assign({},CHF.rec||{},{name:name||'Untitled chart',type:'Birth',date,time,unknown:false,place:pl})}
-$('cfopen').onclick=()=>{const r=chFromForm();if(r)chOpen(r)};
+const chPend=r=>{if(typeof CHR==='undefined'||!CHR.pend)return false;const f=CHR.pend;CHR.pend=null;CHR.partner=r;f();CHRK='';CHHK='';closeSheets();return true};
+$('cfopen').onclick=()=>{const r=chFromForm();if(r&&!chPend(r))chOpen(r)};
 $('cfsave').onclick=()=>{const r=chFromForm();if(!r)return;const s=CHS.save(r);CHF.rec=s;$('cfmsg').textContent='Saved.';chList()};
-$('cfboth').onclick=()=>{const r=chFromForm();if(!r)return;chOpen(CHS.save(r))};
+$('cfboth').onclick=()=>{const r=chFromForm();if(!r)return;const sv=CHS.save(r);if(!chPend(sv))chOpen(sv)};
 /* ---- the wheel ---- */
 let CHB={jd:null,list:null};
-function chBodies(jd){if(CHB.jd===jd&&CHB.list)return CHB.list;const out=[];
+const CHBM=new Map();function chBodies(jd){if(CHBM.has(jd))return CHBM.get(jd);const out=[];
  for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto']){let b=null;try{b=JPL&&JPL.body(k,jd)}catch(e){}
   if(b)out.push({k,lon:b.lon,lat:b.lat||0,spd:b.lonSpeed||0});else{const kb=K.bodies.find(x=>x.k===k);if(kb)out.push({k,lon:kb.lon,lat:0,spd:1})}}
- if(out.length>=9)CHB={jd,list:out};return out}
+ if(out.length>=9){CHBM.set(jd,out);if(CHBM.size>12)CHBM.delete(CHBM.keys().next().value)}return out}
 let CHSTAR={pjd:null,list:null};
 function chStars(jd){if(CHSTAR.pjd===SKY.pjd&&CHSTAR.list)return CHSTAR.list;const e=obl(jd),L=[];
  SKY.st.forEach((s,i)=>{if(!s)return;const [l,b]=eqToEcl(s.ra,s.de,e);L[i]=[l,b,s.mag]});CHSTAR={pjd:SKY.pjd,list:L};return L}
@@ -1579,7 +1605,7 @@ chCenterUI();
 
 function drawChart(g){if(CHO.style!=='ea'){drawSimple(g);return}
  drawEA(g)}
-function drawEA(g){const top=CHTOP(),bot=66,R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z;
+function drawEA(g){const top=CHTOP(),bot=CHBOT(),R=Math.max(60,Math.min(W/2-8,(H-top-bot)/2-4)),cx=W/2,cy=top+(H-top-bot)/2,jd=K.jd,z=K.z;
  g.fillStyle=ST.night?'#0a0202':'#05070f';g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}const AS=cu?cu[1]:n360(K.bodies.find(b=>b.k==='Sun').lon);
  const A=L=>Math.PI+rad(L-AS),XY=(L,r)=>[cx+r*Math.cos(A(L)),cy-r*Math.sin(A(L))];
@@ -1652,18 +1678,18 @@ function chZoom(f,px,py){const s0=CHZ.s,s1=Math.max(1,Math.min(6,s0*f)),top=CHTO
 function chClamp(){const m=Math.max(0,(CHZ.s-1))*Math.min(W,H)*.55;CHZ.x=Math.max(-m,Math.min(m,CHZ.x));CHZ.y=Math.max(-m,Math.min(m,CHZ.y))}
 function chPan(dx,dy){if(CHZ.s<=1)return;CHZ.x+=dx;CHZ.y+=dy;chClamp()}
 function chReset(){CHZ.s=1;CHZ.x=0;CHZ.y=0}
-function drawSimple(g){const top=CHTOP(),bot=66,S0=Math.max(120,Math.min(W-12,H-top-bot-4)),S=S0*CHZ.s,cx=W/2+CHZ.x,cy=top+(H-top-bot)/2+CHZ.y,jd=K.jd,z=K.z,u=S/400,TH=(window.EAWheel&&EAWheel.themes[CHO.theme])||{bg:'#0b0f26'};
+function drawSimple(g){const top=CHTOP(),bot=CHBOT(),S0=Math.max(120,Math.min(W-12,H-top-bot-4)),S=S0*CHZ.s,cx=W/2+CHZ.x,cy=top+(H-top-bot)/2+CHZ.y,jd=K.jd,z=K.z,u=S/400,TH=(window.EAWheel&&EAWheel.themes[CHO.theme])||{bg:'#0b0f26'};
  g.fillStyle=CHO.theme==='light'?'#e6e8ec':(ST.night?'#0a0202':'#05070f');g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}
  const pos={},ret={};for(const b of chBodies(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z);
  const cus=cu?cu.map(c=>c==null?c:n360(c-z)):null;
- const RES=800*Math.min(4,Math.ceil(CHZ.s*(devicePixelRatio||1)*S0/800)),key=[RES,Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
- if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg({pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ',`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${RES}" height="${RES}" `).replace('width="100%" height="100%"','');
+ const MW=chMulti(jd,z);const RES=800*Math.min(4,Math.ceil(CHZ.s*(devicePixelRatio||1)*S0/800)),key=[MW?MW.key:'',RES,Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
+ if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg(MW?MW.chart:{pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ',`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${RES}" height="${RES}" `).replace('width="100%" height="100%"','');
   const im=new Image();im.onload=()=>{if(CHSW.pend===key){CHSW.img=im;CHSW.key=key;CHSW.pend=''}};im.onerror=()=>{CHSW.pend=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
  if(CHSW.img)g.drawImage(CHSW.img,cx-S/2,cy-S/2,S,S);
  const rot=cus?cus[1]:0,XY=(L,r)=>{const t=rad(180+L-rot);return [cx+r*u*Math.cos(t),cy-r*u*Math.sin(t)]};
  if(CHO.asp==='none')chEarth(g,cx,cy,84*u,(L,r)=>XY(L-z,r/u),rot);
- CHHIT=[];if(ST.planets)for(const b of chBodies(jd)){const [x,y]=XY(n360(b.lon-z),160);CHHIT.push([b.k,x,y])}
+ CHHIT=[];if(ST.planets&&!MW)for(const b of chBodies(jd)){const [x,y]=XY(n360(b.lon-z),160);CHHIT.push([b.k,x,y])}
  chHead()}
 /* wheel colors (Gemini, Nov 13): the four element colors, the outer band, the wheel, and the glyphs (element colors, or one color each) */
 function swDefaults(){const T=(window.EAWheel&&EAWheel.themes[CHO.theme])||{el:['#a8382f','#2f6b53','#9a7333','#33408f'],ringA:'#8f939c',bg:'#f7f8fa'};return Object.assign({band:T.ringA||T.band},T)}
@@ -1677,17 +1703,58 @@ $('chtheme').addEventListener('click',()=>{CHO.theme=CHO.theme==='light'?'dark':
 const CHTOP=()=>{const h=$('chhead');return h&&!h.hidden?Math.ceil(h.getBoundingClientRect().bottom)+6:58};
 function chNowRec(){const q=zparts(Date.now()+TOFF),z2=x=>String(x).padStart(2,'0');return {name:'',type:'Event',date:`${q.y}-${z2(q.mo)}-${z2(q.d)}`,time:`${z2(q.h)}:${z2(q.mi)}`,unknown:false,place:{label:ST.place,lat:ST.lat,lon:ST.lon,tz:ST.tz}}}
 let CHHK='';
-function chHead(){const el=$('chhead');if(!el)return;if(el.hidden){el.hidden=false;CHHK=''}const cur=chCur(),q=zparts(Date.now()+TOFF),now=!cur&&TOFF===0,
+function chHead(){const el=$('chhead');if(!el)return;if(el.hidden){el.hidden=false;CHHK=''}chRowUI();const B=CHR.base,cur=B||chCur(),q=B?chRecParts(B):zparts(Date.now()+TOFF),now=!cur&&TOFF===0,
   t=`${q.mo}/${q.d}/${yrTxt(q.y)} ${q.h%12||12}:${String(q.mi).padStart(2,'0')}${q.h<12?'am':'pm'}${ST.zod==='trop'?'':' · sidereal'}`,
-  fav=!!(cur&&cur.id&&CHS&&CHS.isFav(cur.id)),title=cur?(cur.name||'Untitled chart'):now?'Current Transits':'Time Machine',
-  key=[title,t,ST.place,fav,now,CHO.theme].join('|');if(key===CHHK)return;CHHK=key;
+  fav=!!(cur&&cur.id&&CHS&&CHS.isFav(cur.id)),title=B&&CHR.mode&&CHR.partner?`${CHR.mode==='davison'?'Davison':'Composite'}: ${B.name||'Chart'} and ${CHR.partner.name||'Chart'}`:cur?(cur.name||'Untitled chart'):now?'Current Transits':'Time Machine',
+  plc=B?((B.place&&B.place.label)||''):ST.place,lg=chLegend(),key=[title,t,plc,fav,now,CHO.theme,lg].join('|');if(key===CHHK)return;CHHK=key;
  el.className=CHO.theme==='light'&&CHO.style==='basic'?'light':'';
- el.innerHTML=`<div class="cht"><button class="chstar" data-chh="fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button><b>${chEsc(title)}</b></div><div class="chl">${t}</div><div class="chl">${chEsc(ST.place||'')}</div><div class="chb"><button data-chh="edit">Edit</button>${now?'':'<button data-chh="clear">Clear</button>'}</div>`}
-function chClear(){CHREC=null;TOFF=0;SKY=null;K=null;if(PLAY.dir)playSet(0);barText();CHHK='';say('Current Transits.',2000)}
+ el.innerHTML=`<div class="cht"><button class="chstar" data-chh="fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button><b>${chEsc(title)}</b></div><div class="chl">${t}</div><div class="chl">${chEsc(plc)}</div>${lg?`<div class="chlg">${lg}</div>`:''}<div class="chb"><button data-chh="edit">Edit</button>${now?'':'<button data-chh="clear">Clear</button>'}</div>`}
+function chClear(){CHR.base=null;CHR.rings=[];CHR.partner=null;CHR.mode=null;CHREC=null;TOFF=0;SKY=null;K=null;if(PLAY.dir)playSet(0);barText();CHHK='';say('Current Transits.',2000)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chh]');if(!b||!CHS)return;const a=b.dataset.chh,cur=chCur();
  if(a==='clear'){chClear();return}
- if(a==='edit'){chForm(cur||chNowRec());return}
- if(a==='fav'){if(cur&&cur.id){CHS.toggleFav(cur.id)}else{const r=cur?Object.assign({},cur):Object.assign(chNowRec(),{name:(TOFF===0?'Transits ':'Chart ')+chNowRec().date});const sv=CHS.save(r);CHS.toggleFav(sv.id);CHREC=sv;CHMS=CHS.ms(sv);say(`${sv.name} saved to Favorites.`,2500)}CHHK='';chList()}});
+ if(a==='edit'){chForm(CHR.base||cur||chNowRec());return}
+ if(a==='fav'){const c2=CHR.base||cur;if(c2&&c2.id&&CHS.isFav(c2.id)){CHS.toggleFav(c2.id)}else{const r=c2?Object.assign({},c2):Object.assign(chNowRec(),{name:(TOFF===0?'Transits ':'Chart ')+chNowRec().date});const sv=CHS.favRec?CHS.favRec(r):(()=>{const x=CHS.save(r);CHS.toggleFav(x.id);return x})();if(CHR.base)CHR.base=sv;else{CHREC=sv;CHMS=CHS.ms(sv)}say(`${sv.name} is a Favorite.`,2500)}CHHK='';chList()}});
+
+/* ---- more wheels (Gemini, Nov 13; universal): once a chart is cast, a row under the wheel adds Transits, Progressions,
+   and Solar Arc rings (up to two, inner to outer), Synastry with another chart (⇄ swaps inside and outside), or replaces the
+   chart with a Davison or Composite of the two. The Time Machine row beneath moves the transits, progressions, and arcs.
+   Leo's Simple Wheel draws the rings and the legend. ---- */
+const CHR={base:null,rings:[],partner:null,mode:null,pend:null};
+const RINGN={tr:'Transits',pr:'Progressions',sa:'Solar Arc',syn:'Synastry'};
+const chRecJd=r=>CHS.ms(r)/864e5+2440587.5;
+function chRecParts(r){const [y,mo,d]=(r.date||'2000-01-01').split('-').map(Number),[h,mi]=(r.time||'12:00').split(':').map(Number);return {y,mo,d,h,mi}}
+function chAt(jd,lat,lon,z){let cu=null;try{cu=houseSystem(cuspsFor(jd,lat,lon),ST.hsys)}catch(e){}
+ const pos={},ret={};for(const b of chBodies(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);pos.Node=n360(nn-z);pos.SNode=n360(nn+180-z);
+ return {pos,ret,cusps:cu?cu.map(c=>c==null?c:n360(c-z)):null}}
+const mid=(a,b)=>n360(a+((((b-a)%360)+540)%360-180)/2);
+const chOf=r=>chAt(chRecJd(r),r.place.lat,r.place.lon,K.z);
+function chMulti(jd,z){const B=CHR.base;if(!B||!B.place)return null;const P=CHR.partner;let main,label=B.name||'Chart';
+ if(CHR.mode&&P&&P.place){if(CHR.mode==='davison'){const j=(chRecJd(B)+chRecJd(P))/2;main=chAt(j,(B.place.lat+P.place.lat)/2,mid(B.place.lon,P.place.lon)>180?mid(B.place.lon,P.place.lon)-360:mid(B.place.lon,P.place.lon),z);label='Davison'}
+  else{const a=chOf(B),b=chOf(P),pos={};for(const k in a.pos)if(k in b.pos)pos[k]=mid(a.pos[k],b.pos[k]);main={pos,ret:{},cusps:a.cusps&&b.cusps?a.cusps.map((c,i)=>c==null||b.cusps[i]==null?c:mid(c,b.cusps[i])):null};label='Composite'}}
+ else main=chOf(B);
+ const bj=chRecJd(B),rings=[];
+ for(const r of CHR.rings){if(r==='tr'){const t=chAt(jd,ST.lat,ST.lon,z);rings.push({pos:t.pos,ret:t.ret,label:'Transits'})}
+  else if(r==='pr'){const t=chAt(bj+(jd-bj)/365.2422,B.place.lat,B.place.lon,z);rings.push({pos:t.pos,ret:t.ret,label:'Progressions'})}
+  else if(r==='sa'){const n=chOf(B),p=chAt(bj+(jd-bj)/365.2422,B.place.lat,B.place.lon,z),arc=p.pos.Sun-n.pos.Sun,pos={};for(const k in n.pos)pos[k]=n360(n.pos[k]+arc);rings.push({pos,ret:{},label:'Solar Arc'})}
+  else if(r==='syn'&&P&&P.place){const t=chOf(P);rings.push({pos:t.pos,ret:t.ret,label:P.name||'Partner'})}}
+ const chart={pos:ST.planets?main.pos:{},ret:main.ret,cusps:main.cusps,label,rings};
+ return {chart,key:JSON.stringify([B.id||B.name,B.date,B.time,P&&(P.id||P.name),CHR.rings,CHR.mode,CHR.rings.some(x=>x!=='syn')?Math.round(jd*1440):0])}}
+function chLegend(){if(!CHR.base||!window.EAWheel||!EAWheel.legend)return '';const M=chMulti(K?K.jd:0,K?K.z:0);if(!M||!M.chart.rings.length)return '';try{return EAWheel.legend(M.chart,swOpts())}catch(e){return ''}}
+const CHBOT=()=>{const r=$('chrow2');return r&&!r.hidden?Math.ceil(innerHeight-r.getBoundingClientRect().top)+6:66};
+let CHRK='';
+function chRowUI(){const el=$('chrow2');if(!el)return;const show=ST.view==='chart'&&!!(CHR.base||chCur());if(el.hidden===show)el.hidden=!show;if(!show)return;
+ const k=JSON.stringify([CHR.rings,CHR.mode,!!CHR.partner]);if(k===CHRK)return;CHRK=k;
+ el.querySelectorAll('[data-chr]').forEach(b=>{const a=b.dataset.chr;b.setAttribute('aria-pressed',a==='davison'||a==='composite'?CHR.mode===a:CHR.rings.includes(a))});const sw=el.querySelector('[data-chr="swap"]');if(sw){sw.hidden=!CHR.partner;sw.removeAttribute('aria-pressed')}}
+function chPickPartner(then){const seen=new Set(),L=[];for(const c of CHS.favorites().concat(CHS.recents(),CHS.saved())){const k=c.id||c.name+c.date;if(seen.has(k))continue;seen.add(k);if(CHR.base&&(c.id&&c.id===CHR.base.id))continue;L.push(c)}
+ pList('Pick the other chart',[{html:'＋ Enter Chart Data',go:()=>{$('plist').hidden=true;CHR.pend=then;chForm(null)}}].concat(L.slice(0,40).map(c=>({html:`${chEsc(c.name||'Untitled')} <small>${chEsc(c.date||'')}</small>`,go:()=>{$('plist').hidden=true;CHR.partner=c;then()}}))))}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-chr]');if(!b||!CHS)return;const a=b.dataset.chr;
+ if(!CHR.base){const c=chCur();if(!c){say('Cast or open a chart first.',2500);return}CHR.base=c;CHREC=null;if(a!=='syn'&&a!=='davison'&&a!=='composite'){TOFF=0;SKY=null;K=null;barText()}}
+ if(a==='swap'){if(CHR.partner){const t=CHR.base;CHR.base=CHR.partner;CHR.partner=t}}
+ else if(a==='davison'||a==='composite'){const go=()=>{CHR.mode=CHR.mode===a?null:a;CHRK='';CHHK=''};if(CHR.mode===a)go();else if(CHR.partner)go();else{chPickPartner(go);return}}
+ else{const i=CHR.rings.indexOf(a);if(i>=0)CHR.rings.splice(i,1);else{const add=()=>{if(!CHR.rings.includes(a)){CHR.rings.push(a);if(CHR.rings.length>2)CHR.rings.shift()}CHRK='';CHHK=''};if(a==='syn'&&!CHR.partner){chPickPartner(add);return}add()}}
+ CHRK='';CHHK=''});
+$('chtnow').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
+document.querySelectorAll('[data-chp]').forEach(b=>b.onclick=()=>playSet(+b.dataset.chp));
 
 })();</script>
 
