@@ -83,6 +83,18 @@ body.rowopen #plist{bottom:calc(env(safe-area-inset-bottom) + 166px)}
 #plist .ih{display:flex;align-items:baseline;gap:8px;padding-right:40px;margin-bottom:6px}#plist b{color:var(--gold);font-size:15px}#plist .x{position:absolute;top:4px;right:4px;min-height:36px;width:36px;padding:0;border:0;background:none;font-size:20px;color:var(--dim)}
 body.chartview .pbar{display:none!important}
 #plist .pli{display:block;width:100%;text-align:left;margin:4px 0;min-height:40px;font-size:14px}#plist .pli small{color:var(--dim);margin-left:4px}#plist .sub{color:var(--dim);font-size:13px}
+#snapchip{position:fixed;left:10px;top:calc(env(safe-area-inset-top) + 8px);display:flex;align-items:center;gap:8px;max-width:calc(100% - 80px);padding:4px 4px 4px 12px;border-radius:22px;background:rgba(10,12,22,.88);border:1px solid rgba(255,150,215,.5);z-index:3;font-size:13px}
+#snapchip[hidden]{display:none}#snapchip span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#snapchip b{color:var(--gold)}#snapchip button{min-height:34px;padding:3px 12px;font-size:13px;white-space:nowrap}
+body.camon #snapchip{top:calc(env(safe-area-inset-top) + 50px)}
+.pbret{background:rgba(255,150,215,.2)!important;border-color:rgba(255,150,215,.6)!important}.pbar .pbused{border-color:var(--gold)}
+/* every box that scrolls gets a second X at its bottom right (Gemini, Nov 13) */
+.xb{display:none}.scrolls>.xb{display:block;position:sticky;bottom:0;margin:6px 0 0 auto;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:20px;background:rgba(10,12,22,.95);border:1px solid var(--line);color:var(--dim);z-index:1}
+/* landscape on a phone: the info panel docks on the right as a column, the object sits in the open sky on the left */
+@media (orientation:landscape) and (max-height:520px){
+ #info{left:auto;right:10px;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
+ #plist{left:auto;right:10px;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
+ #info dl{grid-template-columns:auto 1fr;font-size:12.5px}#info .ib{margin-bottom:6px}
+}
 #alist[hidden],#info[hidden],button[hidden]{display:none}
 #alist p{margin:0 0 4px;width:100%;font-size:13px;color:var(--dim)}
 #msg{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);text-align:center;font-size:13px;color:var(--dim);pointer-events:none}
@@ -92,7 +104,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
 <button id="start">Start Sky Mode</button>
-<button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
+<button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
 <video id="cam" playsinline muted autoplay hidden></video>
 <div id="menu" class="sheet" hidden role="dialog" aria-label="Menu"><button class="x" data-close aria-label="Close">×</button><h3>Sky Mode</h3><div class="row">
  <button id="track" hidden>Track Sky</button>
@@ -1023,6 +1035,11 @@ $('mwbr').value=Math.round(ST.mwBr*100);$('mwbrv').textContent=Math.round(ST.mwB
 barText();sync();mwTex();
 requestAnimationFrame(draw);
 window.__sky={ST,camera:()=>CAM,sky:()=>K,jump:ms=>jump(ms)};
+
+/* second X at the bottom right of any box that scrolls (Gemini, Nov 13) */
+setInterval(()=>{for(const id of SHEETS.concat(['info','plist','alist'])){const el=$(id);if(!el||el.hidden)continue;const sc=el.scrollHeight>el.clientHeight+4;el.classList.toggle('scrolls',sc);
+ if(sc&&!(el.lastElementChild&&el.lastElementChild.classList.contains('xb'))){const old=el.querySelector(':scope>.xb');if(old)old.remove();const b=document.createElement('button');b.className='xb';b.textContent='×';b.setAttribute('aria-label','Close');
+  b.onclick=e=>{e.stopPropagation();const x=el.querySelector('.x');if(x)x.click();else el.hidden=true};el.appendChild(b)}}},400);
 /* Sky Mode: tap a planet or a star for its information page (Gemini, Nov 12).
    The rows follow Galileo's Planetarium info box (worlds/planetarium/planetarium.js, plnInfoRows):
    planets: zodiac degree, longitude and latitude, right ascension and declination (out of bounds), azimuth and altitude,
@@ -1130,8 +1147,9 @@ let IAIM=null,IANIM=0;
 function iSelV(){if(!ISEL||!K)return null;return ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i]}
 function iTurn(yaw,pitch,done){const y0=ST.yaw,p0=ST.pitch,dy=((yaw-y0+540)%360)-180,t0=performance.now(),id=++IANIM;
  const step=t=>{if(id!==IANIM)return;const k=Math.min(1,(t-t0)/380),e=k*k*(3-2*k);ST.yaw=n360(y0+dy*e);ST.pitch=p0+(pitch-p0)*e;if(k<1)requestAnimationFrame(step);else if(done)done()};requestAnimationFrame(step)}
-function iAim(){if(ST.view!=='sky'||ST.track||ST.cam)return;const v=iSelV();if(!v)return;const C=camera(),p=proj(v),top=H*.24;if(p&&Math.abs(p[1]-top)<H*.06&&Math.abs(p[0]-W/2)<W*.2)return;
- const [az,alt]=azAlt(v),dy=H/2-top,th=C.S?deg(2*Math.atan(dy/(2*C.F))):deg(Math.atan(dy/C.F)),yaw=n360(az-ST.off),pitch=Math.max(-89,Math.min(89,alt-th));
+const iLand=()=>W>H&&H<=520;
+function iAim(){if(ST.view!=='sky'||ST.track||ST.cam)return;const v=iSelV();if(!v)return;const C=camera(),p=proj(v),L=iLand(),top=L?H*.5:H*.24,tx=L?W*.28:W/2;if(p&&Math.abs(p[1]-top)<H*.08&&Math.abs(p[0]-tx)<W*(L?.14:.2))return;
+ const ang=d=>C.S?deg(2*Math.atan(d/(2*C.F))):deg(Math.atan(d/C.F)),[az,alt]=azAlt(v),dy=H/2-top,th=ang(dy),yaw=n360(az-ST.off+ang(W/2-tx)/Math.max(.2,Math.cos(rad(alt)))),pitch=Math.max(-89,Math.min(89,alt-th));
  if(!IAIM)IAIM={yaw:ST.yaw,pitch:ST.pitch};iTurn(yaw,pitch,()=>{if(IAIM){IAIM.ay=ST.yaw;IAIM.ap=ST.pitch}})}
 function iUnaim(){const a=IAIM;IAIM=null;if(!a||a.ay==null||ST.track||ST.view!=='sky')return;if(Math.abs(((ST.yaw-a.ay+540)%360)-180)>.05||Math.abs(ST.pitch-a.ap)>.05)return;iTurn(a.yaw,a.pitch)}
 /* Diurnal Arc (every object) and Orbital Path (the Sun, the Moon, and the planets), switched from the top of the panel (Gemini, Nov 13).
@@ -1220,10 +1238,15 @@ const pDate=jd=>{const q=zparts((jd-2440587.5)*864e5);return `${q.mo}/${q.d}`};
 function pSelV(sel){return sel.t==='p'?(K.bodies.find(b=>b.k===sel.k)||{}).v:K.stars[sel.i]}
 function pName(sel){return sel.t==='p'?sel.k:(NAMED.find(x=>x[0]===sel.i)||[0,'Star'])[1]}
 /* snap the Time Machine to a moment, turning the view to the object; Return undoes every snap at once */
-function snapTo(jd,sel){if(!SNAP0)SNAP0={toff:TOFF,yaw:ST.yaw,pitch:ST.pitch,fov:ST.fov,track:ST.track};if(PLAY.dir)playSet(0);
- TOFF=Math.round((jd-2440587.5)*864e5-Date.now());K=null;barText();say(`${pName(sel||PB.sel)} · ${pDate(jd)} ${pTime(jd)}`,3000);
- setTimeout(()=>{if(!K||ST.view!=='sky')return;if(ST.track){ST.track=false;trackBtn()}const v=pSelV(sel||PB.sel);if(v){const [az,alt]=azAlt(v);ST.yaw=n360(az-ST.off);ST.pitch=Math.max(-80,Math.min(80,alt-ST.fov*.18))}pbDraw()},120)}
-function pReturn(){const s=SNAP0;if(!s)return;SNAP0=null;TOFF=s.toff;K=null;ST.yaw=s.yaw;ST.pitch=s.pitch;ST.fov=s.fov;if(s.track&&!ST.track){ST.track=true;trackBtn()}barText();say('Returned.',2000);pbDraw()}
+function snapTo(jd,sel,from,label){if(!SNAP0)SNAP0={toff:TOFF,yaw:ST.yaw,pitch:ST.pitch,fov:ST.fov,track:ST.track};if(PLAY.dir)playSet(0);
+ SNAP0.from=from||'';SNAP0.name=pName(sel||PB.sel);SNAP0.label=(label?label+' · ':'')+pDate(jd)+' '+pTime(jd);
+ /* Gemini, Nov 13: a snap closes the info panel; the name and Return wait in the upper left, and Return sits beside the button just used */
+ if(ISEL){ISEL=null;$('info').hidden=true;IAIM=null;IANIM++}
+ TOFF=Math.round((jd-2440587.5)*864e5-Date.now());K=null;barText();snapChip();
+ setTimeout(()=>{if(!K||ST.view!=='sky')return;IANIM++;if(ST.track){ST.track=false;trackBtn()}const v=pSelV(sel||PB.sel);if(v){const [az,alt]=azAlt(v);ST.yaw=n360(az-ST.off);ST.pitch=Math.max(-80,Math.min(80,alt-ST.fov*.18))}pbDraw()},120)}
+/* while snapped, the four times stay those of the moment before the first snap */
+const pBase=()=>SNAP0?(Date.now()+SNAP0.toff)/864e5+2440587.5:K.jd;
+function pReturn(){const s=SNAP0;if(!s)return;SNAP0=null;snapChip();TOFF=s.toff;K=null;ST.yaw=s.yaw;ST.pitch=s.pitch;ST.fov=s.fov;if(s.track&&!ST.track){ST.track=true;trackBtn()}barText();say('Returned.',2000);pbDraw()}
 /* heliacal phases, Galileo's Stargazer method: at the twilight moment (the Sun at minus the arcus visionis), is the object
    up in the east or the west, morning and evening, day by day for about 13 months */
 const PAV={Mercury:10,Venus:5,Mars:11.5,Jupiter:9,Saturn:11};
@@ -1257,30 +1280,33 @@ function pParans(sel){const A=pEvents(sel,K.jd),out=[];if(!A.length)return out;
 /* ---- the bar ---- */
 function pbOpen(type,sel){PB.type=type;PB.sel=Object.assign({},sel);pbDraw()}
 function pbClose(){PB.type=null;$('pbar').hidden=true;$('plist').hidden=true;document.body.classList.remove('pbaropen')}
-function pbBtn(id,label,on,extra){return `<button data-pb="${id}"${on==null?'':` aria-pressed="${!!on}"`}${extra||''}>${label}</button>`}
+const RETB='<button data-pb="ret" class="pbret">↩ Return</button>';
+function pbBtn(id,label,on,extra){return `<button data-pb="${id}"${on==null?'':` aria-pressed="${!!on}"`}${SNAP0&&SNAP0.from===id?' class="pbused"':''}${extra||''}>${label}</button>`+(SNAP0&&SNAP0.from===id?RETB:'')}
+/* the upper-left chip: what the sky snapped to, and Return */
+function snapChip(){const c=$('snapchip');if(!SNAP0){c.hidden=true;return}c.innerHTML=`<span><b>${iEsc(SNAP0.name)}</b> ${iEsc(SNAP0.label)}</span><button data-pb="ret" class="pbret">↩ Return</button>`;c.hidden=false}
 function pbDraw(){const bar=$('pbar');if(!PB.type||!PB.sel||!K){if(bar)bar.hidden=true;return}const sel=PB.sel,nm=pName(sel);let h=`<b class="pbt">${PB.type==='arc'?'Arc':'Orbit'} · ${iEsc(nm)}</b>`;
- if(PB.type==='arc'){for(const [t,n] of PEV){const e=pEvent(sel,t,K.jd);h+=e&&e.jd?pbBtn('ev:'+t,`${n} <small>${pTime(e.jd)}</small>`):e&&e.never?`<span class="pbn">${e.never==='set'?'Never rests':'Never rises'}</span>`:''}
+ if(PB.type==='arc'){const j0=pBase();for(const [t,n] of PEV){const e=pEvent(sel,t,j0);h+=e&&e.jd?pbBtn('ev:'+t,`${n} <small>${pTime(e.jd)}</small>`):e&&e.never?`<span class="pbn">${e.never==='set'?'Never rests':'Never rises'}</span>`:''}
   if(!(sel.t==='p'&&/^(Sun|Moon|Uranus|Neptune|Pluto)$/.test(sel.k)))h+=pbBtn('hel','Heliacal');
   h+=pbBtn('par','Parallels')+pbBtn('prn','Parans')+pbBtn('hrs','Hour Dots',PB.hours);
   const r=pEvent(sel,'rise',K.jd),s=r&&r.jd?pEvent(sel,'rest',r.jd):null;if(r&&r.jd&&s&&s.jd){const up=(s.jd-r.jd)*24,f=x=>{const m=Math.round(x*60);return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`};h+=`<span class="pbn">Day arc ${f(up)} · Night arc ${f(24*.99727-up)}</span>`}}
  else{h+=pbBtn('o:nodes','Nodes',PB.o.nodes)+pbBtn('o:lat','Latitudes',PB.o.lat)+pbBtn('sta','Stations')+pbBtn('o:retro','Retro Zones',PB.o.retro)+pbBtn('o:sun','Sun Meetings',PB.o.sun)+pbBtn('o:oob','Out Of Bounds',PB.o.oob)+pbBtn('o:dates','Dates',PB.o.dates)
   +`<label class="pbs">Span <input type="range" id="pspan" min="25" max="300" step="25" value="${Math.round(PB.span*100)}" aria-label="Orbit span"></label>`;
   if(sel.t==='p'&&sel.k!=='Sun'&&sel.k!=='Moon'){let hl=null;try{hl=JPL.helio(sel.k,K.jd)}catch(e){}if(hl)h+=`<span class="pbn">Helio latitude ${hl.lat>=0?'+':''}${hl.lat.toFixed(2)}°</span>`}}
- if(SNAP0)h+=pbBtn('ret','↩ Return');h+=`<button data-pb="x" class="pbx" aria-label="Close ${PB.type==='arc'?'Arc':'Orbit'}">×</button>`;
+ if(SNAP0&&!h.includes('data-pb="ret"'))h+=RETB;h+=`<button data-pb="x" class="pbx" aria-label="Close ${PB.type==='arc'?'Arc':'Orbit'}">×</button>`;
  bar.innerHTML=h;bar.className='pbar'+(PB.type==='orbit'?' orbit':'');bar.hidden=ST.view!=='sky';document.body.classList.add('pbaropen')}
 function pList(title,rows){const el=$('plist');el.innerHTML=`<div class="ih"><b>${iEsc(title)}</b><button class="x" data-pl2="x" aria-label="Close list">×</button></div>`+(rows.length?rows.map((r,i)=>`<button class="pli" data-pl2="${i}">${r.html}</button>`).join(''):'<p class="sub">None in this window.</p>');el.hidden=false;el.onclick=e=>{const b=e.target.closest('[data-pl2]');if(!b)return;if(b.dataset.pl2==='x'){el.hidden=true;return}const r=rows[+b.dataset.pl2];if(r&&r.go)r.go()}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pb]');if(!b)return;const a=b.dataset.pb,sel=PB.sel;
  if(a==='x'){const M=PB.type==='arc'?IPATH.da:IPATH.op;M.delete(iKey(sel));pbClose();if(ISEL)infoShow();return}
  if(a==='ret'){pReturn();return}
- if(a.startsWith('ev:')){const e2=pEvent(sel,a.slice(3),K.jd);if(e2&&e2.jd)snapTo(e2.jd,sel);return}
+ if(a.startsWith('ev:')){const e2=pEvent(sel,a.slice(3),pBase());if(e2&&e2.jd)snapTo(e2.jd,sel,a,(PEV.find(x=>x[0]===a.slice(3))||[])[1]);return}
  if(a==='hrs'){PB.hours=!PB.hours;pbSave();pbDraw();return}
  if(a.startsWith('o:')){const k=a.slice(2);PB.o[k]=!PB.o[k];pbSave();pbDraw();return}
  if(a==='hel'){const R=pHeliacal(sel)||[],nm=Object.fromEntries(PHN),now=K.jd;R.sort((x,y)=>x.jd-y.jd);
-  pList(`${pName(sel)} · Heliacal`,R.map(r=>({html:`${nm[r.k]} <small>${pDate(r.jd)}/${zparts((r.jd-2440587.5)*864e5).y} ${pTime(r.jd)}${r.jd<now?' · past':''}</small>`,go:()=>{$('plist').hidden=true;snapTo(r.jd,sel)}})));
+  pList(`${pName(sel)} · Heliacal`,R.map(r=>({html:`${nm[r.k]} <small>${pDate(r.jd)}/${zparts((r.jd-2440587.5)*864e5).y} ${pTime(r.jd)}${r.jd<now?' · past':''}</small>`,go:()=>{$('plist').hidden=true;snapTo(r.jd,sel,'hel',nm[r.k])}})));
   const fi=R.findIndex(r=>r.jd>=now),el=$('plist').querySelectorAll('.pli')[fi];if(el)el.scrollIntoView({block:'nearest'});return}
  if(a==='par'){pList(`${pName(sel)} · Parallels`,pParallels(sel).map(x=>({html:`${x.kind}: ${iEsc(pName(x.o))} <small>${x.d>=0?'+':''}${x.d.toFixed(1)}° · orb ${x.orb.toFixed(1)}°</small>`,go:()=>{$('plist').hidden=true;ST.tapInfo=null;infoShow(x.o)}})));return}
- if(a==='prn'){pList(`${pName(sel)} · Parans`,pParans(sel).map(x=>({html:`${x.a.n} with ${iEsc(pName(x.o))} ${x.b.n} <small>${pTime(x.jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(x.jd,sel)}})));return}
- if(a==='sta'){const T=opTrack(sel.k),R=[];if(T)for(let i=1;i<T.pts.length;i++){const p0=T.pts[i-1],p1=T.pts[i];if(Math.sign(p0.s)!==Math.sign(p1.s)&&p0.s){const jd=T.jd+(p0.d+(p1.d-p0.d)*p0.s/(p0.s-p1.s));R.push({html:`${p1.s<0?'Stations Retrograde':'Stations Direct'} <small>${pDate(jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(jd,sel)}})}}
+ if(a==='prn'){pList(`${pName(sel)} · Parans`,pParans(sel).map(x=>({html:`${x.a.n} with ${iEsc(pName(x.o))} ${x.b.n} <small>${pTime(x.jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(x.jd,sel,'prn','Paran with '+pName(x.o))}})));return}
+ if(a==='sta'){const T=opTrack(sel.k),R=[];if(T)for(let i=1;i<T.pts.length;i++){const p0=T.pts[i-1],p1=T.pts[i];if(Math.sign(p0.s)!==Math.sign(p1.s)&&p0.s){const jd=T.jd+(p0.d+(p1.d-p0.d)*p0.s/(p0.s-p1.s));R.push({html:`${p1.s<0?'Stations Retrograde':'Stations Direct'} <small>${pDate(jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(jd,sel,'sta',p1.s<0?'Stations Retrograde':'Stations Direct')}})}}
   pList(`${pName(sel)} · Stations`,R);return}});
 document.addEventListener('input',e=>{if(e.target.id!=='pspan')return;PB.span=+e.target.value/100;OPC={};pbSave()});
 /* keep the bar's times current as the clock or the Time Machine moves */
@@ -1515,7 +1541,6 @@ $('charts').addEventListener('click',e=>{if(e.target.id==='ccreset'){CHO.sw=JSON
 chCenterUI();
 $('chtheme').addEventListener('click',()=>{CHO.theme=CHO.theme==='light'?'dark':'light';chSave();chCenterUI()});
 
-})();
-</script>
+})();</script>
 
 </body></html>
