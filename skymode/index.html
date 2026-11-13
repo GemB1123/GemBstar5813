@@ -132,6 +132,19 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 .bar #chtheme{font-size:24px;color:var(--gold)}
 #tmdock{position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom) + 62px);z-index:2;display:flex;gap:4px;justify-content:center}#tmdock[hidden]{display:none}#tmdock button{flex:1;min-height:40px;padding:0 4px;font-size:14px;max-width:64px;background:rgba(10,12,22,.82)}
 #chrow2{bottom:calc(env(safe-area-inset-bottom) + 62px)!important}body.docked #chrow2{bottom:calc(env(safe-area-inset-bottom) + 108px)!important}
+#skygazer{--col:#d1ab74;max-height:72vh}#skygazer .segs{display:flex;gap:6px;margin:6px 0;flex-wrap:wrap}#skygazer .seg{flex:1 1 auto;padding:8px 6px;border-radius:10px;border:1px solid var(--col);background:none;color:inherit;font:inherit;font-weight:600;font-size:13px}#skygazer .seg.on{background:var(--col);color:#0a0a0a}
+#skygazer .btns{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}#skygazer .btns button{flex:1 1 auto;min-height:38px;border-radius:10px;border:1.5px solid var(--col);background:none;color:var(--col);font-weight:700;font-size:13px;padding:0 10px}
+#skygazer .sug{margin-top:4px;border:1px solid rgba(255,255,255,.2);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.45)}#skygazer .sug div{padding:8px 10px;font-size:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+#skygazer .fl{display:flex;flex-direction:column;gap:4px;margin:8px 0;font-size:12px}#skygazer .fl>span{color:#b3a688}#skygazer input[type=text],#skygazer input[type=date],#skygazer input[type=time],#skygazer select{font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px 10px}
+#skygazer .cap{margin:10px 0 6px;font-size:11px;letter-spacing:.08em;color:var(--dim)}#skygazer .note,#skygazer small{color:var(--dim);font-size:12px}
+#skygazer .stgwhere{display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}#skygazer .stgcast{border:1px solid rgba(209,171,116,.45);border-radius:10px;padding:8px 10px;margin-bottom:8px}
+#skygazer .stgtabs{margin:6px 0 10px}#skygazer .stgtabs .seg{flex:1 1 28%;font-size:12px;padding:7px 4px}#skygazer .stgp p{font-size:15px;line-height:1.55;margin:4px 0 12px}
+#skygazer .stgtw{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 0 8px;font-weight:600}#skygazer .stgtbl{overflow-x:auto;margin:6px 0 10px}#skygazer .stgtbl table{width:100%;border-collapse:collapse;font-size:12.5px}
+#skygazer .stgtbl th,#skygazer .stgtbl td{padding:4px 6px;border-bottom:1px solid #4a3f2c;text-align:left;vertical-align:top}#skygazer .stgtbl thead th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+#skygazer .stgtbl td:first-child{white-space:nowrap}#skygazer .stgwk{margin:4px 0 12px;padding-left:18px;font-size:14px;line-height:1.5}#skygazer .stganim svg{width:100%;height:auto;border-radius:10px;display:block}
+#skygazer .stgctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px}#skygazer .stgmoon{display:flex;gap:14px;align-items:center;margin:8px 0}#skygazer .stgmoonf{width:96px;height:96px;flex:none}
+#skygazer .stglk{display:inline;min-height:0;width:auto;background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-align:inherit;text-decoration:underline dotted}
+.bar #sgzbtn svg{width:34px!important;height:34px!important}
 </style></head><body>
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
@@ -174,6 +187,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <div class="cap">TIME MACHINE</div><div class="row"><button id="dockb" aria-pressed="false">Dock The Time Machine</button></div><p class="sub">Docked, the Time Machine sits just above the menu bar, in the sky and in the chart.</p><div class="tm"><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button data-st="-1 min" aria-label="Back one minute">−M</button><button id="now2">Now</button><button data-st="1 min" aria-label="Forward one minute">+M</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button></div>
  <div class="tm tm2"><button id="pback" aria-label="Play backward" aria-pressed="false">◀</button><button id="ppause" aria-label="Pause" aria-pressed="true">❚❚</button><button id="pfwd" aria-label="Play forward" aria-pressed="false">▶</button><select id="pspd" aria-label="Play speed"></select></div>
  <div class="tm tm2"><button id="cminus" aria-label="Back by the step">−</button><input type="number" id="camt" value="1" min="1" inputmode="numeric" aria-label="Step amount"><select id="cunit" aria-label="Step unit"><option value="min">Minutes</option><option value="hour">Hours</option><option value="day">Days</option><option value="week">Weeks</option><option value="month">Months</option><option value="year" selected>Years</option><option value="century">Centuries</option><option value="millennium">Millennia</option></select><button id="cplus" aria-label="Forward by the step">+</button></div></div>
+<div id="skygazer" class="sheet" hidden role="dialog" aria-label="SkyGazer"><button class="x" data-close aria-label="Close">×</button><h3>SkyGazer</h3><div id="sgzbody"></div></div>
 <div id="s-circ" class="sheet" hidden role="dialog" aria-label="Circles"><button class="x" data-close aria-label="Close">×</button><h3>Circles</h3><div class="row"><button data-sw="ecl">Ecliptic</button><button data-sw="equ">Celestial Equator</button><button data-sw="mer">Meridian</button></div></div>
 <div id="s-agrid" class="sheet" hidden role="dialog" aria-label="Horizon Grid"><button class="x" data-close aria-label="Close">×</button><h3>Horizon Grid</h3><p class="sub">Altitude every 10°, azimuth every 15°.</p><div class="row"><button data-sw="agrid">Horizon Grid</button></div></div>
 <div id="s-div" class="sheet" hidden role="dialog" aria-label="Divisions"><button class="x" data-close aria-label="Close">×</button><h3>Divisions</h3><p class="sub">Marks on the zodiac band (or along the ecliptic when the band is off), in the chosen zodiac.</p><div class="row"><button data-sw="decd">Decan Dashes</button><button data-sw="decl">Decan Lines</button><button data-sw="dwad">Dwad Dashes</button></div><div class="cap">DECAN GUIDES</div><div class="row"><button data-sw="decg">Decan Guides</button></div><div class="row"><button data-dgm="trad">Traditional</button><button data-dgm="elem">Traditional By Element</button><button data-dgm="mod">Modern</button></div><div class="cap">BOUNDS</div><div class="row"><button data-sw="egb">Egyptian Bounds</button><button data-sw="ptb">Ptolemaic Bounds</button></div><p class="sub">Decan Guides sit on the band's bottom edge. Each bound shows its Guide's glyph: Ptolemaic on the top edge, Egyptian on the bottom edge (one row in when the Decan Guides are on).</p></div>
@@ -208,6 +222,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <button class="f ic sv" id="abtn" aria-label="Armillary: sky circles" aria-pressed="true"><canvas id="armi" width="64" height="64"></canvas></button>
  <button class="f ic" id="hbtn" aria-label="Houses" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M12 1.5v3M12 19.5v3"/><circle cx="12" cy="12" r="7.5"/><ellipse cx="12" cy="12" rx="3.2" ry="7.5"/><path d="M12 4.5v15"/><circle cx="12" cy="1.8" r=".9" fill="#d1ab74"/><circle cx="12" cy="22.2" r=".9" fill="#d1ab74"/></svg></button>
  <button class="f ic sv" id="obtn" aria-label="Constellations" aria-pressed="true"><svg viewBox="-2.6 0 24 24" style="stroke-width:.9"><path d="M3.5 2.0L1.6 5.5M5.1 2.2L2.5 5.2M1.6 5.5L2.7 9.0M2.5 5.2L2.7 9.0M2.7 9.0L3.9 10.8M3.9 10.8L7.6 10.0M7.6 10.0L9.0 12.1M9.0 12.1L15.4 12.3M14.4 10.1L15.3 10.9M15.3 10.9L15.4 12.3M15.4 12.3L15.2 13.3M15.2 13.3L14.6 15.2M14.6 15.2L13.9 15.7M3.9 10.8L6.0 17.2M9.0 12.1L7.6 16.6M6.0 17.2L6.8 17.0M6.8 17.0L7.6 16.6M6.0 17.2L4.6 22.4M7.6 16.6L11.0 22.1M4.6 22.4L11.0 22.1"/><g fill="#d1ab74" stroke="none"><circle cx="3.5" cy="2.0" r="0.85"/><circle cx="5.1" cy="2.2" r="0.85"/><circle cx="1.6" cy="5.5" r="0.85"/><circle cx="2.5" cy="5.2" r="0.85"/><circle cx="2.7" cy="9.0" r="0.85"/><circle cx="3.9" cy="10.8" r="1.5"/><circle cx="7.6" cy="10.0" r="1.2"/><circle cx="9.0" cy="12.1" r="0.85"/><circle cx="14.4" cy="10.1" r="0.85"/><circle cx="15.3" cy="10.9" r="0.85"/><circle cx="15.4" cy="12.3" r="0.85"/><circle cx="15.2" cy="13.3" r="0.85"/><circle cx="14.6" cy="15.2" r="0.85"/><circle cx="13.9" cy="15.7" r="0.85"/><circle cx="6.0" cy="17.2" r="1"/><circle cx="6.8" cy="17.0" r="1"/><circle cx="7.6" cy="16.6" r="1"/><circle cx="4.6" cy="22.4" r="1.1"/><circle cx="11.0" cy="22.1" r="1.5"/></g></svg></button>
+ <button class="f ic sv" id="sgzbtn" aria-label="SkyGazer: what to see in the sky tonight"><svg viewBox="0 0 100 100"><path d="M6 88Q50 80 94 88" fill="none" stroke="#d1ab74" stroke-width="1.6" stroke-linecap="round"/><circle cx="36" cy="34" r="6" fill="none" stroke="#d1ab74" stroke-width="2.3"/><path d="M36 40V64M36 64L30 86M36 64L42 86M36 46L55 24M36 48L50 64" fill="none" stroke="#d1ab74" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="62" cy="56" r="4.5" fill="none" stroke="#d1ab74" stroke-width="2.1"/><path d="M62 61V74M62 74L58 86M62 74L66 86M62 65L51 64M62 64L68 58" fill="none" stroke="#d1ab74" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/><path d="M71 12V22M66 17H76M86 28V34M83 31H89M58 10V14M56 12H60M88 10V14M86 12H90" fill="none" stroke="#d1ab74" stroke-width="1.6" stroke-linecap="round"/></svg></button>
  <button class="f ic cv" id="chrbtn" aria-label="Transits, progressions, solar arc, and synastry" aria-pressed="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="6"/><path d="M12 2.5v3.5M12 18v3.5M2.5 12H6M18 12h3.5"/><path d="M17.5 4.2l2 1.8-2 1.8" style="stroke-width:1.5"/></svg></button>
  <button class="f ic cv" id="chmenu" aria-label="Chart menu" title="Chart menu"><svg viewBox="0 0 24 24"><path d="M4 6.5h16M4 12h16M4 17.5h16"/></svg></button>
  <button class="f ic cv" id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button>
@@ -589,6 +604,633 @@ function eclipses(j0,j1){const out=[];for(const z of syzygies(j0-1,j1+1)){const 
 function moonGeo(jd){const t=toRaDec(moonRect(jd));t.sd=Math.asin(1737.4/t.dist)/R;return t}
 function sunGeo(jd){const t=toRaDec(sunRect(jd));t.sd=Math.asin(696000/t.dist)/R;return t}
 window.EA_EPH={moonGeo,sunGeo,deltaT,moon,sun,obliq,gmst,eq,moonTopo,sunTopo,sep,altOf,azOf,elong,syzygies,solarEclipse,solarLocal,lunarAt,lunarEclipse,eclipses,overlap,moonRect,sunRect,obsRect,toRaDec};
+})();
+</script>
+<script>/* ---------- Stargazing World (slot 2.6): naked-eye sky viewing ----------
+   Gemini, Nov 7, 2026: tap Stargazing and read a paragraph of recommended sky viewing for the day and the week; tabs hold
+   Rise / Reach / Rest / Root times (the four Rs), parans, and the year's sky calendar (meteor showers, Milky Way gates,
+   zodiacal light, constellations). Links both ways with the Planetarium (Feet On The Ground).
+   Registers window.EA_WORLDS.stargazing; the core calls it lazily with its API and gets back {box, act}.
+   Positions come from the core (longitudes) and the Planetarium (latitudes, obliquity, precession), so all three agree.
+   Every list and wording is data (SG_CFG and the tables below), so it can be edited later. */
+(function(){'use strict';
+window.EA_WORLDS=window.EA_WORLDS||{};
+window.EA_WORLDS.stargazing=function(A){
+const {S,positions,jdOf,HOME,head,esc,opt,rad,deg,n360,renderAll,pickerHTML,cpRegister,localToMs,parts,toast,pln,openSky}=A;
+const AST=()=>pln().astro;
+
+const SG_CFG={
+ step:10,                 /* minutes between samples when hunting rise, set, and culmination times */
+ h0:{Sun:-.833,Moon:.125,def:-.567},   /* altitude of the upper limb at rising, refraction included */
+ viewSun:-10,             /* the Sun's altitude when the paragraph looks at the sky (dark enough for planets and bright stars) */
+ outSun:-14,              /* "get out by": the Sun's altitude a little earlier, while the sky is still dark */
+ darkSun:-18,             /* full darkness, for the Milky Way and the zodiacal light */
+ near:{pp:5,ps:5,mp:8,ms:7},  /* degrees that count as "together": planet-planet, planet-star, Moon-planet, Moon-star */
+ naked:['Moon','Mercury','Venus','Mars','Jupiter','Saturn'],
+ minAlt:{def:4,Mercury:3,Moon:2}
+};
+const SG_BODIES=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+/* how the paragraph names each planet */
+const SG_DESC={Moon:'the Moon',Mercury:'elusive Mercury',Venus:'incredibly bright Venus',Mars:'ruddy Mars',Jupiter:'bright Jupiter',Saturn:'golden Saturn'};
+/* stars, J2000 right ascension and declination in degrees (Yale Bright Star Catalog, public domain) and magnitude */
+const SG_STARS={Algol:[47.042,40.956,2.12],Alcyone:[56.871,24.105,2.87],Aldebaran:[68.98,16.509,.85],Capella:[79.172,45.998,.08],Sirius:[101.287,-16.716,-1.46],
+ Procyon:[114.825,5.225,.38],Regulus:[152.093,11.967,1.35],Alkaid:[206.885,49.313,1.86],Algorab:[187.466,-16.515,2.95],Spica:[201.298,-11.161,.98],
+ Arcturus:[213.915,19.183,-.04],Alphecca:[233.672,26.715,2.23],Antares:[247.352,-26.432,.96],Vega:[279.235,38.784,.03],'Deneb Algedi':[326.760,-16.127,2.87],
+ Elnath:[81.573,28.608,1.65],Pollux:[116.329,28.026,1.14],Castor:[113.65,31.888,1.98],Hamal:[31.793,23.462,2],Sheratan:[28.660,20.808,2.64],
+ Porrima:[190.415,-1.449,2.74],Zubenelgenubi:[222.720,-16.042,2.75],Zubeneschamali:[229.252,-9.383,2.61],Acrab:[241.359,-19.806,2.62],Dschubba:[240.083,-22.622,2.32],
+ Nunki:[283.816,-26.297,2.02],Fomalhaut:[344.413,-29.622,1.16]};
+/* the fifteen Behenian stars of the medieval Hermetic tradition (Alcyone stands for the Pleiades) */
+const SG_BEHEN=['Algol','Alcyone','Aldebaran','Capella','Sirius','Procyon','Regulus','Alkaid','Algorab','Spica','Arcturus','Alphecca','Antares','Vega','Deneb Algedi'];
+/* Ecliptic Stars (Gemini, Nov 7): stars within 10 degrees of ecliptic latitude, brightest first. In the twelve zodiac
+   constellations: every named star of magnitude 3.0 or brighter, plus the brightest of any that has none. Elsewhere
+   (Ophiuchus and the rest): every star of magnitude 4.0 or brighter. Castor (10.1 degrees) is added by name (Gemini).
+   Built from the Planetarium's star data (Yale Bright Star Catalog); each one is added to SG_STARS. */
+const SG_ZOD=['Ari','Tau','Gem','Cnc','Leo','Vir','Lib','Sco','Sgr','Cap','Aqr','Psc'];
+const SG_GEN={Oph:'Ophiuchi',Ser:'Serpentis',Cet:'Ceti',Aur:'Aurigae',Peg:'Pegasi',Crv:'Corvi',Hya:'Hydrae',Sex:'Sextantis',Cnc:'Cancri',Psc:'Piscium'};
+const SG_ECL_ADD=['Castor'];
+const SG_ECL=(()=>{const D=window.EA_PLN_SKY,e0=23.4392911*Math.PI/180,R=Math.PI/180,c=[];if(!D||!D.info)return ['Aldebaran','Regulus','Spica','Antares'];
+ D.stars.forEach((s,i)=>{const f=D.info[i];if(!f)return;const r=s[0]*R,d=s[1]*R,lat=Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r))/R;
+  const n=f[7]||(f[2]&&SG_GEN[f[4]]?f[2]+' '+SG_GEN[f[4]]:'');if(!n)return;const zod=SG_ZOD.includes(f[4]);
+  if(Math.abs(lat)<=10.05&&(zod?!!f[7]:s[2]<=4.0)||SG_ECL_ADD.includes(n))c.push({n,con:f[4],zod,ra:s[0],dec:s[1],mag:s[2]})});
+ c.sort((a,b)=>a.mag-b.mag);const pick=c.filter(x=>!x.zod||x.mag<=3.0||SG_ECL_ADD.includes(x.n));for(const z of SG_ZOD)if(!pick.some(x=>x.con===z)){const b=c.find(x=>x.con===z);if(b)pick.push(b)}
+ pick.sort((a,b)=>a.mag-b.mag);const seen={};return pick.filter(x=>!seen[x.n]&&(seen[x.n]=1)).map(x=>{if(!SG_STARS[x.n])SG_STARS[x.n]=[x.ra,x.dec,x.mag];return x.n})})();
+const SG_ROYAL=['Aldebaran','Regulus','Antares','Fomalhaut'];
+/* stars the paragraph may name beside the Moon and planets: bright ones on the Moon's and planets' road */
+const SG_TALK=['Alcyone','Aldebaran','Elnath','Castor','Pollux','Regulus','Spica','Antares','Nunki','Fomalhaut'];
+const SG_STAR_LABEL={Alcyone:'the Pleiades'};
+/* table and paran names: Alcyone stands for the Pleiades and is called Pleiades (Gemini, Nov 7) */
+const tblName=k=>k==='Alcyone'?'Pleiades':k;
+/* Add A Star (Gemini, Nov 7): type any star's name and get its angle times; searches the Planetarium's 9,096 stars */
+const SG_GREEK={alpha:'\u03b1',beta:'\u03b2',gamma:'\u03b3',delta:'\u03b4',epsilon:'\u03b5',zeta:'\u03b6',eta:'\u03b7',theta:'\u03b8',iota:'\u03b9',kappa:'\u03ba',lambda:'\u03bb',mu:'\u03bc',nu:'\u03bd',xi:'\u03be',omicron:'\u03bf',pi:'\u03c0',rho:'\u03c1',sigma:'\u03c3',tau:'\u03c4',upsilon:'\u03c5',phi:'\u03c6',chi:'\u03c7',psi:'\u03c8',omega:'\u03c9'};
+/* spellings vary a lot, so the search ignores spaces, hyphens, apostrophes, and accents, knows other common names,
+   reads "alpha Lyrae" or "alpha Lyr", and falls back to near-misses (up to two letters off) */
+const SG_ALIAS={'north star':'Polaris','pole star':'Polaris','pleiades':'Alcyone','seven sisters':'Alcyone','gemma':'Alphecca','benetnasch':'Alkaid','betelgeux':'Betelgeuse','formalhaut':'Fomalhaut',
+ 'ras alhague':'Rasalhague','rasalgethi':'Rasalgethi','zuben elgenubi':'Zubenelgenubi','zuben eschamali':'Zubeneschamali','dog star':'Sirius','bulls eye':'Aldebaran','heart of the scorpion':'Antares',
+ 'cor leonis':'Regulus','cor scorpii':'Antares','alpha centauri':'Rigil Kentaurus','rigil kent':'Rigil Kentaurus','toliman':'Rigil Kentaurus','vindemiatrix':'Vindemiatrix','al nath':'Elnath','alnath':'Elnath',
+ 'algenubi':'Ras Elased Australis','prima giedi':'Algedi','deneb algiedi':'Deneb Algedi','scheat':'Scheat','alpheratz':'Alpheratz','sirrah':'Alpheratz','mirfak':'Mirfak','algorab':'Algorab','gienah corvi':'Gienah'};
+const SG_GENA={andromedae:'And',aquarii:'Aqr',aquilae:'Aql',arietis:'Ari',aurigae:'Aur',bootis:'Boo',cancri:'Cnc',canis_majoris:'CMa',canis_minoris:'CMi',capricorni:'Cap',carinae:'Car',cassiopeiae:'Cas',centauri:'Cen',cephei:'Cep',ceti:'Cet',coronae_borealis:'CrB',corvi:'Crv',crucis:'Cru',cygni:'Cyg',draconis:'Dra',eridani:'Eri',geminorum:'Gem',herculis:'Her',hydrae:'Hya',leonis:'Leo',leporis:'Lep',librae:'Lib',lyrae:'Lyr',ophiuchi:'Oph',orionis:'Ori',pegasi:'Peg',persei:'Per',piscis_austrini:'PsA',piscium:'Psc',sagittarii:'Sgr',scorpii:'Sco',serpentis:'Ser',tauri:'Tau',ursae_majoris:'UMa',ursae_minoris:'UMi',virginis:'Vir'};
+const sgNorm=t=>t.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[\s'’\-.]/g,'');
+function sgLev(a,b){if(Math.abs(a.length-b.length)>2)return 9;let p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){const c=[i];for(let j=1;j<=b.length;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[b.length]}
+let SG_IDX=null;
+function starIndex(){if(SG_IDX)return SG_IDX;const D=window.EA_PLN_SKY;SG_IDX=[];if(!D||!D.info)return SG_IDX;
+ D.stars.forEach((s,i)=>{const f=D.info[i];if(!f)return;const nm=f[7]||'',bay=f[2]?f[2]+' '+f[4]:'';if(!nm&&!bay)return;SG_IDX.push({n:nm||bay,nm,bay,k:sgNorm(nm),kb:sgNorm(bay),ra:s[0],dec:s[1],mag:s[2]})});return SG_IDX}
+function starSearch(q){const I=starIndex();let t=q.trim().toLowerCase();if(t.length<2)return [];
+ if(SG_ALIAS[t])t=SG_ALIAS[t].toLowerCase();
+ for(const g in SG_GREEK)if(t.startsWith(g+' '))t=SG_GREEK[g]+' '+t.slice(g.length+1);
+ const gm=/^(\S+)\s+(.+)$/.exec(t);if(gm){const ab=SG_GENA[gm[2].trim().replace(/\s+/g,'_')];if(ab)t=gm[1]+' '+ab.toLowerCase()}
+ const k=sgNorm(t),seen={},out=[],push=(x,why)=>{if(seen[x.n])return;seen[x.n]=1;out.push(Object.assign({why},x))};
+ for(const x of I)if((x.k&&x.k.startsWith(k))||(x.kb&&x.kb.startsWith(k)))push(x,0);
+ if(k.length>2)for(const x of I)if(x.k&&x.k.includes(k))push(x,1);
+ if(!out.length&&k.length>=4)for(const x of I)if(x.k&&sgLev(k,x.k.slice(0,Math.max(k.length,x.k.length)))<=2)push(x,2);
+ return out.sort((a,b)=>a.why-b.why||a.mag-b.mag).slice(0,8).map(x=>({n:x.n,ra:x.ra,dec:x.dec,mag:x.mag,lab:(x.nm?x.nm+(x.bay?' ('+x.bay+')':''):x.bay)+', magnitude '+x.mag}))}
+const starAddHTML=()=>{const G=sgS();return `<label class="fl"><span>Add A Star</span><input type="text" class="srch" id="stg-star" placeholder="Type a star name, like Altair or alpha Lyr" value="${esc(G.sq||'')}" autocomplete="off"></label><div class="sug" id="stg-ssug" ${G.ssug.length?'':'hidden'}>${G.ssug.map((p,i)=>`<div data-act="stgstar" data-id="${i}">${esc(p.lab)}</div>`).join('')}</div>${G.extra.length?`<div class="btns">${G.extra.map(n=>`<button data-act="stgunstar" data-id="${esc(n)}" aria-label="Remove ${esc(n)}">${esc(n)} &times;</button>`).join('')}</div>`:''}`};
+/* Brightest Stars (Gemini, Nov 7): every star of magnitude 1.5 or brighter, the "first magnitude" stars, from the star data */
+const SG_BRIGHT=(()=>{const D=window.EA_PLN_SKY;if(!D||!D.info)return ['Sirius','Arcturus','Vega','Capella','Altair'];
+ return D.stars.map((s,i)=>({s,f:D.info[i]})).filter(x=>x.f&&x.f[7]&&x.s[2]<=1.5).sort((a,b)=>a.s[2]-b.s[2]).map(x=>{const n=x.f[7];if(!SG_STARS[n])SG_STARS[n]=[x.s[0],x.s[1],x.s[2]];return n})})();
+/* Milky Way gates: the galactic center and anti-center (J2000) */
+const SG_GATES=[['golden','The Golden Gate','the Golden Gate of the Milky Way, the galactic center in the Archer',266.405,-28.936],
+ ['silver','The Silver Gate','the Silver Gate of the Milky Way, the galactic anti-center between the Bull and the Twins',86.405,28.936]];
+/* annual meteor showers (International Meteor Organization calendar; peak month and day vary by a day or so each year).
+   [name, start m/d, peak m/d, end m/d, meteors an hour at best, radiant, best time, note] */
+const SG_METEORS=[['Quadrantids',[12,28],[1,3],[1,12],110,'Boötes, below the Big Dipper’s handle','before dawn','a short, sharp peak'],
+ ['Lyrids',[4,14],[4,22],[4,30],18,'Lyra, near Vega','before dawn',''],
+ ['Eta Aquariids',[4,19],[5,6],[5,28],50,'the Water Bearer','before dawn','dust from Halley’s Comet; best from the south'],
+ ['Southern Delta Aquariids',[7,12],[7,30],[8,23],25,'the Water Bearer','before dawn',''],
+ ['Perseids',[7,17],[8,12],[8,24],100,'Perseus','after midnight','dust from Comet Swift-Tuttle'],
+ ['Draconids',[10,6],[10,8],[10,10],10,'Draco','evening',''],
+ ['Southern Taurids',[9,10],[10,10],[11,20],5,'the Bull','around midnight','slow, bright fireballs'],
+ ['Orionids',[10,2],[10,21],[11,7],20,'Orion','before dawn','dust from Halley’s Comet'],
+ ['Northern Taurids',[10,20],[11,12],[12,10],5,'the Bull','around midnight','slow, bright fireballs'],
+ ['Leonids',[11,6],[11,17],[11,30],15,'the Lion','before dawn','dust from Comet Tempel-Tuttle'],
+ ['Geminids',[12,4],[12,14],[12,20],150,'the Twins','all night','the year’s richest shower'],
+ ['Ursids',[12,17],[12,22],[12,26],10,'the Little Dipper','before dawn','']];
+/* constellations and asterisms worth finding by eye: [name, RA, Dec] of their middles (J2000, degrees). Zodiac names are the Device's. */
+const SG_CONS=[['Orion',84,2],['The Big Dipper',178,55],['Cassiopeia',15,60],['The Summer Triangle',295,30],['The Northern Cross (Cygnus)',308,42],['The Great Square of Pegasus',354,22],
+ ['The Southern Cross',187,-60],['Sirius and the Great Dog',104,-22],['Perseus',53,45],['Auriga and Capella',85,42],['Boötes and Arcturus',216,30],['The Pleiades',57,24],
+ ['The Ram',40,20],['The Bull',66,16],['The Twins',110,24],['The Crab',129,20],['The Lion',160,15],['The Priestess',195,-3],['The Scales',228,-15],['The Scorpion',252,-30],
+ ['The Archer',285,-28],['The SeaGoat',315,-18],['The Water Bearer',334,-10],['The Fishes',10,12]];
+const SG_TABS=[['tonight','Tonight'],['moon','Moon'],['rise','Rise And Set'],['parans','Parans'],['events','Sky Events'],['occ','Occultations'],['ecl','Eclipses'],['cal','Sky Calendar']];
+const SG_EV=[['rise','rising'],['cul','reaching'],['set','resting'],['anti','rooting']];   /* Gemini, Nov 13: the four Rs, Rise, Reach, Rest, Root */
+const SG_DEF={tab:'tonight',beh:false,ecl:false,bri:false,cons:false,consAll:false,extra:[],sq:'',ssug:[],orb:4,pp:true,loc:null,date:null,chart:null,q:'',sug:[],pick:false,where:false,occDays:30,anim:null,geo:false,mph:'p12',mt:''};
+function sgS(){if(!S.stg)S.stg=Object.assign({},SG_DEF);for(const k in SG_DEF)if(!(k in S.stg))S.stg[k]=SG_DEF[k];return S.stg}
+
+/* ---- where and when: a place cast here, then a chart picked here, then the most recently cast chart, then Home (Oakland by default) ---- */
+function sgPlace(){const G=sgS();if(G.loc)return Object.assign({src:'cast'},G.loc);
+ if(G.chart&&G.chart.place)return Object.assign({src:'chart'},G.chart.place);
+ const r=S.recents&&S.recents[0];if(r&&r.place&&r.place.lat!=null)return Object.assign({src:'recent',from:r.name},r.place);
+ return {src:'home',label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}}
+const p2=n=>String(n).padStart(2,'0');
+function sgDate(pl){const G=sgS();if(G.date)return G.date;if(G.chart&&G.chart.date)return G.chart.date;const p=parts(Date.now(),pl.tz);return p.y+'-'+p2(p.m)+'-'+p2(p.d)}
+function sgToday(pl){const p=parts(Date.now(),pl.tz);return p.y+'-'+p2(p.m)+'-'+p2(p.d)}
+const ymd=s=>s.split('-').map(Number);
+const midnight=(ds,pl)=>{const [y,m,d]=ymd(ds);return localToMs(y,m,d,0,0,0,pl)};
+const addDays=(ds,n)=>{const [y,m,d]=ymd(ds),t=new Date(Date.UTC(y,m-1,d+n));return t.getUTCFullYear()+'-'+p2(t.getUTCMonth()+1)+'-'+p2(t.getUTCDate())};
+const wday=(ds)=>{const [y,m,d]=ymd(ds);return ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date(Date.UTC(y,m-1,d)).getUTCDay()]};
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const longDate=ds=>{const [y,m,d]=ymd(ds);return wday(ds)+', '+MON[m-1]+' '+d+', '+y};
+function hm(ms,pl){if(ms==null)return '';const p=parts(ms,pl.tz),h=p.h%12||12;return h+':'+p2(p.mi)+' '+(p.h<12?'AM':'PM')}
+
+/* ---- sky math ---- */
+const lstOf=(jd,lon)=>n360(280.46061837+360.98564736629*(jd-2451545)+lon);
+function bodiesEq(jd){const a=AST(),pos=positions(jd),lat=a.eclLat(jd),eps=a.obliq(jd),o={};
+ for(const k of SG_BODIES){const q=a.eq(pos[k],lat[k]||0,eps);o[k]={ra:q[0],dec:q[1],lon:pos[k],lat:lat[k]||0}}return o}
+/* a J2000 star brought to the date: to ecliptic, add precession, back to the equator */
+function starEq(nm,jd){const s=SG_STARS[nm],a=AST(),e0=rad(23.4392911),r=rad(s[0]),d=rad(s[1]);
+ const lon=deg(Math.atan2(Math.sin(r)*Math.cos(e0)+Math.tan(d)*Math.sin(e0),Math.cos(r))),lat=deg(Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r)));
+ const q=a.eq(n360(lon+a.prec(jd)),lat,a.obliq(jd));return {ra:q[0],dec:q[1],lon:n360(lon+a.prec(jd)),lat}}
+function fixedEq(ra,dec,jd){const a=AST(),e0=rad(23.4392911),r=rad(ra),d=rad(dec);
+ const lon=deg(Math.atan2(Math.sin(r)*Math.cos(e0)+Math.tan(d)*Math.sin(e0),Math.cos(r))),lat=deg(Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r)));
+ const q=a.eq(n360(lon+a.prec(jd)),lat,a.obliq(jd));return {ra:q[0],dec:q[1]}}
+function altAz(q,jd,pl){const H=rad(lstOf(jd,pl.lon)-q.ra),d=rad(q.dec),p=rad(pl.lat);
+ const alt=Math.asin(Math.sin(p)*Math.sin(d)+Math.cos(p)*Math.cos(d)*Math.cos(H));
+ const az=Math.atan2(-Math.cos(d)*Math.sin(H),Math.sin(d)*Math.cos(p)-Math.cos(d)*Math.sin(p)*Math.cos(H));
+ return {alt:deg(alt),az:n360(deg(az)),ha:((lstOf(jd,pl.lon)-q.ra)%360+540)%360-180}}
+const sep=(a,b)=>deg(Math.acos(Math.max(-1,Math.min(1,Math.sin(rad(a.dec))*Math.sin(rad(b.dec))+Math.cos(rad(a.dec))*Math.cos(rad(b.dec))*Math.cos(rad(a.ra-b.ra))))));
+function eqOf(k,jd){return SG_STARS[k]?starEq(k,jd):bodiesEq(jd)[k]}
+const hz=(k,jd,pl)=>altAz(eqOf(k,jd),jd,pl);
+/* find where f(t) crosses zero going up (dir 1), down (-1) or either (0) between t0 and t1; refine by halving */
+function crossings(f,t0,t1,dir,stepMin){const st=(stepMin||SG_CFG.step)*60000,out=[];let ta=t0,fa=f(ta);
+ for(let tb=t0+st;tb<=t1+1;tb+=st){const fb=f(tb);if(fa!=null&&fb!=null&&((fa<0&&fb>=0&&dir>=0)||(fa>=0&&fb<0&&dir<=0))&&Math.abs(fb-fa)<90){let a=ta,b=tb,va=fa;
+   for(let i=0;i<12;i++){const m=(a+b)/2,vm=f(m);if((va<0)===(vm<0)){a=m;va=vm}else b=m}out.push({t:(a+b)/2,up:fa<0})}ta=tb;fa=fb}return out}
+const jdAt=t=>jdOf(t);
+/* rise, culmination, set, and anti-culmination of one object over a local day */
+function events(k,t0,pl){const t1=t0+864e5,h0=SG_CFG.h0[k]!=null?SG_CFG.h0[k]:SG_CFG.h0.def,A=t=>hz(k,jdAt(t),pl);
+ const r=crossings(t=>A(t).alt-h0,t0,t1,1)[0],s=crossings(t=>A(t).alt-h0,t0,t1,-1)[0],c=crossings(t=>A(t).ha,t0,t1,1)[0];
+ const an=crossings(t=>{const h=A(t).ha;return h<0?h+180:h-180},t0,t1,1)[0];
+ const o={rise:r&&r.t,set:s&&s.t,cul:c&&c.t,anti:an&&an.t};if(o.cul)o.culAlt=A(o.cul).alt;
+ if(!o.rise&&!o.set){const a=A(t0+432e5).alt,d=eqOf(k,jdAt(t0)).dec;o.note=(pl.lat>=0?d>0:d<0)&&a>h0?'Up all day':Math.abs(d)>90-Math.abs(pl.lat)?'Never rises':(a>h0?'Up all day':'Below the horizon all day')}
+ return o}
+function sunAt(level,from,to,dir){return crossings(t=>hz('Sun',jdAt(t),pl0).alt-level,from,to,dir,15)}
+let pl0=null;
+/* the twilight times for a local day */
+function sunDay(t0,pl){pl0=pl;const t1=t0+864e5,o={};for(const [k,l] of [['astro',-18],['naut',-12],['civil',-6],['rise',-.833]]){o[k+'Up']=(sunAt(l,t0,t1,1)[0]||{}).t;o[k+'Dn']=(sunAt(l,t0,t1,-1)[0]||{}).t}return o}
+
+/* ---- the paragraph ---- */
+const COMPASS=['north','northeast','east','southeast','south','southwest','west','northwest'];
+const dirOf=az=>COMPASS[Math.round(n360(az)/45)%8];
+function height(alt,az){const d=dirOf(az);return alt<12?'low in the '+d:alt>75?'high overhead':alt>35?'high in the '+d:'in the '+d}
+function moonPhase(jd){const b=bodiesEq(jd),e=n360(b.Moon.lon-b.Sun.lon),ill=(1-Math.cos(rad(e)))/2;
+ const name=e<8||e>352?'new Moon':e<82?'young crescent Moon':e<98?'first quarter Moon':e<172?'waxing gibbous Moon':e<188?'full Moon':e<262?'waning gibbous Moon':e<278?'last quarter Moon':'elder crescent Moon';
+ return {e,ill,name}}
+function nameOf(k,jd){if(k==='Moon')return 'the '+moonPhase(jd).name;if(SG_DESC[k])return SG_DESC[k];return (SG_ROYAL.includes(k)?'royal star ':'')+(SG_STAR_LABEL[k]||k)}
+const listAnd=a=>a.length<2?a.join(''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+/* what is up at a moment, and who is with whom */
+function scene(t,pl){const jd=jdAt(t),B=bodiesEq(jd),sun=B.Sun,up=[];
+ for(const k of SG_CFG.naked){const q=B[k],h=altAz(q,jd,pl),min=SG_CFG.minAlt[k]!=null?SG_CFG.minAlt[k]:SG_CFG.minAlt.def;
+  if(h.alt<min||sep(q,sun)<(k==='Moon'?12:k==='Mercury'?9:7))continue;if(k==='Moon'&&moonPhase(jd).ill<.02)continue;up.push({k,q,h,star:false})}
+ for(const k of SG_TALK){const q=starEq(k,jd),h=altAz(q,jd,pl);if(h.alt>=6&&sep(q,sun)>20)up.push({k,q,h,star:true})}
+ /* group objects that sit together; a star only joins a group that has a planet or the Moon */
+ const N=SG_CFG.near,lim=(a,b)=>a.star&&b.star?-1:(a.k==='Moon'||b.k==='Moon')?(a.star||b.star?N.ms:N.mp):(a.star||b.star?N.ps:N.pp);
+ const par=up.map((_,i)=>i),f=i=>par[i]===i?i:(par[i]=f(par[i]));
+ for(let i=0;i<up.length;i++)for(let j=i+1;j<up.length;j++)if(sep(up[i].q,up[j].q)<=lim(up[i],up[j]))par[f(i)]=f(j);
+ const G={};up.forEach((o,i)=>{(G[f(i)]=G[f(i)]||[]).push(o)});
+ return Object.values(G).filter(g=>g.some(o=>!o.star)).map(g=>{const alt=g.reduce((s,o)=>s+o.h.alt,0)/g.length,az=deg(Math.atan2(g.reduce((s,o)=>s+Math.sin(rad(o.h.az)),0),g.reduce((s,o)=>s+Math.cos(rad(o.h.az)),0)));
+  return {g,alt,az,score:g.reduce((s,o)=>s+(o.star?1:o.k==='Venus'||o.k==='Moon'?5:o.k==='Jupiter'?4:3),0)+(g.length>1?6:0)}}).sort((a,b)=>b.score-a.score)}
+/* one group as words: "Mars and Jupiter dancing with royal star Regulus in the south" */
+function groupWords(c,jd){const pl=c.g.filter(o=>!o.star&&o.k!=='Moon').sort((a,b)=>(SG_STARS[a.k]?9:0)-(SG_STARS[b.k]?9:0)),moon=c.g.find(o=>o.k==='Moon'),st=c.g.filter(o=>o.star),where=height(c.alt,c.az);
+ const P=pl.map(o=>nameOf(o.k,jd)),St=st.map(o=>nameOf(o.k,jd));
+ if(moon&&P.length)return nameOf('Moon',jd)+' embracing '+listAnd(P)+(St.length?' near '+listAnd(St):'')+' '+where;
+ if(moon)return nameOf('Moon',jd)+(St.length?' beside '+listAnd(St):' shining')+' '+where;
+ if(P.length>1)return listAnd(P.map((x,i)=>i?x.replace(/^(incredibly bright|bright|ruddy|golden|elusive) /,''):x))+' dancing together'+(St.length?' with '+listAnd(St):'')+' '+where;
+ return P[0]+(St.length?' near '+listAnd(St):' shining')+' '+where}
+/* the next time the Sun crosses a level going up (morning) or down (evening) after t */
+function sunCross(level,t,dir,span){const c=crossings(u=>hz('Sun',jdAt(u),pl0).alt-level,t,t+(span||36*36e5),dir,15);return c[0]&&c[0].t}
+function meteorsOn(ds){const [y,m,d]=ymd(ds),day=(yy,md)=>Date.UTC(yy,md[0]-1,md[1])/864e5,t=day(y,[m,d]),out=[];
+ for(const s of SG_METEORS){const wrap=s[1][0]>s[3][0];for(const yy of [y,y+1]){const a=day(wrap?yy-1:yy,s[1]),e=day(yy,s[3]),pk=day(wrap&&s[2][0]>=s[1][0]?yy-1:yy,s[2]);
+  if(t>=a&&t<=e){out.push({s,days:Math.round(pk-t)});break}}}return out}
+function gateWindow(gate,t0,pl){const dk=sunCross(SG_CFG.darkSun,t0+12*36e5,-1,24*36e5),dn=dk&&sunCross(SG_CFG.darkSun,dk,1,24*36e5);if(!dk||!dn)return null;
+ let first=null,last=null,best=-90,bestT=null;for(let t=dk;t<=dn;t+=15*6e4){const q=fixedEq(gate[3],gate[4],jdAt(t)),h=altAz(q,jdAt(t),pl);if(h.alt>=15){if(!first)first=t;last=t}if(h.alt>best){best=h.alt;bestT=t}}
+ return first?{first,last,best,bestT,az:altAz(fixedEq(gate[3],gate[4],jdAt(bestT)),jdAt(bestT),pl).az,dk,dn}:{none:true,best,dk,dn}}
+/* zodiacal light: the ecliptic stands tall above the horizon 60 degrees from the Sun at full dark */
+function zodLight(t,dir,pl){const jd=jdAt(t),B=bodiesEq(jd),a=AST(),q=a.eq(n360(B.Sun.lon+(dir<0?60:-60)),0,a.obliq(jd));return altAz({ra:q[0],dec:q[1]},jd,pl).alt}
+
+/* a chart picked here: what stood above the horizon at the moment it was cast */
+let castEve=false;
+function castWords(pl){castEve=false;const G=sgS(),r=G.chart;if(!r||G.date||!r.time||r.unknown)return '';const [y,m,d]=ymd(r.date),t=r.time.split(':').map(Number),ms=localToMs(y,m,d,t[0]||0,t[1]||0,t[2]||0,r.place),jd=jdAt(ms),B=bodiesEq(jd);
+ const sun=altAz(B.Sun,jd,pl).alt,up=SG_CFG.naked.filter(k=>altAz(B[k],jd,pl).alt>0&&sep(B[k],B.Sun)>8).map(k=>nameOf(k,jd)+' '+height(altAz(B[k],jd,pl).alt,altAz(B[k],jd,pl).az));
+ castEve=sun<-6&&(t[0]||0)>=12;const sky=sun>0?'in daylight':sun>-6?'in the glow of twilight':sun>-18?'as twilight deepened':'under a dark sky';
+ return 'At '+hm(ms,pl)+', the moment this chart was cast, '+(up.length?listAnd(up)+' stood above the horizon '+sky:'the planets were below the horizon or lost in the Sun\u2019s light, and the stars shone '+sky)+'. '}
+function paragraphs(){const pl=sgPlace();pl0=pl;const ds=sgDate(pl),today=sgToday(pl),mode=ds<today?'past':ds>today?'future':'now',t0=midnight(ds,pl),past=mode==='past';
+ const tN=mode==='now'?Date.now():t0+12*36e5,out={day:'',week:'',mode,ds,pl};
+ /* morning: the coming dawn (this morning while it is still dark, else tomorrow); evening: this date's dusk */
+ const dawnBase=mode==='now'?tN:t0;let mView=sunCross(SG_CFG.viewSun,dawnBase,1),mOut=mView&&sunCross(SG_CFG.outSun,mView-4*36e5,1,4*36e5);
+ if(mode==='now'&&mOut&&mOut<tN-30*6e4){mView=sunCross(SG_CFG.viewSun,tN+36e5,1);mOut=mView&&sunCross(SG_CFG.outSun,mView-4*36e5,1,4*36e5)}
+ let eView=sunCross(SG_CFG.viewSun,t0+12*36e5,-1,24*36e5);if(mode==='now'&&eView&&tN>eView+4*36e5)eView=sunCross(SG_CFG.viewSun,tN,-1,30*36e5);const eFrom=eView&&sunCross(-6,eView-3*36e5,-1,3*36e5),eWord=mode==='now'&&eView&&eView>tN+12*36e5?'tomorrow evening':mode==='now'&&eFrom&&eFrom<tN?'tonight':'';
+ const jdM=mView&&jdAt(mView),jdE=eView&&jdAt(eView),M=mView?scene(mView,pl):[],E=eView?scene(eView,pl):[];
+ const dayWord=t=>{const p=parts(t,pl.tz),d=p.y+'-'+p2(p.m)+'-'+p2(p.d);return d===ds?(mode==='now'?'this morning':'that morning'):(mode==='now'&&d===addDays(today,1)?'tomorrow morning':wday(d)+' morning')};
+ let s=past?'On this unique day, '+longDate(ds)+', the sky over '+pl.label+' was full of meaning. ':mode==='future'?'On '+longDate(ds)+', the sky over '+pl.label+' has a story to tell. ':'It’s a wonderful time to connect with the sky! ';
+ if(M.length){const w=M.slice(0,3).map(c=>groupWords(c,jdM));
+  s+=(past?'Before dawn that day, anyone willing to rise before the Sun could see ':'If you’re willing to rise before the Sun '+(mode==='now'?dayWord(mView):'that morning')+' and clouds allow, you’ll have a lovely chance to see ')+w[0]+(w[1]?', as well as '+listAnd(w.slice(1)):'')+'. '}
+ s+=castWords(pl);
+ if(E.length&&!castEve){const w=E.slice(0,3).map(c=>groupWords(c,jdE));s+=(past?'After sunset, the evening sky offered ':'After sunset'+(eWord?' '+eWord:'')+', look for ')+w[0]+(w[1]?', as well as '+listAnd(w.slice(1)):'')+'. '}
+ if(!M.length&&!E.length)s+=(past?'The planets were hiding in the Sun’s glow, leaving the night to the stars. ':'The planets are hiding in the Sun’s glow, so it’s a fine time to get to know the stars. ');
+ if(mOut&&M.length&&!past)s+='From '+pl.label+', I’d recommend getting out to connect with the sky by '+hm(mOut,pl)+(eFrom&&E.length?(eFrom<tN?', and the evening sky is ready for you now':', or from about '+hm(eFrom,pl)+' in the evening'):'')+'. ';
+ else if(eFrom&&E.length&&!past)s+='From '+pl.label+', the evening show begins around '+hm(eFrom,pl)+'. ';
+ /* meteors */
+ const fb=[];for(const m of meteorsOn(ds)){const [nm,,,,zhr,rad0,when,note]=m.s;
+  if(Math.abs(m.days)<=2)s+=past?`The ${nm} meteor shower was at its peak, with up to ${zhr} meteors an hour from ${rad0} ${when}. `:`The ${nm} meteor shower ${m.days===0?'peaks tonight':m.days>0?'peaks in '+m.days+' day'+(m.days>1?'s':''):'just peaked'}, with up to ${zhr} meteors an hour from ${rad0}, best ${when}. `;
+  else if(/fireball/.test(note))fb.push(nm)}
+ if(fb.length){const nm=fb.every(n=>/Taurids$/.test(n))?'Taurid':listAnd(fb);s+=past?`Bright fireballs from the ${nm} meteor shower streaked through the night. `:`If you notice incredibly bright meteors, these may be fireballs from the ${nm} meteor shower. `}
+ /* Milky Way and zodiacal light, when the Moon allows */
+ const mp=moonPhase(jdAt(t0+864e5/2));
+ for(const g of SG_GATES){const w=gateWindow(g,t0,pl);if(w&&!w.none&&w.best>=20&&mp.ill<.6){s+=(past?'From a dark site, ':'From a dark site, look for ')+g[2]+(past?' stood ':', ')+height(w.best,w.az).replace(/^in the/,'in the')+(past?'':' around '+hm(w.bestT,pl))+'. ';break}}
+ const dk=sunCross(SG_CFG.darkSun,t0+12*36e5,-1,24*36e5),dn=dk&&sunCross(SG_CFG.darkSun,dk,1,24*36e5);
+ if(mp.ill<.4){if(dk&&zodLight(dk,-1,pl)>=32)s+=(past?'The zodiacal light rose':'This is zodiacal light season: watch for a soft cone of light rising')+' from the western horizon after dusk. ';
+  else if(dn&&zodLight(dn,1,pl)>=32)s+=(past?'The zodiacal light rose':'This is zodiacal light season: watch for a soft cone of light rising')+' from the eastern horizon before dawn. '}
+ out.day=s.trim();out.mView=mView;out.eView=eView;out.mOut=mOut;
+ out.week=weekWords(ds,pl,mode);return out}
+/* the week: close meetings at dawn and dusk, the Moon's quarters, and meteor peaks */
+function weekWords(ds,pl,mode){const past=mode==='past',ev=[],seen={};
+ for(let i=0;i<7;i++){const d=addDays(ds,i),t0=midnight(d,pl);
+  for(const [lev,dir,when] of [[SG_CFG.viewSun,1,'morning'],[SG_CFG.viewSun,-1,'evening']]){const t=dir>0?sunCross(lev,t0,1,24*36e5):sunCross(lev,t0+12*36e5,-1,24*36e5);if(!t)continue;const jd=jdAt(t);
+   for(const c of scene(t,pl)){if(c.g.length<2)continue;const ps=c.g.filter(o=>!o.star),objs=ps.length>1?ps:c.g,key=ps.map(o=>o.k).sort().join('+');
+    const tight=Math.min(...objs.flatMap((a,x)=>objs.slice(x+1).map(b=>sep(a.q,b.q))));if(!(key in seen)||tight<seen[key].tight)seen[key]={tight,d,when,words:groupWords(c,jd),set:ps.map(o=>o.k),ms:t,k:objs[0].k}}}}
+ const keys=Object.keys(seen);for(const k of keys){const v=seen[k];if(v.tight>6)continue;if(keys.some(k2=>k2!==k&&seen[k2].set.length>v.set.length&&v.set.every(x=>seen[k2].set.includes(x))))continue;
+  ev.push({d:v.d,txt:wday(v.d)+' '+v.when+': '+v.words,ms:v.ms,k:v.k,md:0})}
+ /* the Moon's quarters */
+ const t0=midnight(ds,pl),qn=['new Moon','first quarter Moon','full Moon','last quarter Moon'];
+ for(let q=0;q<4;q++){const c=crossings(t=>{const e=moonPhase(jdAt(t)).e-q*90;return ((e%360)+540)%360-180},t0,t0+7*864e5,1,180)[0];
+  if(c){const p=parts(c.t,pl.tz),d=p.y+'-'+p2(p.m)+'-'+p2(p.d);ev.push({d,txt:'the '+qn[q]+' '+(past?'came':'arrives')+' on '+wday(d),ms:c.t,k:'Moon',md:1})}}
+ for(let i=0;i<7;i++)for(const m of meteorsOn(addDays(ds,i)))if(m.days===0)ev.push({ms:midnight(addDays(ds,i),pl)+24*36e5,k:SG_RAD[m.s[0]]?'eq:'+SG_RAD[m.s[0]].join(':'):'az:90',md:2,d:addDays(ds,i),txt:'the '+m.s[0]+' '+(past?'peaked':'peak')+' on '+wday(addDays(ds,i))+' night'});
+ try{for(const x of weekEvents(ds,pl,mode))ev.push(x)}catch(_){}
+ ev.sort((a,b)=>a.d<b.d?-1:1);if(!ev.length)return [past?'The week that followed was a quiet one for close meetings in the sky.':'It’s a quiet week for close meetings in the sky, which makes it a fine week for learning the constellations.'];
+ const L=ev.slice(0,12),res=L.map(e=>e.txt.charAt(0).toUpperCase()+e.txt.slice(1)+'.');res.go=L.map(e=>e.ms?[e.ms,e.k,e.md,e.atm]:null);return res}
+
+/* ---- tables ---- */
+function objList(){const G=sgS(),o=SG_BODIES.slice(),add=a=>{for(const k of a)if(!o.includes(k))o.push(k)};add(G.extra);if(G.bri)add(SG_BRIGHT);if(G.beh)add(SG_BEHEN);if(G.ecl)add(SG_ECL);return o}
+function riseRows(ds,pl){const t0=midnight(ds,pl);return objList().map(k=>Object.assign({k},events(k,t0,pl)))}
+function parans(rows,pl){const G=sgS(),orb=G.orb*6e4,ev=[],out=[];
+ for(const r of rows)if(r.k!=='Sun'||true)for(const [e,w] of SG_EV)if(r[e])ev.push({k:r.k,e:w,t:r[e],star:!!SG_STARS[r.k]});
+ for(let i=0;i<ev.length;i++)for(let j=i+1;j<ev.length;j++){const a=ev[i],b=ev[j];if(a.k===b.k||Math.abs(a.t-b.t)>orb)continue;if(a.star&&b.star)continue;if(!G.pp&&!a.star&&!b.star)continue;
+  const [x,y]=a.star&&!b.star?[b,a]:[a,b];out.push({a:x,b:y,t:(a.t+b.t)/2,gap:Math.round(Math.abs(a.t-b.t)/6e4)})}
+ return out.sort((p,q)=>p.t-q.t)}
+
+/* ---- the box ---- */
+const btn=(act,t,id,on)=>`<button class="seg ${on?'on':''}" data-act="${act}"${id!=null?` data-id="${id}"`:''}>${t}</button>`;
+const GLY={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇'};
+function whereHTML(pl,ds){const G=sgS(),src={cast:'cast here',chart:'from '+(G.chart&&esc(G.chart.name)),recent:'from your most recent chart'+(pl.from?', '+esc(pl.from):''),home:'Home'}[pl.src]||'';
+ let h=`<div class="stgwhere"><div><b>${esc(pl.label)}</b> <small>(${src})</small><br><span>${longDate(ds)}</span></div><div class="btns"><button data-act="stgwhere" aria-expanded="${G.where}">Change Place Or Date</button><button data-act="stgsky">Preview In Planetarium</button></div></div>`;
+ if(G.where){h+=`<div class="stgcast"><label class="fl"><span>Place</span><input type="text" class="srch" id="stg-q" placeholder="Type a city" value="${esc(G.q||'')}" autocomplete="off"></label><div class="sug" id="stg-sug" ${G.sug.length?'':'hidden'}>${G.sug.map((p,i)=>`<div data-act="stgplace" data-id="${i}">${esc(p.label)}</div>`).join('')}</div>
+  <label class="fl"><span>Date</span><input type="date" id="stg-d" value="${ds}"></label>
+  <div class="btns"><button data-act="stgtoday">Today</button><button data-act="stghome">Home</button><button data-act="stgpick" aria-expanded="${G.pick}">Use A Chart</button></div>${G.pick?pickerHTML('stg'):''}
+  <small class="note">Stargazer uses a place you cast here first, then a chart you pick here, then your most recently cast chart, then Home (Settings, Startup And Shutdown).</small></div>`}
+ return h}
+function tonightHTML(){const P=paragraphs();return `<div class="stgp"><div class="cap">${P.mode==='past'?'ON THIS UNIQUE DAY':'TODAY'}</div><p>${esc(P.day)}</p><div class="btns">${P.mView?`<button data-act="stggo" data-id="${Math.round(P.mView)}|az:90|0|1">${P.mode==='past'?'See That Morning Sky':'See The Morning Sky'}</button>`:''}${P.eView?`<button data-act="stggo" data-id="${Math.round(P.eView)}|az:270|0|1">${P.mode==='past'?'See That Evening Sky':'See The Evening Sky'}</button>`:''}</div><div class="cap">${P.mode==='past'?'THE WEEK THAT FOLLOWED':'THIS WEEK'}</div><ul class="stgwk">${P.week.map((x,i)=>{const g=P.week.go&&P.week.go[i];return `<li>${g?go(g[0],g[1],g[2],esc(x),g[3]):esc(x)}</li>`}).join('')}</ul></div>
+ <small class="note">Written from the computed sky for this place: what stands above the horizon when the Sun is 10° below it, who sits together, the Moon’s phase, meteor showers, the Milky Way, and the zodiacal light. Clouds not included.</small>`}
+function starToggles(wc){const G=sgS(),c=(k,on,t)=>`<button class="seg ${on?'on':''}" data-act="stgtgl" data-id="${k}" aria-pressed="${on}">${t}</button>`;return starAddHTML()+`<div class="segs">${c('bri',G.bri,'Brightest Stars')}${wc?c('cons',G.cons,'Constellations'):''}${c('beh',G.beh,'Behenian Stars')}${c('ecl',G.ecl,'Ecliptic Stars')}</div>`}
+/* Constellations rising and setting (Gemini, Nov 7): a range, from the first star of the figure to the last.
+   Uses the stars of the Planetarium's figures; times come straight from each star's hour angle at the horizon. */
+const SG_SID=86164090.5/360;   /* milliseconds per degree of the turning sky */
+const SG_CONS_ZOD=['Ari','Tau','Gem','Cnc','Leo','Vir','Lib','Sco','Sgr','Cap','Aqr','Psc'];   /* Ophiuchus is in All 88 (Gemini, Nov 7) */
+function consRanges(ds,pl){const D=window.EA_PLN_SKY,G=sgS();if(!D||!D.figs)return [];const t0=midnight(ds,pl),jd0=jdAt(t0+432e5),a=AST(),eps=a.obliq(jd0),pre=a.prec(jd0),e0=rad(23.4392911),phi=rad(pl.lat),h0=rad(-.567);
+ const list=G.consAll?Object.keys(D.figs).sort((x,y)=>(D.names[x]||x).localeCompare(D.names[y]||y)):SG_CONS_ZOD;const lst0=lstOf(jdAt(t0),pl.lon);
+ return list.map(ab=>{const idx=[...new Set(D.figs[ab]||[])];if(!idx.length)return null;
+  const st=idx.map(i=>{const s0=D.stars[i],r=rad(s0[0]),d=rad(s0[1]),lon=deg(Math.atan2(Math.sin(r)*Math.cos(e0)+Math.tan(d)*Math.sin(e0),Math.cos(r))),lat=deg(Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r))),q=a.eq(n360(lon+pre),lat,eps);return {ra:q[0],dec:q[1]}});
+  const ref=n360(deg(Math.atan2(st.reduce((v,x)=>v+Math.sin(rad(x.ra)),0),st.reduce((v,x)=>v+Math.cos(rad(x.ra)),0))));
+  const tref=t0+n360(ref-lst0)*SG_SID,ev={rise:[],cul:[],set:[]};let up=0,down=0;
+  for(const x of st){const cul=tref+(((x.ra-ref)%360+540)%360-180)*SG_SID,c=(Math.sin(h0)-Math.sin(phi)*Math.sin(rad(x.dec)))/(Math.cos(phi)*Math.cos(rad(x.dec)));
+   if(c>1){down++;continue}ev.cul.push(cul);if(c<-1){up++;continue}const H=deg(Math.acos(c));ev.rise.push(cul-H*SG_SID);ev.set.push(cul+H*SG_SID)}
+  const rng=v=>v.length?[Math.min(...v),Math.max(...v)]:null;return {ab,name:D.names[ab]||ab,n:st.length,rise:rng(ev.rise),cul:rng(ev.cul),set:rng(ev.set),up,down}}).filter(Boolean)}
+function consHTML(ds,pl){const G=sgS(),R=consRanges(ds,pl),span=(r)=>r?(hm(r[0],pl)===hm(r[1],pl)?hm(r[0],pl):hm(r[0],pl)+' \u2013 '+hm(r[1],pl)):'\u2014';
+ return `<div class="segs"><button class="seg ${!G.consAll?'on':''}" data-act="stgconsall" data-id="0">Zodiac</button><button class="seg ${G.consAll?'on':''}" data-act="stgconsall" data-id="1">All 88</button></div>
+ <div class="stgtbl"><table><thead><tr><th scope="col">Constellation</th><th scope="col">Rise</th><th scope="col">Reach</th><th scope="col">Rest</th></tr></thead><tbody>${R.map(c=>`<tr><th scope="row">${esc(c.name)}</th>${c.down===c.n?'<td colspan="3">Never rises from here</td>':`<td>${span(c.rise)}</td><td>${span(c.cul)}</td><td>${span(c.set)}</td>`}</tr>${c.up||(c.down&&c.down<c.n)?`<tr><td></td><td colspan="3"><small>${c.up?c.up+' of '+c.n+' stars never set':''}${c.up&&c.down?'; ':''}${c.down&&c.down<c.n?c.down+' of '+c.n+' stars never rise':''}</small></td></tr>`:''}`).join('')}</tbody></table></div>
+ <small class="note">Each range runs from the first star of the figure to the last: the constellation starts rising when its first star clears the horizon and has fully risen when its last star does. Figures are the Device\u2019s own constellation lines.</small>`}
+function riseHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),rows=riseRows(ds,pl),sd=sunDay(t0,pl);
+ const tw=`<div class="stgtw"><span>Dawn ${hm(sd.astroUp,pl)||'—'}</span><span>Sunrise ${hm(sd.riseUp,pl)||'—'}</span><span>Sunset ${hm(sd.riseDn,pl)||'—'}</span><span>Dark ${hm(sd.astroDn,pl)||'—'}</span></div>`;
+ const tr=r=>`<tr${SG_STARS[r.k]?' class="st"':''}><th scope="row">${GLY[r.k]?`<span class="gl">${GLY[r.k]}</span> `:''}${esc(tblName(r.k))}</th>${r.note==='Never rises'||r.note==='Below the horizon all day'?`<td colspan="4">Never rises from here</td>`:r.note?`<td>Never rests</td><td>${go(r.cul,r.k,0,hm(r.cul,pl))}${r.cul?` <small>${Math.round(r.culAlt)}\u00b0</small>`:''}</td><td>Never rests</td><td>${hm(r.anti,pl)}</td>`:`<td>${go(r.rise,r.k,0,hm(r.rise,pl)||'—',1)}</td><td>${go(r.cul,r.k,0,hm(r.cul,pl)||'—')}${r.cul?` <small>${Math.round(r.culAlt)}°</small>`:''}</td><td>${go(r.set,r.k,0,hm(r.set,pl)||'—',1)}</td><td>${go(r.anti,r.k,0,hm(r.anti,pl)||'—')}</td>`}</tr>`;
+ return `${tw}${starToggles(true)}${G.cons?consHTML(ds,pl):''}<div class="stgtbl"><table><thead><tr><th scope="col">Body</th><th scope="col">Rise</th><th scope="col">Reach</th><th scope="col">Rest</th><th scope="col">Root</th></tr></thead><tbody>${rows.map(tr).join('')}</tbody></table></div>
+ <small class="note">Times for ${esc(pl.label)}, ${esc(pl.tz||'UTC')}. The four Rs: Rise over the eastern horizon; Reach the meridian, highest in the sky (its height shown); Rest below the western horizon; Root at the lowest point, under the North or South pole. Brightest Stars are the first-magnitude stars (magnitude 1.5 or brighter); Behenian Stars are the fifteen stars of the medieval Hermetic tradition; Ecliptic Stars are bright stars the Moon and planets pass.</small>`}
+function paransHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),rows=riseRows(ds,pl),P=parans(rows,pl);
+ const orbs=[[2,'2 Minutes'],[4,'4 Minutes (1°)'],[8,'8 Minutes (2°)'],[15,'15 Minutes']];
+ return `${starToggles()}<div class="segs">${orbs.map(([v,t])=>`<button class="seg ${G.orb===v?'on':''}" data-act="stgorb" data-id="${v}">${t}</button>`).join('')}</div>
+ <div class="segs"><button class="seg ${G.pp?'on':''}" data-act="stgtgl" data-id="pp" aria-pressed="${G.pp}">Planet With Planet</button></div>
+ ${P.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Time</th><th scope="col">Paran</th><th scope="col">Apart</th></tr></thead><tbody>${P.map(p=>`<tr><td>${go(p.t,p.a.k,0,hm(p.t,pl))}</td><td><b>${esc(tblName(p.a.k))}</b> ${p.a.e} as <b>${esc(tblName(p.b.k))}</b> ${p.b.e}</td><td>${p.gap} min</td></tr>`).join('')}</tbody></table></div>`:`<p>No parans within ${G.orb} minutes today.${!G.beh&&!G.ecl&&!G.bri?' Switch on Brightest, Behenian or Ecliptic Stars to add star parans.':''}</p>`}
+ <small class="note">A paran is two bodies on the angles at the same moment (rising, reaching, resting, or rooting) for the latitude of ${esc(pl.label)}. Four minutes of time is one degree of the turning sky. No delineations yet.</small>`}
+function calHTML(){const pl=sgPlace(),ds=sgDate(pl),[yy]=ymd(ds),t0=midnight(ds,pl);pl0=pl;
+ /* meteor showers this year, with the Moon at each peak */
+ const met=SG_METEORS.map(m=>{const pk=localToMs(m[2][0]<m[1][0]?yy:yy,m[2][0],m[2][1],0,0,0,pl),ill=moonPhase(jdAt(pk)).ill;
+  return `<tr><th scope="row">${m[0]}</th><td style="white-space:nowrap">${go(pk+24*36e5,SG_RAD[m[0]]?'eq:'+SG_RAD[m[0]].join(':'):'az:90',2,MON[m[2][0]-1].slice(0,3)+' '+m[2][1])}</td><td>${m[4]}</td><td>${m[5]}<br><small>${m[6]}${m[7]?'; '+m[7]:''}</small></td><td>${Math.round(ill*100)}%${ill>.6?' <small>bright Moon</small>':''}</td></tr>`}).join('');
+ /* the Milky Way gates: tonight's window and the months they stand well after dark */
+ const gates=SG_GATES.map(g=>{const w=gateWindow(g,t0,pl),mon=[];for(let m=1;m<=12;m++){const tm=localToMs(yy,m,15,0,0,0,pl),x=gateWindow(g,tm,pl);if(x&&!x.none&&x.best>=25)mon.push(MON[m-1].slice(0,3))}
+  return `<p><b>${w&&!w.none?go(w.bestT,'eq:'+g[3]+':'+g[4],0,g[1]):g[1]}</b> ${w&&!w.none?`is up in the dark from ${hm(w.first,pl)} to ${hm(w.last,pl)} tonight, highest ${dirOf(w.az)} around ${hm(w.bestT,pl)} (${Math.round(w.best)}°).`:'is not above the horizon in full darkness tonight.'} <small>Well placed in the dark: ${mon.length?mon.join(', '):'never from this latitude'}.</small></p>`}).join('');
+ /* zodiacal light months: evening (west) and morning (east), ignoring the Moon */
+ const ze=[],zm=[];for(let m=1;m<=12;m++){const tm=localToMs(yy,m,15,0,0,0,pl),dk=sunCross(-18,tm+12*36e5,-1,24*36e5),dn=dk&&sunCross(-18,dk,1,24*36e5);if(dk&&zodLight(dk,-1,pl)>=32)ze.push(MON[m-1].slice(0,3));if(dn&&zodLight(dn,1,pl)>=32)zm.push(MON[m-1].slice(0,3))}
+ /* constellations: well placed tonight two hours after dark, and the month each is highest at 9 PM */
+ const dk=sunCross(-18,t0+12*36e5,-1,24*36e5),tv=dk?dk+2*36e5:t0+22*36e5,jv=jdAt(tv);
+ const cons=SG_CONS.map(c=>{const q=fixedEq(c[1],c[2],jv),h=altAz(q,jv,pl);let best=null,bh=999;for(let m=1;m<=12;m++){const tm=localToMs(yy,m,15,21,0,0,pl),x=altAz(fixedEq(c[1],c[2],jdAt(tm)),jdAt(tm),pl);if(Math.abs(x.ha)<bh){bh=Math.abs(x.ha);best=m}}
+  const maxAlt=90-Math.abs(pl.lat-c[2]);return {n:c[0],h,best,maxAlt,ra:c[1],de:c[2]}}).filter(c=>c.maxAlt>10);
+ const now=cons.filter(c=>c.h.alt>=30).sort((a,b)=>b.h.alt-a.h.alt);
+ return `<div class="cap">METEOR SHOWERS ${yy}</div><div class="stgtbl"><table><thead><tr><th scope="col">Shower</th><th scope="col">Peak</th><th scope="col">Per Hour</th><th scope="col">Radiant And Best Time</th><th scope="col">Moon</th></tr></thead><tbody>${met}</tbody></table></div>
+ <div class="cap">THE MILKY WAY</div>${gates}
+ <div class="cap">ZODIACAL LIGHT</div><p>A faint pyramid of sunlight scattered by dust along the ecliptic, best from a dark site with no Moon. From ${esc(pl.label)}: evenings in the west in <b>${ze.join(', ')||'no month'}</b>; mornings in the east in <b>${zm.join(', ')||'no month'}</b>.</p>
+ <div class="cap">CONSTELLATIONS</div><p><b>Well placed ${dk?'at '+hm(tv,pl):'tonight'}:</b> ${now.map(c=>go(tv,'eq:'+c.ra+':'+c.de,0,c.n)+' ('+height(c.h.alt,c.h.az).replace(/^in the /,'')+')').join(', ')||'none high yet'}.</p>
+ <div class="stgtbl"><table><thead><tr><th scope="col">Find</th><th scope="col">Highest At 9 PM</th><th scope="col">Up To</th></tr></thead><tbody>${cons.map(c=>`<tr><th scope="row">${go(localToMs(yy,c.best,15,21,0,0,pl),'eq:'+c.ra+':'+c.de,0,c.n)}</th><td>mid-${MON[c.best-1]}</td><td>${Math.round(Math.min(90,c.maxAlt))}°</td></tr>`).join('')}</tbody></table></div>
+ <small class="note">Meteor dates from the International Meteor Organization calendar (peaks shift by a day or so each year). The Golden Gate is the galactic center in the Archer; the Silver Gate is the galactic anti-center between the Bull and the Twins.</small>`}
+let sgMemo={k:'',h:''};
+function sgBox(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),key=JSON.stringify([G.tab,G.cons,G.consAll,G.extra.join(),G.bri,G.beh,G.ecl,G.orb,G.pp,G.where,G.pick,G.occDays,G.geo,G.mph,G.mt,G.anim&&[G.anim.title,G.anim.t,G.anim.play],pl,ds,G.tab==='moon'?Math.floor(Date.now()/6e4):Math.floor(Date.now()/6e5)]);if(G.pick)return sgBuild(G,pl,ds);if(sgMemo.k===key)return sgMemo.h;sgMemo={k:key,h:sgBuild(G,pl,ds)};return sgMemo.h}
+function moonBox(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl);let body='';try{body=moonHTML()}catch(e){body=`<p>Something went wrong drawing the Moon: ${esc(String(e&&e.message||e))}</p>`}
+ return head('crescent','Moon','not assigned')+whereHTML(pl,ds)+body}
+function sgBuild(G,pl,ds){let body='';try{body={tonight:tonightHTML,moon:moonHTML,rise:riseHTML,parans:paransHTML,events:eventsHTML,occ:occHTML,ecl:eclHTML,cal:calHTML}[G.tab]()}catch(e){body=`<p>Something went wrong drawing this tab: ${esc(String(e&&e.message||e))}</p>`}
+ return head('gaze','Stargazer','not assigned')+whereHTML(pl,ds)+`<div class="segs stgtabs" role="tablist">${SG_TABS.map(([k,t])=>`<button class="seg ${G.tab===k?'on':''}" role="tab" aria-selected="${G.tab===k}" data-act="stgtab" data-id="${k}">${t}</button>`).join('')}</div>`+body}
+
+/* ================= round two (Gemini, Nov 7): sky events, heliacal phases, occultations, eclipses ================= */
+const EPH=()=>window.EA_EPH;
+const PLN5=['Mercury','Venus','Mars','Jupiter','Saturn'],PLN_ALL=['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune'];
+const dateOfMs=(ms,pl)=>{const p=parts(ms,pl.tz);return p.y+'-'+p2(p.m)+'-'+p2(p.d)};
+const shortDate=(ms,pl)=>{const p=parts(ms,pl.tz);return MON[p.m-1].slice(0,3)+' '+p.d+(p.y!==+sgDate(pl).slice(0,4)?', '+p.y:'')};
+const wrap180=x=>((x%360)+540)%360-180;
+const msOfJd=jd=>(jd-2440587.5)*864e5;
+/* ---- planet events over a window: conjunctions with the Sun (interior or exterior), oppositions, greatest elongations, stations ---- */
+function planetEvents(t0,days){const out=[],N=days+2,lon={},el={};
+ for(let i=0;i<=N;i++){const jd=jdAt(t0+i*864e5),P=positions(jd);for(const k of PLN_ALL){(lon[k]=lon[k]||[]).push(P[k]);(el[k]=el[k]||[]).push(wrap180(P[k]-P.Sun))}}
+ const at=(k,t)=>{const P=positions(jdAt(t));return {lon:P[k],el:wrap180(P[k]-P.Sun)}};
+ const refine=(f,a,b)=>{let fa=f(a);for(let i=0;i<24;i++){const m=(a+b)/2,fm=f(m);if((fa<0)===(fm<0)){a=m;fa=fm}else b=m}return (a+b)/2};
+ for(const k of PLN_ALL){const L=lon[k],E=el[k];
+  for(let i=1;i<N;i++){const ta=t0+(i-1)*864e5,tb=t0+i*864e5;
+   const sp0=wrap180(L[i]-L[i-1]),sp1=wrap180(L[i+1]-L[i]);
+   if(sp0>0&&sp1<=0||sp0<0&&sp1>=0){const t=refine(t=>wrap180(at(k,t+36e5).lon-at(k,t).lon),ta,tb+864e5);out.push({t,k,ev:sp0>0?'stations retrograde':'stations direct'})}
+   if(E[i-1]<0&&E[i]>=0&&Math.abs(E[i])<60||E[i-1]>0&&E[i]<=0&&Math.abs(E[i])<60){const t=refine(t=>at(k,t).el,ta,tb);const rx=wrap180(at(k,t+36e5).lon-at(k,t).lon)<0;
+    out.push({t,k,ev:(k==='Mercury'||k==='Venus')?(rx?'interior conjunction with the Sun':'exterior conjunction with the Sun'):'conjunction with the Sun'})}
+   if(Math.abs(E[i])>120&&Math.sign(E[i-1])!==Math.sign(E[i])&&k!=='Mercury'&&k!=='Venus'){const t=refine(t=>wrap180(at(k,t).el+180),ta,tb);out.push({t,k,ev:'opposition, up all night'})}
+   if((k==='Mercury'||k==='Venus')&&i<N-1){const a=Math.abs(E[i-1]),b=Math.abs(E[i]),c=Math.abs(E[i+1]);if(b>=a&&b>c&&b>10)out.push({t:tb,k,ev:'greatest '+(E[i]<0?'morning':'evening')+' elongation, '+Math.round(b)+'° from the Sun'})}}}
+ return out.filter(e=>e.t>=t0&&e.t<t0+days*864e5).sort((a,b)=>a.t-b.t)}
+/* ---- heliacal phases: when an object is first or last seen at dawn or dusk (arcus visionis by brightness) ---- */
+const SG_AV={Mercury:10,Venus:5,Mars:11.5,Jupiter:9,Saturn:11};
+const avOf=k=>SG_AV[k]!=null?SG_AV[k]:(m=>m<=-1?7.5:m<=0?9:m<=1?10.5:m<=2?12:m<=3?13.5:15)((SG_STARS[k]||[0,0,2])[2]);
+const SG_PHASES=[['hr','Heliacal Rising','first morning seen rising in the east before sunrise'],['ml','Morning Last','last morning seen in the east before sunrise, before it disappears into the Sun (Mercury and Venus)'],['ef','Evening First','first evening seen in the west after sunset (Mercury and Venus)'],['ar','Acronychal Rising','last evening seen rising in the east as the Sun sets; up all night after'],
+ ['hs','Heliacal Setting','last evening seen setting in the west after sunset, before it disappears into the Sun'],['cs','Cosmical Setting','last morning seen setting in the west as the Sun rises']];
+function heliacal(objs,t0,days,pl){const res={},phi=rad(pl.lat);for(const k of objs)res[k]={hr:[],ml:[],ef:[],ar:[],hs:[],cs:[]};const prev={};
+ for(let i=-3;i<=days;i++){const tn=t0+i*864e5+432e5,jd=jdAt(tn),B=bodiesEq(jd),su=B.Sun,lst=lstOf(jd,pl.lon),ttr=tn+wrap180(su.ra-lst)*240000;
+  for(const k of objs){const av=avOf(k),c=(Math.sin(rad(-av))-Math.sin(phi)*Math.sin(rad(su.dec)))/(Math.cos(phi)*Math.cos(rad(su.dec)));if(Math.abs(c)>1)continue;const H=deg(Math.acos(c));
+   const tm=ttr-H*240000,te=ttr+H*240000,q=SG_STARS[k]?starEq(k,jd):B[k],sm=altAz(q,jdAt(tm),pl),se=altAz(q,jdAt(te),pl);
+   const far=SG_STARS[k]?true:sep(q,su)>(k==='Venus'?5:8),s={Em:far&&sm.alt>=1&&sm.ha<0,Wm:far&&sm.alt>=1&&sm.ha>0,Ee:far&&se.alt>=1&&se.ha<0,We:far&&se.alt>=1&&se.ha>0},p=prev[k];
+   if(p&&i>0){const d=t0+i*864e5;if(!p.Em&&s.Em&&!p.Wm)res[k].hr.push(d);if(!p.Ee&&s.Ee&&!p.We)res[k].ar.push(d);if(p.We&&!s.We&&!s.Ee)res[k].hs.push(d-864e5);if(p.Wm&&!s.Wm&&!s.Em)res[k].cs.push(d-864e5);if(p.Em&&!s.Em&&!s.Wm)res[k].ml.push(d-864e5);if(!p.We&&s.We&&!p.Ee)res[k].ef.push(d)}
+   prev[k]=s}}
+ return res}
+/* ---- occultations: the Moon in front of planets and stars (topocentric, precise Moon), planets in front of stars and each other, transits of Mercury and Venus ---- */
+let SG_OCC_STARS=null;
+function occStars(){if(SG_OCC_STARS)return SG_OCC_STARS;const D=window.EA_PLN_SKY,e0=rad(23.4392911),out=[];if(!D)return (SG_OCC_STARS=out);
+ D.stars.forEach((s,i)=>{if(s[2]>4.0)return;const r=rad(s[0]),d=rad(s[1]),lat=deg(Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r)));if(Math.abs(lat)>7.5)return;
+  const f=D.info&&D.info[i],n=(f&&f[7])||(f&&f[2]&&SG_GEN[f[4]]?f[2]+' '+SG_GEN[f[4]]:f&&f[2]?f[2]+' '+f[4]:'HR '+(f?f[0]:i));out.push({n,ra:s[0],dec:s[1],mag:s[2]})});return (SG_OCC_STARS=out)}
+function precess(o,jd){const a=AST(),e0=rad(23.4392911),r=rad(o.ra),d=rad(o.dec),lon=deg(Math.atan2(Math.sin(r)*Math.cos(e0)+Math.tan(d)*Math.sin(e0),Math.cos(r))),lat=deg(Math.asin(Math.sin(d)*Math.cos(e0)-Math.cos(d)*Math.sin(e0)*Math.sin(r))),q=a.eq(n360(lon+a.prec(jd)),lat,a.obliq(jd));return {ra:q[0],dec:q[1]}}
+function lunarOcc(t0,days,pl){const E=EPH();if(!E)return [];const stars=occStars().map(s=>Object.assign({},s,precess(s,jdAt(t0+days*432e5)))),out=[],step=36e5;
+ const moonGeo=jd=>{const m=E.moon(jd),q=E.eq(m.lon,m.lat,E.obliq(jd));return {ra:q[0],dec:q[1]}};
+ const cand=[];for(let t=t0;t<t0+days*864e5;t+=step){const jd=jdAt(t),mg=moonGeo(jd),B=bodiesEq(jd);
+  for(const k of PLN_ALL)if(sep(mg,B[k])<1.45)cand.push({t,k,planet:true});for(const s of stars)if(Math.abs(s.dec-mg.dec)<1.5&&sep(mg,s)<1.45)cand.push({t,k:s.n,s})}
+ const seen={};for(const c of cand){const key=c.k+'|'+Math.floor((c.t-t0)/(864e5*.8));if(seen[key])continue;seen[key]=1;
+  const geo=sgS().geo,mAt=jd=>geo?E.moonGeo(jd):E.moonTopo(jd,pl.lat,pl.lon),tgt=t=>c.planet?bodiesEq(jdAt(t))[c.k]:c.s,f=t=>{const jd=jdAt(t),m=mAt(jd);return sep(m,tgt(t))-m.sd};
+  let best=c.t,bv=f(c.t);for(let t=c.t-2*36e5;t<=c.t+2*36e5;t+=6e4){const v=f(t);if(v<bv){bv=v;best=t}}if(bv>=0)continue;
+  const edge=(a,b)=>{let fa=f(a);for(let i=0;i<22;i++){const m=(a+b)/2,fm=f(m);if((fa<0)===(fm<0)){a=m;fa=fm}else b=m}return (a+b)/2};
+  let a=best;while(f(a-6e4)<0&&best-a<3*36e5)a-=6e4;let b=best;while(f(b+6e4)<0&&b-best<3*36e5)b+=6e4;const tin=edge(a-6e4,a),tout=edge(b,b+6e4);
+  const jdm=jdAt(best),m=E.moonTopo(jdm,pl.lat,pl.lon),malt=E.altOf(m,jdm,pl.lat,pl.lon),sun=altAz(bodiesEq(jdm).Sun,jdm,pl).alt,ill=(1-Math.cos(rad(E.elong(jdm))))/2,wax=E.elong(jdm)<180;
+  out.push({kind:'moon',k:c.k,planet:!!c.planet,mag:c.planet?null:c.s.mag,tin,tout,best,malt,sun,ill,wax,altIn:E.altOf(E.moonTopo(jdAt(tin),pl.lat,pl.lon),jdAt(tin),pl.lat,pl.lon),altOut:E.altOf(E.moonTopo(jdAt(tout),pl.lat,pl.lon),jdAt(tout),pl.lat,pl.lon)})}
+ out.sort((x,y)=>x.tin-y.tin);return out.filter((o,i)=>!out.slice(0,i).some(q=>q.k===o.k&&Math.abs(q.tin-o.tin)<864e5))}
+/* planets passing very close to bright stars and to each other (within 0.5 degree), and Mercury or Venus crossing the Sun */
+function closePasses(t0,days){const out=[],st=occStars().filter(s=>s.mag<=3.5),N=days;let prevB=null;const pairs={};
+ for(let i=0;i<=N;i++){const t=t0+i*864e5,jd=jdAt(t),B=bodiesEq(jd);
+  for(let x=0;x<PLN_ALL.length;x++){const a=PLN_ALL[x];for(let y=x+1;y<PLN_ALL.length;y++){const b=PLN_ALL[y],d=sep(B[a],B[b]);(pairs[a+'|'+b]=pairs[a+'|'+b]||[]).push([t,d])}
+   for(const s of st){const q=precess(s,jd),d=sep(B[a],q);if(d<1.2)(pairs[a+'|*'+s.n]=pairs[a+'|*'+s.n]||[]).push([t,d])}
+   if(a==='Mercury'||a==='Venus'){const d=sep(B[a],B.Sun);(pairs[a+'|Sun']=pairs[a+'|Sun']||[]).push([t,d])}}}
+ for(const key in pairs){const v=pairs[key],[a,b0]=key.split('|'),b=b0.replace(/^\*/,'');
+  for(let i=1;i<v.length-1;i++){if(v[i][1]<=v[i-1][1]&&v[i][1]<v[i+1][1]){const lim=b==='Sun'?0.27:0.5;if(v[i][1]>lim+1)continue;
+   let bt=v[i][0],bd=v[i][1];for(let t=v[i][0]-864e5;t<=v[i][0]+864e5;t+=36e5){const B=bodiesEq(jdAt(t)),q=b==='Sun'?B.Sun:B[b]||precess(st.find(s=>s.n===b),jdAt(t)),d=sep(B[a],q);if(d<bd){bd=d;bt=t}}
+   if(b==='Sun'){if(bd<0.265)out.push({kind:'transit',k:a,t:bt,d:bd})}else if(bd<=lim)out.push({kind:'pass',k:a,o:b,t:bt,d:bd,star:b0[0]==='*'})}}}
+ return out.filter(e=>e.t>=t0).sort((x,y)=>x.t-y.t)}
+/* ---- eclipses ---- */
+function eclList(t0,days,pl){const E=EPH();if(!E)return [];const j0=jdAt(t0),list=E.eclipses(j0,j0+days);
+ return list.map(e=>{const o=Object.assign({},e);if(e.solar){o.local=E.solarLocal(e.jd,pl.lat,pl.lon);if(o.local&&o.local.altMax<0&&o.local.alt1<0&&o.local.alt4<0)o.local.below=true}
+  else{const times=[e.p1,e.u1,e.u2,e.jd,e.u3,e.u4,e.p4].filter(Boolean),al=times.map(j=>E.altOf(E.moonTopo(j,pl.lat,pl.lon),j,pl.lat,pl.lon));o.moonUp=al.some(a=>a>0);o.moonEnd=al[al.length-1];o.moonMax=E.altOf(E.moonTopo(e.jd,pl.lat,pl.lon),e.jd,pl.lat,pl.lon)}
+  return o})}
+const ECL_NAME={total:'Total',annular:'Annular',partial:'Partial',penumbral:'Penumbral'};
+
+/* ---- tab: Sky Events (planet events and heliacal phases for the next twelve months) ---- */
+function eventsHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),pe=planetEvents(t0,365);
+ const stars=objList().filter(k=>SG_STARS[k]),objs=PLN5.concat(stars),H=heliacal(objs,t0,365,pl),fd=ms=>shortDate(ms,pl);
+ const peRows=pe.map(e=>`<tr><td>${go(e.t,e.k,1,fd(e.t))}</td><th scope="row">${GLY[e.k]?`<span class="gl">${GLY[e.k]}</span> `:''}${e.k}</th><td>${e.ev}</td></tr>`).join('');
+ const hRows=objs.map(k=>`<tr${SG_STARS[k]?' class="st"':''}><th scope="row">${GLY[k]?`<span class="gl">${GLY[k]}</span> `:''}${esc(tblName(k))}</th>${SG_PHASES.map(([id])=>`<td>${H[k][id].length?H[k][id].map(t=>go(t+(id==='hr'||id==='ml'||id==='cs'?5:18)*36e5,k,1,fd(t),1)).join('<br>'):'—'}</td>`).join('')}</tr>`).join('');
+ return `<div class="cap">PLANET EVENTS, NEXT 12 MONTHS</div><div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Planet</th><th scope="col">Event</th></tr></thead><tbody>${peRows}</tbody></table></div>
+ <div class="cap">HELIACAL AND ACRONYCHAL PHASES FROM ${esc(pl.label.toUpperCase())}</div>${starToggles()}
+ <div class="stgtbl"><table><thead><tr><th scope="col">Body</th>${SG_PHASES.map(p=>`<th scope="col" title="${p[2]}">${p[1]}</th>`).join('')}</tr></thead><tbody>${hRows}</tbody></table></div>
+ <small class="note">${SG_PHASES.map(p=>`<b>${p[1]}:</b> ${p[2]}.`).join(' ')} Visibility uses each body’s arcus visionis (how far the Sun must be below the horizon for it to show, by brightness): Venus 5°, Jupiter 9°, Mercury 10°, Saturn 11°, Mars 11.5°, stars 7.5° to 15°. Dates can shift a day or two with haze and horizon. Switch on star groups above, or add a star, to see their phases.</small>`}
+const geoToggle=()=>{const G=sgS();return `<div class="segs" role="group" aria-label="Viewpoint"><button class="seg ${!G.geo?'on':''}" data-act="stggeo" data-id="0" aria-pressed="${!G.geo}">Topocentric (From Here)</button><button class="seg ${G.geo?'on':''}" data-act="stggeo" data-id="1" aria-pressed="${G.geo}">Geocentric (Earth’s Center)</button></div>`};
+/* ---- tab: Occultations ---- */
+function occHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),days=G.occDays||30,L=lunarOcc(t0,days,pl),C=closePasses(t0,365),fd=ms=>shortDate(ms,pl);
+ const vis=o=>o.altIn<0&&o.altOut<0?'Moon below the horizon':o.sun>-6?(o.sun>0?'in daylight'+(o.planet&&(o.k==='Venus'||o.k==='Jupiter')?' (Venus and Jupiter can be seen in daylight with care)':''):'in twilight'):'in a dark sky';
+ const lr=L.map(o=>`<tr${o.altIn<0&&o.altOut<0?' class="st"':''}><td>${go(o.tin,'Moon',0,fd(o.tin))}</td><th scope="row">${esc(tblName(o.k))}${o.mag!=null?` <small>mag ${o.mag}</small>`:''}</th><td>${hm(o.tin,pl)}<br><small>${o.wax?'dark':'bright'} edge</small></td><td>${hm(o.tout,pl)}<br><small>${o.wax?'bright':'dark'} edge</small></td><td>${Math.round(o.ill*100)}%</td><td>${vis(o)}${o.altIn>=0||o.altOut>=0?`<br><small>Moon ${Math.round(Math.max(o.altIn,o.altOut))}° up</small>`:''}</td></tr>`).join('');
+ const cr=C.map(e=>e.kind==='transit'?`<tr><td>${go(e.t,'Sun',0,fd(e.t))}</td><td colspan="2"><b>Transit of ${e.k}</b> across the Sun</td></tr>`:`<tr><td>${go(e.t,e.k,1,fd(e.t))}</td><td><b>${e.k}</b> and ${esc(tblName(e.o))}</td><td>${e.d<0.02?'<b>occultation possible</b>':Math.round(e.d*60)+'′ apart'}</td></tr>`).join('');
+ return `<div class="segs">${[[30,'Next 30 Days'],[90,'Next 3 Months'],[365,'Next 12 Months']].map(([v,t])=>`<button class="seg ${days===v?'on':''}" data-act="stgoccdays" data-id="${v}">${t}</button>`).join('')}</div>${geoToggle()}
+ <div class="cap">THE MOON IN FRONT OF PLANETS AND STARS, ${G.geo?'SEEN FROM THE EARTH’S CENTER (TIMES IN '+esc((pl.tz||'UTC').toUpperCase())+')':'SEEN FROM '+esc(pl.label.toUpperCase())}</div>${L.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Hidden</th><th scope="col">Disappears</th><th scope="col">Reappears</th><th scope="col">Moon Lit</th><th scope="col">Sky</th></tr></thead><tbody>${lr}</tbody></table></div>`:`<p>No lunar occultations of planets or stars brighter than magnitude 4 from here in this span.</p>`}
+ <div class="cap">PLANETS IN FRONT OF STARS AND EACH OTHER, NEXT 12 MONTHS</div>${C.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Pair</th><th scope="col">Closest</th></tr></thead><tbody>${cr}</tbody></table></div>`:'<p>No planet comes within half a degree of a bright star or another planet in the next twelve months.</p>'}
+ <small class="note">Lunar occultations use a precise Moon (the published ELP-2000/82 main terms) seen from this exact place, so times are good to about a minute. Topocentric is what you see from this place; Geocentric is the view from the Earth’s center, the reference astrologers and almanacs use, where the Moon sits up to a degree away from where you see it, so many occultations differ. Grey rows happen with the Moon below the horizon here. A planet passing in front of a star or another planet is very rare; closer than half a degree is listed, and the planets’ positions are approximate until the full ephemeris arrives.</small>`}
+/* ---- tab: Eclipses, with local animation ---- */
+function eclHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),L=eclList(t0,3*365.25,pl),fm=jd=>{const ms=msOfJd(jd);return shortDate(ms,pl)+' '+hm(ms,pl)};
+ const rows=L.map((e,i)=>{let here;if(e.solar){const l=e.local;here=!l?'Not seen from here':l.below?'Below the horizon here':`<b>${ECL_NAME[l.kind]} here</b>, ${Math.round(l.obs*100)}% of the Sun covered at ${hm(msOfJd(l.max),pl)}${l.c2?`, ${Math.round((l.c3-l.c2)*1440*60/60)} min ${Math.round(((l.c3-l.c2)*86400)%60)} s of ${l.kind==='total'?'totality':'annularity'}`:''}${l.altMax<5?' (Sun low)':''}`}
+  else here=!e.moonUp?'Moon below the horizon here':e.moonMax>0?`Seen from here, Moon ${Math.round(e.moonMax)}° up at greatest`:(e.moonEnd>0?'The Moon rises during the eclipse here; the later stages are seen':'The Moon sets during the eclipse here; the early stages are seen');
+  return `<tr><td>${go(e.solar&&e.local&&e.local.max?msOfJd(e.local.max):msOfJd(e.jd),e.solar?'Sun':'Moon',0,fm(e.jd))}</td><th scope="row">${ECL_NAME[e.type]} ${e.solar?'Solar':'Lunar'}</th><td>${here}<div class="btns"><button data-act="stgeclw" data-id="${i}:here">Watch From Here</button><button data-act="stgeclw" data-id="${i}:best">Watch From Where It’s ${e.solar?(e.type==='partial'?'Greatest':'Most '+ECL_NAME[e.type]):'Highest'}</button></div></td></tr>`}).join('');
+ sgEclCache={L,pl};return `${geoToggle()}<div id="stg-anim">${G.anim?animHTML():''}</div><div class="cap">ECLIPSES, NEXT 3 YEARS</div><div class="stgtbl"><table><thead><tr><th scope="col">Greatest</th><th scope="col">Eclipse</th><th scope="col">From ${esc(pl.label)}</th></tr></thead><tbody>${rows}</tbody></table></div>
+ <small class="note">Computed from a precise Moon and Sun (Meeus, ELP-2000/82 terms) with the Earth’s shape, checked against NASA for the April 8, 2024 and August 2, 2027 eclipses (within seconds of their times). Topocentric and Geocentric change the animations of solar eclipses (from the Earth’s center the Moon often misses the Sun); a lunar eclipse looks the same from everywhere the Moon is up. The full Eclipse menu with maps, paths, Saros and Inex will be its own World.</small>`}
+let sgEclCache=null;
+/* the stars around an eclipse (Show Stars): stars to magnitude 5 and the Device's constellation figures, precessed once per eclipse */
+let sgAnimSky=null;
+function animSky(jd){if(sgAnimSky&&Math.abs(sgAnimSky.jd-jd)<30)return sgAnimSky;const D=window.EA_PLN_SKY;if(!D)return null;const st=[],need=new Set();
+ for(const ab in D.figs)for(const i of D.figs[ab])need.add(i);
+ D.stars.forEach((x,i)=>{if(x[2]<=5||need.has(i))st[i]=Object.assign({mag:x[2]},precess({ra:x[0],dec:x[1]},jd))});
+ return (sgAnimSky={jd,st,figs:D.figs,names:D.names})}
+/* the animation: the Sun (or Moon) seen from one place or from the Earth's center, north up and east to the left, with a time slider */
+function animHTML(){const G=sgS(),A=G.anim;if(!A)return '';const E=EPH(),e=A.e,place=A.place,geo=G.geo&&e.solar,W=560,Hh=A.stars?380:300,cx=W/2,cy=Hh/2;
+ const t=A.t;let svg='',info='',c0,k;
+ /* gnomonic projection around the centre c0; k is pixels per degree */
+ const proj=q=>{const d0=rad(c0.dec),d=rad(q.dec),da=rad(q.ra-c0.ra),cc=Math.sin(d0)*Math.sin(d)+Math.cos(d0)*Math.cos(d)*Math.cos(da);if(cc<=0.2)return null;
+  return [cx-deg(Math.cos(d)*Math.sin(da)/cc)*k,cy-deg((Math.cos(d0)*Math.sin(d)-Math.sin(d0)*Math.cos(d)*Math.cos(da))/cc)*k]};
+ const starsLayer=()=>{const K=animSky(t);if(!K)return '';let h='',lab='';
+  for(const ab in K.figs){const f=K.figs[ab],pts=[];let ln='';for(let i=0;i+1<f.length;i+=2){const a=K.st[f[i]],b=K.st[f[i+1]];if(!a||!b)continue;const pa=proj(a),pb=proj(b);if(!pa||!pb)continue;
+    if(Math.max(Math.abs(pa[0]-cx),Math.abs(pb[0]-cx))>W||Math.max(Math.abs(pa[1]-cy),Math.abs(pb[1]-cy))>Hh)continue;ln+=`M${pa[0].toFixed(1)} ${pa[1].toFixed(1)}L${pb[0].toFixed(1)} ${pb[1].toFixed(1)}`;pts.push(pa,pb)}
+   if(ln)h+=`<path d="${ln}" stroke="#6f8fc9" stroke-opacity=".55" stroke-width="1" fill="none"/>`;
+   const inn=pts.filter(p=>p[0]>20&&p[0]<W-20&&p[1]>14&&p[1]<Hh-10);if(inn.length>=2){const mx=inn.reduce((v,p)=>v+p[0],0)/inn.length,my=inn.reduce((v,p)=>v+p[1],0)/inn.length;lab+=`<text x="${mx.toFixed(0)}" y="${(my+16).toFixed(0)}" fill="#9fb4dd" font-size="11" text-anchor="middle">${esc(K.names[ab]||ab)}</text>`}}
+  K.st.forEach(q=>{if(!q||q.mag>5)return;const p=proj(q);if(!p||p[0]<0||p[0]>W||p[1]<0||p[1]>Hh)return;h+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${Math.max(.6,2.9-q.mag*.48).toFixed(2)}" fill="#fff"/>`});
+  /* the ecliptic and the planets */
+  let ec='',pen=false;const a=AST(),eps=a.obliq(t);for(let L=0;L<=360;L+=1){const q0=a.eq(L%360,0,eps),p=proj({ra:q0[0],dec:q0[1]});if(!p||Math.abs(p[0]-cx)>W||Math.abs(p[1]-cy)>Hh){pen=false;continue}ec+=(pen?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1);pen=true}
+  if(ec)h+=`<path d="${ec}" stroke="#d6b25e" stroke-opacity=".5" stroke-dasharray="5 5" fill="none"/>`;
+  const B=bodiesEq(t);for(const kk of ['Mercury','Venus','Mars','Jupiter','Saturn']){const p=proj(B[kk]);if(!p||p[0]<0||p[0]>W||p[1]<0||p[1]>Hh)continue;h+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.2" fill="#ffd27a"/><text x="${(p[0]+6).toFixed(0)}" y="${(p[1]-5).toFixed(0)}" fill="#ffd27a" font-size="12">${GLY[kk]} ${kk}</text>`}
+  return h+lab};
+ if(e.solar){const s=geo?E.sunGeo(t):E.sunTopo(t,place.lat,place.lon),m=geo?E.moonGeo(t):E.moonTopo(t,place.lat,place.lon),obs=E.overlap(s.sd,m.sd,E.sep(s,m)),alt=geo?null:E.altOf(s,t,place.lat,place.lon);
+  c0=s;k=A.stars?W/48:150/0.6;const ps=proj(s),pm=proj(m),rs=Math.max(4,s.sd*k),rm=Math.max(4,m.sd*k);
+  const dark=Math.min(1,obs>=1&&m.sd>s.sd?1:obs*obs*0.85),sky=`rgb(${Math.round(40*(1-dark)+4)},${Math.round(90*(1-dark)+6)},${Math.round(160*(1-dark)+18)})`,night=A.stars||alt!=null&&alt<-0.8||geo;
+  svg=`<rect width="${W}" height="${Hh}" fill="${night?'#05070d':sky}"/>`+(A.stars?starsLayer():'')+(obs>=0.999&&m.sd>s.sd?`<circle cx="${ps[0]}" cy="${ps[1]}" r="${rs*2.6}" fill="url(#stgcor)"/>`:'')+`<circle cx="${ps[0]}" cy="${ps[1]}" r="${rs}" fill="#ffe9a8"/>`+(pm?`<circle cx="${pm[0]}" cy="${pm[1]}" r="${rm}" fill="${night?'#1a1d2a':'#11131c'}"${A.stars?' stroke="#8890a8" stroke-width=".8"':''}/>`:'');
+  info=(geo?'From the Earth’s center':'Sun '+(alt<-0.8?'below the horizon':Math.round(alt)+'° up'))+' · '+Math.round(obs*100)+'% covered'}
+ else{const x=E.lunarAt(t),s=E.sun(t),sh=E.eq(n360(s.lon+180),0,E.obliq(t)),m=E.moonTopo(t,place.lat,place.lon),alt=E.altOf(m,t,place.lat,place.lon);
+  c0={ra:sh[0],dec:sh[1]};k=A.stars?W/48:150/1.6;const pc=proj(c0),pm=proj({ra:x.ra,dec:x.dec});
+  const depth=Math.max(0,Math.min(1,(x.umb+x.sm-x.d)/(2*x.sm)));
+  svg=`<rect width="${W}" height="${Hh}" fill="#05070d"/>`+(A.stars?starsLayer():'')+`<circle cx="${pc[0]}" cy="${pc[1]}" r="${x.pen*k}" fill="#ffffff" fill-opacity=".05" stroke="#8890a8" stroke-dasharray="4 4"/><circle cx="${pc[0]}" cy="${pc[1]}" r="${x.umb*k}" fill="#7a1f12" fill-opacity=".25" stroke="#b5503a" stroke-dasharray="4 4"/>
+   <circle cx="${pm[0]}" cy="${pm[1]}" r="${Math.max(4,x.sm*k)}" fill="${depth>=1?'#8a2e1a':depth>0?'#c9a58c':'#e9e4d6'}"/>`;
+  info=`Moon ${alt<0?'below the horizon':Math.round(alt)+'° up'} · ${depth>=1?'total, the Moon glows copper':depth>0?Math.round(depth*100)+'% in the umbra':'in the penumbra or clear'}`}
+ const pct=Math.round((t-A.a)/(A.b-A.a)*1000);
+ return `<div class="stganim"><div class="cap">${esc(A.title)}${geo?' (GEOCENTRIC)':''}</div><div id="stg-anim-v"><svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="${esc(A.title)} animation"><defs><radialGradient id="stgcor"><stop offset=".38" stop-color="#ffffff" stop-opacity=".9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient></defs>${svg}</svg></div>
+ <div class="stgctl"><button data-act="stgplay" id="stg-play" aria-label="${A.play?'Pause':'Play'}">${A.play?'Pause':'Play'}</button><input type="range" id="stg-at" min="0" max="1000" value="${pct}" aria-label="Time"><b id="stg-anim-tm">${hm(msOfJd(t),place)} <small>${esc(place.tz||'UTC')}</small></b><button data-act="stgstars" aria-pressed="${!!A.stars}">${A.stars?'Hide Stars':'Show Stars'}</button><button data-act="stgnopause" class="${G.noPause?'solid':''}" aria-pressed="${!!G.noPause}">No Pauses</button><button data-act="stganimx">Close</button></div><small class="note" id="stg-anim-info">${info}. North is up and east is to the left, ${geo?'as seen from the Earth’s center':'as seen from '+esc(place.label)}.${A.stars?' Show Stars draws the stars, planets, ecliptic (dashed gold) and constellation figures as if the sky were dark, about 48° across.':''}</small>${contactsHTML(A)}</div>`}
+function animOpen(spec){const L=sgEclCache&&sgEclCache.L,[i,where]=spec.split(':'),e=L&&L[+i];if(e)animOpenE(e,where)}
+function animOpenE(e,where){const G=sgS();const E=EPH(),pl=sgPlace();let place;
+ if(where==='here')place=pl;else if(e.solar)place={label:'the point of greatest eclipse, '+Math.abs(e.lat).toFixed(1)+'°'+(e.lat>=0?'N':'S')+' '+Math.abs(e.lon).toFixed(1)+'°'+(e.lon>=0?'E':'W'),lat:e.lat,lon:e.lon,tz:'UTC'};
+ else{const x=E.lunarAt(e.jd),lon=wrap180(x.ra-E.gmst(e.jd));place={label:'where the Moon is overhead, '+Math.abs(x.dec).toFixed(1)+'°'+(x.dec>=0?'N':'S')+' '+Math.abs(lon).toFixed(1)+'°'+(lon>=0?'E':'W'),lat:x.dec,lon,tz:'UTC'}}
+ if(where!=='here'&&window.GemBPlaces&&GemBPlaces.nearest){try{const n=GemBPlaces.nearest(place.lat,place.lon);if(n&&n.label)place.label+=' (near '+n.label+')';if(n&&n.timezone)place.tz=n.timezone}catch(_){}}
+ let a,b;if(e.solar){const l=E.solarLocal(e.jd,place.lat,place.lon)||{c1:e.jd-.08,c4:e.jd+.08};a=l.c1-.007;b=l.c4+.007}else{a=(e.p1||e.jd-.15)-.007;b=(e.p4||e.jd+.15)+.007}
+ let tm=e.jd;if(e.solar){const l2=E.solarLocal(e.jd,place.lat,place.lon);if(l2&&l2.max)tm=l2.max}
+ G.anim={e,place,a,b,t:Math.min(b,Math.max(a,tm)),play:false,title:ECL_NAME[e.type]+' '+(e.solar?'Solar':'Lunar')+' Eclipse, '+shortDate(msOfJd(e.jd),place)+', from '+place.label}}
+/* the eclipse's chapters for the animation's place: contacts with local times and heights; pauses at the first, greatest, and last */
+function animContacts(A){const E=EPH(),e=A.e,pl=A.place,G=sgS();if(A.cts&&A.ctsGeo===G.geo)return A.cts;const out=[];
+ if(e.solar){if(!(G.geo)){const l=E.solarLocal(e.jd,pl.lat,pl.lon),alt=j=>E.altOf(E.sunTopo(j,pl.lat,pl.lon),j,pl.lat,pl.lon);
+   if(l){const cen=l.kind==='total'?'Totality':'Annularity';out.push({jd:l.c1,w:'Partial eclipse begins (first contact)',p:'s'});if(l.c2)out.push({jd:l.c2,w:cen+' begins (second contact)'});
+    out.push({jd:l.max,w:'Greatest eclipse, '+Math.round(l.obs*100)+'% of the Sun covered',p:'g'});if(l.c3)out.push({jd:l.c3,w:cen+' ends (third contact)'});out.push({jd:l.c4,w:'Partial eclipse ends (last contact)',p:'e'});
+    for(const c of out)c.alt=alt(c.jd);if(out.every(c=>c.alt<0))for(const c of out)c.p=null}}}
+ else{const alt=j=>E.altOf(E.moonTopo(j,pl.lat,pl.lon),j,pl.lat,pl.lon),C=[['p1','Penumbral eclipse begins'],['u1','Partial eclipse begins'],['u2','Total eclipse begins'],['jd','Greatest eclipse'],['u3','Total eclipse ends'],['u4','Partial eclipse ends'],['p4','Penumbral eclipse ends']];
+  for(const [k,w] of C)if(e[k])out.push({jd:e[k],w:k==='jd'?w+(e.umag>0?', umbral magnitude '+e.umag.toFixed(2):', penumbral magnitude '+(e.pmag||0).toFixed(2)):w,alt:alt(e[k])});
+  if(out.some(c=>c.alt>0)){const first=out.find(c=>/^Partial eclipse begins/.test(c.w))||out[0],last=[...out].reverse().find(c=>/^Partial eclipse ends/.test(c.w))||out[out.length-1];first.p='s';last.p='e';const g=out.find(c=>/^Greatest/.test(c.w));if(g)g.p='g'}}
+ for(const c of out)if(c.alt<0)c.p=null;   /* pause only where the eclipse is seen (Gemini, Nov 7) */
+ A.cts=out;A.ctsGeo=G.geo;return out}
+function contactsHTML(A){const L=animContacts(A),pl=A.place;if(!L.length)return `<small class="note">${A.e.solar&&sgS().geo?'Switch to Topocentric to see contact times for a place.':'The Sun is not eclipsed from this place.'}</small>`;
+ return `<div class="cap">THE ECLIPSE’S CHAPTERS, ${esc(pl.label.toUpperCase())}</div><div class="stgtbl"><table><thead><tr><th scope="col">Time</th><th scope="col">Chapter</th><th scope="col">${A.e.solar?'Sun':'Moon'} Height</th></tr></thead><tbody>${L.map(c=>`<tr${c.alt<0?' class="st"':''}><td style="white-space:nowrap"><button class="stglk" data-act="stgseek" data-id="${c.jd}" title="Move the animation to this moment">${hm(msOfJd(c.jd),pl)}</button></td><td>${c.w}</td><td>${c.alt<0?'below the horizon':Math.round(c.alt)+'°'}</td></tr>`).join('')}</tbody></table></div>
+ <small class="note">Times in ${esc(pl.tz||'UTC')}. Click a time to move the animation there.${L.some(c=>c.p)?' The animation pauses briefly at the first and last contact and for a second at greatest eclipse, when they are above the horizon here (No Pauses turns this off).':''}</small>`}
+let sgTimer=null;
+/* redraw only the picture, the time and the note while playing, so the buttons stay put and can be clicked */
+function animDraw(full){const el=document.getElementById('stg-anim');if(!el)return;if(full||!document.getElementById('stg-anim-v')){el.innerHTML=animHTML();return}
+ const tmp=document.createElement('div');tmp.innerHTML=animHTML();for(const id of ['stg-anim-v','stg-anim-tm','stg-anim-info']){const a=document.getElementById(id),b=tmp.querySelector('#'+id);if(a&&b)a.innerHTML=b.innerHTML}
+ const A=sgS().anim,r=document.getElementById('stg-at');if(A&&r&&document.activeElement!==r)r.value=Math.round((A.t-A.a)/(A.b-A.a)*1000);
+ const pb=document.getElementById('stg-play');if(A&&pb){pb.textContent=A.play?'Pause':'Play';pb.setAttribute('aria-label',pb.textContent)}}
+function animStop(){if(sgTimer){clearInterval(sgTimer);sgTimer=null}}
+function animPlay(){const G=sgS(),A=G.anim;if(!A)return;A.play=!A.play;animStop();A.hold=0;
+ if(A.play){if(A.t>=A.b)A.t=A.a;const P=animContacts(A).filter(c=>c.p);
+  sgTimer=setInterval(()=>{const G2=sgS(),A2=G2.anim;if(!A2||!A2.play||!document.getElementById('stg-anim')){animStop();return}if(A2.hold&&Date.now()<A2.hold)return;A2.hold=0;
+   let nt=A2.t+(A2.b-A2.a)/240;if(!G2.noPause){const c=P.find(c=>c.jd>A2.t+1e-9&&c.jd<=nt);if(c){nt=c.jd;A2.hold=Date.now()+(c.p==='g'?1000:600)}}
+   A2.t=nt;if(A2.t>=A2.b){A2.t=A2.b;A2.play=false;animStop()}animDraw()},50)}animDraw()}
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='stg-at'){const A=sgS().anim;if(!A)return;A.t=A.a+(A.b-A.a)*(+e.target.value)/1000;animDraw()}});
+/* ---- this week's events for the Tonight list ---- */
+function weekEvents(ds,pl,mode){const past=mode==='past',t0=midnight(ds,pl),out=[],fdw=ms=>wday(dateOfMs(ms,pl));
+ for(const e of planetEvents(t0,7))out.push({ms:e.t,k:e.k,md:1,d:dateOfMs(e.t,pl),txt:fdw(e.t)+': '+(SG_DESC[e.k]||e.k)+' '+(past?e.ev.replace(/^stations/,'stationed').replace(/^greatest/,'reached greatest').replace(/^(interior|exterior|conjunction|opposition)/,'reached $1'):e.ev.replace(/^(interior|exterior|conjunction|opposition)/,'reaches $1'))});
+ const H=heliacal(PLN5.concat(SG_BRIGHT.slice(0,15)),t0,7,pl),PH={hr:'is first seen rising before dawn (heliacal rising)',ml:'is last seen before dawn as a morning star',ef:'is first seen after sunset as an evening star',ar:'rises as the Sun sets (acronychal rising)',hs:'is last seen in the evening twilight (heliacal setting)',cs:'is last seen setting at dawn (cosmical setting)'};
+ for(const k in H)for(const id in PH)for(const t of H[k][id])out.push({ms:t+(id==='hr'||id==='ml'||id==='cs'?5:18)*36e5,k,md:1,atm:1,d:dateOfMs(t,pl),txt:wday(dateOfMs(t,pl))+': '+(SG_DESC[k]||tblName(k))+' '+(past?PH[id].replace(/^is /,'was ').replace(/^rises/,'rose'):PH[id])});
+ for(const o of lunarOcc(t0,7,pl))if(o.altIn>0||o.altOut>0)out.push({ms:o.tin,k:'Moon',md:0,d:dateOfMs(o.tin,pl),txt:fdw(o.tin)+': the Moon '+(past?'covered':'covers')+' '+(o.planet?(SG_DESC[o.k]||o.k):tblName(o.k))+' from '+hm(o.tin,pl)+' to '+hm(o.tout,pl)+(o.sun>0?' (in daylight)':'')});
+ for(const e of eclList(t0,7,pl)){const vis=e.solar?(e.local&&!e.local.below):e.moonUp;out.push({ms:e.solar&&e.local&&e.local.max?msOfJd(e.local.max):msOfJd(e.jd),k:e.solar?'Sun':'Moon',md:0,d:dateOfMs(msOfJd(e.jd),pl),txt:fdw(msOfJd(e.jd))+': a '+ECL_NAME[e.type].toLowerCase()+' '+(e.solar?'solar':'lunar')+' eclipse'+(vis?(past?' was seen from here':', visible from here'):(past?', not seen from here':', not visible from here'))})}
+ return out}
+
+/* ================= the Moon (Gemini, Nov 7): its own tab and its own menu icon ================= */
+const SG_MPH={
+ p8:{t:'8 Phases',w:45,c:0,n:['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent'],r:['New','Crescent','First Quarter','Gibbous','Full','Disseminating','Last Quarter','Balsamic']},
+ f8:{t:'8 Phased',w:45,c:1,n:['New Moon','Waxing Crescent','First Quarter','Waxing Gibbous','Full Moon','Waning Gibbous','Last Quarter','Waning Crescent']},
+ p12:{t:'12 Phases',w:30,c:0,n:['New Moon','Waxing Semisextile','Waxing Sextile','Waxing Square','Waxing Trine','Waxing Quincunx','Full Moon','Waning Quincunx','Waning Trine','Waning Square','Waning Sextile','Waning Semisextile'],
+  r:['Seeding','Stirring','Rooting','Sprouting','Reaching','Budding','Blooming','Offering','Ripening','Fruiting','Gathering','Dreaming']},
+ f12:{t:'12 Phased',w:30,c:1,n:['New Moon','Waxing Semisextile','Waxing Sextile','Waxing Square','Waxing Trine','Waxing Quincunx','Full Moon','Waning Quincunx','Waning Trine','Waning Square','Waning Sextile','Waning Semisextile']}};
+/* which phase an elongation falls in: plain phases start at 0 degrees, phased ones are centered on the exact aspect */
+function phaseOf(id,e){const P=SG_MPH[id],i=Math.floor(n360(e+(P.c?P.w/2:0))/P.w)%P.n.length,lo=n360(i*P.w-(P.c?P.w/2:0));return {i,name:P.n[i],alt:P.r?P.r[i]:'',lo,hi:n360(lo+P.w)}}
+const SG_SIGNS=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SG_TITHI=['Pratipada','Dvitiya','Tritiya','Chaturthi','Panchami','Shashthi','Saptami','Ashtami','Navami','Dashami','Ekadashi','Dvadashi','Trayodashi','Chaturdashi'];
+/* the 28 Chinese lunar lodges (xiu), each starting at its determinative star's right ascension: [name, meaning, bayer or flamsteed, constellation] */
+const SG_XIU=[['Jiao','Horn','α','Vir'],['Kang','Neck','κ','Vir'],['Di','Root','α','Lib'],['Fang','Room','π','Sco'],['Xin','Heart','σ','Sco'],['Wei','Tail','μ','Sco'],['Ji','Winnowing Basket','γ','Sgr'],
+ ['Dou','Dipper','φ','Sgr'],['Niu','Ox','β','Cap'],['Nü','Girl','ε','Aqr'],['Xu','Emptiness','β','Aqr'],['Wei','Rooftop','α','Aqr'],['Shi','Encampment','α','Peg'],['Bi','Wall','γ','Peg'],
+ ['Kui','Legs','ζ','And'],['Lou','Bond','β','Ari'],['Wei','Stomach',35,'Ari'],['Mao','Hairy Head',17,'Tau'],['Bi','Net','ε','Tau'],['Zi','Turtle Beak','λ','Ori'],['Shen','Three Stars','δ','Ori'],
+ ['Jing','Well','μ','Gem'],['Gui','Ghost','θ','Cnc'],['Liu','Willow','δ','Hya'],['Xing','Star','α','Hya'],['Zhang','Extended Net','υ','Hya'],['Yi','Wings','α','Crt'],['Zhen','Chariot','γ','Crv']];
+let SG_XIU_RA=null;
+function xiuStars(){if(SG_XIU_RA)return SG_XIU_RA;const D=window.EA_PLN_SKY;if(!D)return null;
+ SG_XIU_RA=SG_XIU.map(([,, id,con])=>{let best=-1;D.info.forEach((f,i)=>{if(!f||f[4]!==con)return;if(typeof id==='number'?f[3]===id:f[2]===id){if(best<0||D.stars[i][2]<D.stars[best][2])best=i}});return best<0?null:{ra:D.stars[best][0],dec:D.stars[best][1]}});return SG_XIU_RA}
+function xiuOf(ra,jd){const S0=xiuStars();if(!S0)return null;const r=S0.map(s=>s?precess(s,jd).ra:null);let best=null,bd=999;
+ r.forEach((x,i)=>{if(x==null)return;const d=n360(ra-x);if(d<bd){bd=d;best=i}});return best==null?null:{i:best,into:bd}}
+/* the moment the Moon tab shows: a typed time, else a picked chart's moment, else now (today) or 9 PM (another day) */
+function moonMs(pl){const G=sgS(),ds=sgDate(pl),[y,m,d]=ymd(ds);
+ if(G.mt&&/^\d\d:\d\d$/.test(G.mt)){const [h,mi]=G.mt.split(':').map(Number);return localToMs(y,m,d,h,mi,0,pl)}
+ if(!G.date&&G.chart&&G.chart.time){const [h,mi,s]=G.chart.time.split(':').map(Number);return localToMs(y,m,d,h,mi||0,s||0,pl)}
+ if(ds===sgToday(pl))return Date.now();return localToMs(y,m,d,21,0,0,pl)}
+const dms=(x,sec)=>{const a=Math.abs(x);let d=Math.floor(a),mm=Math.floor((a-d)*60),ss=Math.round(((a-d)*60-mm)*60);if(ss===60){ss=0;mm++}if(mm===60){mm=0;d++}return d+'°'+p2(mm)+'′'+(sec?p2(ss)+'″':'')};
+const hms=ra=>{const h=n360(ra)/15,H=Math.floor(h),M=Math.floor((h-H)*60),Sx=Math.round(((h-H)*60-M)*60);return H+'h '+p2(M)+'m '+p2(Sx%60)+'s'};
+function moonData(t,pl){const E=EPH(),jd=jdAt(t),m=E.moon(jd),s=E.sun(jd),eps=E.obliq(jd),q=E.eq(m.lon,m.lat,eps),el=n360(m.lon-s.lon),
+ m1=E.moon(jdAt(t-432e5)),m2=E.moon(jdAt(t+432e5)),spd=wrap180(m2.lon-m1.lon),top=E.moonTopo(jd,pl.lat,pl.lon),alt=E.altOf(top,jd,pl.lat,pl.lon),az=E.azOf(top,jd,pl.lat,pl.lon);
+ const geoSd=Math.asin(1737.4/m.dist)/rad(1),ill=(1-Math.cos(rad(el)))/2;
+ const latRate=E.moon(jdAt(t+36e5)).lat-m.lat;
+ return {jd,lon:m.lon,lat:m.lat,dist:m.dist,ra:q[0],dec:q[1],el,ill,spd,alt,az,top,sd:geoSd,eps,asc:latRate>0}}
+/* the Moon's next events: quarters, perigee, and apogee, node crossings, greatest declinations */
+function moonNext(t,pl){const E=EPH(),out=[],N=35*24,qn=['New Moon','First Quarter','Full Moon','Last Quarter'];let prev=null,pp=null;
+ for(let h=-1;h<=N;h++){const tt=t+h*36e5,jd=jdAt(tt),m=E.moon(jd),s=E.sun(jd),q=E.eq(m.lon,m.lat,E.obliq(jd)),cur={tt,el:n360(m.lon-s.lon),dist:m.dist,lat:m.lat,dec:q[1]};
+  if(prev&&h>0){for(let k=0;k<4;k++){const a=wrap180(prev.el-k*90),b=wrap180(cur.el-k*90);if(a<0&&b>=0)out.push({t:tt-36e5*b/(b-a),w:qn[k]})}
+   if(prev.lat<0&&cur.lat>=0)out.push({t:tt,w:'North (ascending) node'});if(prev.lat>0&&cur.lat<=0)out.push({t:tt,w:'South (descending) node'});
+   if(pp){if(prev.dist<pp.dist&&prev.dist<=cur.dist)out.push({t:prev.tt,w:'Perigee, '+Math.round(prev.dist).toLocaleString()+' km'});if(prev.dist>pp.dist&&prev.dist>=cur.dist)out.push({t:prev.tt,w:'Apogee, '+Math.round(prev.dist).toLocaleString()+' km'});
+    if(prev.dec>pp.dec&&prev.dec>=cur.dec)out.push({t:prev.tt,w:'Farthest north, declination '+dms(prev.dec)+' N'+(Math.abs(prev.dec)>23.44?' (out of bounds)':'')});
+    if(prev.dec<pp.dec&&prev.dec<=cur.dec)out.push({t:prev.tt,w:'Farthest south, declination '+dms(prev.dec)+' S'+(Math.abs(prev.dec)>23.44?' (out of bounds)':'')})}}
+  pp=prev;prev=cur}
+ return out.filter(e=>e.t>=t).sort((a,b)=>a.t-b.t)}
+/* the Moon's face as seen from this place: the lit side faces the Sun; in the southern hemisphere the picture turns over */
+function moonFace(el,south){const R=46,c=50,k=Math.cos(rad(el)),wax=el<180,rx=Math.abs(k)*R;
+ const lit=`M${c} ${c-R}A${R} ${R} 0 0 ${wax?1:0} ${c} ${c+R}A${rx} ${R} 0 0 ${(wax?k<=0:k>0)?1:0} ${c} ${c-R}Z`;
+ return `<svg viewBox="0 0 100 100" class="stgmoonf" role="img" aria-label="The Moon, ${Math.round((1-k)/2*100)}% lit"${south?' style="transform:rotate(180deg)"':''}><circle cx="${c}" cy="${c}" r="${R}" fill="#2a2d3a"/><path d="${lit}" fill="#efe7cf"/><circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="#6e7287" stroke-width=".8"/></svg>`}
+function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=EPH(),A=AST();
+ const sg=Math.floor(D.lon/30),inS=D.lon-sg*30;
+ /* age since the last new Moon */
+ const elAt=tt=>wrap180(E.moon(jdAt(tt)).lon-E.sun(jdAt(tt)).lon);let tn=null;for(let h=0;h<31*24;h++){const b0=t-h*36e5,a0=b0-36e5;if(elAt(a0)<0&&elAt(b0)>=0){let a=a0,b=b0;for(let i=0;i<20;i++){const mid=(a+b)/2;if(elAt(mid)<0)a=mid;else b=mid}tn=b;break}}
+ const age=tn!=null?(t-tn)/864e5:D.el/12.19;
+ const sid=A&&A.ayan?n360(D.lon-A.ayan('lahiri',D.jd)):null,nak=sid!=null&&A.nak?A.nak[Math.floor(sid/(360/27))]:null,pada=sid!=null?Math.floor((sid%(360/27))/(360/108))+1:null;
+ const man=A&&A.mans?A.mans[Math.floor(n360(D.lon)/(360/28))]:null,mi=Math.floor(n360(D.lon)/(360/28))+1;
+ const q2k=A.eq(n360(D.lon-A.prec(D.jd)),D.lat,23.4392911),con=A.conAt?A.conAt(q2k[0],q2k[1]):'';
+ const conName=con&&window.EA_PLN_SKY?(EA_PLN_SKY.names[con]||con):'';
+ const xi=xiuOf(D.ra,D.jd),ti=Math.floor(D.el/12),tithi=ti<14?'Shukla '+SG_TITHI[ti]:ti===14?'Purnima (full)':ti<29?'Krishna '+SG_TITHI[ti-15]:'Amavasya (new)';
+ const mean=385000.56,size=Math.round(mean/D.dist*1000)/10,distp=Math.round(D.dist/mean*1000)/10;
+ const ph=phaseOf(G.mph||'p12',D.el),next=moonNext(t,pl).slice(0,12),rs=events('Moon',midnight(sgDate(pl),pl),pl);
+ const row=(k,v,n)=>`<tr><th scope="row">${k}</th><td>${v}${n?` <small>${n}</small>`:''}</td></tr>`;
+ const tv=(()=>{const p=parts(t,pl.tz);return p2(p.h)+':'+p2(p.mi)})();
+ return `<div class="stgmt"><label class="fl"><span>Time</span><input type="time" id="stg-mt" value="${G.mt||tv}"></label>${G.mt?'<button data-act="stgmnow">Now</button>':''}<small>${esc(longDate(sgDate(pl)))}, ${hm(t,pl)} ${esc(pl.tz||'UTC')}</small></div>
+ <div class="stgmoon">${moonFace(D.el,pl.lat<0)}<div><div class="stgmph">${ph.name}${ph.alt?` <small>(${ph.alt})</small>`:''}</div>
+ <div>${Math.round(D.ill*100)}% lit · ${age.toFixed(1)} days old · ${SG_SIGNS[sg]} ${dms(inS)}</div>
+ <div class="segs" role="group" aria-label="Phase system">${Object.keys(SG_MPH).map(k=>`<button class="seg ${(G.mph||'p12')===k?'on':''}" data-act="stgmph" data-id="${k}" aria-pressed="${(G.mph||'p12')===k}">${SG_MPH[k].t}</button>`).join('')}</div>
+ <small class="note">${ph.name} runs from ${Math.round(ph.lo)}° to ${Math.round(ph.hi)}° of phase angle.${(G.mph||'p12')==='p12'?' Earthstrology Method names (Wild Meadow) in brackets.':(G.mph||'p12')==='p8'?' Rudhyar\u2019s names in brackets.':' Phased systems center each phase on its exact aspect.'}</small></div></div>
+ <div class="cap">PHASE AND LIGHT</div><div class="stgtbl"><table><tbody>
+ ${row('Phase angle',dms(D.el),'the Moon\u2019s distance ahead of the Sun along the ecliptic, 0° new, 180° full')}
+ ${row('Lit',Math.round(D.ill*1000)/10+'%')}${row('Age',age.toFixed(2)+' days','since the new Moon'+(tn?' of '+shortDate(tn,pl):''))}
+ ${row('Tithi (Vedic lunar day)',(ti+1)+', '+tithi,'each 12° of phase angle')}</tbody></table></div>
+ <div class="cap">SIZE, DISTANCE AND SPEED</div><div class="stgtbl"><table><tbody>
+ ${row('Size',size+'% of average',dms(D.sd*2,true)+' across')}${row('Distance',Math.round(D.dist).toLocaleString()+' km',distp+'% of average ('+Math.round(D.dist/6378.14*10)/10+' Earth radii)')}
+ ${row('Speed',dms(D.spd)+' per day',D.spd>13.6?'fast (average 13°11′)':D.spd<12.8?'slow (average 13°11′)':'about average (13°11′)')}</tbody></table></div>
+ <div class="cap">POSITION</div><div class="stgtbl"><table><tbody>
+ ${row('Longitude',SG_SIGNS[sg]+' '+dms(inS,true),'tropical')}${row('Latitude',dms(D.lat)+(D.lat>=0?' N':' S'),D.asc?'heading north (after the North Node)':'heading south (after the South Node)')}
+ ${row('Right ascension',hms(D.ra),'geocentric, of date')}${row('Declination',dms(D.dec)+(D.dec>=0?' N':' S'),Math.abs(D.dec)>D.eps?'<b>out of bounds</b> (beyond the Sun\u2019s greatest declination, '+dms(D.eps)+')':'within bounds')}
+ ${row('Altitude',(D.alt<0?'−':'')+dms(D.alt)+(D.alt<0?' (below the horizon)':''),'seen from '+esc(pl.label)+', parallax included')}${row('Azimuth',dms(D.az)+' '+dirOf(D.az),'from north through east')}
+ ${row('Today',`Rise ${go(rs.rise,'Moon',0,hm(rs.rise,pl)||'\u2014',1)} · Reach ${go(rs.cul,'Moon',0,hm(rs.cul,pl)||'\u2014')} · Rest ${go(rs.set,'Moon',0,hm(rs.set,pl)||'\u2014',1)}`)}</tbody></table></div>
+ <div class="cap">CONSTELLATION AND MANSIONS</div><div class="stgtbl"><table><tbody>
+ ${row('Constellation',esc(conName||'\u2014'),'IAU borders')}${row('Arabic lunar mansion',man?mi+'. '+esc(man):'\u2014','28 equal mansions from 0° Aries, tropical')}
+ ${row('Nakshatra',nak?(Math.floor(sid/(360/27))+1)+'. '+esc(nak)+', pada '+pada:'\u2014','27 equal nakshatras, sidereal (Lahiri)')}
+ ${row('Chinese lunar lodge',xi?(xi.i+1)+'. '+SG_XIU[xi.i][0]+', '+SG_XIU[xi.i][1]+` <small>${dms(xi.into)} in</small>`:'\u2014','28 unequal lodges, each starting at its determinative star (right ascension)')}</tbody></table></div>
+ <div class="cap">COMING UP</div><div class="stgtbl"><table><tbody>${next.map(e=>`<tr><td style="white-space:nowrap">${go(e.t,'Moon',/Quarter|Full|New/.test(e.w)?1:0,shortDate(e.t,pl)+' '+hm(e.t,pl))}</td><td>${e.w}</td></tr>`).join('')}</tbody></table></div>
+ <small class="note">From a precise Moon (Meeus, ELP-2000/82 main terms). Size and distance compare with the average distance of 385,000 km. Out of bounds means a declination beyond the Sun\u2019s greatest, about 23°26′. The Moon picture is drawn as seen from ${esc(pl.label)}.</small>`}
+
+/* ---- every event opens the Planetarium (Gemini, Nov 7): its date, time, and a view facing it ----
+   target: a body or star name, 'az:<deg>' for a direction, or 'eq:<ra>:<dec>'; mode 0 exact, 1 nearest moment it is
+   up in a darkening sky, 2 highest in full darkness that night (meteor radiants, constellations) */
+const SG_RAD={Quadrantids:[230,49],Lyrids:[271,34],'Eta Aquariids':[338,-1],'Southern Delta Aquariids':[340,-16],Perseids:[48,58],Draconids:[262,54],'Southern Taurids':[32,9],Orionids:[95,16],'Northern Taurids':[58,22],Leonids:[152,22],Geminids:[112,33],Ursids:[217,76]};
+/* atm: a rising or setting event, which opens with the atmosphere on (Gemini, Nov 7) */
+const go=(ms,k,mode,txt,atm)=>ms?`<button class="stglk" data-act="stggo" data-id="${Math.round(ms)}|${esc(String(k))}|${mode||0}|${atm?1:0}" title="Show this in the Planetarium">${txt}</button>`:txt;
+function tgtEq(k,jd){if(/^eq:/.test(k)){const [,ra,de]=k.split(':');return fixedEq(+ra,+de,jd)}if(SG_STARS[k])return starEq(k,jd);const B=bodiesEq(jd);return B[k]||null}
+function goTime(ms,k,mode,pl){if(!mode||/^az:/.test(k))return ms;const ok=(t,sun,lim)=>{const jd=jdAt(t),q=tgtEq(k,jd);if(!q)return null;const a=altAz(q,jd,pl).alt,sa=altAz(bodiesEq(jd).Sun,jd,pl).alt;return sa<sun&&a>lim?a:null};
+ if(mode===2){let best=null,ba=-99;for(let t=ms-12*36e5;t<=ms+12*36e5;t+=6e5){const a=ok(t,-18,5);if(a!=null&&a>ba){ba=a;best=t}}return best||goTime(ms,k,1,pl)}
+ for(let d=0;d<=14*36e5;d+=6e5)for(const t of [ms+d,ms-d])if(ok(t,-4,1)!=null)return t;return ms}
+function goSky(id){const [ms0,k,md,atm]=id.split('|'),pl=sgPlace(),t=goTime(+ms0,k,+md,pl),jd=jdAt(t);let az=null,alt=0;
+ if(/^az:/.test(k))az=+k.slice(3);else{const q=tgtEq(k,jd);if(q){const h=altAz(q,jd,pl);az=h.az;alt=Math.max(0,Math.min(60,h.alt-5))}}
+ /* Realistic Sizes always on from Stargazer; the atmosphere on for rising and setting (Gemini, Nov 7) */
+ openSky({ms:t,place:{label:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz},az,alt,real:true,fov:60,eye:k==='Sun'||k==='Moon',atm:atm==='1'?true:undefined})}   /* about what the eye takes in (Gemini, Nov 7: the Sun and Moon looked too small at 180 degrees) */
+/* ---- actions ---- */
+cpRegister('stg',r=>{const G=sgS();G.chart=r;G.loc=null;G.date=null;G.pick=false});
+function act(a,id){const G=sgS(),pl=sgPlace();
+ if(a==='stgtab')G.tab=id;else if(a==='stgtgl')G[id]=!G[id];else if(a==='stgorb')G.orb=+id;else if(a==='stgwhere')G.where=!G.where;else if(a==='stgpick')G.pick=!G.pick;
+ else if(a==='stgstar'){const p=G.ssug[+id];if(p){if(!SG_STARS[p.n])SG_STARS[p.n]=[p.ra,p.dec,p.mag];if(!G.extra.includes(p.n))G.extra.push(p.n);G.sq='';G.ssug=[]}}
+ else if(a==='stgconsall')G.consAll=id==='1';
+ else if(a==='stggo'){goSky(id);return}else if(a==='stgmph')G.mph=id;else if(a==='stgmnow')G.mt='';else if(a==='stggeo')G.geo=id==='1';else if(a==='stgstars'){if(G.anim)G.anim.stars=!G.anim.stars;animDraw(true);return}else if(a==='stgoccdays')G.occDays=+id;else if(a==='stgeclw')animOpen(id);else if(a==='stgplay'){animPlay();return}else if(a==='stganimx'){G.anim=null;animStop()}else if(a==='stgnopause'){G.noPause=!G.noPause;animDraw(true);return}else if(a==='stgseek'){if(G.anim){G.anim.t=Math.min(G.anim.b,Math.max(G.anim.a,+id));animDraw()}return}
+ else if(a==='stgunstar')G.extra=G.extra.filter(n=>n!==id);
+ else if(a==='stgplace'){const p=G.sug[+id];if(p){G.loc={label:p.label,lat:p.latitude,lon:p.longitude,tz:p.timezone};G.chart=null;G.q='';G.sug=[]}}
+ else if(a==='stgtoday'){G.date=null;if(G.chart){G.loc=Object.assign({},G.chart.place);G.chart=null}}
+ else if(a==='stghome'){G.loc={label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz};G.chart=null}
+ else if(a==='stgsky'){const P=paragraphs(),t=P.mView||P.eView||Date.now();openSky({ms:t,place:{label:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz},az:P.mView?90:270});return}
+ renderAll()}
+document.addEventListener('input',e=>{const t=e.target;if(!t)return;const G=sgS();
+ if(t.id==='stg-star'){G.sq=t.value;G.ssug=starSearch(t.value);const el=document.getElementById('stg-ssug');if(el){el.hidden=!G.ssug.length;el.innerHTML=G.ssug.map((p,i)=>`<div data-act="stgstar" data-id="${i}">${esc(p.lab)}</div>`).join('')}return}
+ if(t.id==='stg-q'){G.q=t.value;G.sug=(window.GemBPlaces&&t.value.trim().length>=2)?GemBPlaces.suggest(t.value,6):[];const el=document.getElementById('stg-sug');if(el){el.hidden=!G.sug.length;el.innerHTML=G.sug.map((p,i)=>`<div data-act="stgplace" data-id="${i}">${esc(p.label)}</div>`).join('')}}});
+document.addEventListener('change',e=>{const t=e.target;if(t&&t.id==='stg-mt'){sgS().mt=t.value;renderAll();return}if(t&&t.id==='stg-d'&&/^\d{4}-\d\d-\d\d$/.test(t.value)){const G=sgS(),pl=sgPlace();if(G.chart){G.loc=Object.assign({},G.chart.place);G.chart=null}G.date=t.value===sgToday(pl)?null:t.value;renderAll()}});
+/* tests and the Planetarium reach these */
+return {box:sgBox,moonBox,act,animHTML,hasAnim:()=>!!sgS().anim,paragraphs,riseRows:ds=>riseRows(ds||sgDate(sgPlace()),sgPlace()),open:o=>{const G=sgS();o=o||{};if(o.place){const q=o.place;G.loc={label:q.label||q.name||'Chosen place',lat:q.lat,lon:q.lon,tz:q.tz||(window.GemBPlaces&&GemBPlaces.nearest&&(GemBPlaces.nearest(q.lat,q.lon)||{}).timezone)||'UTC'};G.chart=null}if(o.date)G.date=o.date;G.tab='tonight';
+ /* the Eclipse World's "Watch In Stargazing": {tab:'eclipses', jd (UT), place, watch:'here'|'most'} */
+ if(o.tab==='eclipses'||o.tab==='ecl'){G.tab='ecl';G.anim=null;if(o.jd&&EPH()){const f=EPH().eclipses(o.jd-2,o.jd+2).sort((a,b)=>Math.abs(a.jd-o.jd)-Math.abs(b.jd-o.jd))[0];if(f)animOpenE(f,o.watch==='most'?'best':'here')}}}}};
 })();
 </script>
 <script>const R_=Math.PI/180,rad=x=>x*R_,deg=x=>x/R_,n360=x=>((x%360)+360)%360;
@@ -1117,7 +1759,7 @@ $('dockb').onclick=()=>{ST.dock=!ST.dock;save();dockUI()};
 dockUI();
 
 /* sheets: X or Escape closes them (the Device's menu rule) */
-const SHEETS=['menu','charts','chform','clock','hou','camm','s-circ','s-agrid','s-zod','s-grids','s-div','s-decn','s-cons','s-stars','s-plan','s-mw','s-sky'];
+const SHEETS=['menu','charts','chform','clock','skygazer','hou','camm','s-circ','s-agrid','s-zod','s-grids','s-div','s-decn','s-cons','s-stars','s-plan','s-mw','s-sky'];
 function closeSheets(){for(const id of SHEETS)$(id).hidden=true;}
 function openSheet(id){const was=!$(id).hidden;closeSheets();$('alist').hidden=true;if(was)return;$(id).hidden=false;sync()}
 document.querySelectorAll('.sheet [data-close]').forEach(b=>b.onclick=closeSheets);
@@ -1853,6 +2495,53 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-chr]');if(
 $('chrbtn').onclick=()=>{ST.chring=ST.chring===false;save();CHRK='';chRowUI()};
 $('chtnow').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
 document.querySelectorAll('[data-chp]').forEach(b=>b.onclick=()=>playSet(+b.dataset.chp));
+
+/* ---- SkyGazer (Gemini, Nov 13): Main's Stargazer World (worlds/stargazing/stargazing.js, Galileo's recipe) inside Earthstrology
+   Sky, behind its own icon at the lower right of the bar. The World is shared as is; this file only builds the small adapter
+   it asks the Device's core for, from Sky Mode's own pieces: the place and time zone (ST), the places list (PL), the planets
+   (NASA JPL DE441, the core math standing in), and the Planetarium's sky helpers. Its "Preview In Planetarium" buttons turn
+   Sky Mode's own sky to that moment, place, and direction. ---- */
+const SGZ={api:null,S:{stg:null,recents:[]}};
+function sgzParts(ms,tz){try{const o={};for(const x of new Intl.DateTimeFormat('en-US',{timeZone:tz||undefined,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',weekday:'short'}).formatToParts(new Date(ms)))o[x.type]=x.value;
+  return {y:+o.year,m:+o.month,d:+o.day,h:(+o.hour)%24,mi:+o.minute,s:+o.second,wd:o.weekday}}catch(e){const d=new Date(ms);return {y:d.getFullYear(),m:d.getMonth()+1,d:d.getDate(),h:d.getHours(),mi:d.getMinutes(),s:d.getSeconds()}}}
+function sgzLocal(y,m,d,h,mi,s,pl){const tz=pl&&pl.tz,want=Date.UTC(y,m-1,d,h,mi,s||0);if(!tz)return new Date(y,m-1,d,h,mi,s||0).getTime();
+ let t=want;for(let i=0;i<3;i++){const p=sgzParts(t,tz),got=Date.UTC(p.y,p.m-1,p.d,p.h,p.mi,p.s);t+=want-got}return t}
+const SGZN=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+/* naked-eye work samples the sky hundreds of times, so the core math (well within a few arcminutes) serves here; JPL only
+   stands in for a body the core math lacks */
+const SGZC=new Map();function sgzBodies(jd){const ck=Math.round(jd*1440);if(SGZC.has(ck))return SGZC.get(ck);const out={},lat={};const P=planets(jd);
+ for(const k of SGZN){let b=P[k]||null;if(!b){try{b=JPL&&JPL.body(k,jd)}catch(e){}}
+  if(!b&&K){const kb=K.bodies.find(x=>x.k===k);if(kb)b={lon:kb.lon,lat:0}}
+  out[k]=b?n360(b.lon):0;lat[k]=b&&b.lat||0}
+ const r={out,lat};SGZC.set(ck,r);if(SGZC.size>4000)SGZC.delete(SGZC.keys().next().value);return r}
+const SGZ_NAK=['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'];
+const sgzEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function sgzRender(){const b=$('sgzbody');if(!b||!SGZ.api)return;const y=$('skygazer').scrollTop;try{b.innerHTML=SGZ.api.box().replace(/>Preview In Planetarium</g,'>See It In The Sky<').replace(/<small>\(Home\)<\/small>/,'<small>(the sky’s place)</small>')}catch(e){b.innerHTML='<p class="sub">SkyGazer could not draw this: '+sgzEsc(e.message)+'</p>'}$('skygazer').scrollTop=y}
+/* a place list shaped like the Device's GemBPlaces, from Sky Mode's own places */
+if(!window.GemBPlaces)window.GemBPlaces={suggest(q,n){q=String(q||'').trim().toLowerCase();if(!PL||q.length<2)return [];const hit=[];for(const p of PL){if(p[4].startsWith(q))hit.push(p);if(hit.length>=n)break}
+  if(hit.length<n)for(const p of PL){if(!p[4].startsWith(q)&&p[4].includes(q))hit.push(p);if(hit.length>=n)break}return hit.map(p=>({label:p[0],latitude:p[2],longitude:p[3],timezone:p[6]}))},
+ nearest(lat,lon){let b=null,bd=1e9;for(const p of PL||[]){const d=(p[2]-lat)**2+((p[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;b=p}}return b?{label:b[0],timezone:b[6]}:null}};
+function sgzInit(){if(SGZ.api)return SGZ.api;const W=window.EA_WORLDS&&window.EA_WORLDS.stargazing;if(!W)return null;
+ const HOME={get place(){return ST.place},get lat(){return ST.lat},get lon(){return ST.lon},get tz(){return ST.tz||Intl.DateTimeFormat().resolvedOptions().timeZone}};
+ const astro={eclLat:jd=>sgzBodies(jd).lat,eq:(l,b,e)=>eclToEq(l,b,e),obliq:obl,prec:jd=>{const T=(jd-2451545)/36525;return (5028.796195*T+1.1054348*T*T)/3600},
+  conAt:(ra,de)=>window.plnConAt?window.plnConAt(ra,de):'',nak:SGZ_NAK,mans:null,ayan:(id,jd)=>{const a=(PLN_AYAN.find(x=>x[0]===id)||PLN_AYAN[0])[2],T=(jd-2451545)/36525;return a+(5028.796195*T+1.1054348*T*T)/3600}};
+ const A={S:SGZ.S,positions:jd=>sgzBodies(jd).out,jdOf:ms=>ms/864e5+2440587.5,HOME,head:()=>'',esc:sgzEsc,
+  opt:(list,sel)=>list.map(o=>{const v=Array.isArray(o)?o[0]:o,t=Array.isArray(o)?o[1]:o;return `<option value="${v}" ${v===sel?'selected':''}>${t}</option>`}).join(''),
+  rad,deg,n360,renderAll:sgzRender,pickerHTML:()=>'<p class="sub">Open a chart from the Chart button, then SkyGazer uses its place.</p>',cpRegister:()=>{},
+  localToMs:sgzLocal,parts:sgzParts,toast:t=>say(t,2600),pln:()=>({astro}),openSky:sgzSky};
+ try{SGZ.api=W(A)}catch(e){console.error(e);return null}return SGZ.api}
+/* "Preview In Planetarium": the sky itself turns to that moment, place, and direction */
+function sgzSky(o){if(!o)return;const q=o.place;if(q&&(Math.abs(q.lat-ST.lat)>1e-4||Math.abs(q.lon-ST.lon)>1e-4)){ST.lat=q.lat;ST.lon=q.lon;ST.place=q.label||ST.place;ST.tz=q.tz||ST.tz;SKY=null;save()}
+ closeSheets();if(ST.view==='chart'&&typeof chView==='function')chView('sky');if(o.ms)jump(o.ms);
+ if(o.az!=null){if(ST.track){ST.track=false;trackBtn()}ST.yaw=n360(o.az-(ST.off||0));ST.pitch=Math.max(5,Math.min(60,(o.alt||0)+12))}
+ K=null;barText()}
+function sgzOpen(){const api=sgzInit();if(!api){say('SkyGazer did not load.',2500);return}
+ /* SkyGazer follows Sky Mode's place unless a place is chosen inside it */
+ if(!SGZ.S.stg||!SGZ.S.stg.loc){SGZ.S.recents=[]}
+ openSheet('skygazer');loadPlaces().then(()=>{if(!$('skygazer').hidden)sgzRender()});sgzRender()}
+$('sgzbtn').addEventListener('click',sgzOpen);
+$('skygazer').addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||!SGZ.api)return;const a=b.dataset.act;if(!/^stg/.test(a))return;e.preventDefault();SGZ.api.act(a,b.dataset.id)});
+window.__sky&&(window.__sky.sgz=SGZ);
 
 })();</script>
 
