@@ -335,12 +335,12 @@ const SW=[['ecl','Ecliptic',true,'arm'],['equ','Celestial Equator',true,'arm'],[
  ['cons','Constellation Lines',true,'sky'],['art','Constellation Art',false,'sky'],['cnames','Constellation Names',false,'sky'],['snames','Star Names',false,'sky'],['planets','Planets',true,'sky'],['atm','Atmosphere',true,'sky'],['daystars','Daytime Stars',true,'sky'],['mw','Milky Way',true,'sky'],
  ['houses','Houses',false,'hou']];
 const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Angeles',track:false,night:false,off:0,fov:40,sensors:false,
- yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.45,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
+ yaw:0,pitch:20,roll:0,M:null,tapInfo:null,hsys:'placidus',psize:'big',mwBr:.9,seeThru:.55,zod:'trop',hlab:0,plab:'gly',cam:null,camFov:66,camMix:.5,mic:true,armMem:null};
 for(const s of SW)ST[s[0]]=s[2];
 try{const s=JSON.parse(localStorage.getItem('skymode')||'{}');if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
- if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(typeof s.seeThru==='number')ST.seeThru=s.seeThru;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru:ST.seeThru,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
+ if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(typeof s.seeThru2==='number')ST.seeThru=s.seeThru2;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru2:ST.seeThru,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -441,7 +441,9 @@ let K=null,lastSky=0,CAM=null;
 /* the field of view: the camera's own when it is on (Match Camera, in the Camera menu), otherwise the zoom */
 /* the zoom is set on the screen's short side, as Stellarium does (Gemini, Nov 13: start at 40°, like Stellarium's opening view) */
 function fovNow(){if(!ST.cam){return H>=W?2*deg(Math.atan(Math.tan(rad(ST.fov/2))*H/Math.max(1,W))):ST.fov}const t=Math.tan(rad(ST.camFov/2));return H>=W?ST.camFov:2*deg(Math.atan(t*H/W))}
-function camera(){let M=ST.track&&ST.M?ST.M:dragMatrix();M=rotUp(M,ST.off);const ang=(screen.orientation&&screen.orientation.angle)||window.orientation||0,t=rad(ang);
+/* the screen's turn (landscape) applies to the sensors' frame only: the drag view is already in screen terms, so turning it too
+   showed the sky sideways or upside down after a drag in landscape (Gemini's bug, Nov 13) */
+function camera(){const trk=ST.track&&ST.M;let M=trk?ST.M:dragMatrix();M=rotUp(M,ST.off);const ang=trk?((screen.orientation&&screen.orientation.angle)||window.orientation||0):0,t=rad(ang);
  /* the selfie camera looks out of the screen, so the sky behind you is shown, mirrored like the camera's own picture */
  const sf=ST.cam==='user'&&ST.track,r=col(M,0),u=col(M,1),f=col(M,2).map(x=>sf?x:-x),c=Math.cos(t),s=Math.sin(t);
  return {r:r.map((x,i)=>c*x-s*u[i]),u:r.map((x,i)=>s*x+c*u[i]),f,F:(H/2)/Math.tan(rad(fovNow()/2))}}
@@ -543,8 +545,8 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.glyphs){const gs=Math.max(16,Math.min(30,CAM.F*rad(7)));for(let s=0;s<12;s++){const p=proj(K.glyphV[s]);if(!p)continue;const im=glyph(s);
    if(im)g.drawImage(im,p[0]-gs/2,p[1]-gs/2,gs,gs);else{g.fillStyle=CFG.glyCols[s%4];g.font=`${gs*.8}px 'Apple Symbols','Segoe UI Symbol',sans-serif`;g.textAlign='center';g.textBaseline='middle';g.fillText(['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'][s]+'︎',p[0],p[1]);g.textBaseline='alphabetic'}}}
  /* the ground (none over the camera: the real ground shows), laid over the stars and figures below the horizon so they show
-    dimly through it; darker at night (Gemini, Nov 13: darker than before, not as black as Stellarium's), then the horizon and the directions */
- if(GP){g.fillStyle=GP.c;g.globalAlpha=1-ST.seeThru*(.65+.35*day);g.beginPath();g.moveTo(GP.out[0][0],GP.out[0][1]);for(const q of GP.out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}
+    dimly through it; darker at night (Gemini, Nov 13: about half shows through at night by default), then the horizon and the directions */
+ if(GP){g.fillStyle=GP.c;g.globalAlpha=1-ST.seeThru*(.9+.1*day);g.beginPath();g.moveTo(GP.out[0][0],GP.out[0][1]);for(const q of GP.out.slice(1))g.lineTo(q[0],q[1]);g.closePath();g.fill();g.globalAlpha=1}
  g.strokeStyle=CFG.horCol;g.lineWidth=1.6;g.beginPath();poly(g,HORZ);g.stroke();
  g.font=`bold ${16*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='center';for(const [az,n] of [[0,'N'],[45,'NE'],[90,'E'],[135,'SE'],[180,'S'],[225,'SW'],[270,'W'],[315,'NW']]){const p=proj(azV(az,0));if(p){g.fillStyle=n==='N'?'#ff8a7a':'#cfe3cf';g.fillText(n,p[0],p[1]+22)}}
  /* Sun, Moon, and planets, drawn last so they sit above the ground line when they are low */
