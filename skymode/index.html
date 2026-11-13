@@ -95,6 +95,13 @@ body.camon #snapchip{top:calc(env(safe-area-inset-top) + 50px)}
  #plist{left:auto;right:10px;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
  #info dl{grid-template-columns:auto 1fr;font-size:12.5px}#info .ib{margin-bottom:6px}
 }
+#globe{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 8px);width:min(52vw,240px);background:rgba(8,10,20,.82);border:1px solid rgba(209,171,116,.45);border-radius:14px;z-index:3;padding:4px 4px 6px}
+#globe[hidden]{display:none}#gcv{display:block;width:100%;aspect-ratio:1;touch-action:none;cursor:grab}
+#globe button{position:absolute;top:4px;width:32px;height:32px;min-height:32px;padding:0;border-radius:50%;font-size:14px;background:rgba(10,12,22,.9)}#gx{right:4px;font-size:18px!important}#gplay{left:4px}
+#gmsg{min-height:15px;text-align:center;font-size:11.5px;color:var(--ink);padding:0 4px}
+body.chartview #globe{display:none}body.globeon #snapchip{max-width:calc(100% - min(52vw,240px) - 30px)}body.globeon #snapchip span{max-width:30vw}
+body.camon #globe{top:calc(env(safe-area-inset-top) + 60px)}
+@media (orientation:landscape) and (max-height:520px){#globe{width:min(30vh,170px);right:auto;left:8px;top:calc(env(safe-area-inset-top) + 50px)}}
 #alist[hidden],#info[hidden],button[hidden]{display:none}
 #alist p{margin:0 0 4px;width:100%;font-size:13px;color:var(--dim)}
 #msg{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);text-align:center;font-size:13px;color:var(--dim);pointer-events:none}
@@ -104,7 +111,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
 <button id="start">Start Sky Mode</button>
-<button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
+<button id="chtheme" aria-label="Light or dark chart" title="Light or dark chart">☀︎</button><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
 <video id="cam" playsinline muted autoplay hidden></video>
 <div id="menu" class="sheet" hidden role="dialog" aria-label="Menu"><button class="x" data-close aria-label="Close">×</button><h3>Sky Mode</h3><div class="row">
  <button id="track" hidden>Track Sky</button>
@@ -837,7 +844,7 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  if(ST.planets)for(const b of K.bodies){const p=proj(b.v);if(!p||p[0]<-40||p[0]>W+40||p[1]<-40||p[1]>H+40)continue;const below=b.v[2]<0,r=bodyR(b);g.globalAlpha=below&&!camOn?0.45:1;
   drawBody(g,b,p,r);if(ST.plab==='gly'){const im=pglyph(b.k),gs=22*tiny*Math.pow(zsc(.6,4),.5);if(im)g.drawImage(im,p[0]+r+4,p[1]-gs/2,gs,gs)}else if(ST.plab==='name'){g.fillStyle=PCOL[b.k];g.font=`600 ${13*tiny}px -apple-system,Inter,sans-serif`;g.textAlign='left';g.fillText(b.k,p[0]+r+5,p[1]+4)}}
  g.globalAlpha=1;
- infoPaths(g);infoRing(g);infoTick();pbTick();
+ infoPaths(g);infoRing(g);infoTick();pbTick();glbTick();glbDraw();
  /* the aim ring */
  /* no aim circle (Gemini, Nov 13: it is not something we see in the sky) */
  if(REC.on||REC.snap)compose();
@@ -988,7 +995,7 @@ const SHEETS=['menu','charts','chform','locs','clock','hou','camm','s-circ','s-a
 function closeSheets(){for(const id of SHEETS)$(id).hidden=true;}
 function openSheet(id){const was=!$(id).hidden;closeSheets();$('alist').hidden=true;if(was)return;$(id).hidden=false;sync()}
 document.querySelectorAll('.sheet [data-close]').forEach(b=>b.onclick=closeSheets);
-addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('plist').hidden){$('plist').hidden=true;return}if(!$('pbar').hidden&&$('info').hidden&&!SHEETS.some(id=>!$(id).hidden)){pbClose();return}const any=SHEETS.some(id=>!$(id).hidden)||!$('alist').hidden||!$('info').hidden;infoClose();closeSheets();$('alist').hidden=true;if(!any&&ROW)toggleRow(ROW)});   /* Escape closes a panel first, then the row */
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!$('plist').hidden){$('plist').hidden=true;return}if(GLB.on&&$('info').hidden&&!SHEETS.some(id=>!$(id).hidden)){glbClose();return}if(!$('pbar').hidden&&$('info').hidden&&!SHEETS.some(id=>!$(id).hidden)){pbClose();return}const any=SHEETS.some(id=>!$(id).hidden)||!$('alist').hidden||!$('info').hidden;infoClose();closeSheets();$('alist').hidden=true;if(!any&&ROW)toggleRow(ROW)});   /* Escape closes a panel first, then the row */
 
 /* places: the Device's GeoNames list (places.txt, CC BY 4.0), fetched only when needed */
 let PL=null,PLwait=null;
@@ -1293,7 +1300,7 @@ function snapTo(jd,sel,from,label){if(!SNAP0)SNAP0={toff:TOFF,yaw:ST.yaw,pitch:S
  setTimeout(()=>{if(!K||ST.view!=='sky')return;IANIM++;if(ST.track){ST.track=false;trackBtn()}const v=pSelV(sel||PB.sel);if(v){const [az,alt]=azAlt(v);ST.yaw=n360(az-ST.off);ST.pitch=Math.max(-80,Math.min(80,alt-ST.fov*.18))}pbDraw()},120)}
 /* while snapped, the four times stay those of the moment before the first snap */
 const pBase=()=>SNAP0?(Date.now()+SNAP0.toff)/864e5+2440587.5:K.jd;
-function pReturn(){const s=SNAP0;if(!s)return;SNAP0=null;snapChip();TOFF=s.toff;K=null;ST.yaw=s.yaw;ST.pitch=s.pitch;ST.fov=s.fov;if(s.track&&!ST.track){ST.track=true;trackBtn()}barText();say('Returned.',2000);pbDraw()}
+function pReturn(){const s=SNAP0;if(!s)return;if(typeof GLB!=='undefined'&&GLB.play){GLB.play=false;glbUI()}SNAP0=null;snapChip();TOFF=s.toff;K=null;ST.yaw=s.yaw;ST.pitch=s.pitch;ST.fov=s.fov;if(s.track&&!ST.track){ST.track=true;trackBtn()}barText();say('Returned.',2000);pbDraw()}
 /* heliacal phases, Galileo's Stargazer method: at the twilight moment (the Sun at minus the arcus visionis), is the object
    up in the east or the west, morning and evening, day by day for about 13 months */
 const PAV={Mercury:10,Venus:5,Mars:11.5,Jupiter:9,Saturn:11};
@@ -1334,9 +1341,9 @@ function snapChip(){const c=$('snapchip');if(!SNAP0){c.hidden=true;return}c.inne
 function pbDraw(){const bar=$('pbar');if(!PB.type||!PB.sel||!K){if(bar)bar.hidden=true;return}const sel=PB.sel,nm=pName(sel);let h=`<b class="pbt">${PB.type==='arc'?'Arc':'Orbit'} · ${iEsc(nm)}</b>`;
  if(PB.type==='arc'){const j0=pBase();for(const [t,n] of PEV){const e=pEvent(sel,t,j0);h+=e&&e.jd?pbBtn('ev:'+t,`${n} <small>${pTime(e.jd)}</small>`):e&&e.never?`<span class="pbn">${e.never==='set'?'Never rests':'Never rises'}</span>`:''}
   if(!(sel.t==='p'&&/^(Sun|Moon|Uranus|Neptune|Pluto)$/.test(sel.k)))h+=pbBtn('hel','Heliacal');
-  h+=pbBtn('par','Parallels')+pbBtn('prn','Parans')+pbBtn('hrs','Hour Dots',PB.hours);
+  h+=pbBtn('glb','Globe',GLB.on)+pbBtn('par','Parallels')+pbBtn('prn','Parans')+pbBtn('hrs','Hour Dots',PB.hours);
   const r=pEvent(sel,'rise',K.jd),s=r&&r.jd?pEvent(sel,'rest',r.jd):null;if(r&&r.jd&&s&&s.jd){const up=(s.jd-r.jd)*24,f=x=>{const m=Math.round(x*60);return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`};h+=`<span class="pbn">Day arc ${f(up)} · Night arc ${f(24*.99727-up)}</span>`}}
- else{h+=pbBtn('o:nodes','Nodes',PB.o.nodes)+pbBtn('o:lat','Latitudes',PB.o.lat)+pbBtn('sta','Stations')+pbBtn('o:retro','Retro Zones',PB.o.retro)+pbBtn('o:sun','Sun Meetings',PB.o.sun)+pbBtn('o:oob','Out Of Bounds',PB.o.oob)+pbBtn('o:dates','Dates',PB.o.dates)
+ else{h+=pbBtn('glb','Globe',GLB.on)+pbBtn('o:nodes','Nodes',PB.o.nodes)+pbBtn('o:lat','Latitudes',PB.o.lat)+pbBtn('sta','Stations')+pbBtn('o:retro','Retro Zones',PB.o.retro)+pbBtn('o:sun','Sun Meetings',PB.o.sun)+pbBtn('o:oob','Out Of Bounds',PB.o.oob)+pbBtn('o:dates','Dates',PB.o.dates)
   +`<label class="pbs">Span <input type="range" id="pspan" min="25" max="300" step="25" value="${Math.round(PB.span*100)}" aria-label="Orbit span"></label>`;
   if(sel.t==='p'&&sel.k!=='Sun'&&sel.k!=='Moon'){let hl=null;try{hl=JPL.helio(sel.k,K.jd)}catch(e){}if(hl)h+=`<span class="pbn">Helio latitude ${hl.lat>=0?'+':''}${hl.lat.toFixed(2)}°</span>`}}
  if(SNAP0&&!h.includes('data-pb="ret"'))h+=RETB;h+=`<button data-pb="x" class="pbx" aria-label="Close ${PB.type==='arc'?'Arc':'Orbit'}">×</button>`;
@@ -1345,19 +1352,84 @@ function pList(title,rows){const el=$('plist');el.innerHTML=`<div class="ih"><b>
 document.addEventListener('click',e=>{const b=e.target.closest('[data-pb]');if(!b)return;const a=b.dataset.pb,sel=PB.sel;
  if(a==='x'){const M=PB.type==='arc'?IPATH.da:IPATH.op;M.delete(iKey(sel));pbClose();if(ISEL)infoShow();return}
  if(a==='ret'){pReturn();return}
+ if(a==='glb'){if(GLB.on)glbClose();else glbOpen();return}
  if(a.startsWith('ev:')){const e2=pEvent(sel,a.slice(3),pBase());if(e2&&e2.jd)snapTo(e2.jd,sel,a,(PEV.find(x=>x[0]===a.slice(3))||[])[1]);return}
  if(a==='hrs'){PB.hours=!PB.hours;pbSave();pbDraw();return}
  if(a.startsWith('o:')){const k=a.slice(2);PB.o[k]=!PB.o[k];pbSave();pbDraw();return}
  if(a==='hel'){const R=pHeliacal(sel)||[],nm=Object.fromEntries(PHN),now=K.jd;R.sort((x,y)=>x.jd-y.jd);
   pList(`${pName(sel)} · Heliacal`,R.map(r=>({html:`${nm[r.k]} <small>${pDate(r.jd)}/${zparts((r.jd-2440587.5)*864e5).y} ${pTime(r.jd)}${r.jd<now?' · past':''}</small>`,go:()=>{$('plist').hidden=true;snapTo(r.jd,sel,'hel',nm[r.k])}})));
   const fi=R.findIndex(r=>r.jd>=now),el=$('plist').querySelectorAll('.pli')[fi];if(el)el.scrollIntoView({block:'nearest'});return}
- if(a==='par'){pList(`${pName(sel)} · Parallels`,pParallels(sel).map(x=>({html:`${x.kind}: ${iEsc(pName(x.o))} <small>${x.d>=0?'+':''}${x.d.toFixed(1)}° · orb ${x.orb.toFixed(1)}°</small>`,go:()=>{$('plist').hidden=true;ST.tapInfo=null;infoShow(x.o)}})));return}
- if(a==='prn'){pList(`${pName(sel)} · Parans`,pParans(sel).map(x=>({html:`${x.a.n} with ${iEsc(pName(x.o))} ${x.b.n} <small>${pTime(x.jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(x.jd,sel,'prn','Paran with '+pName(x.o))}})));return}
+ if(a==='par'){pList(`${pName(sel)} · Parallels`,pParallels(sel).map(x=>({html:`${x.kind}: ${iEsc(pName(x.o))} <small>${x.d>=0?'+':''}${x.d.toFixed(1)}° · orb ${x.orb.toFixed(1)}°</small>`,go:()=>{$('plist').hidden=true;GLB.partner=x.o;glbOpen();say(`${x.kind}: ${pName(sel)} and ${pName(x.o)} on the Globe`,3000)}})));return}
+ if(a==='prn'){pList(`${pName(sel)} · Parans`,pParans(sel).map(x=>({html:`${x.a.n} with ${iEsc(pName(x.o))} ${x.b.n} <small>${pTime(x.jd)}</small>`,go:()=>{$('plist').hidden=true;GLB.partner=x.o;snapTo(x.jd,sel,'prn','Paran with '+pName(x.o))}})));return}
  if(a==='sta'){const T=opTrack(sel.k),R=[];if(T)for(let i=1;i<T.pts.length;i++){const p0=T.pts[i-1],p1=T.pts[i];if(Math.sign(p0.s)!==Math.sign(p1.s)&&p0.s){const jd=T.jd+(p0.d+(p1.d-p0.d)*p0.s/(p0.s-p1.s));R.push({html:`${p1.s<0?'Stations Retrograde':'Stations Direct'} <small>${pDate(jd)}</small>`,go:()=>{$('plist').hidden=true;snapTo(jd,sel,'sta',p1.s<0?'Stations Retrograde':'Stations Direct')}})}}
   pList(`${pName(sel)} · Stations`,R);return}});
 document.addEventListener('input',e=>{if(e.target.id!=='pspan')return;PB.span=+e.target.value/100;OPC={};pbSave()});
 /* keep the bar's times current as the clock or the Time Machine moves */
 let PBJD=0,PBT=0;function pbTick(){const t=performance.now();if(PB.type&&K&&Math.abs(K.jd-PBJD)>1/1440&&t-PBT>700){PBT=t;PBJD=K.jd;const f=document.activeElement;if(!(f&&f.id==='pspan'))pbDraw()}}
+
+/* ---- the Globe (Gemini, Nov 13): a small sphere seen from outside, with the Earth at its center, the horizon as a disk,
+   the meridian, the celestial equator and pole, the ecliptic, and the daily circle of the selected object (pink) and of a
+   partner chosen from Parallels or Parans (cyan). Parallels share one circle; contra-parallels mirror each other across the
+   equator. It turns with the Time Machine; ▶ plays one day in about eight seconds and flashes each Rise, Reach, Rest, and
+   Root, naming a paran when both objects reach an angle together. Drag it to turn it; × or Escape closes it. ---- */
+const GLB={on:false,az:200,el:24,partner:null,play:false,last:0,fl:[],msg:'',msgT:0,prev:null,pjd:0,lev:[null,null]};
+function glbOpen(){GLB.on=true;$('globe').hidden=false;document.body.classList.add('globeon');glbUI()}
+function glbClose(){GLB.on=false;GLB.play=false;$('globe').hidden=true;document.body.classList.remove('globeon');glbUI()}
+function glbUI(){const b=$('gplay');if(b){b.textContent=GLB.play?'❚❚':'▶';b.setAttribute('aria-label',GLB.play?'Pause the day':'Play the day')}
+ document.querySelectorAll('[data-pb="glb"]').forEach(x=>x.setAttribute('aria-pressed',GLB.on))}
+/* the daily circle of an object: its declination and right ascension in the horizon frame's own terms */
+function glbRaDec(v){const P=K.v(0,90),A0=K.v(0,0),A9=K.v(90,0),d=x=>v[0]*x[0]+v[1]*x[1]+v[2]*x[2];
+ return [n360(deg(Math.atan2(d(A9),d(A0)))),deg(Math.asin(Math.max(-1,Math.min(1,d(P)))))]}
+function glbDraw(){if(!GLB.on||!K)return;const c=$('gcv'),S=c.clientWidth;if(!S)return;const R=Math.round(S*DPR);if(c.width!==R){c.width=R;c.height=R}
+ const g=c.getContext('2d');g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,S,S);const r=S*.4,cx=S/2,cy=S/2+4;
+ const A=rad(GLB.az),E=rad(GLB.el),dv=[Math.sin(A)*Math.cos(E),Math.cos(A)*Math.cos(E),Math.sin(E)],rv=[Math.cos(A),-Math.sin(A),0],
+  uv=[dv[1]*rv[2]-dv[2]*rv[1],dv[2]*rv[0]-dv[0]*rv[2],dv[0]*rv[1]-dv[1]*rv[0]],dt=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2],
+  P=v=>[cx+r*dt(v,rv),cy-r*dt(v,uv),dt(v,dv)];
+ /* a circle on the sphere, front half solid and back half faint */
+ const line=(vs,col,w,dash)=>{for(const front of [false,true]){g.beginPath();let pen=false;for(const v of vs){const p=P(v);if((p[2]>=0)===front){if(pen)g.lineTo(p[0],p[1]);else{g.moveTo(p[0],p[1]);pen=true}}else pen=false}
+   g.strokeStyle=col;g.globalAlpha=front?1:.3;g.lineWidth=w;g.setLineDash(front?(dash||[]):[2,3]);g.stroke()}g.globalAlpha=1;g.setLineDash([])};
+ const circ=(f,n)=>{const o=[];for(let i=0;i<=(n||120);i++)o.push(f(i/(n||120)*360));return o};
+ /* the sphere and the horizon disk */
+ g.fillStyle='rgba(12,16,34,.9)';g.beginPath();g.arc(cx,cy,r,0,7);g.fill();g.strokeStyle='rgba(209,171,116,.45)';g.lineWidth=1;g.stroke();
+ const hz=circ(a=>[Math.sin(rad(a)),Math.cos(rad(a)),0]);g.fillStyle='rgba(60,140,80,.28)';g.beginPath();hz.forEach((v,i)=>{const p=P(v);i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1])});g.closePath();g.fill();
+ line(hz,'#5fbf73',1.4);line(circ(a=>[0,Math.cos(rad(a)),Math.sin(rad(a))]),'rgba(95,191,115,.6)',.9);
+ g.font='600 10px -apple-system,Inter,sans-serif';g.textAlign='center';g.textBaseline='middle';for(const [t,v] of [['N',[0,1.13,0]],['E',[1.13,0,0]],['S',[0,-1.13,0]],['W',[-1.13,0,0]]]){const p=P(v);g.fillStyle=p[2]>=0?'#cfe8d4':'rgba(207,232,212,.45)';g.fillText(t,p[0],p[1])}
+ /* the pole axis, the celestial equator, the ecliptic */
+ const NP=K.v(0,90);line([NP.map(x=>-x*1.12),NP.map(x=>x*1.12)],'rgba(140,180,255,.7)',1);
+ line(circ(a=>K.v(a,0)),CFG.equCol,1.3);line(circ(a=>K.ev(a,0)),'#e8c46a',1.3);
+ /* the Earth */
+ g.fillStyle='#3a6fd1';g.beginPath();g.arc(cx,cy,r*.07,0,7);g.fill();g.fillStyle='#7fc79a';g.beginPath();g.arc(cx-r*.02,cy-r*.02,r*.035,0,7);g.fill();
+ /* the Sun */
+ const sun=K.bodies.find(b=>b.k==='Sun');if(sun){const p=P(sun.v);g.globalAlpha=p[2]>=0?1:.4;g.fillStyle='#ffd678';g.beginPath();g.arc(p[0],p[1],3.4,0,7);g.fill();g.globalAlpha=1}
+ /* the objects and their daily circles */
+ const objs=[];if(PB.sel)objs.push([PB.sel,'#ff96d7']);if(GLB.partner&&!(PB.sel&&pSame(GLB.partner,PB.sel)))objs.push([GLB.partner,'#7fe3ff']);
+ for(const [sel,col] of objs){const v=pSelV(sel);if(!v)continue;const [ra,de]=glbRaDec(v);line(circ(a=>K.v(a,de),90),col,1.6);const p=P(v);
+  g.globalAlpha=p[2]>=0?1:.45;g.fillStyle=col;g.beginPath();g.arc(p[0],p[1],4,0,7);g.fill();g.globalAlpha=1;
+  g.font='600 10px -apple-system,Inter,sans-serif';g.fillStyle=col;g.textAlign='left';g.fillText(pName(sel),p[0]+6,p[1]-6)}
+ /* flashes: expanding rings where an object reached an angle */
+ const now=performance.now();GLB.fl=GLB.fl.filter(f=>now-f.t<1200);for(const f of GLB.fl){const k=(now-f.t)/1200,p=P(f.v);g.strokeStyle=f.col;g.globalAlpha=1-k;g.lineWidth=2;g.beginPath();g.arc(p[0],p[1],5+k*16,0,7);g.stroke();g.globalAlpha=1}
+ const m=$('gmsg');const t=now-GLB.msgT<2600?GLB.msg:(objs.length===2?glbRel(objs[0][0],objs[1][0]):'');if(m.textContent!==t)m.textContent=t}
+/* how two objects' circles relate: Parallel (same declination) or Contra-parallel (mirrored) */
+function glbRel(a,b){const va=pSelV(a),vb=pSelV(b);if(!va||!vb)return '';const da=glbRaDec(va)[1],db=glbRaDec(vb)[1];
+ return Math.abs(da-db)<=1?'Parallel: one shared circle':Math.abs(da+db)<=1?'Contra-parallel: mirrored across the equator':`${pName(a)} ${da>=0?'+':''}${da.toFixed(1)}° · ${pName(b)} ${db>=0?'+':''}${db.toFixed(1)}°`}
+/* while playing: a day in about eight seconds, and a flash at each Rise, Reach, Rest, and Root */
+function glbTick(){if(!GLB.on||!K)return;const now=performance.now();
+ const objs=[PB.sel,GLB.partner].filter(Boolean),cur=objs.map(s=>{const v=pSelV(s);return v?{s,v,alt:v[2],ew:v[0]}:null});
+ if(GLB.prev&&GLB.prev.length===cur.length&&Math.abs(K.jd-GLB.pjd)<.05){const hits=[];
+  /* east to west across the meridian is Reach; west to east (below the pole) is Root */
+  cur.forEach((o,i)=>{const p=GLB.prev[i];if(!o||!p||!pSame(o.s,p.s))return;const ev=p.alt<0&&o.alt>=0?'Rise':p.alt>=0&&o.alt<0?'Rest':p.ew>0&&o.ew<=0?'Reach':p.ew<0&&o.ew>=0?'Root':null;
+   if(ev){const t=`${pName(o.s)} ${ev}`,q=GLB.lev[1-i];hits.push(q&&Math.abs(K.jd-q.jd)<=4/1440?'Paran: '+q.t+' with '+t:t);GLB.lev[i]={t,jd:K.jd};GLB.fl.push({v:o.v,t:now,col:i?'#7fe3ff':'#ff96d7'})}});
+  /* a paran: both objects on an angle within 4 minutes of each other */
+  if(hits.length){GLB.msg=hits.find(h=>h.startsWith('Paran'))||hits.join(' · ');GLB.msgT=now}}
+ GLB.prev=cur;GLB.pjd=K.jd;
+ if(GLB.play){const dt=Math.min(100,now-(GLB.last||now));GLB.last=now;if(!SNAP0){SNAP0={toff:TOFF,yaw:ST.yaw,pitch:ST.pitch,fov:ST.fov,track:ST.track,from:'glb',name:PB.sel?pName(PB.sel):'Globe',label:'playing the day'};snapChip()}
+  TOFF+=dt*10800;K=null;barText()}else GLB.last=0}
+document.addEventListener('click',e=>{const id=e.target.id;if(id==='gx'){glbClose();return}if(id==='gplay'){GLB.play=!GLB.play;GLB.last=0;if(PLAY.dir)playSet(0);glbUI();return}});
+/* drag the globe to turn it */
+{const el=$('gcv');let d=null;el.addEventListener('pointerdown',e=>{e.stopPropagation();d=[e.clientX,e.clientY];el.setPointerCapture(e.pointerId)});
+ el.addEventListener('pointermove',e=>{if(!d)return;e.stopPropagation();GLB.az=n360(GLB.az-(e.clientX-d[0])*.8);GLB.el=Math.max(-80,Math.min(85,GLB.el+(e.clientY-d[1])*.6));d=[e.clientX,e.clientY]});
+ for(const t of ['pointerup','pointercancel'])el.addEventListener(t,()=>{d=null})}
+window.__sky&&(window.__sky.glb=GLB);
 
 /* ---- Chart (Gemini, Nov 13): the Chart button takes the Menu's place. Tap switches between the sky and the chart wheel;
    hold opens Charts: Enter Chart Data (Main's pop-up), Recents (with Clear Recents), Favorites, and Open Saved Chart.
