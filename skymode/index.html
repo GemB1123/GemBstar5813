@@ -231,8 +231,14 @@ const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 const majors=p=>{const A=[[0,'#6b6150',8],[60,'#2f55c4',6],[90,'#c0392b',8],[120,'#2f55c4',8],[180,'#c0392b',8]],L=Object.keys(p),out=[];
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const d=Math.abs(n360(p[L[i]]-p[L[j]]+180)-180);for(const [a,c,o] of A)if(Math.abs(d-a)<=o){out.push({a:L[i],b:L[j],angle:a,color:c});break}}return out};
 /* spread glyphs apart: keep each at least gap degrees from its neighbours, moving as little as possible */
-function spread(L,gap){if(L.length<2){L.forEach(x=>x.d=x.l);return}L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);
- for(let it=0;it<60;it++){let moved=false;for(let i=0;i<L.length;i++){const a=L[i],b=L[(i+1)%L.length],dd=n360(b.d-a.d);if(L.length>1&&dd<gap){const push=(gap-dd)/2;a.d-=push;b.d+=push;moved=true}}if(!moved)break}}
+function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.length;if(n<2)return;if(n*gap>=360){L.forEach((x,i)=>x.d=L[0].l+i*360/n);return}
+ /* start after the widest empty arc so a cluster never straddles the seam, then merge any glyphs closer than gap into a group
+    spaced gap apart around its members' mean; repeat until no group touches the next */
+ let w=0,wi=0;for(let i=0;i<n;i++){const g=n360(L[(i+1)%n].l-L[i].l);if(g>w){w=g;wi=(i+1)%n}}
+ const A=L.slice(wi).concat(L.slice(0,wi)).map(x=>({x,l:x.l}));for(let i=1;i<n;i++)while(A[i].l<A[i-1].l)A[i].l+=360;
+ let G=A.map(a=>[a]);const pos=g=>{const m=g.reduce((s,a)=>s+a.l,0)/g.length;g.forEach((a,i)=>a.d=m+(i-(g.length-1)/2)*gap)};G.forEach(pos);
+ for(let it=0;it<n*2;it++){let hit=-1;for(let i=0;i<G.length-1;i++)if(G[i+1][0].d-G[i][G[i].length-1].d<gap-1e-6){hit=i;break}if(hit<0)break;G.splice(hit,2,G[hit].concat(G[hit+1]));pos(G[hit])}
+ A.forEach(a=>a.x.d=a.d)}
 function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const angles=cu&&!cu.noAngles,AS=cu?cu[1]:0,rot=AS;
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]};
@@ -255,7 +261,7 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
    h+=`<line x1="${f(b[0])}" y1="${f(b[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="2"/><path d="M${f(o[0])} ${f(o[1])}L${f(w1[0])} ${f(w1[1])}L${f(w2[0])} ${f(w2[1])}Z" fill="${T.axis}"/>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,R1),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".7"/>`;const g=xy(i*30+15,(R0+R1)/2);h+=sg(i,g[0],g[1],13,T.el[i%4])}
  /* planets: glyph outermost, then degree, sign and minutes toward the center, each column turned to its degree */
- const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,8.5);
+ const L=(opts.planets||DEF_PL).filter(k=>P[k]!=null).map(k=>({k,l:n360(P[k])}));spread(L,10.5);   /* 10.5 degrees keeps the degree and minute text of a tight cluster apart on a phone (Posidonius, Nov 13) */
  const rg=160,rd=141,rs=128,rm=116,col=k=>T.el[Math.floor(n360(P[k])/30)%4];
  L.forEach(x=>{const q=dms(x.l),c=col(x.k),t1=xy(x.l,R1),t2=xy(x.l,R1-5),u1=xy(x.l,RH),u2=xy(x.l,RH+4);
   h+=`<line x1="${f(t1[0])}" y1="${f(t1[1])}" x2="${f(t2[0])}" y2="${f(t2[1])}" stroke="${c}" stroke-width="1.4"/><line x1="${f(u1[0])}" y1="${f(u1[1])}" x2="${f(u2[0])}" y2="${f(u2[1])}" stroke="${c}" stroke-width="1.4"/>`;
@@ -269,7 +275,7 @@ function svg(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light
  else if(opts.aspects!==false){for(const A of (opts.aspects||majors)(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
   h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${A.minor?.7:1.2}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}</title></line>`}}
  return h+'</svg>'}
-window.EAWheel={svg,themes:THEMES};
+window.EAWheel={svg,themes:THEMES,spread};
 })();
 </script>
 <script>/* ---------- Stargazing precise Sun and Moon (Nov 7, 2026) ----------
