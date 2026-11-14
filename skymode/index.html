@@ -60,6 +60,10 @@ body.rowopen .sheet{bottom:calc(env(safe-area-inset-bottom) + 118px)}body.rowope
 .sheet .tm2 input,.sheet .tm2 select{flex:1;min-width:0;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:8px;min-height:44px}
 .sheet select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#0b0d16;border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-height:44px}
 video#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#000}video#cam.selfie{transform:scaleX(-1)}video#cam[hidden]{display:none}
+/* Teacher (Gemini, Nov 13): the sky as usual, the selfie small in the upper right; the corner buttons move to the upper left */
+body.teach video#cam{inset:auto;top:calc(env(safe-area-inset-top) + 10px);right:10px;width:min(30vw,140px);height:min(40vw,186px);border-radius:14px;border:2px solid #cfd4da;box-shadow:0 4px 18px rgba(0,0,0,.55);z-index:4;opacity:1!important;pointer-events:none}
+body.teach #cbtn.corner{right:auto!important;left:62px!important}body.teach .flipov,body.teach .mixov,body.teach .camtag{display:none!important}
+body.teach #snapchip{left:114px!important;max-width:calc(100% - 134px - min(30vw,140px))!important}body.teach #globe{right:auto!important;left:8px!important;top:calc(env(safe-area-inset-top) + 60px)!important}
 canvas#sky{z-index:1}
 #start{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;padding:0 14px;font:600 17px/1.15 'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;text-align:center;background:radial-gradient(circle at 35% 30%,#ffffff 0%,#e3e7eb 22%,#aeb4bc 55%,#8d939b 78%,#c9ced4 100%);color:#0b0e16;border:1px solid rgba(255,255,255,.55);z-index:3;box-shadow:0 0 18px rgba(210,220,230,.35),0 8px 30px rgba(0,0,0,.6),inset 0 -3px 8px rgba(0,0,0,.25)}
 #info{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 60px);max-height:40vh;overflow:auto;background:rgba(10,12,22,.9);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;z-index:3;max-width:520px;margin:0 auto}
@@ -209,7 +213,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 <div id="s-mw" class="sheet" hidden role="dialog" aria-label="Milky Way"><button class="x" data-close aria-label="Close">×</button><h3>Milky Way</h3><div class="row"><button data-sw="mw">Milky Way</button></div><label class="sl">Brightness <input type="range" id="mwbr" min="20" max="200" step="5" aria-label="Milky Way brightness"><b id="mwbrv"></b></label></div>
 <div id="s-sky" class="sheet" hidden role="dialog" aria-label="Sky"><button class="x" data-close aria-label="Close">×</button><h3>Sky</h3><div class="row"><button data-sw="atm">Atmosphere</button></div><p class="sub">Off: a night sky even by day.</p><div class="cap">PROJECTION</div><div class="row"><button data-proj="stereo">Stereographic</button><button data-proj="gnomo">Perspective</button></div><p class="sub">Stereographic keeps shapes true, as in Stellarium. Perspective (gnomonic) draws great circles straight. The camera always uses Perspective.</p><label class="sl">Ground See-Through <input type="range" id="gst" min="0" max="100" step="5" aria-label="Ground see-through"><b id="gstv"></b></label></div>
 <div id="camm" class="sheet" hidden role="dialog" aria-label="Camera"><button class="x" data-close aria-label="Close">×</button><h3>Camera</h3><p class="sub">The live camera behind the sky. Selfie puts the sky behind you.</p><div class="row">
- <button data-cm="off">Off</button><button data-cm="environment">Back Camera</button><button data-cm="user">Selfie</button></div>
+ <button data-cm="off">Off</button><button data-cm="environment">Back Camera</button><button data-cm="user">Selfie</button><button data-cm="teacher">Teacher</button></div><p class="sub">Teacher keeps the sky moving with the phone as usual and shows you small in the upper right, for live streams and videos.</p>
  <div class="cap">CAPTURE</div><div class="row"><button id="snapb">Take Photo</button><button id="recb">Record Video</button></div>
  <label class="sl">Camera ↔ Stars <input type="range" id="cmix" min="0" max="100" step="5" aria-label="Camera to stars"><b id="cmixv"></b></label>
  <div class="row"><button id="micb" aria-pressed="true">Microphone</button></div><p class="sub">With Microphone on, videos record sound.</p>
@@ -308,11 +312,13 @@ window.EA_CHARTS=API})();
        aspectTypes {conjunction: 8, quincunx: 3, septile: false, ...} (by key or angle; orb in degrees, true = default orb, false = off)
                 used when aspects is not given; EAWheel.ASPECTS lists every type with its default orb (minor types start off)
        aspectAngles false leaves AS and MC out of the aspects
+       earth    false (default) | 'small' | 'large': an Earth over the center of the aspect circle; earthSVG(r) draws it (centered at 0,0, radius r), else a plain blue disc
        pictures p => [{a,b,c,color}]  midpoint pictures, drawn instead of aspects (Symmetry)
        setLabel short name of the aspect set, written small at the foot of the aspect circle (e.g. 'Major')
        big      true draws the large aspect circle
        theme    'light' (default) or 'dark'
-       colors   overrides for any theme color: {bg, bezel:[4 stops, Mercury to iron], cuspBand:[light, dark] (the ring with the cusp degrees), cuspInk, cuspEl:[4], ringFill:[fire, earth, air, water] (dark: colored ring, white glyphs), ringA, ringB, rinkA, rinkB, ringEdge, house, line, axis, ink, soft, ret, aspBg, el:[fire, earth, air, water]}
+       colors   overrides for any theme color: {bg, bezel:[4 stops, Mercury to iron], cuspBand:[light, dark] (the ring with the cusp degrees), cuspInk, cuspEl:[4],
+                (opts.cuspRing default 'metal' (Gemini, Nov 13: the default look): that ring takes the bezel's Mercury-to-iron gradient, always light at the top (the nonagesimal side) and dark at the bottom; 'silver' = flat silver / near-black band; Houses Only uses it on the outer band) ringFill:[fire, earth, air, water] (dark: colored ring, white glyphs), ringA, ringB, rinkA, rinkB, ringEdge, house, line, axis, ink, soft, ret, aspBg, el:[fire, earth, air, water]}
                 rinkA / rinkB 'el' = sign glyphs in their element color
        ringStyle 'signs' (default: zodiac ring, house cusps on the wheel) or 'houses' (no sign ring: house cusp degrees on the outer band)
        decans   false | 'chaldean' (Traditional) | 'element' (Traditional By Element) | 'modern'; bounds false | 'egyptian' | 'ptolemaic'
@@ -385,7 +391,7 @@ function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.le
  A.forEach(a=>a.x.d=a.d)}
 /* each wheel gets its own gradient and filter ids, so two wheels on one page keep their own colors */
 let UID=0;
-function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb))\b/g,'$1$2'+u)}
+function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u)}
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
@@ -405,15 +411,15 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  /* the bezel's lightest side faces the Sun, so the day and night sides of the chart read at a glance (Gemini, Nov 13) */
  const sun=P.Sun!=null?xy(P.Sun,200):[-141,-141];
  let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;touch-action:none">`;
- const CB=[].concat(T.cuspBand||[T.band||T.house]);if(CB.length<2)CB.push(CB[0]);const cIn=T.cuspInk||null,cEl=T.cuspEl||T.el;
- h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${opts.signBold==null?.5:opts.signBold}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
+ const CB=[].concat(T.cuspBand||[T.band||T.house]);if(CB.length<2)CB.push(CB[0]);const MET=opts.cuspRing!=='silver',ME=sty==='houses'?R0:RX0,cIn=T.cuspInk||null,cEl=T.cuspEl||T.el;
+ h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${opts.signBold==null?.5:opts.signBold}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
  /* bezel: a thin metal rim around the zodiac ring (after Gemini's AstroSynth wheel, Nov 13) */
  h+=`<circle r="${RB}" fill="none" stroke="url(#eawbz)" stroke-width="9"/><circle r="${RB+4.4}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width=".8"/><circle r="${R0+.4}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".9"/>`;
  /* sign glyphs are drawn bolder on the ring and in the planet positions (Gemini, Nov 13) */
  const sgb=(i,x,y,sz,col)=>`<g filter="url(#eawbold)">${sg(i,x,y,sz,col)}</g>`;
  /* zodiac ring: twelve segments, alternating, with the sign glyphs (style 'signs') */
  const seg=(a0,a1,r0,r1,fill,sw)=>{const A=xy(a0,r0),B=xy(a0,r1),Cc=xy(a1,r1),D=xy(a1,r0);return `<path d="M${f(A[0])} ${f(A[1])}L${f(B[0])} ${f(B[1])}A${r1} ${r1} 0 0 0 ${f(Cc[0])} ${f(Cc[1])}L${f(D[0])} ${f(D[1])}A${r0} ${r0} 0 0 1 ${f(A[0])} ${f(A[1])}Z" fill="${fill}" stroke="${T.ringEdge}" stroke-width="${sw||.6}"/>`};
- if(sty==='houses')h+=`<circle r="${R0}" fill="${T.band||T.house}"/>`;
+ if(sty==='houses')h+=MET?`<circle r="${R0}" fill="${T.bg}"/><circle r="${f((R0+R1)/2)}" fill="none" stroke="url(#eawcm)" stroke-width="${f(R0-R1)}"/>`:`<circle r="${R0}" fill="${T.band||T.house}"/>`;
  else for(let i=0;i<12;i++){const A=xy(i*30,R0),B=xy(i*30,R1),Cc=xy(i*30+30,R1),D=xy(i*30+30,R0),g=xy(i*30+15,(R0+R1)/2);
   h+=`<path d="M${f(A[0])} ${f(A[1])}L${f(B[0])} ${f(B[1])}A${R1} ${R1} 0 0 0 ${f(Cc[0])} ${f(Cc[1])}L${f(D[0])} ${f(D[1])}A${R0} ${R0} 0 0 1 ${f(A[0])} ${f(A[1])}Z" fill="${T.ringFill?T.ringFill[i%4]:i%2?T.ringB:T.ringA}" stroke="${T.ringEdge}" stroke-width=".6"/>`+sgb(i,g[0],g[1],14,rink(i))}
  /* Decans and Bounds rings: thin rings with each part's guide glyph (Gemini, Nov 13) */
@@ -421,12 +427,14 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
   parts.forEach(([g,a0,a1],n)=>{h+=seg(a0,a1,r0,r1,n%2?T.xrB:T.xrA,.4);const m=xy((a0+a1)/2,(r0+r1)/2);h+=pg(g,m[0],m[1],8.5,T.xrInk)})});
  h+=`<circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/>`+(xr.length?`<circle r="${RX0}" fill="none" stroke="${T.ringEdge}" stroke-width=".8"/>`:'')+`<circle r="${RP}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;
  /* the house cusp ring: silver on a dark wheel with black cusp degrees, dark gray on a light wheel with white (Gemini, Nov 13) */
- if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#eawcb)" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
+ if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
-   const hs=sty==='houses',cI=hs?null:cIn,cE=hs?T.el:cEl,rc=hs?(R0+R1)/2:RC,sp=hs?4.2:4.4,q=dms(cu[i]),pd=xy(cu[i]-sp,rc),ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
+   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp=hs?4.2:4.4,q=dms(cu[i]),pd=xy(cu[i]-sp,rc),
+    /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
+    dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
    h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
@@ -464,6 +472,8 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
   h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
+ /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
+ if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  if(opts.setLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
@@ -1536,7 +1546,7 @@ function drawBody(g,b,p,r){const sun=K.bodies.find(x=>x.k==='Sun');let L=[0,0,1]
  if(sp)g.drawImage(sp,p[0]-r,p[1]-r,r*2,r*2);else{g.fillStyle=PCOL[b.k];g.beginPath();g.arc(p[0],p[1],Math.max(1.2,r),0,7);g.fill()}}
 function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=now}if(typeof splTick==='function')splTick();CAM=camera();const g=cx;g.setTransform(DPR,0,0,DPR,0,0);
  if(ST.view==='chart'){g.globalAlpha=1;drawChart(g);if(REC.on||REC.snap)compose();requestAnimationFrame(draw);return}
- const sa0=K.sunAlt,sa=ST.atm?sa0:-90,day=Math.max(0,Math.min(1,(sa+12)/14)),camOn=!!ST.cam,tiny=W<500?0.85:1;   /* Atmosphere off: a night sky even by day (Gemini, Nov 12) */
+ const sa0=K.sunAlt,sa=ST.atm?sa0:-90,day=Math.max(0,Math.min(1,(sa+12)/14)),camOn=!!ST.cam&&ST.cam!=='teacher',tiny=W<500?0.85:1;   /* Atmosphere off: a night sky even by day (Gemini, Nov 12) */
  if(camOn)g.clearRect(0,0,W,H);else{g.fillStyle=`rgb(${Math.round(4+40*day)},${Math.round(6+80*day)},${Math.round(16+130*day)})`;g.fillRect(0,0,W,H)}
  const dark=Math.max(0,Math.min(1,(-sa-4)/10));   /* sa is -90 with the Atmosphere off */
  if(ST.mw)mwDraw(g,(camOn?.55:.9)*dark);
@@ -1716,10 +1726,10 @@ $('mwbr').addEventListener('input',()=>{ST.mwBr=$('mwbr').value/100;$('mwbrv').t
 $('gst').addEventListener('input',()=>{ST.seeThru=$('gst').value/100;$('gstv').textContent=$('gst').value+'%';save()});
 /* Camera and Stars (Gemini, Nov 12): one slider from all camera to all stars; the middle shows both at full strength */
 function mixA(){const m=ST.camMix;return [Math.min(1,2*(1-m)),Math.min(1,2*m)]}
-function applyMix(){const a=ST.cam?mixA():[1,1];vid.style.opacity=a[0];cv.style.opacity=a[1];$('cmixv').textContent=ST.camMix<.5?'More camera':ST.camMix>.5?'More stars':'Both'}
+function applyMix(){const a=ST.cam&&ST.cam!=='teacher'?mixA():[1,1];vid.style.opacity=a[0];cv.style.opacity=a[1];$('cmixv').textContent=ST.camMix<.5?'More camera':ST.camMix>.5?'More stars':'Both'}
 for(const id of ['cmix','cmix2'])$(id).addEventListener('input',()=>{ST.camMix=+$(id).value/100;$('cmix').value=$('cmix2').value=$(id).value;applyMix();save()});
 $('stopov').onclick=()=>{if(REC.on)recStop()};
-$('flipov').onclick=()=>{if(ST.cam)camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
+$('flipov').onclick=()=>{if(ST.cam&&ST.cam!=='teacher')camOn(ST.cam==='user'?'environment':'user')};   /* flip between the back camera and selfie, on screen (Gemini, Nov 13) */
 $('micb').onclick=()=>{ST.mic=!ST.mic;$('micb').setAttribute('aria-pressed',ST.mic);applyMix();save()};
 document.addEventListener('click',e=>{const b=e.target.closest('[data-hn]');if(!b)return;ST.hnum=b.dataset.hn;save();document.querySelectorAll('[data-hn]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.hn===ST.hnum))});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-dgm]');if(!b)return;ST.decgm=b.dataset.dgm;ST.decg=true;K=null;save();sync();document.querySelectorAll('[data-dgm]').forEach(x=>x.setAttribute('aria-pressed',x.dataset.dgm===ST.decgm))});
@@ -1806,13 +1816,18 @@ $('here').onclick=()=>{closeSheets();locateMe()};
 /* ---- the camera (Gemini, Nov 12): the live camera behind the sky, the selfie camera with the sky behind you, photos and video ---- */
 const vid=$('cam');let STREAM=null;
 async function camOn(mode){if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){say('This browser has no camera access. Open the page in Safari or Chrome.',5000);return}
- try{if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:mode},width:{ideal:1920},height:{ideal:1080}},audio:false});
-  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode==='user');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');$('camtag').textContent=mode==='user'?'Selfie':'Camera';applyMix();sync()}
+ try{if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:mode==='teacher'?'user':mode},width:{ideal:1920},height:{ideal:1080}},audio:false});
+  vid.srcObject=STREAM;vid.classList.toggle('selfie',mode!=='environment');document.body.classList.toggle('teach',mode==='teacher');vid.hidden=false;await vid.play().catch(()=>{});ST.cam=mode;ST.lastCam=mode;document.body.classList.add('camon');$('camtag').textContent=mode==='user'?'Selfie':mode==='teacher'?'Teacher':'Camera';applyMix();sync()}
  catch(e){say('The camera did not open'+(e&&e.name==='NotAllowedError'?': camera permission was not given.':'.'),5000);camOff()}}
-function camOff(){if(REC.on)recStop();if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=null;vid.srcObject=null;vid.hidden=true;ST.cam=null;document.body.classList.remove('camon');applyMix();sync()}
+function camOff(){if(REC.on)recStop();if(STREAM)STREAM.getTracks().forEach(t=>t.stop());STREAM=null;vid.srcObject=null;vid.hidden=true;ST.cam=null;document.body.classList.remove('camon','teach');applyMix();sync()}
 /* photos and video: the camera picture (cropped to fill, as on screen) with the sky drawn over it, onto one canvas */
 const REC={on:false,snap:false,cv:null,mr:null,chunks:[]};
 function compose(){if(!REC.cv)REC.cv=document.createElement('canvas');const c=REC.cv,w=cv.width,h=cv.height;if(c.width!==w||c.height!==h){c.width=w;c.height=h}const g=c.getContext('2d');
+ if(ST.cam==='teacher'){g.fillStyle='#04060f';g.fillRect(0,0,w,h);g.drawImage(cv,0,0);if(vid.videoWidth){const r=vid.getBoundingClientRect(),k=w/innerWidth,x=r.left*k,y=r.top*k,bw=r.width*k,bh=r.height*k,vw=vid.videoWidth,vh=vid.videoHeight,sc=Math.max(bw/vw,bh/vh),rr=14*k;
+   g.save();g.beginPath();g.roundRect?g.roundRect(x,y,bw,bh,rr):g.rect(x,y,bw,bh);g.clip();g.translate(x+bw,y);g.scale(-1,1);g.drawImage(vid,(bw-vw*sc)/2,(bh-vh*sc)/2,vw*sc,vh*sc);g.restore();
+   g.save();g.strokeStyle='#cfd4da';g.lineWidth=2*k;g.beginPath();g.roundRect?g.roundRect(x,y,bw,bh,rr):g.rect(x,y,bw,bh);g.stroke();g.restore()}
+  if(ST.night){g.globalCompositeOperation='multiply';g.fillStyle='#ff2a10';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over'}
+  if(REC.snap){REC.snap=false;c.toBlob(b=>b&&deliver(b,'sky-'+stamp()+'.png'),'image/png')}return}
  if(ST.cam&&vid.videoWidth){const vw=vid.videoWidth,vh=vid.videoHeight,s=Math.max(w/vw,h/vh),dw=vw*s,dh=vh*s;g.save();if(ST.cam==='user'){g.translate(w,0);g.scale(-1,1)}g.fillStyle='#000';g.fillRect(0,0,w,h);g.globalAlpha=mixA()[0];g.drawImage(vid,(w-dw)/2,(h-dh)/2,dw,dh);g.restore()}
  else{g.fillStyle='#04060f';g.fillRect(0,0,w,h)}
  g.globalAlpha=ST.cam?mixA()[1]:1;g.drawImage(cv,0,0);g.globalAlpha=1;if(ST.night){g.globalCompositeOperation='multiply';g.fillStyle='#ff2a10';g.fillRect(0,0,w,h);g.globalCompositeOperation='source-over'}
@@ -2281,7 +2296,7 @@ let CHMW=null,CHMWK='',CHHIT=[];
    Symmetry: midpoint pictures A/B = C, colored by harmonic), or None, which makes the Earth large. ---- */
 const SWDEF={el:[null,null,null,null],band:null,bg:null,glyEl:true,pc:'gold',pcv:2,sg:'#e8c46a',pg:'#e8c46a'};
 const CHO={etx:'gray',nl:true,asp:'major',style:'basic',theme:'light',rs:'signs',dec:'',bnd:'',hide:[],tab:'data',at:{},earth:'small',sw:JSON.parse(JSON.stringify(SWDEF))};
-try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(o.at&&typeof o.at==='object')for(const k in o.at){const v=o.at[k];if(/^_?[a-z]{3,14}$/.test(k)&&(v===false||(typeof v==='number'&&v>=0&&v<=15)))CHO.at[k]=v}if(/^(major|minor|sym|none|custom)$/.test(o.asp))CHO.asp=o.asp;if(o.style==='ea')CHO.style='ea';if(o.theme==='dark')CHO.theme='dark';if(o.rs==='houses')CHO.rs='houses';if(Array.isArray(o.hide))CHO.hide=o.hide.filter(k=>typeof k==='string'&&/^[A-Za-z]{2,10}$/.test(k));if(/^(small|large|none)$/.test(o.earth))CHO.earth=o.earth;else if(o.asp==='none')CHO.earth='large';if(/^(chaldean|element|modern)$/.test(o.dec))CHO.dec=o.dec;if(/^(egyptian|ptolemaic)$/.test(o.bnd))CHO.bnd=o.bnd;
+try{const o=JSON.parse(localStorage.getItem('skymode-chart')||'{}');if(o.etx==='real')CHO.etx='real';if(o.nl===false)CHO.nl=false;if(o.at&&typeof o.at==='object')for(const k in o.at){const v=o.at[k];if(/^_?[a-z]{3,14}$/.test(k)&&(v===false||(typeof v==='number'&&v>=0&&v<=15)))CHO.at[k]=v}/* every chart opens at Major aspects with a small Earth (Gemini, Nov 13, all apps): not remembered */if(o.style==='ea')CHO.style='ea';if(o.theme==='dark')CHO.theme='dark';if(o.rs==='houses')CHO.rs='houses';if(Array.isArray(o.hide))CHO.hide=o.hide.filter(k=>typeof k==='string'&&/^[A-Za-z]{2,10}$/.test(k));if(/^(chaldean|element|modern)$/.test(o.dec))CHO.dec=o.dec;if(/^(egyptian|ptolemaic)$/.test(o.bnd))CHO.bnd=o.bnd;
  const h=v=>typeof v==='string'&&/^#[0-9a-f]{6}$/i.test(v),w=o.sw;if(w){if(Array.isArray(w.el)&&w.el.length===4)CHO.sw.el=w.el.map(c=>h(c)?c:null);for(const k of ['band','bg','sg','pg'])if(h(w[k]))CHO.sw[k]=w[k];if(w.pcv===2&&/^(gold|planet|element|one)$/.test(w.pc))CHO.sw.pc=w.pc;else if(w.glyEl===false)CHO.sw.pc='one';if(w.glyEl===false)CHO.sw.glyEl=false}}catch(e){}
 const chSave=()=>{try{localStorage.setItem('skymode-chart',JSON.stringify(CHO))}catch(e){}};
 const ETXI={};let CHE={key:'',cv:null};
@@ -2401,7 +2416,14 @@ function drawEA(g,ov){const top=ov?0:CHTOP(),bot=ov?0:CHBOT(),R=ov?ov.R:Math.max
    g.fillText(Math.floor(t/60)+'°'+(b.spd<0?'℞':''),lx,ly);g.textBaseline='alphabetic';CHHIT.push([b.k,gx,gy],[b.k,dx,dy])})}
  /* the title: the chart's name, its moment, and place */
  if(!ov)chHead()}
-let CHDT=0;function chartTap(ev){const t=performance.now();if(CHO.style==='basic'&&t-CHDT<320){CHDT=0;chReset();return}CHDT=t;let best=null,bd=26;for(const [k,x,y] of CHHIT){const d=Math.hypot(x-ev.clientX,y-ev.clientY);if(d<bd){bd=d;best=k}}if(best)infoShow({t:'p',k:best});else infoClose()}
+/* the aspect circle at the wheel's center (Gemini, Nov 13, all apps): a tap steps Major, Minor, Symmetry; a double tap steps
+   the Earth small, large, none */
+const CHAS=['major','minor','sym'],CHAN={major:'Major aspects',minor:'Minor aspects',sym:'Symmetry'},CHEA=['small','large','none'],CHEN={small:'Small Earth',large:'Large Earth',none:'No Earth'};
+let CHCT=null,CHCC=null;function chCenterHit(ev){if(CHO.style!=='basic'||!CHCC)return false;return Math.hypot(ev.clientX-CHCC[0],ev.clientY-CHCC[1])<=CHCC[2]}
+function chCenterTap(){CHO.asp=CHAS[(CHAS.indexOf(CHO.asp)+1)%3];CHE.key='';chSave();if(typeof chCenterUI==='function')chCenterUI();say(CHAN[CHO.asp],1600)}
+function chCenterDbl(){CHO.earth=CHEA[(CHEA.indexOf(CHO.earth)+1)%3];CHE.key='';chSave();if(typeof chCenterUI==='function')chCenterUI();say(CHEN[CHO.earth],1600)}
+let CHDT=0;function chartTap(ev){if(chCenterHit(ev)){if(CHCT){clearTimeout(CHCT);CHCT=null;chCenterDbl()}else CHCT=setTimeout(()=>{CHCT=null;chCenterTap()},260);return}
+ const t=performance.now();if(CHO.style==='basic'&&t-CHDT<320){CHDT=0;chReset();return}CHDT=t;let best=null,bd=26;for(const [k,x,y] of CHHIT){const d=Math.hypot(x-ev.clientX,y-ev.clientY);if(d<bd){bd=d;best=k}}if(best)infoShow({t:'p',k:best});else infoClose()}
 function chView(v){ST.view=v;$('chbtn').setAttribute('aria-pressed',v==='chart');document.body.classList.toggle('chartview',v==='chart');$('chhead').hidden=v!=='chart';CHHK='';if(v==='chart')say('Chart. Tap the wheel button to go back to the sky; hold it for Charts.',3500)}
 function chAtV(A){const v=CHO.at[A.key];return v===undefined?(A.on?A.orb:false):v}
 function chAtUI(){const el=$('chat');if(!el)return;el.hidden=CHO.asp!=='custom';const L=window.EAWheel&&EAWheel.ASPECTS;if(!L)return;
@@ -2447,7 +2469,8 @@ function drawSimple(g){const top=CHTOP(),bot=CHBOT(),S0=Math.max(120,Math.min(W-
   const im=new Image();im.onload=()=>{if(CHSW.pend===key){CHSW.img=im;CHSW.key=key;CHSW.pend=''}};im.onerror=()=>{CHSW.pend=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
  if(CHSW.img)g.drawImage(CHSW.img,cx-S/2,cy-S/2,S,S);
  const rot=cus?cus[1]:0,XY=(L,r)=>{const t=rad(180+L-rot);return [cx+r*u*Math.cos(t),cy-r*u*Math.sin(t)]};
- const ER={small:30,large:64}[CHO.earth];if(ER)chEarth(g,cx,cy,ER*u,(L,r)=>XY(L-z,r/u),rot);
+ const ER={small:30,large:44}[CHO.earth];   /* large stays inside the aspect circle (radius 56; Gemini, Nov 13) */if(ER)chEarth(g,cx,cy,ER*u,(L,r)=>XY(L-z,r/u),rot);
+ CHCC=[cx,cy,56*u];
  CHHIT=[];if(ST.planets&&!MW)for(const b of chVis(jd)){const [x,y]=XY(n360(b.lon-z),160);CHHIT.push([b.k,x,y])}
  chHead()}
 /* wheel colors (Gemini, Nov 13): the four element colors, the outer band, the wheel, and the glyphs (element colors, or one color each) */
@@ -2515,6 +2538,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-chr]');if(
 $('chrbtn').onclick=()=>{ST.chring=ST.chring===false;save();CHRK='';chRowUI()};
 $('chtnow').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
 document.querySelectorAll('[data-chp]').forEach(b=>b.onclick=()=>playSet(+b.dataset.chp));
+window.__sky&&(window.__sky.chcc=()=>CHCC,window.__sky.cho=CHO);
 
 /* ---- SkyGazer (Gemini, Nov 13): Main's Stargazer World (worlds/stargazing/stargazing.js, Galileo's recipe) inside Earthstrology
    Sky, behind its own icon at the lower right of the bar. The World is shared as is; this file only builds the small adapter
