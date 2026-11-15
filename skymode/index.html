@@ -486,9 +486,9 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
    h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
@@ -2384,7 +2384,7 @@ function chEarth(g,cx,cy,rEa,XY,AS){const jd=K.jd,gm=n360(280.46061837+360.98564
  const eps=rad(23.44),sl=rad(sunL),dec=deg(Math.asin(Math.sin(eps)*Math.sin(sl))),ra=deg(Math.atan2(Math.cos(eps)*Math.sin(sl),Math.cos(sl))),q=chEP(dec,ra-gm,B,south,true);
  let gx=cx+sx*rEa,gy=cy+sy*rEa;if(q){const d=Math.hypot(q[0],q[1]);if(q[2]){gx=cx+q[0]*rEa;gy=cy+q[1]*rEa}else if(d>1e-3){gx=cx+q[0]/d*rEa;gy=cy+q[1]/d*rEa}}
  /* a soft, out-of-focus glow with no hard core (Gemini, Nov 15, all apps; Leo's esoft gradient) */
- const sr0=Math.max(9*k,rEa*.27),SG=g.createRadialGradient(gx,gy,0,gx,gy,sr0);SG.addColorStop(0,'rgba(255,251,230,.95)');SG.addColorStop(.25,'rgba(255,240,184,.8)');SG.addColorStop(.6,'rgba(255,210,110,.35)');SG.addColorStop(1,'rgba(255,210,110,0)');g.fillStyle=SG;g.beginPath();g.arc(gx,gy,sr0,0,7);g.fill();
+ const sr0=Math.max(10*k,rEa*.33),SG=g.createRadialGradient(gx,gy,0,gx,gy,sr0);SG.addColorStop(0,'rgba(255,251,230,.95)');SG.addColorStop(.25,'rgba(255,240,184,.8)');SG.addColorStop(.6,'rgba(255,210,110,.45)');SG.addColorStop(1,'rgba(255,210,110,0)');g.fillStyle=SG;g.beginPath();g.arc(gx,gy,sr0,0,7);g.fill();
  /* the poles (a quarter of the place dot: Gemini, Nov 15, all apps), and the chart's place: red on the Realistic Earth, blue on the Gray */
  for(const la of [90,-90]){const p=chEP(la,0,B,south);if(p)chGlow(g,cx+p[0]*rEa,cy+p[1]*rEa,'#ffffff','#ffffff',.8*k,2.75*k)}
  const pp=chEP(ST.lat,ST.lon,B,south);if(pp){const real=CHO.etx==='real';chGlow(g,cx+pp[0]*rEa,cy+pp[1]*rEa,real?'#ff4a3d':'#5fb4ff',real?'#ffd9d4':'#d9eeff',3.2*k,11*k)}

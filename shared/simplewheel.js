@@ -165,9 +165,9 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
    h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
