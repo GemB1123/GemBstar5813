@@ -9160,6 +9160,12 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw .cwh,#vt-cw .cwrings,#vt-cw .cwline,#vt-cw .cwbw{width:100%;box-sizing:border-box}
 #vt-cw .cwpsplit{flex:0 0 auto}#vt-cw .cwpsplit .cwpl1{min-width:52px;padding:0 14px;background:linear-gradient(#ffe48a,#e0ad3a);color:#2a1a00;border-color:#8a5a00}
 #vt-cw .cwpsplit .cwmenu{left:0;transform:none}
+#vt-cw .cwtm button,#vt-cw .cwtm input,#vt-cw .cwtm select{height:40px;border-radius:10px;border:1.5px solid #c9b27a;background:#14122a;color:#efe3c8;font:600 14px Inter,system-ui,sans-serif;box-sizing:border-box}
+#vt-cw .cwtm [data-cwt="-1"],#vt-cw .cwtm [data-cwt="1"]{width:40px;font-size:20px;padding:0}
+#vt-cw #cw-tq{width:58px;text-align:center;padding:0 4px}#vt-cw #cw-tu{padding:0 6px}
+#vt-cw .cwtoday{padding:0 14px}#vt-cw #cw-rd{padding:0 8px}
+#vt-cw .cwline .cwtm{display:flex;align-items:center;gap:8px;margin:0;width:auto;max-width:none;flex:0 1 auto;flex-wrap:wrap;justify-content:center}
+#vt-cw .cwline .cwpsplit{margin:0 8px 0 0}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10076,10 +10082,20 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CW.pmenu){CW.pmenu=
 const cwGear=()=>`<button class="cwgear" id="cw-g" aria-haspopup="dialog" aria-expanded="${!!CW.set}" aria-label="Chart settings">${($('#vt-gear svg')||{outerHTML:'&#9881;'}).outerHTML}</button>`;
 /* Gemini, Nov 15: one line under Transits. Stopped: Play, a speed menu and the Time Machine. Playing (or paused part way):
    Pause/Play, the scrub bar, the speed menu and a Stop that returns to the Time Machine */
+/* Gemini, Nov 15: the Time Machine is  −  [amount] [unit]  [Today or the date]  +  : a typed amount (1 by default) and a unit
+   (second, minute, hour, day, year, decade, century; Day by default). Seconds to hours show the time as well as the date */
+const TMU=[['s','Second',1e3],['mi','Minute',6e4],['h','Hour',36e5],['d','Day',864e5],['y','Year',0],['de','Decade',0],['c','Century',0]];
+function cwTM(rd){const u=CW.tmu||'d',q=CW.tmq||1,z=n=>String(n).padStart(2,'0'),sub=['s','mi','h'].includes(u),today=CW.rms==null;
+ const val=sub?`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}T${z(rd.getHours())}:${z(rd.getMinutes())}${u==='s'?':'+z(rd.getSeconds()):''}`:`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
+ return `<div class="cwtm" role="group" aria-label="Time Machine for the added wheel"><button data-cwt="-1" aria-label="Back ${q} ${TMU.find(x=>x[0]===u)[1]}${q==1?'':'s'}">&minus;</button>`
+ +`<input id="cw-tq" type="number" inputmode="numeric" min="1" step="1" value="${q}" aria-label="How many">`
+ +`<select id="cw-tu" aria-label="Step">${TMU.map(([k,n])=>`<option value="${k}"${k===u?' selected':''}>${n}</option>`).join('')}</select>`
+ +(today?`<button class="cwtoday" id="cw-tday" aria-label="Today. Tap to choose a date">Today</button>`:`<input type="${sub?'datetime-local':'date'}" id="cw-rd" value="${val}"${u==='s'?' step="1"':''} aria-label="Date of the added wheel"><button class="cwtoday" data-cwt="now" aria-label="Back to today">Today</button>`)
+ +`<button data-cwt="1" aria-label="Forward ${q} ${TMU.find(x=>x[0]===u)[1]}${q==1?'':'s'}">+</button></div>`}
 function cwLine(){const R=cwKind()==='natal'&&window.EAWheel?(CW.rings||[]):[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  const spd=`<select class="cwspd" id="cw-spd" aria-label="Animation speed">${SPD.map((x,i)=>`<option value="${i}"${i===CW.sp?' selected':''}>${x[0]}</option>`).join('')}</select>`;
  if(CW.on||CW.p<1)return `<div class="cwline cwplay"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle">${spd}<button class="vtbtn" id="cw-stop" aria-label="Stop and return to the Time Machine">&#9632;</button></div>`;
- return `<div class="cwline"><div class="cwsplit cwpsplit"><button class="cwsm cwpl1" id="cw-pm" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Play the cycle: choose a speed">&#9654;</button><button class="cwsa" id="cw-pm2" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Choose a speed and play">&#9662;</button>${CW.pmenu?`<div class="cwmenu" role="menu" aria-label="Speed">${SPD.map((x,i)=>`<button role="menuitem" data-cwsp="${i}"${i===CW.sp?' aria-current="true"':''}>${x[0]}</button>`).join('')}</div>`:''}</div>`+(R.length?`<div class="cwtm" role="group" aria-label="Time Machine for the outer wheels"><button data-cwt="-365">&minus;1y</button><button data-cwt="-30">&minus;1m</button><button data-cwt="-1">&minus;1d</button><input type="date" id="cw-rd" value="${iso}" aria-label="Date of the outer wheels"><button data-cwt="1">+1d</button><button data-cwt="30">+1m</button><button data-cwt="365">+1y</button><button data-cwt="now">Now</button></div>`:'')+`</div>`}
+ return `<div class="cwline"><div class="cwsplit cwpsplit"><button class="cwsm cwpl1" id="cw-pm" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Play the cycle: choose a speed">&#9654;</button><button class="cwsa" id="cw-pm2" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Choose a speed and play">&#9662;</button>${CW.pmenu?`<div class="cwmenu" role="menu" aria-label="Speed">${SPD.map((x,i)=>`<button role="menuitem" data-cwsp="${i}"${i===CW.sp?' aria-current="true"':''}>${x[0]}</button>`).join('')}</div>`:''}</div>`+(R.length?cwTM(rd):'')+`</div>`}
 function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="cwrings"><div class="cwtools">${cwGear()}</div>${cwSet()}</div>`;const R=CW.rings||[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  /* Gemini, Nov 15: one split button. Nothing added: "Transits" adds the transit wheel, the arrow offers Progressions and Solar Arc.
     A wheel added: the button reads "Clear", and the arrow offers the other two */
@@ -10090,9 +10106,13 @@ function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="c
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cwr],[data-cwt],#cw-rm');if(!b){if(CW.pmenu&&!(e.target.closest&&e.target.closest('.cwmenu,#cw-pm,#cw-pm2'))){CW.pmenu=false;chartDraw()}if(CW.rmenu&&!(e.target.closest&&e.target.closest('.cwmenu'))){CW.rmenu=false;const m=$('#vt-cw .cwmenu');if(m)chartDraw()}return}if(!b.closest('#vt-cw'))return;CW.rings=CW.rings||[];
  if(b.id==='cw-rm'){CW.rmenu=!CW.rmenu;chartDraw();const f=$(CW.rmenu?'#vt-cw .cwmenu button':'#cw-rm');if(f)f.focus();return}
  if(b.dataset.cwr){const k=b.dataset.cwr;CW.rmenu=false;CW.rings=k==='clear'?[]:[k];chartDraw();const f=$('#vt-cw .cwsm');if(f)f.focus();return}
- else{const v=b.dataset.cwt;if(v==='now')CW.rms=null;else{const d=new Date(CW.rms||Date.now()),n=+v;if(Math.abs(n)===365)d.setFullYear(d.getFullYear()+Math.sign(n));else if(Math.abs(n)===30)d.setMonth(d.getMonth()+Math.sign(n));else d.setDate(d.getDate()+n);CW.rms=d.getTime()}}
+ else{const v=b.dataset.cwt;if(v==='now')CW.rms=null;else{const d=new Date(CW.rms||Date.now()),n=+v*(CW.tmq||1),u=CW.tmu||'d',U=TMU.find(x=>x[0]===u);if(U[2])d.setTime(d.getTime()+n*U[2]);else d.setFullYear(d.getFullYear()+n*(u==='y'?1:u==='de'?10:100));CW.rms=d.getTime()}}
  const sel=b.dataset.cwr?`[data-cwr="${b.dataset.cwr}"]`:`[data-cwt="${b.dataset.cwt}"]`;chartDraw();const q=$('#vt-cw '+sel);if(q)q.focus()});
-document.addEventListener('change',e=>{if(e.target.id!=='cw-rd'||!e.target.value)return;const t=new Date(CW.rms||Date.now()),[y,m,d]=e.target.value.split('-').map(Number);t.setFullYear(y,m-1,d);CW.rms=t.getTime();chartDraw()});
+document.addEventListener('change',e=>{const id=e.target.id;
+ if(id==='cw-tq'){CW.tmq=Math.max(1,Math.round(+e.target.value)||1);chartDraw();const q=$('#cw-tq');if(q)q.focus();return}
+ if(id==='cw-tu'){CW.tmu=e.target.value;chartDraw();const q=$('#cw-tu');if(q)q.focus();return}
+ if(id!=='cw-rd'||!e.target.value)return;const v=e.target.value,[dp,tp]=v.split('T'),t=new Date(CW.rms||Date.now()),[y,m,d]=dp.split('-').map(Number);t.setFullYear(y,m-1,d);if(tp){const [hh,mm,ss]=tp.split(':').map(Number);t.setHours(hh,mm,ss||0)}CW.rms=t.getTime();chartDraw();const q=$('#cw-rd');if(q)q.focus()});
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('#cw-tday'))return;CW.rms=Date.now();chartDraw();const q=$('#cw-rd');if(q){q.focus();try{q.showPicker()}catch(x){}}});
 function ewAttach(){const o=$('#vt-cw');if(!o||!window.EAWheel||o.__ewa)return;o.__ewa=1;
  EAWheel.attach(o,{tap:()=>{const i=ATAP.indexOf(ASET()),v=ATAP[(i+1)%ATAP.length];ASET_OV=v;asetSet(v);chartDraw()},dbl:()=>{const E=['small','large','none'],v=E[(E.indexOf(cwEarth()||'none')+1)%3];CW.earth=v;chartDraw()}})}
 function cwUpd(){const w=$('#cw-w');if(w)w.innerHTML=cwWheel();const d=$('#vt-cw .cwh small');if(d&&CW.p<1)d.textContent=T.date(cwMs());const sl=$('#cw-s');if(sl&&document.activeElement!==sl)sl.value=Math.round((CW.p<1?CW.p:0)*1000);animHi()}
