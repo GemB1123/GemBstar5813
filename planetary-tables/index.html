@@ -9050,6 +9050,8 @@ body.vtmoo .vtvs [data-w=eve]{display:none}
 #vt-cw .cwtm input{color-scheme:dark}
 #vt-cw .cwrings [data-cwr]{white-space:nowrap;padding-left:6px;padding-right:6px}
 #vt-foot .vtharc{margin:4px auto 10px;max-width:520px}#vt-foot .vtharc svg{display:block;font-family:Inter,system-ui,sans-serif}
+/* Gemini, Nov 14 (all apps): a pinched-larger wheel is the top layer, over the table and the chart text (shared wheel sets body.eawz while zoomed) */
+body.eawz #vt-cw{overflow:visible;z-index:200}body.eawz #vt-cw .cww{position:relative;z-index:50}body.eawz #vt-cw svg.eaw{position:relative;z-index:50}
 </style><script>/* Simple Wheel (Painter World, Gemini, Nov 13 2026): one easy-to-read chart wheel that every World and app can use,
    on a phone or a desktop. Our own look (Gemini asked that it not resemble other apps): a zodiac ring of alternating
    silver and titanium segments with Ana's glyphs (the ring Kepler made for Planetary Tables), house cusp degrees just
@@ -10018,7 +10020,7 @@ const hd2=n=>{const [a,b]=String(n).replace(/&amp;/g,'&').split('\n');   /* name
 /* Gemini, Nov 11: only one window at a time. Opening Chart, Space, Earth, Historical or About closes (and stops) any other,
    so the view buttons and the table's stage buttons always reach the window that is showing */
 function oneWin(keep){[['vt-cw',()=>{cwStop();CW.p=1}],['vt-spc',()=>spcStop()],['vt-ea',()=>eaStop()],['vt-hs',null],['vt-ab',null]].forEach(([id,st])=>{if(id===keep)return;const o=document.getElementById(id);if(o&&!o.hidden){try{if(st)st()}catch(e){}o.hidden=true}})}
-function chartOpen(ms,name,bw){oneWin('vt-cw');CW.favId=null;if(name!==CW.name){CW.rings=[];CW.rms=null}ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
+function chartOpen(ms,name,bw){oneWin('vt-cw');CW.earth='small';CW.favId=null;if(name!==CW.name){CW.rings=[];CW.rms=null}ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
   o.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;if(t.dataset.cwm){CW.mode=t.dataset.cwm;chartDraw()}else if(t.dataset.cwa){ASET_OV=t.dataset.cwa;asetSet(t.dataset.cwa);chartDraw()}else if(t.id==='cw-hs'){CW.hsOpen=!CW.hsOpen;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.dataset.hsy){prefSet('vt-hsys',t.dataset.hsy);CW.hsOpen=false;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.id==='cw-x'){cwStop();CW.p=1;o.hidden=true;document.body.classList.remove('vtcw')}})}
  o.hidden=false;document.body.classList.add('vtcw');ewAttach();chartDraw();$('#cw-x').focus()}
 /* the cycle the chart sits in (the same cycle Space draws), and the moment Play has reached */
@@ -10033,7 +10035,7 @@ function cwWheel(){const t=cwMs(),cu=cuOf(cwCusps(t),CW.bms!=null?CW.bms/864e5+2
    Planetary Tables adds its own aspects with hover boxes, the four Rs, Whole Sign angles, and Play dimming on top. The biwheel and the
    Risings / Venus Star center still use the older wheel above. Tap the aspect circle: Major > Harmonic > Symmetry; double tap: large. */
 /* Gemini, Nov 13 (all apps): a small Earth in the center by default; a double tap cycles small Earth, big Earth, and no Earth */
-function cwEarth(){const v=pref('vt-earth');return v==='none'?false:v==='large'?'large':'small'}
+function cwEarth(){const v=CW.earth;return v==='none'?false:v==='large'?'large':'small'}   /* not remembered: every chart opens on Major and a small Earth (Gemini, all apps) */
 function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=sk.pos,P2=T.sky(jd+1/24).pos,big=!!CW.big,RI=big?128:56,RA=RI-2;   /* the Simple Wheel's aspect circle radius (simplewheel.js RI) */
  const ws=!!(cu&&cu.realAS!=null&&Math.abs(((cu[1]%30)+30)%30)<1e-6),c=cu?Object.assign(cu.slice(),{noAngles:!!(cu.noAngles||ws||cu.even),even:cu.even}):null,rot=c?c[1]:0;
  const AS=cu?(cu.realAS!=null?cu.realAS:cu.noAngles?null:cu[1]):null,MC=cu?(cu.realMC!=null?cu.realMC:cu.noAngles?null:cu[10]):null;
@@ -10077,7 +10079,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
  const sel=b.dataset.cwr?`[data-cwr="${b.dataset.cwr}"]`:`[data-cwt="${b.dataset.cwt}"]`;chartDraw();const q=$('#vt-cw '+sel);if(q)q.focus()});
 document.addEventListener('change',e=>{if(e.target.id!=='cw-rd'||!e.target.value)return;const t=new Date(CW.rms||Date.now()),[y,m,d]=e.target.value.split('-').map(Number);t.setFullYear(y,m-1,d);CW.rms=t.getTime();chartDraw()});
 function ewAttach(){const o=$('#vt-cw');if(!o||!window.EAWheel||o.__ewa)return;o.__ewa=1;
- EAWheel.attach(o,{tap:()=>{const i=ATAP.indexOf(ASET()),v=ATAP[(i+1)%ATAP.length];ASET_OV=v;asetSet(v);chartDraw()},dbl:()=>{const E=['small','large','none'],v=E[(E.indexOf(cwEarth()||'none')+1)%3];prefSet('vt-earth',v);chartDraw()}})}
+ EAWheel.attach(o,{tap:()=>{const i=ATAP.indexOf(ASET()),v=ATAP[(i+1)%ATAP.length];ASET_OV=v;asetSet(v);chartDraw()},dbl:()=>{const E=['small','large','none'],v=E[(E.indexOf(cwEarth()||'none')+1)%3];CW.earth=v;chartDraw()}})}
 function cwUpd(){const w=$('#cw-w');if(w)w.innerHTML=cwWheel();const d=$('#vt-cw .cwh small');if(d&&CW.p<1)d.textContent=T.date(cwMs());const sl=$('#cw-s');if(sl&&document.activeElement!==sl)sl.value=Math.round((CW.p<1?CW.p:0)*1000);animHi()}
 function cwStop(){CW.on=false;if(CW.raf)cancelAnimationFrame(CW.raf);CW.raf=0;const b=$('#cw-a');if(b){b.innerHTML='&#9654;';b.setAttribute('aria-label','Play')}}
 const cwDur=()=>SPD[CW.sp][1]*1000;
