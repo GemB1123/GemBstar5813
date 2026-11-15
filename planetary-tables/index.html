@@ -9936,11 +9936,13 @@ function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
    Line Color, Conjunction Star, Orbit Rings, Planet Look), which leaves room under the picture for Play and an animation speed slider */
 /* Gemini, Nov 10: six speeds. Crawl and Run are set in Space settings (seconds for one cycle in Space; Earth takes 2.5 times as long);
    the four between are spaced evenly (geometrically) from one to the other. Crawl and Walk scroll the All table. */
-const SPDN=['Crawl / Scroll','Walk / Scroll','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:60,run:12},(()=>{try{return JSON.parse(localStorage.getItem('vt-spdx2'))||{}}catch(e){return {}}})()),SPD=[];
-document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='spc-crawl'&&id!=='spc-run')return;const v=+e.target.value;if(!(v>0))return;SPDX[id==='spc-crawl'?'crawl':'run']=v;try{localStorage.setItem('vt-spdx2',JSON.stringify(SPDX))}catch(x){}spdBuild();if(SPC.on)SPC.t0=performance.now()-SPC.p*spcDur();if(EAV.on)EAV.t0=performance.now()-EAV.p*eaDur()});
-/* Gemini, Nov 15: speeds are the time for the whole animation, whatever it shows: one cycle (Moon, Mercury, Venus, Mars, the Chart,
-   each Earth period) takes 60 s at Crawl and 12 s at Run; a pattern of several cycles (Mercury 3, Venus 5) takes 1.5 times as long (90 s, 18 s) */
-function spdBuild(){const a=Math.max(2,+SPDX.crawl||60),b=Math.max(.5,Math.min(a,+SPDX.run||12));SPD.length=0;SPDN.forEach((n,i)=>SPD.push([n,a*Math.pow(b/a,i/5)]))}
+const SPDN=['Crawl / Scroll','Walk / Scroll','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:120,slow:60,run:12},(()=>{try{return JSON.parse(localStorage.getItem('vt-spdx3'))||{}}catch(e){return {}}})()),SPD=[];
+document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='spc-crawl'&&id!=='spc-run'&&id!=='spc-slow')return;const v=+e.target.value;if(!(v>0))return;SPDX[id.slice(4)]=v;try{localStorage.setItem('vt-spdx3',JSON.stringify(SPDX))}catch(x){}spdBuild();if(SPC.on)SPC.t0=performance.now()-SPC.p*spcDur();if(EAV.on)EAV.t0=performance.now()-EAV.p*eaDur()});
+/* Gemini, Nov 15: speeds are the time for the whole animation, whatever it shows. One cycle (Moon, Mercury, Venus, Mars, the
+   Chart, each Earth period): Crawl 2 minutes, Slow 60 s, Run 12 s. A pattern of several cycles (Mercury 3, Venus 5): Crawl 6 minutes,
+   Slow 90 s, Run 18 s. Walk sits evenly between Crawl and Slow, Medium and Fast evenly between Slow and Run. */
+const SPDM=[];function spdBuild(){const a=Math.max(2,+SPDX.crawl||120),b=Math.max(1,Math.min(a,+SPDX.slow||60)),c=Math.max(.5,Math.min(b,+SPDX.run||12));SPD.length=0;SPDM.length=0;
+ SPDN.forEach((n,i)=>{SPD.push([n,i<=2?a*Math.pow(b/a,i/2):b*Math.pow(c/b,(i-2)/3)]);SPDM.push(i<=2?3*Math.pow(.5,i/2):1.5)})}
 spdBuild();
 /* Gemini, Nov 4: Space opens on the Full Pattern, the whole rose, as a still, with the current 19 month cycle lit */
 const SPC0={f:'geo',look:'real',cyc:'full',anim:'cur',step:2,lc:'elem',star:false,rings:true,line:true,orb:'real',glow:'bright',lb:'soft',sp:2,moon:true,zod:'geo',zgg:false};   /* Nov 9: sq replaces si, Super Slow / Scroll was added in front */   /* Gemini, Nov 5: Slow by default; a change is remembered */
@@ -10050,7 +10052,7 @@ function spcSetHtml(){const sg=(k,opts)=>`<div class="cwseg" role="group">${opts
  +``+lb('Orbits')+sg('orb',[['circ','Circles'],['real','Ellipses']])+`<small class="vtnote">Ellipses are the true orbits. Circles even them out, which shows the five-petal pattern in its ideal form. The phase square always uses the true orbits.</small>`   /* Gemini, Nov 5 */
  +lb('Planet Glow')+sg('glow',[['none','None'],['glow','Glow'],['bright','Bright']])+lb('Line Brightness')+sg('lb',[['soft','Soft'],['med','Medium'],['full','Full']])   /* Gemini, Nov 5 */
  +lb('Moon Orbit')+sg('moon',[[false,'Off'],[true,'On']])+`<small class="vtnote">Shows only at the Crawl / Scroll and Walk / Scroll speeds. The Moon circles Earth (its orbit much enlarged), so you can watch it cross the line to ${PN()}: the Moon gates.</small>`
- +lb('Speeds')+`<div class="vtrowt spcspd"><label class="vtf">Crawl, seconds<input id="spc-crawl" type="number" min="5" max="900" step="1" value="${Math.round(SPDX.crawl)}"></label><label class="vtf">Run, seconds<input id="spc-run" type="number" min="0.5" max="120" step="0.5" value="${SPDX.run}"></label></div><small class="vtnote">How long one animation takes at the slowest (Crawl) and fastest (Run) speeds: one cycle in Space or the Chart, or one period in Earth. Patterns of several cycles (Mercury 3, Venus 5) take 1.5 times as long. Walk, Slow, Medium and Fast are spaced evenly between them.</small>`
+ +lb('Speeds')+`<div class="vtrowt spcspd"><label class="vtf">Crawl, seconds<input id="spc-crawl" type="number" min="5" max="1800" step="1" value="${Math.round(SPDX.crawl)}"></label><label class="vtf">Slow, seconds<input id="spc-slow" type="number" min="2" max="900" step="1" value="${Math.round(SPDX.slow)}"></label><label class="vtf">Run, seconds<input id="spc-run" type="number" min="0.5" max="120" step="0.5" value="${SPDX.run}"></label></div><small class="vtnote">How long one animation takes at Crawl, Slow and Run: one cycle in Space or the Chart, or one period in Earth. Patterns of several cycles (Mercury 3, Venus 5) take 3 times as long at Crawl and 1.5 times as long at Slow and Run. Walk, Medium and Fast are spaced evenly between. Walk, Slow, Medium and Fast are spaced evenly between them.</small>`
  +lb('Conjunction Star')+sg('star',[[false,'Off'],[true,'On']])+lb('Orbit Rings')+sg('rings',[[false,'Off'],[true,'On']])+lb('Planet Look')+sg('look',[['real','Textures'],['simple','Simple']])
  +`<div class="vtrowt"><button class="vtbtn" id="spc-sx">Done</button></div>`}
 /* Gemini, Nov 5: a close up of Venus's phase as seen from Earth, in a gold square, still or animated.
@@ -10121,7 +10123,7 @@ function spcScr(){if(SPC.p<1)return Math.round(SPC.p*1000);const r=spcBuild();if
 function spcFrame(){$('#spc-w').innerHTML=spcSvg();animHi();const e=$('#spc-ph');if(e)e.innerHTML=spcPhase();const sl=$('#spc-s');if(sl&&document.activeElement!==sl)sl.value=spcScr()}
 const P_END=.999999;
 function spcStop(){SPC.on=false;cancelAnimationFrame(SPC.raf)}
-function spcDur(){const r=spcBuild();return SPD[SPC.sp][1]*1000*(r&&!(SPC.anim==='cur')&&r.ic.length>2?1.5:1)}
+function spcDur(){const r=spcBuild();return SPD[SPC.sp][1]*1000*(r&&!(SPC.anim==='cur')&&r.ic.length>2?SPDM[SPC.sp]:1)}
 function spcAnim(){if(SPC.on){spcStop();spcDraw();return}if(SPC.p>=.9999){SPC.p=0;SPC.eye=true}SPC.on=true;SPC.fade=0;SPC.played=true;SPC.line=false;   /* Gemini, Nov 5: Play closes the eye; tap it after to show the line */
  SPC.t0=performance.now()-SPC.p*spcDur();
  const run=t=>{if(!SPC.on)return;SPC.p=Math.min(P_END,(t-SPC.t0)/spcDur());spcFrame();if(SPC.p<P_END)SPC.raf=requestAnimationFrame(run);else{SPC.on=false;SPC.fade=Date.now();SPC.eye=false;spcDraw();setTimeout(()=>{if(!SPC.on&&SPC.fade&&$('#spc-w'))$('#spc-w').innerHTML=spcSvg()},2800)}};   /* Gemini, Nov 5: at the end the planets stay at the closing conjunction */spcDraw();SPC.raf=requestAnimationFrame(run)}
