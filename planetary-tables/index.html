@@ -9137,6 +9137,27 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw .cww{width:100%;max-width:min(560px,calc(100dvh - 330px))!important;min-width:260px}
 #vt-cw .cwtm{flex-wrap:wrap}
 @media (min-width:1100px){#vt-cw .cww{max-width:min(560px,calc(100dvh - 400px))!important}}
+/* Gemini, Nov 15: room between the wheel, the gear / Transits line and the Time Machine / Play line */
+#vt-cw .cwrings{margin-top:16px;gap:14px}
+#vt-cw .cwline{max-width:620px;width:100%;margin:14px auto 0;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px}
+#vt-cw .cwline #cw-a{flex:0 0 52px;width:52px;height:40px;padding:0}
+#vt-cw .cwline .cwtm{display:contents}
+#vt-cw .cwspd{height:40px;border-radius:10px;border:1.5px solid #c9b27a;background:#14122a;color:#efe3c8;font:600 13.5px Inter,system-ui,sans-serif;padding:0 6px}
+#vt-cw .cwplay{flex-wrap:nowrap}#vt-cw .cwplay #cw-s{flex:1;min-width:80px;accent-color:#c9b27a}
+#vt-cw .cwplay #cw-stop{flex:0 0 40px;width:40px;height:40px;padding:0}
+#vt-cw .cww{max-width:min(560px,calc(100dvh - 370px))!important}
+@media (min-width:1100px){#vt-cw .cww{max-width:min(560px,calc(100dvh - 420px))!important}}
+/* Gemini, Nov 15: the two control lines sit at the bottom (level with the table's bottom buttons); the wheel takes all the room above */
+#vt-cw{display:flex;flex-direction:column}
+#vt-cw>*{flex-shrink:0}
+#vt-cw .cwrings{margin-top:auto;padding-top:14px}
+#vt-cw .cww{max-width:min(560px,calc(100dvh - 300px))!important}
+@media (min-width:1100px){#vt-cw .cww{max-width:min(980px,calc(100dvh - 300px))!important}#vt-cw .cwline{margin-bottom:0}}
+#vt-cw .cwrings{padding-top:8px;gap:8px}#vt-cw .cwline{margin-top:8px}
+@media (min-width:1100px){#vt-cw .cwline{max-width:min(980px,100%);flex-wrap:nowrap}#vt-cw{padding-bottom:4px}#vt-cw .cww{max-width:min(980px,calc(100dvh - 296px))!important}}
+#vt-cw .cww{margin-bottom:0}
+@media (min-width:1100px){#vt-cw .cww{max-width:min(980px,calc(100dvh - 308px))!important}}
+#vt-cw .cwh,#vt-cw .cwrings,#vt-cw .cwline,#vt-cw .cwbw{width:100%;box-sizing:border-box}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9241,7 +9262,7 @@ function retCard(x,i,on){const c=KC(x.k)||T.col.plain,op=V.x===i;if(SAV()){const
 /* Gemini, Nov 3: the header takes the cycle's colors, interior conjunction sign's element to the exterior's (Virgo / Gemini: green to yellow) */
 const SGN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
 function headBg(ic,ec){const dk=c=>'#'+[1,3,5].map(i=>Math.round(parseInt(c.slice(i,i+2),16)*.5).toString(16).padStart(2,'0')).join(''),e=n=>{const i=SGN.indexOf(String(n).trim());return i<0?null:dk(T.elc[i%4])},a=e(ic),b=e(ec);
- const h=document.querySelector('#vt header');if(h&&a&&b)h.style.background=`linear-gradient(135deg,${a},${b})`}
+ const h=document.querySelector('#vt header');if(h&&a&&b)h.style.background=`linear-gradient(135deg,${a},65%,${b})`}   /* Gemini, Nov 15: about 65% the first sign's color, 35% the second */
 function drawRet(scroll){const R=rets(),c=cur(),ch=T.chart();{const h=$('#vt-title');h.classList.remove('one');h.style.fontSize=''}if(!R.err){const [i,e]=R.birthCyc.split('/');headBg(i,e)}$('#vt-title').innerHTML=OTH()?`My ${PN()} Returns<br><span class="vtsub">${esc(ch.name)} · In The Overstory</span>`:`My Venus Returns<br><span class="vtsub">${esc(ch.name)} · In The Moon Gates</span>`;
  if(R.err){$('#vt-list').innerHTML=`<li class="vterr">${R.err}</li>`;return}
  let hi=-1;R.rows.forEach((x,i)=>{if(x.ms<=c)hi=i});$('#vt-list').innerHTML=R.rows.map((x,i)=>retCard(x,i,i===hi)).join('');V.lastR=R.rows;V.ahI=null;
@@ -9292,7 +9313,7 @@ function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);
  document.querySelectorAll('.vtvs button').forEach(b=>{const on=b.dataset.w===V.side;b.setAttribute('aria-pressed',on);if(b.dataset.w==='all')b.textContent=MOO()?'Expanded':'All';if(b.dataset.w==='morn')b.textContent=MOO()?'Compressed':on?'Morning':'Morn';if(b.dataset.w==='eve')b.textContent=MOO()?(on?'Waning':'Wane'):on?'Evening':'Eve'});
  const sdl=V.side==='all'?'Cycle':'Side';document.querySelectorAll('.vtsd small').forEach(x=>x.textContent=sdl);$('#vt-sb').setAttribute('aria-label',V.side==='all'?'Back one 19 month cycle':'Back one side of the cycle');$('#vt-sf').setAttribute('aria-label',V.side==='all'?'Forward one 19 month cycle':'Forward one side of the cycle');document.body.classList.toggle('vtcmp',V.side!=='all');
  hero(r);const view=V.side==='all'||!sd?{rows:r.rows}:sd[V.side],R=marks(view.rows,ch,V.side==='eve'?1:0);   /* Gemini, Nov 4: on Evening, Today (and the chart's line) only when it falls on the Evening side itself */let hi=-1;R.forEach((x,i)=>{if(x.ms<=c||(x.mk&&Math.abs(x.ms-c)<6e4))hi=i});
- $('#vt-title').innerHTML=esc(view.title||r.title||T.title(r)).replace('★','<b>★</b>')+(MOO()?'':V.side==='morn'?' <span class="vtside">Morning</span>':V.side==='eve'?' <span class="vtside">Evening</span>':'');fitTitle();{const tr=TOT()&&!view.ic&&totRise(r);if(tr)headBg(tr.sg,tr.sg);else headBg(view.ic||r.ic,view.ec||r.ec)}
+ $('#vt-title').innerHTML=esc(view.title||r.title||T.title(r)).replace('★','<b>★</b>')+(MOO()?'':V.side==='morn'?' <span class="vtside">Morning</span>':V.side==='eve'?' <span class="vtside">Evening</span>':'');fitTitle();{const tr=TOT()&&!view.ic&&totRise(r);if(tr)headBg(tr.sg,tr.sg);else headBg(view.ic||r.ic,view.ec||r.ecs||r.ec)}
  /* Gemini, Nov 4: a tap on a Morning or Evening line opens it into the Complete table's card, Chart button included; a tap on the card closes it */
  $('#vt-list').innerHTML=V.side==='all'?R.map((x,i)=>card(x,i===hi)).join(''):R.map((x,i)=>V.ex===Math.round(x.ms)?card(x,i===hi).replace('<li class="vtc','<li data-vx="'+Math.round(x.ms)+'" tabindex="0" role="button" aria-expanded="true" aria-label="Close this line" class="vtc vtex'):mrow(x,i===hi,V.side==='eve'&&i>0)).join('');   /* the Evening table's opening interior conjunction keeps the down arrow */
  V.lastR=R;V.ahI=null;vxHl();
@@ -9509,7 +9530,7 @@ function eamCalc(jd){
  for(let t=A,g=sgAt(A);t<B;t+=.5){const h=sgAt(Math.min(B,t+.5));if(h!==g){let lo=t,hi=Math.min(B,t+.5);for(let i=0;i<30;i++){const m=(lo+hi)/2;if(sgAt(m)===g)lo=m;else hi=m}R.push({jd:hi,k:'ing',name:'Ingress into '+SGN[h],sa:{s:'Into '+SGN[h],l1:'Ingress into '+SGN[h],l2:(NTH[n]||(n+1)+'th')+' Sign Change'}});n++;g=h}}
  R.sort((p,q)=>p.jd-q.jd);
  R.forEach(r=>{const t=r.jd>=B-1e-6?B+.02:r.jd+.02;r.ph=r.conj?(r.jd===ec.jd?'Rebirth Cazimi':'Birth Cazimi'):eamStg(el(t),sp(t)<0);if(r.k!=='ing')r.k=EAMK(r.ph);r.ms=(r.jd-2440587.5)*864e5;r.v=L('Mercury',r.jd);r.s=L('Sun',r.jd);r.rx=r.stR?true:r.stD?false:sp(r.jd)<0;if(r.pa===undefined)r.pa=w(r.v-r.s)});
- const out={A,B,rows:R,mer:1,eam:1,sg:sgn(A),nsg:sgn(B),ec:ec.jd,ic:sgn(A),y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd};
+ const out={A,B,rows:R,mer:1,eam:1,sg:sgn(A),nsg:sgn(B),ec:ec.jd,ecs:sgn(ec.jd),ic:sgn(A),y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd};
  out.title=`${sgn(A)}-${sgn(ec.jd)} Cycle`;EAMCACHE.set(key,out);return out}
 const EAO=()=>OUT()||(MAR()&&MK()==='earthstrology');
 /* stages: Cazimi within 1 deg, Combust within 8.5, Under the Beams within 15, then Morning or Evening Star (Earthstrology) */
@@ -9873,7 +9894,7 @@ function build(){const w=document.createElement('div');w.id='vt';FOOT=`${phoneNo
 /* Gemini, Nov 3: cast a chart for any date in the tables. A simple wheel: Natural Zodiac (0 Aries on the 1st house cusp, at the left),
    no AS or MC, house numbers, element wedges with Ana's glyphs, gold planet glyphs with degrees on a blue wheel. The center shows
    the aspects or the Venus star: the two interior conjunctions before the date and the three after, the last one before it glowing */
-const CW={ms:null,name:'',mode:'asp',p:1,on:false,sp:+(localStorage.getItem('vt-cwsp')||0)===1?1:0};let WDIM=false;   /* Gemini, Nov 10: Chart plays at Crawl / Scroll or Walk / Scroll; during Play every glyph but the Sun, the Moon and the cycle's planet dims to half */
+const CW={ms:null,name:'',mode:'asp',p:1,on:false,sp:Math.max(0,Math.min(5,+(localStorage.getItem('vt-cwsp')||0)||0))};let WDIM=false;   /* Gemini, Nov 10: Chart plays at Crawl / Scroll or Walk / Scroll; during Play every glyph but the Sun, the Moon and the cycle's planet dims to half */
 /* Gemini, Nov 4: the Venus-Sun glyph (our Venus glyph with the Sun's dot in its circle) sits in the center of the opening star from the start */
 /* Nov 4: larger, inside a black disc with a gold rim; the star's lines run behind it */
 const VSUN='<circle r="48" fill="#000" stroke="#ffd45a" stroke-width="1.8"/><g class="vtvsun" transform="scale(.8) translate(-50 -50)" fill="none" stroke="#ffd45a" stroke-width="4.6" stroke-linecap="round"><path d="M50.049 11A21.45 21.45 0 1 1 49.951 11Z"/><path d="M50.049 53.9V89"/><path d="M34.449 73.4H65.649"/><circle cx="50" cy="32.45" r="5" fill="#ffd45a" stroke="none"/></g>';
@@ -10051,13 +10072,19 @@ document.addEventListener('change',e=>{const t=e.target;if(!t.closest||!t.closes
  const sel=t.id?'#'+t.id:`[data-cwp="${t.dataset.cwp}"]`;chartDraw();const q=$('#vt-cw '+sel);if(q)q.focus()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CW.set&&!CW.rmenu){const o=$('#vt-cw');if(o&&!o.hidden){CW.set=false;e.stopPropagation();chartDraw();const f=$('#cw-g');if(f)f.focus();return}}if(e.key==='Escape'&&CW.rmenu){CW.rmenu=false;e.stopPropagation();chartDraw();const f=$('#cw-rm');if(f)f.focus()}},true);
 const cwGear=()=>`<button class="cwgear" id="cw-g" aria-haspopup="dialog" aria-expanded="${!!CW.set}" aria-label="Chart settings">${($('#vt-gear svg')||{outerHTML:'&#9881;'}).outerHTML}</button>`;
+/* Gemini, Nov 15: one line under Transits. Stopped: Play, a speed menu and the Time Machine. Playing (or paused part way):
+   Pause/Play, the scrub bar, the speed menu and a Stop that returns to the Time Machine */
+function cwLine(){const R=cwKind()==='natal'&&window.EAWheel?(CW.rings||[]):[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
+ const spd=`<select class="cwspd" id="cw-spd" aria-label="Animation speed">${SPD.map((x,i)=>`<option value="${i}"${i===CW.sp?' selected':''}>${x[0]}</option>`).join('')}</select>`;
+ if(CW.on||CW.p<1)return `<div class="cwline cwplay"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle">${spd}<button class="vtbtn" id="cw-stop" aria-label="Stop and return to the Time Machine">&#9632;</button></div>`;
+ return `<div class="cwline"><button class="vtbtn solid" id="cw-a" aria-label="Play the cycle">&#9654;</button>${spd}`+(R.length?`<div class="cwtm" role="group" aria-label="Time Machine for the outer wheels"><button data-cwt="-365">&minus;1y</button><button data-cwt="-30">&minus;1m</button><button data-cwt="-1">&minus;1d</button><input type="date" id="cw-rd" value="${iso}" aria-label="Date of the outer wheels"><button data-cwt="1">+1d</button><button data-cwt="30">+1m</button><button data-cwt="365">+1y</button><button data-cwt="now">Now</button></div>`:'')+`</div>`}
 function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="cwrings"><div class="cwtools">${cwGear()}</div>${cwSet()}</div>`;const R=CW.rings||[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  /* Gemini, Nov 15: one split button. Nothing added: "Transits" adds the transit wheel, the arrow offers Progressions and Solar Arc.
     A wheel added: the button reads "Clear", and the arrow offers the other two */
  const on=R[0],others=Object.keys(RINGN).filter(k=>on?k!==on:k!=='tr');
  return `<div class="cwrings"><div class="cwtools">${cwGear()}<div class="cwsplit"><button class="cwsm" data-cwr="${on?'clear':'tr'}">${on?'One Wheel':'Transits'}</button><button class="cwsa" id="cw-rm" aria-haspopup="menu" aria-expanded="${!!CW.rmenu}" aria-label="More wheels">&#9662;</button>`
   +(CW.rmenu?`<div class="cwmenu" role="menu">${others.map(k=>`<button role="menuitem" data-cwr="${k}">${RINGN[k]}</button>`).join('')}</div>`:'')+`</div></div>`+cwSet()
- +(R.length?`<div class="cwtm" role="group" aria-label="Time Machine for the outer wheels"><button data-cwt="-365">&minus;1y</button><button data-cwt="-30">&minus;1m</button><button data-cwt="-1">&minus;1d</button><input type="date" id="cw-rd" value="${iso}" aria-label="Date of the outer wheels"><button data-cwt="1">+1d</button><button data-cwt="30">+1m</button><button data-cwt="365">+1y</button><button data-cwt="now">Now</button></div>`:'')+`</div>`}
+ +`</div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cwr],[data-cwt],#cw-rm');if(!b){if(CW.rmenu&&!(e.target.closest&&e.target.closest('.cwmenu'))){CW.rmenu=false;const m=$('#vt-cw .cwmenu');if(m)chartDraw()}return}if(!b.closest('#vt-cw'))return;CW.rings=CW.rings||[];
  if(b.id==='cw-rm'){CW.rmenu=!CW.rmenu;chartDraw();const f=$(CW.rmenu?'#vt-cw .cwmenu button':'#cw-rm');if(f)f.focus();return}
  if(b.dataset.cwr){const k=b.dataset.cwr;CW.rmenu=false;CW.rings=k==='clear'?[]:[k];chartDraw();const f=$('#vt-cw .cwsm');if(f)f.focus();return}
@@ -10069,11 +10096,13 @@ function ewAttach(){const o=$('#vt-cw');if(!o||!window.EAWheel||o.__ewa)return;o
 function cwUpd(){const w=$('#cw-w');if(w)w.innerHTML=cwWheel();const d=$('#vt-cw .cwh small');if(d&&CW.p<1)d.textContent=T.date(cwMs());const sl=$('#cw-s');if(sl&&document.activeElement!==sl)sl.value=Math.round((CW.p<1?CW.p:0)*1000);animHi()}
 function cwStop(){CW.on=false;if(CW.raf)cancelAnimationFrame(CW.raf);CW.raf=0;const b=$('#cw-a');if(b){b.innerHTML='&#9654;';b.setAttribute('aria-label','Play')}}
 const cwDur=()=>SPD[CW.sp][1]*1000;
-function cwAnim(){if(CW.on){cwStop();return}if(CW.p>=1)CW.p=0;CW.on=true;CW.t0=performance.now()-CW.p*cwDur();const b=$('#cw-a');if(b){b.innerHTML='&#10074;&#10074;';b.setAttribute('aria-label','Pause')}
+function cwAnim(){if(CW.on){cwStop();return}const fresh=CW.p>=1;if(fresh)CW.p=0;CW.on=true;CW.t0=performance.now()-CW.p*cwDur();if(fresh){chartDraw();const a=$('#cw-a');if(a)a.focus()}const b=$('#cw-a');if(b){b.innerHTML='&#10074;&#10074;';b.setAttribute('aria-label','Pause')}
  const run=t=>{if(!CW.on)return;CW.p=Math.min(.99999,(t-CW.t0)/cwDur());cwUpd();if(CW.p<.99999)CW.raf=requestAnimationFrame(run);else{cwStop();CW.p=1;chartDraw();animHi()}};CW.raf=requestAnimationFrame(run)}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#vt-cw button');if(!t)return;
  if(t.id==='cw-a'){cwAnim();return}
+ if(t.id==='cw-stop'){cwStop();CW.p=1;chartDraw();const a=$('#cw-a');if(a)a.focus();return}
  if(t.id==='cw-sb'){const p=CW.p;CW.sp=CW.sp?0:1;try{localStorage.setItem('vt-cwsp',CW.sp)}catch(x){}$('#cw-sn').textContent=SPD[CW.sp][0];t.setAttribute('aria-label',`Speed ${SPD[CW.sp][0]}, tap to change`);if(CW.on)CW.t0=performance.now()-p*cwDur()}});
+document.addEventListener('change',e=>{if(e.target.id!=='cw-spd')return;const p=CW.p;CW.sp=+e.target.value;try{localStorage.setItem('vt-cwsp',CW.sp)}catch(x){}if(CW.on)CW.t0=performance.now()-p*cwDur()});
 document.addEventListener('input',e=>{if(e.target.id!=='cw-s')return;CW.p=Math.min(.99999,+e.target.value/1000);if(CW.on)CW.t0=performance.now()-CW.p*cwDur();else cwUpd()});
 /* Gemini, Nov 13 (every app): the chart header. A star to favorite any chart, saved or not; the name, a date and time line, and a
    place line; Edit and Clear. With no chart cast it reads "Current Transits"; Clear always returns there. */
@@ -10098,7 +10127,7 @@ function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
  o.innerHTML=cwHead(k)
  +(CW.bms!=null?`<div class="cwbw"><span><i style="background:#bfe0ff"></i>Inside: ${esc(CW.bn)}, birth</span><span><i style="background:${GOLD}"></i>Outside: ${esc(String(CW.name).split('\n')[0])}</span></div>`:'')
  +`<div class="cww" id="cw-w">${cwWheel()}${cwRingLg()}</div>`+cwRingUI()
- +`<div class="spcbar cwbar"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><div class="spcsp"><button class="spcsb" id="cw-sb" aria-label="Speed ${SPD[CW.sp][0]}, tap to change">Speed: <b id="cw-sn">${SPD[CW.sp][0]}</b></button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle"></div></div>`
+ +cwLine()
 }
 /* Gemini, Nov 4: Space, the Device's Synodic Cycles geometry on the phone. Geocentric by default: the Sun and Venus around the Earth,
    a line between them every 2 days from the interior conjunction before the row's date to the one after it, and the row's own
