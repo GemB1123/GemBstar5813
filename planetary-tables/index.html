@@ -7810,9 +7810,9 @@ const EARTH_SUN={col:'#ffd26e',core:'#fff4be',r:3,glow:10};
 function earthSun(sunL,gm,rot,south,sx,sy,R){const RAD=Math.PI/180,eps=23.44*RAD,sl=sunL*RAD,dec=Math.asin(Math.sin(eps)*Math.sin(sl))/RAD,ra=Math.atan2(Math.cos(eps)*Math.sin(sl),Math.cos(sl))/RAD,
   q=earthProj(dec,ra-gm,gm,rot,south,true),k=EARTH_K();let gx=400+sx*R,gy=400+sy*R;
  if(q){const dx=q[0]-400,dy=q[1]-400,d=Math.hypot(dx,dy);if(q[2]){gx=q[0];gy=q[1]}else if(d>1){gx=400+dx/d*R;gy=400+dy/d*R}}
- const glow=`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${24*k}" fill="url(#esun)" style="pointer-events:none"/>`;
- /* the Sun on the Earth is an out-of-focus glow, no hard dot (Gemini, Nov 15: global) */
- return glow+(q&&q[2]?`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${(11*k).toFixed(1)}" fill="url(#esoft)" style="pointer-events:none"/>`:'')}
+ const glow=`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${12*k}" fill="url(#esun)" style="pointer-events:none"/>`;
+ /* the Sun on the Earth is an out-of-focus glow, no hard dot (Gemini, Nov 15: global); halved the same day (glow 12k, center 5.5k) */
+ return glow+(q&&q[2]?`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${(5.5*k).toFixed(1)}" fill="url(#esoft)" style="pointer-events:none"/>`:'')}
 /* each Earth gets its own gradient ids: a page can hold several Earths (Planetary Tables), and a gradient whose first copy is in a hidden
    element draws nothing in Chrome, which is how the Sun glow vanished there (Gemini, Nov 15: Leo needs Sun) */
 let EUID=0;
@@ -10583,7 +10583,7 @@ const HS=Object.assign({},HS0,(()=>{try{return JSON.parse(localStorage.getItem('
 function hsSave(){try{localStorage.setItem('vt-hs1',JSON.stringify({span:HS.span,show:HS.show,tb:HS.tb,st:HS.st,cl:HS.cl,fy:HS.fy,ty:HS.ty,mv:HS.mv,mm:HS.mm,mo:HS.mo}))}catch(e){}}
 const HSPV={yrs:['Years',8],dec:['Decades',80],cen:['Centuries',800],mil:['Millennia',2400],cus:['Range',0]},HSY=365.2425,HSYV=583.924;
 /* Mercury (Gemini, Nov 5): three interior conjunctions, just under a year, draw its near-triangle; each point slips back about 17 deg a year */
-const HSPM={yrs:['Year',1],dec:['2 Years',2],ele:['Elements',2.5],cen:['Decades',20],mil:['Centuries',200],cus:['Range',0]};   /* Gemini, Nov 15: Mercury gets 2 Years; Millennia goes */
+const HSPM={yrs:['Year',1],dec:['2 Years',2],ele:['Elements',8],cen:['Decades',20],mil:['Centuries',200],cus:['Range',0]};   /* Gemini, Nov 15: Mercury gets 2 Years; Millennia goes */
 /* Mars (Gemini, Nov 6): seven oppositions, about 15 years (the Hellenistic Mars period), draw its seven-pointed pattern; the
    Overstories begin at the opposition, so the "inner" points are oppositions and the others are the Sun conjunctions */
 const HSPA={yrs:['15 Years',15],dec:['79 Years',79],cen:['Centuries',800],mil:['Millennia',2400],cus:['Range',0]};
@@ -10626,8 +10626,15 @@ function hsBuild(){hsPl();if(HS.c==null)HS.c=V.ms/864e5+2440587.5;if(HS.fy==null
  const L=cus?hsIcs(CA,CB):hsIcs(HS.c-sp,HS.c+sp);let i0=L.findIndex(t=>t>HS.c)-1;if(i0<0)i0=0;
  /* Years: the one star that starts with the interior conjunction on or before the date. Longer spans: centred on the date. */
  let ia,ib;if(HS.span==='yrs'){ia=i0;ib=i0+HK}else if(HS.span==='ele'){   /* Gemini, Nov 15: Mercury's run of cycles in one element (typically 4 or 6) */
-  const EL=['Fire','Earth','Air','Water'],eo=i=>{let jd=L[i],lon=hsSun(jd);if(SAM()){const ec=hsRoot((jd+L[i+1])/2,40,false);lon=hsSA(jd,ec,L[i+1]).al}return hsSg(lon)%4},e0=eo(i0);ia=i0;ib=i0;
-  while(ia>0&&i0-ia<12&&eo(ia-1)===e0)ia--;while(ib<L.length-2&&ib-i0<12&&eo(ib+1)===e0)ib++;HS.eleN=[ib-ia+1,EL[e0],L[ia-1],L[ib+1]]}else{const A=cus?CA:HS.c-sp/2,B=cus?CB:HS.c+sp/2;ia=L.findIndex(t=>t>=A);ib=L.length-1;while(L[ib]>B)ib--}
+  const EL=['Fire','Earth','Air','Water'],eo=i=>{let jd=L[i],lon=hsSun(jd);if(SAM()){const ec=hsRoot((jd+L[i+1])/2,40,false);lon=hsSA(jd,ec,L[i+1]).al}return hsSg(lon)%4};
+  /* Gemini, Nov 15: a lone cycle in another element is an exception folded into the run around it (4 Water, 1 Air, 1 Water = 6 Water) */
+  const lo=Math.max(0,i0-24),hi=Math.min(L.length-2,i0+24),E=[];for(let i=lo;i<=hi;i++)E.push(eo(i));
+  let runs=[];E.forEach((e,k)=>{const r=runs[runs.length-1];if(r&&r.e===e)r.b=k;else runs.push({e,a:k,b:k})});
+  for(let g=0;g<40;g++){const k=runs.findIndex((r,n)=>r.b===r.a&&n>0&&n<runs.length-1);if(k<0)break;const p=runs[k-1],q=runs[k+1];
+   if(p.e===q.e){p.b=q.b;runs.splice(k,2)}else{const into=(p.b-p.a)>=(q.b-q.a)?p:q;if(into===p)p.b=runs[k].b;else q.a=runs[k].a;runs.splice(k,1)}}
+  const run=runs.find(r=>lo+r.a<=i0&&i0<=lo+r.b)||{e:E[i0-lo],a:i0-lo,b:i0-lo};ia=lo+run.a;ib=lo+run.b;const e0=run.e;
+  HS.eleX=new Set();for(let i=ia;i<=ib;i++)if(E[i-lo]!==e0)HS.eleX.add(i);
+  HS.eleN=[ib-ia+1,EL[e0],L[ia-1],L[ib+1],[...HS.eleX].map(i=>EL[E[i-lo]])]}else{const A=cus?CA:HS.c-sp/2,B=cus?CB:HS.c+sp/2;ia=L.findIndex(t=>t>=A);ib=L.length-1;while(L[ib]>B)ib--}
  const rows=[];for(let i=ia;i<=ib;i++){let jd=L[i],ec=hsRoot((jd+L[i+1])/2,MAR()?120:MER()?40:70,false),lon=MAR()?e360(hsSun(jd)+180):hsSun(jd),el=ec!=null?hsSun(ec):null;
   if(SAV()||SAM()){const q=hsSA(jd,ec,L[i+1]);jd=q.a;lon=q.al;ec=q.b;el=q.bl}
   rows.push({i,jd,lon,sg:hsSg(lon),ec,el,esg:el!=null?hsSg(el):null})}
@@ -10661,7 +10668,7 @@ function hsSvg(){const H=hsBuild(),R0=172,R1=148,f=v=>(+v).toFixed(1),xy=(l,rr)=
   else if(HS.span==='yrs'||HS.span==='dec'||HS.span==='ele'){for(let j=0;j+1<R.length;j++){const a=P(R[j],ec),b=P(R[j+1],ec);ln+=`<path d="M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}" stroke="${col(ec?R[j].esg:R[j].sg,R[j].jd)}" stroke-opacity="${f((one?.85:ring?.3:.42)*dim*ag(R[j].jd))}" stroke-width="${one?1.6:.9}"/>`}}
   else{for(let j=0;j<R.length;j++){const q=R.find(x=>x.i===R[j].i+HK);if(!q)continue;const a=P(R[j],ec),b=P(q,ec);ln+=`<path d="M${f(a[0])} ${f(a[1])}L${f(b[0])} ${f(b[1])}" stroke="${col(ec?R[j].esg:R[j].sg,R[j].jd)}" stroke-opacity="${f(.8*dim*ag(R[j].jd))}" stroke-width="${ring?2.4:1.3}" stroke-linecap="round"/>`}}
   h+=ln;
-  const dr=one||HS.span==='ele'?4.2:full?(HS.span==='dec'||R.length<70?2:1.2):HS.span==='dec'?2.4:HS.span==='cen'?1.5:1;let dt='';R.forEach(r=>{const p=P(r,ec);dt+=`<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${dr}" fill="${full&&HS.cl!=='time'?((ec?r.emc:r.mc)||col(ec?r.esg:r.sg,r.jd)):col(ec?r.esg:r.sg,r.jd)}" fill-opacity="${f(dim*ag(r.jd))}"${one?' stroke="#03040a" stroke-width="1"':''}/>`});h+=dt;
+  const dr=one||HS.span==='ele'?4.2:full?(HS.span==='dec'||R.length<70?2:1.2):HS.span==='dec'?2.4:HS.span==='cen'?1.5:1;let dt='';R.forEach(r=>{const p=P(r,ec);if(HS.span==='ele'&&HS.eleX&&HS.eleX.has(r.i))dt+=`<text x="${f(p[0]+7)}" y="${f(p[1]-5)}" font-size="15" font-weight="700" fill="#f3e7c4" font-family="Inter,system-ui,sans-serif">*</text>`;dt+=`<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${dr}" fill="${full&&HS.cl!=='time'?((ec?r.emc:r.mc)||col(ec?r.esg:r.sg,r.jd)):col(ec?r.esg:r.sg,r.jd)}" fill-opacity="${f(dim*ag(r.jd))}"${one?' stroke="#03040a" stroke-width="1"':''}/>`});h+=dt;
   if(one)R.slice(0,HK).forEach(r=>{const p=xy(ec?r.el:r.lon,one?108:0);h+=`<text x="${f(p[0])}" y="${f(p[1]+3)}" class="hsdy">${hsY(ec?r.ec:r.jd)}</text>`})});
  /* today's cycle ringed in gold */
  if(H.cu>=0&&HS.show!=='ec'){const r=rows[H.cu],p=P(r,false);h+=`<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${one?8:5}" fill="none" stroke="#ffe9a0" stroke-width="1.3"/>`}
@@ -10747,7 +10754,7 @@ function hsDraw(){if(HS.mv==='mv'&&(MER()||PL()==='venus'))return mvDraw();const
  o.innerHTML=`<div class="cwh"><div><b>Historical ${HSW().pat}</b><span class="cwl2">${hsY(H.A)} - ${hsY(H.B)}</span></div><button id="hs-g" class="vtar hsg" aria-haspopup="dialog" aria-expanded="${!!HS.set}" aria-label="Historical settings">${($("#vt-gear svg")||{outerHTML:"&#9881;"}).outerHTML}</button><button class="spcxh" id="hs-x" aria-label="Close Historical">&#10005;</button></div>`
  +(MER()||PL()==='venus'?sg('mv',[['pat',HSW().pat],['mv','Mercury-Venus']],'Which view'):'')
  +sg('span',Object.entries(HSP).map(([k,v])=>[k,v[0]]),'How many years')
- +`<div class="hsnav"><button class="vtar" id="hs-p" aria-label="Earlier">&#9664;</button><span>${HS.span==='cus'?`<label class="hsyi">From <input id="hs-fy" type="number" inputmode="numeric" value="${HS.fy}" aria-label="From year"></label><label class="hsyi">To <input id="hs-ty" type="number" inputmode="numeric" value="${HS.ty}" aria-label="To year"></label>`:HS.span==='yrs'?HSW().yrs:HS.span==='ele'?`${(HS.eleN||[0])[0]} cycle${(HS.eleN||[0])[0]===1?'':'s'} in ${(HS.eleN||['',''])[1]} · `+(HS.st==='line'?'older on left':'inner is older'):HSP[HS.span][1].toLocaleString()+' years · '+(HS.st==='line'?'older on left':HS.st==='halo'?'fainter is older':HS.st==='stars'?'every star':'inner is older')}</span><button class="vtar" id="hs-n" aria-label="Later">&#9654;</button></div>`
+ +`<div class="hsnav"><button class="vtar" id="hs-p" aria-label="Earlier">&#9664;</button><span>${HS.span==='cus'?`<label class="hsyi">From <input id="hs-fy" type="number" inputmode="numeric" value="${HS.fy}" aria-label="From year"></label><label class="hsyi">To <input id="hs-ty" type="number" inputmode="numeric" value="${HS.ty}" aria-label="To year"></label>`:HS.span==='yrs'?HSW().yrs:HS.span==='ele'?`${(HS.eleN||[0])[0]} cycle${(HS.eleN||[0])[0]===1?'':'s'} in ${(HS.eleN||['',''])[1]}${(HS.eleN||[])[4]&&HS.eleN[4].length?` (${HS.eleN[4].length} in ${[...new Set(HS.eleN[4])].join(', ')}*)`:''} · `+(HS.st==='line'?'older on left':'inner is older'):HSP[HS.span][1].toLocaleString()+' years · '+(HS.st==='line'?'older on left':HS.st==='halo'?'fainter is older':HS.st==='stars'?'every star':'inner is older')}</span><button class="vtar" id="hs-n" aria-label="Later">&#9654;</button></div>`
  +`<div class="hsw">${HS.st==='line'?hsLine():hsSvg()}</div>`+(HS.span==='yrs'?'':hsPts())
  +sg('show',[['ic',HSW().ic],['ec',HSW().ec],['both','Both']],SAV()||SAM()?'Which points':'Which conjunctions')
  +`<p class="hsnote">${HS.span==='yrs'?HSW().n1:HSW().n2} Signs are seen from Earth; the gold ring is today's cycle.${HS.span==='cen'||HS.span==='mil'?' Dates before 1582 use the Gregorian calendar carried backward, and far from today they are close estimates.':''}</p>`
