@@ -9137,7 +9137,7 @@ function more(x){const t=x.ms/864e5+2440587.5,N=PN();let q=VXC.get(N+x.ms);if(!q
  if(!q)return `<div class="vtp">${pl}${sl}${ph}</div>`;
  const hid=MOO()?pa<8:MAR()?pa<15:TOT()?pa<(MER()?10:T.hel):pa<8.5,
   note=MOO()||MAR()||MER()||TOT()?(hid?'not visible':''):pa<1?'Cazimi':pa<8.5?'Combust':'',
-  UN=pref('vt-unit'),U=v=>UN==='moon'?(v/3474.8).toFixed(1):Math.round(UN==='km'?v:v*.621371).toLocaleString('en-US'),
+  UN=pref('vt-unit')||'moon',U=v=>UN==='moon'?(v/3474.8).toFixed(1):Math.round(UN==='km'?v:v*.621371).toLocaleString('en-US'),
   dist=MOO()?`${U(q.d)} ${UN==='km'?'km':UN==='moon'?'Moons':'mi'}${A?` <i class="vtavg">(avg ${U(A.d)})</i>`:''}`:`${q.d.toFixed(3)} AU${A?` <i class="vtavg">(avg ${A.d.toFixed(3)})</i>`:''}`,
   mag=`${mg(q.mag)}${note?' '+note:''}${A?` <i class="vtavg">(avg ${mg(A.mag)})</i>`:''}`;
  return `<div class="vtp">${pl}<span><small>${N} Lat</small>${dm(Math.abs(q.lat))} ${q.lat<0?'S':'N'}</span><span><small>${N} Speed</small>${dm(q.vs,true)}/day</span></div>`
@@ -9602,7 +9602,7 @@ function setDraw(){const a=animMode();return `<div class="vth">Settings</div>`
  +`<div class="vtprogr"><label class="vtck"><input id="vs-prog" type="checkbox"${pref('vt-prog')==='on'?' checked':''}> Progressions</label><select id="vs-progt" aria-label="Kind of progression">${[['sec','Secondary'],['ter','Tertiary'],['min','Minor']].map(([k,n])=>`<option value="${k}"${(pref('vt-progt')||'sec')===k?' selected':''}>${n}</option>`).join('')}</select></div><small class="vtnote">With a chart open in Your Cycle, each expanded card shows when the progressed chart reaches that event, past or future. Secondary: a day for a year. Tertiary: a day for a lunar month. Minor: a lunar month for a year.</small>`
  +`<label class="vtf">Startup View<select id="vs-startv">${[['chart','Chart'],['space','Space'],['earth','Earth']].map(([k,n])=>`<option value="${k}"${STARTV()===k?' selected':''}>${n}</option>`).join('')}</select></label><small class="vtnote">On a wide screen the table opens on the left and this view on the right.</small>`
  +`<label class="vtf">Sign Changes<select id="vs-ing"><option value="on">Show</option><option value="off"${pref('vt-ing')==='off'?' selected':''}>Hide</option></select></label>`
- +`<label class="vtf">Moon Distance<select id="vs-unit"><option value="mi">Miles</option><option value="km"${pref('vt-unit')==='km'?' selected':''}>Kilometers</option><option value="moon"${pref('vt-unit')==='moon'?' selected':''}>Moons (lunar diameters)</option></select></label>`   /* Gemini, Nov 15: miles by default, kilometers in Settings */
+ +`<label class="vtf">Moon Distance<select id="vs-unit"><option value="moon">Moons (lunar diameters)</option><option value="mi"${pref('vt-unit')==='mi'?' selected':''}>Miles</option><option value="km"${pref('vt-unit')==='km'?' selected':''}>Kilometers</option></select></label>`   /* Gemini, Nov 15: Moons (lunar diameters) by default; miles or kilometers in Settings */
  +`<label class="vtf">Chakra Colors<select id="vs-chk"><option value="on">On</option><option value="off"${pref('vt-chk')==='off'?' selected':''}>Off</option></select></label>`
  +`<div class="vtrowt"><button class="vtbtn" id="vs-x">Close</button></div>`}
 function setOpen(on){V.set=on;if(on&&V.cr)crOpen(false);const p=$('#vt-sp');p.hidden=!on;$('#vt-gear').setAttribute('aria-expanded',on);if(on){if(V.open)pop(false);p.innerHTML=setDraw();$('#vs-anim').focus()}else $('#vt-gear').focus()}
@@ -10539,7 +10539,7 @@ const HS=Object.assign({},HS0,(()=>{try{return JSON.parse(localStorage.getItem('
 function hsSave(){try{localStorage.setItem('vt-hs1',JSON.stringify({span:HS.span,show:HS.show,tb:HS.tb,st:HS.st,cl:HS.cl,fy:HS.fy,ty:HS.ty,mv:HS.mv,mm:HS.mm,mo:HS.mo}))}catch(e){}}
 const HSPV={yrs:['Years',8],dec:['Decades',80],cen:['Centuries',800],mil:['Millennia',2400],cus:['Range',0]},HSY=365.2425,HSYV=583.924;
 /* Mercury (Gemini, Nov 5): three interior conjunctions, just under a year, draw its near-triangle; each point slips back about 17 deg a year */
-const HSPM={yrs:['Year',1],dec:['Decades',20],cen:['Centuries',200],mil:['Millennia',1000],cus:['Range',0]};
+const HSPM={yrs:['Year',1],dec:['2 Years',2],cen:['Decades',20],mil:['Centuries',200],cus:['Range',0]};   /* Gemini, Nov 15: Mercury gets 2 Years; Millennia goes */
 /* Mars (Gemini, Nov 6): seven oppositions, about 15 years (the Hellenistic Mars period), draw its seven-pointed pattern; the
    Overstories begin at the opposition, so the "inner" points are oppositions and the others are the Sun conjunctions */
 const HSPA={yrs:['15 Years',15],dec:['79 Years',79],cen:['Centuries',800],mil:['Millennia',2400],cus:['Range',0]};
