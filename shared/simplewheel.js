@@ -14,10 +14,12 @@
        aspects  p => [{a,b,angle,color,minor}]  (Device: the shared aspect set); false for none
        aspectTypes {conjunction: 8, quincunx: 3, septile: false, ...} (by key or angle; orb in degrees, true = default orb, false = off)
                 used when aspects is not given; EAWheel.ASPECTS lists every type with its default orb (minor types start off)
+       cuspRing false drops the house cusp ring (it is dropped by itself for Whole Sign, Natural Zodiac and other houses on 0° of each sign: cusps.even)
+       signBold 0 (default) | px: extra thickness for sign glyphs
        aspectAngles false leaves AS and MC out of the aspects
        earth    false (default) | 'small' | 'large': an Earth over the center of the aspect circle; earthSVG(r) draws it (centered at 0,0, radius r), else a plain blue disc
        pictures p => [{a,b,c,color}]  midpoint pictures, drawn instead of aspects (Symmetry)
-       setLabel short name of the aspect set, written small at the foot of the aspect circle (e.g. 'Major')
+       setLabel short name of the aspect set (e.g. 'Major'), for screen readers; showSetLabel:true also writes it at the foot of the aspect circle
        big      true draws the large aspect circle
        theme    'light' (default) or 'dark'
        colors   overrides for any theme color: {bg, bezel:[4 stops, Mercury to iron], cuspBand:[light, dark] (the ring with the cusp degrees), cuspInk, cuspEl:[4],
@@ -104,7 +106,7 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     optional Decans and Bounds rings with their guides (13 each), then house cusp degree / sign / minutes on the wheel
     (signs style), planets down to RH, house numbers RH..RI, aspects inside RI. Double tap makes the aspect circle large. */
  const sty=opts.ringStyle||'signs',uni=!(chart.rings&&chart.rings.some(r=>r&&r.pos)),xr=uni?[opts.decans?'dec':null,opts.bounds?'bnd':null].filter(Boolean):[];   /* Decans and Bounds only on a single wheel (Gemini, Nov 13) */
- const RB=194.5,R0=190,R1=168,RX0=R1-13*xr.length,RC=RX0-8,RP=sty==='houses'?RX0:RX0-16,RI=big?Math.min(128,RP-12):56,RH=big?RI:70;
+ const RB=194.5,R0=190,R1=168,RX0=R1-13*xr.length,RC=RX0-8,NCB=sty!=='houses'&&(!cu||opts.cuspRing===false||cu.even||cu.slice(1,13).every(c=>Math.abs(n360(c+1e-7)%30)<1e-6)),RP=sty==='houses'||NCB?RX0:RX0-16,RI=big?Math.min(128,RP-12):56,RH=big?RI:70;
  const glyph=opts.glyph,sign=opts.sign,ink=T.ink;
  const sg=(i,x,y,sz,col)=>sign?sign(i,x,y,sz,col):`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${SGN[i]}︎</text>`;
  const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col.startsWith('url')?T.gold:col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
@@ -115,11 +117,12 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const sun=P.Sun!=null?xy(P.Sun,200):[-141,-141];
  let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;touch-action:none">`;
  const CB=[].concat(T.cuspBand||[T.band||T.house]);if(CB.length<2)CB.push(CB[0]);const MET=opts.cuspRing!=='silver',ME=sty==='houses'?R0:RX0,cIn=T.cuspInk||null,cEl=T.cuspEl||T.el;
- h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${opts.signBold==null?.5:opts.signBold}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
+ h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${+opts.signBold||0}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
  /* bezel: a thin metal rim around the zodiac ring (after Gemini's AstroSynth wheel, Nov 13) */
  h+=`<circle r="${RB}" fill="none" stroke="url(#eawbz)" stroke-width="9"/><circle r="${RB+4.4}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width=".8"/><circle r="${R0+.4}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".9"/>`;
  /* sign glyphs are drawn bolder on the ring and in the planet positions (Gemini, Nov 13) */
- const sgb=(i,x,y,sz,col)=>`<g filter="url(#eawbold)">${sg(i,x,y,sz,col)}</g>`;
+ /* sign glyphs: no extra thickening by default (Gemini, Nov 15: they looked puffy); opts.signBold adds it back */
+ const sgb=(i,x,y,sz,col)=>opts.signBold?`<g filter="url(#eawbold)">${sg(i,x,y,sz,col)}</g>`:sg(i,x,y,sz,col);
  /* zodiac ring: twelve segments, alternating, with the sign glyphs (style 'signs') */
  const seg=(a0,a1,r0,r1,fill,sw)=>{const A=xy(a0,r0),B=xy(a0,r1),Cc=xy(a1,r1),D=xy(a1,r0);return `<path d="M${f(A[0])} ${f(A[1])}L${f(B[0])} ${f(B[1])}A${r1} ${r1} 0 0 0 ${f(Cc[0])} ${f(Cc[1])}L${f(D[0])} ${f(D[1])}A${r0} ${r0} 0 0 1 ${f(A[0])} ${f(A[1])}Z" fill="${fill}" stroke="${T.ringEdge}" stroke-width="${sw||.6}"/>`};
  if(sty==='houses')h+=MET?`<circle r="${R0}" fill="${T.bg}"/><circle r="${f((R0+R1)/2)}" fill="none" stroke="url(#eawcm)" stroke-width="${f(R0-R1)}"/>`:`<circle r="${R0}" fill="${T.band||T.house}"/>`;
@@ -139,7 +142,7 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
-   h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
+   if(!NCB)h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
   if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
@@ -177,7 +180,8 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
   h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
- if(opts.setLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
+ /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
+ if(opts.setLabel&&opts.showSetLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
 /* pinch to zoom on phones (Gemini, Nov 13: an imperative wherever the wheel appears on mobile): two fingers zoom about their
