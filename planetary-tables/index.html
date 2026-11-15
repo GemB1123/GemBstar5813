@@ -9100,6 +9100,8 @@ body.eawz #vt-spc,body.eawz #vt-ea{overflow:visible;z-index:200}body.eawz #vt-ea
 #vt-hs .hsck input{width:20px;height:20px;accent-color:#c9b27a}
 body.vtout #spc-e,body.vtout #spc-g,body.vtout #vt-hist,body.vtout #vt-seg,body.vtout [data-vsw=space],body.vtout [data-vsw=lem],body.vtout .vtsb,body.vtout [data-em]{display:none!important}
 body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
+/* Gemini, Nov 15: the open view's button is lit on the table's lines */
+.vtcb.vton{background:linear-gradient(#ffe48a,#e0ad3a);border-color:#8a5a00;color:#2a1a00;box-shadow:0 0 0 2px #ffe9a080,0 0 10px #ffd86a99}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9221,6 +9223,7 @@ function marks(rows,ch,from=0){if(rows.length<=from)return rows;const a=rows[fro
 const isIC=x=>x.k==='conj'&&/Interior/.test(x.name),isEC=x=>x.k==='conj'&&/Exterior/.test(x.name);
 function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v,eve:v,side:'morn'}}   /* Gemini, Nov 6: the Moon's whole cycle in one table, Compressed ('morn') or Expanded ('all') */
  if(r.mar){const e=r.rows.findIndex(x=>x.k==='conj');if(e<0)return null;return {eve:{rows:r.rows.slice(0,e+1),title:r.title},morn:{rows:r.rows.slice(e),title:r.title},side:c<r.rows[e].ms?'eve':'morn'}}
+ if(r.eam&&!r.eao){const e=r.rows.findIndex(x=>x.conj&&Math.abs(x.jd-r.ec)<1e-6);if(e<0)return null;return {morn:{rows:r.rows.slice(0,e+1),title:r.title},eve:{rows:r.rows.slice(e),title:r.title},side:c<r.rows[e].ms?'morn':'eve'}}
  if(r.mer){const e=r.rows.findIndex(x=>x.k==='conj'&&Math.abs(x.jd-r.ec)<1e-6);if(e<0)return null;return {morn:{rows:r.rows.slice(0,e+1),title:r.title},eve:{rows:r.rows.slice(e),title:r.title},side:c<r.rows[e].ms?'morn':'eve'}}
  const R=r.rows,i=R.findIndex(isIC),e=R.findIndex(isEC);if(i<0||e<0)return null;
  const n=R.findIndex((x,j)=>j>e&&isIC(x));let ev={rows:[R[i]].concat(R.slice(e,n<0?R.length:n+1))};
@@ -9244,7 +9247,7 @@ function mrow(x,on,up){const c=x.mk?MKC:KC(x.k)||T.col.plain,nm=unsup(x.name).re
 function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());document.body.classList.toggle('vtout',OUT());document.body.classList.toggle('vteao',EAO());if(!me||MOO()||OUT())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
  document.querySelectorAll('#vt-seg button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===V.view);b.textContent=b.dataset.v==='ret'?`My ${PN()} Returns`:`${PN()} Cycle`});document.body.classList.toggle('vtret',V.view==='ret');requestAnimationFrame(padBot);
  $('#vt-chart').textContent=ch.name||'';{const cn=$('#vt-cn');if(cn){const d=new Date(ch.ms);cn.hidden=!me;if(me){cn.querySelector('.n').textContent=ch.name||'Chart';cn.querySelector('.d').textContent=isFinite(d)?` \u2013 ${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`:'';cn.setAttribute('aria-label',`Chart: ${ch.name||'chart'}. Tap to change`)}}}   /* Gemini, Nov 5: the chart's title and date on one line under the stars */
- {const b=$('#vt-explore');if(b){b.textContent=me?'Main':'Your Cycle';b.setAttribute('aria-label',me?'Main: back to today\'s cycle':'Your Cycle')}}   /* Gemini, Nov 5: with a chart, the gold buttons are Main and Historical */$('#vt-date').value=ymd(c);
+ {const b=$('#vt-explore');if(b){b.textContent=me?'Today':'Your Cycle';b.setAttribute('aria-label',me?'Today: back to today\'s cycle':'Your Cycle')}}   /* Gemini, Nov 5: with a chart, the gold buttons are Main and Historical */$('#vt-date').value=ymd(c);
  $('#vt-note').textContent=V.ms==null?`Using ${ch.name}'s chart.`:'Using the date you set.';
  $('#vt-play').innerHTML=V.play?'&#9632;':'&#9654;&#9654;';$('#vt-play').setAttribute('aria-label',V.play?'Stop':'Play forward');
  if(V.view==='ret')return drawRet(scroll);
@@ -9257,7 +9260,7 @@ function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);
  $('#vt-title').innerHTML=esc(view.title||r.title||T.title(r)).replace('★','<b>★</b>')+(MOO()?'':V.side==='morn'?' <span class="vtside">Morning</span>':V.side==='eve'?' <span class="vtside">Evening</span>':'');fitTitle();{const tr=TOT()&&!view.ic&&totRise(r);if(tr)headBg(tr.sg,tr.sg);else headBg(view.ic||r.ic,view.ec||r.ec)}
  /* Gemini, Nov 4: a tap on a Morning or Evening line opens it into the Complete table's card, Chart button included; a tap on the card closes it */
  $('#vt-list').innerHTML=V.side==='all'?R.map((x,i)=>card(x,i===hi)).join(''):R.map((x,i)=>V.ex===Math.round(x.ms)?card(x,i===hi).replace('<li class="vtc','<li data-vx="'+Math.round(x.ms)+'" tabindex="0" role="button" aria-expanded="true" aria-label="Close this line" class="vtc vtex'):mrow(x,i===hi,V.side==='eve'&&i>0)).join('');   /* the Evening table's opening interior conjunction keeps the down arrow */
- V.lastR=R;V.ahI=null;
+ V.lastR=R;V.ahI=null;vxHl();
  if(scroll&&V.side==='all'){const n=$('#vt-list .now');if(n)n.scrollIntoView({block:'center',behavior:V.play?'auto':'smooth'})}else if(scroll)scrollTo(0,0)}
 function setMs(ms){V.ms=ms;draw(true)}
 /* Gemini, Nov 4: the opening header. 13 gold stars, the cycle's name ("Scorpio-Leo Venus Synodic Cycle"), its dates from interior
@@ -9579,7 +9582,7 @@ const MFOOT=`<div>Shamanic Astrology Mercury Synodic Cycle (TOTAMS, Turning of t
 /* Gemini, Nov 5: Shamanic Astrology (TOTAMS Venus Synodic Overstory template) is the default method for now.
    One sign per cycle, the Venus Overstory, taken from Venus's sign at the 10 deg morning heliacal rise (not the interior conjunction),
    and the template's own words for each event; chakra colors stay on the Descent and Ascent gates */
-function MK(){if(MOO()||OUT())return 'earthstrology';if(MAR()){const v=pref('vt-ameth');return AMETH.some(m=>m[0]===v)?v:'totams'}if(MER()){const v=pref('vt-mmeth');return MMETH.some(m=>m[0]===v)?v:'totams'}if(OTH())return 'totams';const v=pref('vt-meth');return METH.some(m=>m[0]===v)?v:'totams'}
+function MK(){if(MOO()||OUT())return 'earthstrology';if(MAR()){const v=pref('vt-ameth');return AMETH.some(m=>m[0]===v)?v:'totams'}if(MER()){const v=pref('vt-mmeth');return MMETH.some(m=>m[0]===v)?v:'totams'}if(OTH())return 'totams';const v=pref('vt-meth');return METH.some(m=>m[0]===v)?v:'earthstrology'}   /* Gemini, Nov 15: the first opening is Venus in Earthstrology */
 const TOT=()=>MK()==='totams',HRM=()=>MER()&&MK()==='hermetic',EAM=()=>MER()&&MK()==='earthstrology',sgnOf=l=>SGN[Math.floor((((l%360)+360)%360)/30)];
 const CHK={crown:['Crown','Crown Chakra: Expanded Consciousness'],third:['3rd Eye','3rd Eye Chakra: Perception'],throat:['Throat','Throat Chakra: Communication'],heart:['Heart','Heart Chakra: Compassion'],solar:['Solar Plexus','Solar Plexus Chakra: Personal Power'],sacral:['Reproductive','Reproductive Chakra: Creativity'],root:['Root','Root Chakra: Life']};
 const ORD=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
@@ -9692,7 +9695,7 @@ function setDraw(){const a=animMode();return `<div class="vth">Settings</div>`
  +`<label class="vtf">Startup Animation<select id="vs-anim">${ANIM.map(([k,n])=>`<option value="${k}"${k===a?' selected':''}>${n}</option>`).join('')}</select></label>`
  +`<small class="vtnote" id="vs-msg">${pref('vt-anim')?'':'Animation plays the first time the app opens, then Fast Animation.'}</small>`
  +`<div class="vtprogr"><label class="vtck"><input id="vs-prog" type="checkbox"${pref('vt-prog')==='on'?' checked':''}> Progressions</label><select id="vs-progt" aria-label="Kind of progression">${[['sec','Secondary'],['ter','Tertiary'],['min','Minor']].map(([k,n])=>`<option value="${k}"${(pref('vt-progt')||'sec')===k?' selected':''}>${n}</option>`).join('')}</select></div><small class="vtnote">With a chart open in Your Cycle, each expanded card shows when the progressed chart reaches that event, past or future. Secondary: a day for a year. Tertiary: a day for a lunar month. Minor: a lunar month for a year.</small>`
- +`<label class="vtf">Startup View<select id="vs-startv">${[['chart','Chart'],['space','Space'],['earth','Earth']].map(([k,n])=>`<option value="${k}"${STARTV()===k?' selected':''}>${n}</option>`).join('')}</select></label><small class="vtnote">On a wide screen the table opens on the left and this view on the right.</small>`
+ +`<label class="vtf">Startup View<select id="vs-startv">${[['last','Last Used'],['chart','Chart'],['space','Space'],['earth','Earth']].map(([k,n])=>`<option value="${k}"${(({chart:1,space:1,earth:1})[pref('vt-startv')]?pref('vt-startv'):'last')===k?' selected':''}>${n}</option>`).join('')}</select></label><small class="vtnote">On a wide screen the table opens on the left and this view on the right.</small>`
  +`<label class="vtf">Sign Changes<select id="vs-ing"><option value="on">Show</option><option value="off"${pref('vt-ing')==='off'?' selected':''}>Hide</option></select></label>`
  +`<label class="vtf">Moon Distance<select id="vs-unit"><option value="moon">Moons (lunar diameters)</option><option value="mi"${pref('vt-unit')==='mi'?' selected':''}>Miles</option><option value="km"${pref('vt-unit')==='km'?' selected':''}>Kilometers</option></select></label>`   /* Gemini, Nov 15: Moons (lunar diameters) by default; miles or kilometers in Settings */
  +`<label class="vtf">Chakra Colors<select id="vs-chk"><option value="on">On</option><option value="off"${pref('vt-chk')==='off'?' selected':''}>Off</option></select></label>`
@@ -10287,7 +10290,10 @@ function vxFull(on){document.body.classList.toggle('vtfull',on);requestAnimation
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-vfull]');if(b){e.stopPropagation();vxFull(!document.body.classList.contains('vtfull'))}},true);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&document.body.classList.contains('vtfull'))vxFull(false)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('vtfull'))vxFull(false)});
-function vxFit(){VXO.forEach(([id,k])=>{const o=document.getElementById(id);if(!o||o.hidden||o.firstElementChild&&o.firstElementChild.classList.contains('vtvx'))return;o.insertAdjacentHTML('afterbegin',vxBar(k));paneFit()})}
+/* Gemini, Nov 15: the view that is open (Chart, Space or Earth) is lit on the table's lines too, and remembered for the next opening */
+function vxHl(){const k=vxCur();if(k!=='table')prefSet('vt-lastv',k==='lem'?'earth':k);const sel={chart:'[data-cm]',space:'[data-sm]',lem:'[data-em]',earth:'[data-em]'}[k==='table'?STARTV():k];
+ document.querySelectorAll('#vt-list .vtcb').forEach(b=>{const on=!!sel&&b.matches(sel);b.classList.toggle('vton',on);if(on)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')})}
+function vxFit(){vxHl();VXO.forEach(([id,k])=>{const o=document.getElementById(id);if(!o||o.hidden||o.firstElementChild&&o.firstElementChild.classList.contains('vtvx'))return;o.insertAdjacentHTML('afterbegin',vxBar(k));paneFit()})}
 new MutationObserver(vxFit).observe(document.body,{childList:true,subtree:false});
 function vxWatch(){VXO.forEach(([id])=>{const o=document.getElementById(id);if(o&&!o.dataset.vxw){o.dataset.vxw=1;new MutationObserver(vxFit).observe(o,{childList:true,attributes:true,attributeFilter:['hidden']})}});vxFit()}
 setInterval(vxWatch,500);
@@ -10302,7 +10308,7 @@ function vxGo(to){const k=vxCur();if(to===k)return;const ms=k==='space'?SPC.ms:k
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-vsw]');if(b){e.stopPropagation();vxGo(b.dataset.vsw)}},true);
 /* Gemini, Nov 7: the desktop version. On a wide screen the table stays on the left and Chart, Space, Earth or Historical open in a
    pane on the right, both live at once. Choosing a line in the table moves the open view to that line's date. */
-const WIDE=()=>matchMedia('(min-width:1100px)').matches,STARTV=()=>({chart:1,space:1,earth:1})[pref('vt-startv')]?pref('vt-startv'):'chart';   /* Gemini, Nov 10: the view that opens beside the table (Settings: Startup View, Chart by default) */
+const WIDE=()=>matchMedia('(min-width:1100px)').matches,STARTV=()=>{const v=pref('vt-startv');if(({chart:1,space:1,earth:1})[v])return v;const l=pref('vt-lastv');return ({chart:1,space:1,earth:1})[l]?l:'chart'};   /* Gemini, Nov 15: Last Used by default (the view open at close), Chart the first time */   /* Gemini, Nov 10: the view that opens beside the table (Settings: Startup View, Chart by default) */
 function wdPane(){let d=$('#vt-pane');if(!d){d=document.createElement('div');d.id='vt-pane';d.setAttribute('aria-hidden','true');
   d.innerHTML='<div><b>Choose a view</b><span>Tap Chart, Space or Earth on any line of the table, or Historical below it. The view opens here, beside the table.</span></div>';document.body.appendChild(d)}return d}
 let wdT=0;
@@ -10844,7 +10850,7 @@ function devSync(){if(!devChart()){if(!V.devMe)return;V.devMe=false;try{localSto
  const k=vxCur(),c=T.chart();if(k==='chart')chartOpen(c.ms,c.name,false);else if(k==='space'){spcStop();spcOpen(c.ms,c.name)}else if(k==='lem'){eaStop();eaOpen(c.ms,c.name)}}
 addEventListener('message',e=>{if(!e.data||e.data.pt!=='chart')return;V.dev={rec:e.data.rec||null,nat:!!e.data.nat};if(T&&$('#vt-list'))devSync()});
 function go(){T=window.__app&&window.__app.tbl;if(!T)return setTimeout(go,150);try{localStorage.removeItem('vt-me')}catch(e){}if(devChart()){prefSet('vt-me','1');V.devMe=true}   /* Gemini, Nov 5: for now every opening is today's cycle with the 13-star header, even after a chart was chosen (the header after a chart is next) */
- V.ms=ME()?null:NOW0;build();intro()}   /* Gemini, Nov 4: open on the cycle of today's date */
+ V.ms=ME()?null:NOW0;V.ex=Math.round(ME()&&isFinite(T.chart().ms)?T.chart().ms:NOW0);build();intro()}   /* Gemini, Nov 15: open on Today (or the chart's line) unfolded, on its Morning or Evening side */   /* Gemini, Nov 4: open on the cycle of today's date */
 addEventListener('load',()=>setTimeout(go,200));
 })();
 </script><script src="../shared/simplewheel.js" onload="window.__ewReload&&window.__ewReload()" onerror="0"></script>
