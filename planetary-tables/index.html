@@ -8390,6 +8390,7 @@ document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('
   favBase:()=>{if(!S.baseRec)return false;let c=savedOf(S.baseRec);if(!c){c=Object.assign({},S.baseRec,{id:'c'+Date.now()});S.charts.push(c);S.baseRec=c}S.favs=isFav(c.id)?S.favs.filter(x=>x!==c.id):S.favs.concat(c.id);saveCharts();return isFav(c.id)},
   favNew:r=>{r=Object.assign({type:'Event',cal:'a',unknown:false,ut:'noon',notes:''},r,{id:'c'+Date.now()});S.charts.push(r);S.favs.push(r.id);saveCharts();return r.id},
   home:()=>({label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}),
+  cusps:(jd,lat,lon)=>cuspsFor(jd,lat,lon),   /* Nov 14: houses for Current Transits in Planetary Tables */
   rec:()=>S.baseRec?JSON.parse(JSON.stringify(S.baseRec)):null,key:()=>BIRTH.name+'|'+BIRTH.jd,base:r=>{if(r)setBase(r)},
   pick:k=>{const r=cpRec(k);if(!r)return false;setBase(r);addRecent(r);saveCharts();save();return true},
   credits:()=>CREDITS,
@@ -9714,7 +9715,7 @@ function starCol(t){const S=[[0,[255,250,232]],[.5,[255,212,90]],[1,[226,150,48]
 function ME(){return !!pref('vt-me')}
 const mdy4=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`};
 function hero(r){const ic=r.rows.filter(isIC);let a=ic[0]?ic[0].ms:(r.A-2440587.5)*864e5,b=ic.length>1?ic[ic.length-1].ms:(r.B-2440587.5)*864e5;const tr=TOT()&&totRise(r);if(tr){a=tr.f.ms;if(tr.l)b=tr.l.ms}V.cyc=[a,b];   /* Shamanic Astrology: heliacal rise to heliacal rise */
- $('#vt-h2').textContent=MOO()?r.title:tr?tr.sg+' '+PN()+' Overstory':String(T.title(r)).replace(/\s*★\s*/,'-').replace(/\s*\d{3,4}\s*[-–]\s*\d{3,4}\s*$/,'').replace(/Venus Synodic Cycle$/,'Venus Cycle');fitOne($('#vt-h2'),19);$('#vt-rng').textContent=`${mdy4(a)} - ${mdy4(b)}`;$('#vt-rng').setAttribute('aria-label',`${mdy4(a)} to ${mdy4(b)}. Tap to type a date`)}
+ $('#vt-h2').textContent=MOO()||r.herm?r.title:tr?tr.sg+' '+PN()+' Overstory':String(T.title(r)).replace(/\s*★\s*/,'-').replace(/\s*\d{3,4}\s*[-–]\s*\d{3,4}\s*$/,'').replace(/Venus Synodic Cycle$/,'Venus Cycle');fitOne($('#vt-h2'),19);$('#vt-rng').textContent=`${mdy4(a)} - ${mdy4(b)}`;$('#vt-rng').setAttribute('aria-label',`${mdy4(a)} to ${mdy4(b)}. Tap to type a date`)}
 function cycStep(dir){stop();const [a,b]=V.cyc||[cur(),cur()],d=MOO()?.5:30;setMs(dir<0?a-d*864e5:b+d*864e5)}
 /* Explore: the chart picker. Date, Time (or "I don't know my birth time"), Location, and Saved / Favorites / Recents.
    Then: would you like to name the chart? Then: save it, or add it to Favorites? */
@@ -10017,7 +10018,9 @@ function chartOpen(ms,name,bw){oneWin('vt-cw');CW.favId=null;if(name!==CW.name){
 function cwSpan(){if(CW.span&&CW.span.k===PL()+MK()+CW.ms)return CW.span;const s0=SPC.ms;let r=null;SPC.ms=CW.ms;try{r=spcBuild()}catch(e){}SPC.ms=s0;SPC.memo=null;const j=CW.ms/864e5+2440587.5;
  const a=r&&r.ic&&r.ic[r.ci]&&r.ic[r.ci+1]?[r.ic[r.ci].jd,r.ic[r.ci+1].jd]:[j-SYNP()/2,j+SYNP()/2];return CW.span={k:PL()+MK()+CW.ms,a:a[0],b:a[1]}}
 function cwMs(){if(CW.p>=1)return CW.ms;const S=cwSpan();return (S.a+(S.b-S.a)*CW.p-2440587.5)*864e5}
-function cwWheel(){const t=cwMs(),cu=cuOf(CW.cu0,CW.bms!=null?CW.bms/864e5+2440587.5:t/864e5+2440587.5);WDIM=CW.p<1;try{
+/* Gemini, Nov 14: Current Transits and table moments get houses too, for the Current Transits place */
+function cwCusps(t){if(CW.cu0||CW.bms!=null||!T.cusps||!T.home)return CW.cu0;let h=null;try{h=T.home()}catch(e){}return h&&isFinite(h.lat)&&isFinite(h.lon)?T.cusps(t/864e5+2440587.5,h.lat,h.lon):null}
+function cwWheel(){const t=cwMs(),cu=cuOf(cwCusps(t),CW.bms!=null?CW.bms/864e5+2440587.5:t/864e5+2440587.5);WDIM=CW.p<1;try{
   if(window.EAWheel&&CW.bms==null&&(MER()||CW.mode==='asp'))return ewWheel(t,cu);return wheel(t,MER()?'asp':CW.mode,false,cu,CW.bms)}finally{WDIM=false}}
 /* Gemini, Nov 13: the one universal Simple Wheel (Leo, Painter World; shared/simplewheel.js on the GitHub page, a bundled copy otherwise).
    Planetary Tables adds its own aspects with hover boxes, the four Rs, Whole Sign angles, and Play dimming on top. The biwheel and the
@@ -10035,7 +10038,7 @@ function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=sk.pos,P2=T.s
  let x='';const dev=(a,b,ang)=>Math.abs(Math.abs((((a-b)%360)+540)%360-180)-ang),apl=(a0,a1,b0,b1,ang)=>dev(a1,b1,ang)<dev(a0,b0,ang),dot=PLN.map(k=>({k,l:((P[k]%360)+360)%360}));
  if(cu&&(ws||cu.even))[AS,MC].forEach(l=>{if(l==null)return;[l,l+180].forEach(q=>{const a=xy(q,190),b=xy(q,RI);x+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="#f3e7c4" stroke-width="1" stroke-dasharray="4 3" opacity=".85"/>`})});
  /* Gemini, Nov 13: the four Rs: Rise (Ascendant), Reach (Midheaven), Rest (Descendant), Root (IC) */
- if(cu)[[AS,'Rise',-9],[MC,'Reach',9],[AS==null?null:AS+180,'Rest',9],[MC==null?null:MC+180,'Root',-9]].forEach(([l,t,dd])=>{if(l==null)return;const p=xy(l+dd,160);x+=`<text x="${f(p[0])}" y="${f(p[1])}" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="700" fill="#f3e7c4" stroke="#0b0f26" stroke-width="2.6" paint-order="stroke" font-family="Inter,system-ui,sans-serif">${t}</text>`});
+ if(cu)[[AS,'Rise',-9],[MC,'Reach',9],[AS==null?null:AS+180,'Rest',9],[MC==null?null:MC+180,'Root',-9]].forEach(([l,t,dd])=>{if(l==null)return;const p=xy(l+dd*.8,143);x+=`<text x="${f(p[0])}" y="${f(p[1])}" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="700" fill="#f3e7c4" stroke="#0b0f26" stroke-width="2.6" paint-order="stroke" font-family="Inter,system-ui,sans-serif">${t}</text>`});
  let a='';
  if(set==='sym'){const midAp=q=>{const md=(cc,aa,bb)=>{const m=aa+((((bb-aa)%360)+540)%360-180)/2,w=v=>Math.abs((((v)%360)+540)%360-180);return Math.min(w(cc-m),w(cc-m-180))};return md(P2[q.c],P2[q.a],P2[q.b])<md(P[q.c],P[q.a],P[q.b])},at=k=>{const d=dot.find(y=>y.k===k);return d?xy(d.l,RA):null};
   for(const q of symPics(dot)){const A=at(q.a),B=at(q.b),C=at(q.c);if(!A||!B||!C)continue;const op=(.45+.5*(q.fit||0)).toFixed(2),os=q.fit!=null?orbS((1-q.fit)*1.5,midAp(q)):'';
@@ -10083,7 +10086,7 @@ function cwTime(ms,tz){try{return new Intl.DateTimeFormat('en-US',{timeZone:tz||
 function cwFav(){const kd=cwKind();try{if(kd==='natal')return !!(T.isFavBase&&T.isFavBase());return !!CW.favId}catch(e){return false}}
 function cwHead(k){const kd=cwKind(),pl=cwPlace(),ch=kd==='natal'?T.chart():null,ms=kd==='natal'&&CW.bms==null?ch.ms:CW.ms,fav=cwFav(),
   rr=kd==='natal'&&CW.bms==null&&T.rec?T.rec():null,rt=rr&&/^\d{1,2}:\d{2}/.test(rr.time||'')?(([h,m])=>`${h%12||12}:${String(m).padStart(2,'0')}${h<12?'am':'pm'}`)(rr.time.split(':').map(Number)):null,
-  tl=`${T.date(ms)}${CW.unk&&kd==='natal'?'':' · '+(rt||cwTime(ms,pl&&pl.tz))}${CW.cu0?' · '+hsysN(k):CW.unk?' · Birth time unknown':''}`;
+  tl=`${T.date(ms)}${CW.unk&&kd==='natal'?'':' · '+(rt||cwTime(ms,pl&&pl.tz))}${cwCusps(CW.ms||Date.now())?' · '+hsysN(k):CW.unk?' · Birth time unknown':''}`;
  return `<div class="cwh"><button class="cwstar" id="cw-fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button><div>${kd==='now'?'<b>Current Transits</b>':hd2(CW.name)}<small>${tl}</small>${pl&&pl.label?`<small class="cwpl">${esc(pl.label)}</small>`:''}`
  +`<span class="cwed"><button id="cw-ed">Edit</button>${kd==='now'?'':'<button id="cw-cl">Clear</button>'}</span></div><button class="vtbtn" id="cw-x">Close</button></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#cw-fav,#cw-ed,#cw-cl');if(!b)return;
@@ -10101,7 +10104,7 @@ function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
  +`<div class="spcbar cwbar"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><div class="spcsp"><button class="spcsb" id="cw-sb" aria-label="Speed ${SPD[CW.sp][0]}, tap to change">Speed: <b id="cw-sn">${SPD[CW.sp][0]}</b></button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle"></div></div>`
  +(MER()?'':`<div class="cwseg" role="group" aria-label="Center of the wheel"><button data-cwm="asp" aria-pressed="${CW.mode==='asp'}">Aspects</button><button data-cwm="star" aria-pressed="${CW.mode==='star'}">${SAV()?'Risings':'Venus Star'}</button></div>`)
  +(CW.mode==='asp'||MER()?`<div class="cwseg" role="group" aria-label="Aspect set">${ASETS.map(([v,n])=>`<button data-cwa="${v}" aria-pressed="${ASET()===v}">${n}</button>`).join('')}</div>`:'')
- +(CW.cu0?`<div class="cwhs"><button class="vtbtn" id="cw-hs" aria-expanded="${!!CW.hsOpen}">House System: ${hsysN(k)}${pref('vt-hsys')?'':' (method default)'}</button>${CW.hsOpen?`<div class="cwhsl" role="group" aria-label="House system">${HSYS.map(([v,n])=>`<button data-hsy="${v}" aria-pressed="${v===k}">${n}</button>`).join('')}</div>`:''}</div>`:'')
+ +(cwCusps(CW.ms||Date.now())?`<div class="cwhs"><button class="vtbtn" id="cw-hs" aria-expanded="${!!CW.hsOpen}">House System: ${hsysN(k)}${pref('vt-hsys')?'':' (method default)'}</button>${CW.hsOpen?`<div class="cwhsl" role="group" aria-label="House system">${HSYS.map(([v,n])=>`<button data-hsy="${v}" aria-pressed="${v===k}">${n}</button>`).join('')}</div>`:''}</div>`:'')
 }
 /* Gemini, Nov 4: Space, the Device's Synodic Cycles geometry on the phone. Geocentric by default: the Sun and Venus around the Earth,
    a line between them every 2 days from the interior conjunction before the row's date to the one after it, and the row's own
