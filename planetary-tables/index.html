@@ -10455,16 +10455,40 @@ const eaDur=()=>SPD[EAV.sp][1]*2500;   /* a whole period (about 9 months) takes 
 function eaStop(){EAV.on=false;cancelAnimationFrame(EAV.raf);if(EAV.glow||EAV.ftok)eaUnflip()}
 function eaAnim(){if(EAV.on){eaStop();eaDraw();return}if(EAV.p>=P_END)EAV.p=0;EAV.on=true;EAV.played=true;const pre=EAV.ecl&&EAV.p===0?2500:0;EAV.es=pre?performance.now():0;EAV.t0=performance.now()-EAV.p*eaDur()+pre;   /* Gemini, Nov 10: the Ecliptic draws over 2.5 s at an even pace; time starts as soon as it is drawn */   /* Gemini, Nov 9: the Ecliptic draws out from the Sun to the screen's edges, then time moves */   /* Gemini, Nov 9: no pause at the start (it used to wait 2.3 s) */
  const run=t=>{if(!EAV.on)return;if(t<EAV.t0){eaUpd();EAV.raf=requestAnimationFrame(run);return}EAV.p=Math.min(P_END,(t-EAV.t0)/eaDur());eaUpd();if(EAV.p<P_END)EAV.raf=requestAnimationFrame(run);else if(eaChain())eaFlip(run);else{EAV.on=false;eaDraw()}};eaDraw();EAV.raf=requestAnimationFrame(run)}
-/* Gemini, Nov 15: Play runs on through the morning and evening star periods, cycle after cycle. Where the planet joins the
-   Sun beneath the ground they glow for a second and a half, then the picture flips over, right to left, to the other side's
-   sky, and Play carries on there. Venus and Mercury only; Pause stops it anywhere. */
+/* Gemini, Nov 15: Play runs on through the morning and evening star periods, cycle after cycle (Venus and Mercury; Pause stops it
+   anywhere). Where the planet joins the Sun they glow for a second and a half, then the day turns: at the exterior conjunction
+   the camera follows the Sun from sunrise across the sky to sunset (East, South, West in the north) and the evening star period
+   begins; at the interior conjunction it follows the night from sunset round to sunrise (West, North, East in the north). */
 const eaChain=()=>(PL()==='venus'||MER())&&!eaSix();
-function eaFlip(run){const tok=EAV.ftok=(EAV.ftok||0)+1,ok=()=>EAV.on&&EAV.ftok===tok,g0=performance.now(),GL=1500,FL=420;
- const glow=t=>{if(!ok()){EAV.glow=0;return}const u=Math.min(1,(t-g0)/GL);EAV.glow=Math.sin(u*Math.PI);eaUpd();if(u<1)EAV.raf=requestAnimationFrame(glow);else{EAV.glow=0;turn()}};
- const turn=()=>{const w=$('#ea-w');if(w){w.style.transition=`transform ${FL}ms ease-in`;w.style.transform='perspective(1200px) rotateY(-90deg)'}
-  setTimeout(()=>{if(!ok())return eaUnflip();const r=eaBuild(),q=eaSpan(r.sp.b+(MER()?2:6));EAV.ms=((q.a+q.b)/2-2440587.5)*864e5;EAV.p=0;EAV.memo=null;eaDraw();
-   const w2=$('#ea-w');if(w2){w2.style.transition='none';w2.style.transform='perspective(1200px) rotateY(90deg)';void w2.offsetWidth;w2.style.transition=`transform ${FL}ms ease-out`;w2.style.transform='perspective(1200px) rotateY(0deg)'}
-   setTimeout(()=>{eaUnflip();if(!ok())return;EAV.t0=performance.now();EAV.raf=requestAnimationFrame(run)},FL)},FL)};
+function eaSunAlt(t,lat){const q=eaEq(eaPos(t).Sun,0,t);return eaAA(q[0],q[1],eaLst(t),lat)}
+function eaCross(t,lat,up,dir){const f=x=>eaSunAlt(x,lat)[0];let a=t,fa=f(a);for(let k=0;k<200;k++){const b=a+dir*.01,fb=f(b);if(up?(dir>0?fa<0&&fb>=0:fa>=0&&fb<0):(dir>0?fa>=0&&fb<0:fa<0&&fb>=0)){let lo=Math.min(a,b),hi=Math.max(a,b);for(let i=0;i<30;i++){const m=(lo+hi)/2;if((f(m)>=0)===(f(lo)>=0))lo=m;else hi=m}return (lo+hi)/2}a=b;fa=fb}return t+dir*.5}
+function eaPanPlan(r){const lat=r.lat,tL=r.days[r.days.length-1].t,day=r.morn,t0=day?eaCross(tL,lat,true,1):eaCross(tL,lat,false,-1),t1=day?eaCross(t0+.02,lat,false,1):eaCross(tL,lat,true,1);
+ const mid=eaSunAlt((t0+t1)/2,lat),viaS=Math.abs(e180(mid[1]-180))<90,a0=day?90:270,sweep=day?(viaS?180:-180):(viaS?-180:180);
+ let mx=0;for(let k=0;k<=24;k++){const a=eaSunAlt(t0+(t1-t0)*k/24,lat)[0];if(a>mx)mx=a}
+ const sP=Math.min(r.s,(r.hy-16)/(mx+8));return {t0,t1,a0,sweep,sP,day,lat}}
+function eaPanSvg(r,P,u){const {W,H,hy}=r,ez=x=>x<.5?2*x*x:1-2*(1-x)*(1-x),k=u<.12?ez(u/.12):u>.88?ez((1-u)/.12):1,s=r.s+(P.sP-r.s)*k,t=P.t0+(P.t1-P.t0)*u,
+  cam=P.a0+P.sweep*ez(u),XY=(alt,az)=>[W/2+e180(az-cam)*s,hy-alt*s],lst=eaLst(t),sun=eaSunAlt(t,P.lat),dk=Math.max(0,Math.min(1,(sun[0]+2)/14)),
+  mix=(a,b,f)=>'#'+[0,2,4].map(i=>Math.round(parseInt(a.substr(i+1,2),16)*(1-f)+parseInt(b.substr(i+1,2),16)*f).toString(16).padStart(2,'0')).join('');
+ let h=`<svg class="eaw" viewBox="0 0 ${W} ${H}" role="img" aria-label="The day turns: the Sun from ${P.day?'sunrise to sunset':'sunset to sunrise'}"><defs><linearGradient id="ea-psk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${mix('#03050f','#2f63b0',dk)}"/><stop offset=".85" stop-color="${mix('#1d2b5e','#8fbbe6',dk)}"/><stop offset="1" stop-color="${mix('#34407a','#cfe2f2',dk)}"/></linearGradient>`
+  +`<radialGradient id="ea-sun"><stop offset="0" stop-color="#ffe7a3"/><stop offset=".45" stop-color="#f0b04f" stop-opacity=".7"/><stop offset="1" stop-color="#f0b04f" stop-opacity="0"/></radialGradient></defs><rect width="${W}" height="${H}" fill="url(#ea-psk)"/>`;
+ /* the brighter stars, fading out as the sky lightens */
+ if(dk<1&&window.EA_PLN_SKY){let sd='';EA_PLN_SKY.stars.forEach(q=>{if(q[2]>3.6)return;const a=eaAA(q[0],q[1],lst,P.lat);if(a[0]<0)return;const o=XY(a[0],a[1]);if(o[0]<-2||o[0]>W+2||o[1]<0)return;sd+=`<circle cx="${eF(o[0])}" cy="${eF(o[1])}" r="${eF(Math.max(.5,(4-q[2])*.5))}"/>`});h+=`<g fill="#e8ecff" opacity="${eF(1-dk)}">${sd}</g>`}
+ h+=`<rect y="${eF(hy)}" width="${W}" height="${eF(H-hy)}" fill="#0a0e1a" fill-opacity=".82"/><path d="M0 ${eF(hy)}H${W}" stroke="#c9c3e8" stroke-opacity=".4" stroke-width=".8"/>`;
+ /* the Sun on its daily path (held just under the horizon at night so it can be followed), the planet beside it */
+ const clamp=a=>Math.max(a,-(H-hy-10)/s),sp=XY(clamp(sun[0]),sun[1]),pq=eaEq(eaPos(t)[PN()],0,t),pa=eaAA(pq[0],pq[1],lst,P.lat),pp=XY(clamp(pa[0]),pa[1]),op=sun[0]<0?.55:1;
+ h+=`<circle cx="${eF(sp[0])}" cy="${eF(sp[1])}" r="${eF(Math.max(14,s*5))}" fill="url(#ea-sun)" opacity="${op}"/><circle cx="${eF(sp[0])}" cy="${eF(sp[1])}" r="${eF(Math.max(3,s*.8))}" fill="#f6cf6d" opacity="${op}"/>`
+  +`<circle cx="${eF(pp[0])}" cy="${eF(pp[1])}" r="2.2" fill="#fff6d6" opacity="${op}"/>`;
+ /* compass points along the horizon */
+ for(let k2=0;k2<16;k2++){const x=W/2+e180(k2*22.5-cam)*s;if(x>-30&&x<W+30)h+=`<text x="${eF(x)}" y="${eF(hy+14)}" text-anchor="middle" fill="#c9c3e8" font-size="${k2%4?7:10}" font-weight="${k2%4?500:700}" font-family="Inter,system-ui,sans-serif">${EA_CMP[k2]}</text>`}
+ return h+'</svg>'}
+function eaFlip(run){const tok=EAV.ftok=(EAV.ftok||0)+1,ok=()=>EAV.on&&EAV.ftok===tok,g0=performance.now(),GL=1500,PD=5000;
+ const glow=t=>{if(!ok()){EAV.glow=0;return}const u=Math.min(1,(t-g0)/GL);EAV.glow=Math.sin(u*Math.PI);eaUpd();if(u<1)EAV.raf=requestAnimationFrame(glow);else{EAV.glow=0;pan0()}};
+ let P=null,r0=null,p0=0;
+ const pan0=()=>{r0=eaBuild();P=eaPanPlan(r0);p0=performance.now();EAV.raf=requestAnimationFrame(pan)};
+ const pan=t=>{if(!ok())return;const u=Math.min(1,(t-p0)/PD),w=$('#ea-w');if(w)w.innerHTML=eaPanSvg(r0,P,u);
+  const i=$('#ea-i'),tt=P.t0+(P.t1-P.t0)*u;if(i)i.innerHTML=`<b>${new Date((tt-2440587.5)*864e5).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'})} &middot; ${eaHm(tt)}</b><br>${P.day?'Sunrise to sunset: the planet crosses the sky with the Sun':'Sunset to sunrise: the Sun passes beneath the ground'}`;
+  if(u<1){EAV.raf=requestAnimationFrame(pan);return}
+  const q=eaSpan(r0.sp.b+(MER()?2:6));EAV.ms=((q.a+q.b)/2-2440587.5)*864e5;EAV.p=0;EAV.memo=null;eaDraw();EAV.t0=performance.now();EAV.raf=requestAnimationFrame(run)};
  EAV.raf=requestAnimationFrame(glow)}
 function eaUnflip(){EAV.glow=0;const w=$('#ea-w');if(w){w.style.transition='';w.style.transform=''}}
 function eaOpen(ms,name){oneWin('vt-ea');EAV.ms=ms;EAV.name=name;EAV.p=1;EAV.six=false;EAV.tg=false;EAV.hdOff=false;EAV.played=false;eaStop();let o=$('#vt-ea');
