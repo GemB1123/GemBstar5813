@@ -9075,6 +9075,9 @@ body.eawz #vt-spc,body.eawz #vt-ea{overflow:visible;z-index:200}body.eawz #vt-ea
 #vt-cw .spcsb b{color:#efe3c8;text-decoration:underline dotted;text-underline-offset:3px}
 /* Gemini, Nov 15: a card's description wraps onto a third line rather than ending in "…" (Gary's phase descriptions) */
 .vtc .vtn .l2{white-space:normal;overflow:visible;text-overflow:clip;height:auto;line-height:1.3;padding:5px 0}
+/* Gemini, Nov 15: distance and magnitude beside their averages */
+.vtp .vtavg{font-style:normal;font-weight:500;opacity:.68;white-space:nowrap}
+.vtp.vtpd{grid-template-columns:1fr 1fr}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9115,19 +9118,27 @@ function card(x,on){const c=x.mk?MKC:KC(x.k)||T.col.plain,band=!['plain','conj',
 const VXC=new Map();
 function dm(a,sgn){const m=Math.round(Math.abs(a)*60),s=!m?'':a<0?'-':sgn?'+':'';return `${s}${Math.floor(m/60)}°${String(m%60).padStart(2,'0')}′`}
 /* Gemini, Nov 4: line 1 Venus Long, Venus Lat, Venus Speed; line 2 Sun Long, Phase Angle, Sun Speed; line 3 Venus Apparent Magnitude */
-function more(x){if(MOO()){const ph=x.ph!=null?x.ph:moPh(x.v-x.s),a=Math.abs(x.pa),il=Math.round((1-Math.cos(a*Math.PI/180))*50);
-  return `<div class="vtp"><span><small>Moon Long</small>${T.pos(x.v,false)}</span><span><small>Moon from Sun</small>${dm(a)} ${x.pa>=0?'waxing':'waning'}</span><span><small>Lit</small>${il}%</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(MOPH[ph][0]+' · '+MOPH[ph][1])}</span></div>`}
- if(MAR()){const t=x.ms/864e5+2440587.5,ms=((window.__app.cycle.lon('Mars',t+.5,'geo')-window.__app.cycle.lon('Mars',t-.5,'geo'))%360+540)%360-180,a=Math.abs(x.pa);
-  return `<div class="vtp"><span><small>Mars Long</small>${T.pos(x.v,x.rx)}</span><span><small>Degrees from Sun</small>${dm(a)} ${a<15?'(Underworld)':x.pa<0?'am sky':'pm sky'}</span><span><small>Mars Speed</small>${dm(ms,true)}/day</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(x.ph==='m0'?'Phase Zero · '+MAPH.m0[0]:'Phase '+MAN[x.ph]+' · '+(MAPH[x.ph]||[''])[0])}</span></div>`}
- if(MER()){const w=a=>((a%360)+540)%360-180,t=x.ms/864e5+2440587.5,L=b=>window.__app.cycle.lon(b,t,'geo'),ms=w(window.__app.cycle.lon('Mercury',t+.5,'geo')-window.__app.cycle.lon('Mercury',t-.5,'geo'));void L;
-  return `<div class="vtp"><span><small>Mercury Long</small>${T.pos(x.v,x.rx)}</span><span><small>Degrees from Sun</small>${dm(Math.abs(x.pa))} ${Math.abs(x.pa)<10?'(not visible)':x.pa<0?'am sky':'pm sky'}</span><span><small>Mercury Speed</small>${dm(ms,true)}/day</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(HRM()?((HPH[x.mk&&x.prev?x.prev.ph:x.ph]||[''])[0]):(MPH[x.ph!=null?x.ph:x.prev&&x.prev.ph]||''))}</span></div>`}
- const vl=`<span><small>Venus Long</small>${T.pos(x.v,x.rx)}</span>`,sl=`<span><small>Sun Long</small>${T.pos(x.s,false)}</span>`,ph=`<span><small>Phase Angle</small>${T.pa(x.pa).replace(' Deg ','° ').replace(' Min','′')}</span>`;
- let q=VXC.get(x.ms);if(!q&&T.vx){try{q=T.vx(x.ms/864e5+2440587.5);VXC.set(x.ms,q)}catch(e){q=null}}
- if(!q)return `<div class="vtp">${vl}${sl}${ph}</div>`;const pa=x.pa;
- return `<div class="vtp">${vl}<span><small>Venus Lat</small>${dm(Math.abs(q.lat))} ${q.lat<0?'S':'N'}</span><span><small>Venus Speed</small>${dm(q.vs,true)}/day</span></div>`
+/* Gemini, Nov 15: every planet's card reads the same three lines: Planet Long, Planet Lat, Planet Speed; Sun Long, Phase Angle,
+   Sun Speed; Planet Distance from Earth and Apparent Magnitude, each beside its average */
+function moonDist(jd){const T2=(jd-2451545)/36525,r=x=>x*Math.PI/180,D=r(297.8501921+445267.1114034*T2),M=r(357.5291092+35999.0502909*T2),Mp=r(134.9633964+477198.8675055*T2),F=r(93.272095+483202.0175233*T2);
+ return 385000.56-20905.355*Math.cos(Mp)-3699.111*Math.cos(2*D-Mp)-2955.968*Math.cos(2*D)-569.925*Math.cos(2*Mp)+48.888*Math.cos(M)-3.149*Math.cos(2*F)+246.158*Math.cos(2*D-2*Mp)-152.138*Math.cos(2*D-M-Mp)-170.733*Math.cos(2*D+Mp)-204.586*Math.cos(2*D-M)-129.62*Math.cos(Mp-M)+108.743*Math.cos(D)+104.755*Math.cos(Mp+M)}
+const CLON=(b,t)=>window.__app.cycle.lon(b,t,'geo'),CWS=a=>((a%360)+540)%360-180;
+function pxAt(jd){const b=PN();if(MOO()){const p=eaPos(jd),x=eaMoonX(jd,p);return {lat:x.lat,vs:CWS(CLON('Moon',jd+.5)-CLON('Moon',jd-.5)),ss:CWS(CLON('Sun',jd+.5)-CLON('Sun',jd-.5)),mag:x.mag,d:moonDist(jd)}}
+ return T.vxP(b,jd)}
+const PXAVG={};function pxAvg(){const b=PN();if(PXAVG[b])return PXAVG[b];const yrs={Mercury:6,Venus:8,Mars:16,Moon:19}[b]||8,j0=2461000;let n=0,d=0,m=0;
+ for(let t=j0;t<j0+yrs*365.25;t+=MOO()?1.37:3.71){try{const q=pxAt(t);if(isFinite(q.d)&&isFinite(q.mag)){d+=q.d;m+=q.mag;n++}}catch(e){}}return PXAVG[b]=n?{d:d/n,mag:m/n}:null}
+function more(x){const t=x.ms/864e5+2440587.5,N=PN();let q=VXC.get(N+x.ms);if(!q){try{q=pxAt(t);VXC.set(N+x.ms,q)}catch(e){q=null}}
+ const A=pxAvg(),pa=Math.abs(x.pa),mg=v=>(v<0?'−':'+')+Math.abs(v).toFixed(MOO()?1:2),
+  pl=`<span><small>${N} Long</small>${T.pos(x.v,MOO()?false:x.rx)}</span>`,sl=`<span><small>Sun Long</small>${T.pos(x.s,false)}</span>`,ph=`<span><small>Phase Angle</small>${T.pa(x.pa).replace(' Deg ','° ').replace(' Min','′')}</span>`;
+ if(!q)return `<div class="vtp">${pl}${sl}${ph}</div>`;
+ const hid=MOO()?pa<8:MAR()?pa<15:TOT()?pa<(MER()?10:T.hel):pa<8.5,
+  note=MOO()||MAR()||MER()||TOT()?(hid?'not visible':''):pa<1?'Cazimi':pa<8.5?'Combust':'',
+  dist=MOO()?`${Math.round(q.d).toLocaleString('en-US')} km${A?` <i class="vtavg">(avg ${Math.round(A.d).toLocaleString('en-US')})</i>`:''}`:`${q.d.toFixed(3)} AU${A?` <i class="vtavg">(avg ${A.d.toFixed(3)})</i>`:''}`,
+  mag=`${mg(q.mag)}${note?' '+note:''}${A?` <i class="vtavg">(avg ${mg(A.mag)})</i>`:''}`;
+ return `<div class="vtp">${pl}<span><small>${N} Lat</small>${dm(Math.abs(q.lat))} ${q.lat<0?'S':'N'}</span><span><small>${N} Speed</small>${dm(q.vs,true)}/day</span></div>`
  +`<div class="vtp vtp2">${sl}${ph}<span><small>Sun Speed</small>${dm(q.ss)}/day</span></div>`
- +`<div class="vtp vtp2 vtp1"><span><small>Venus Apparent Magnitude</small>${TOT()?(Math.abs(pa)<T.hel?'Underworld (not visible)':(q.mag<0?'−':'+')+Math.abs(q.mag).toFixed(2)):Math.abs(pa)<1?'Cazimi':Math.abs(pa)<8.5?'Combust':(q.mag<0?'−':'+')+Math.abs(q.mag).toFixed(2)}</span></div>`
- +(q.d?`<div class="vtp vtp2 vtp1"><span><small>Venus Distance</small>${q.d.toFixed(3)} AU</span></div>`:'')}   /* Gemini, Nov 5: Venus's distance from Earth, under the magnitude */
+ +`<div class="vtp vtp2 vtpd"><span><small>${N} Distance from Earth</small>${dist}</span><span><small>${N} Apparent Magnitude</small>${mag}</span></div>`
+ }   /* Gemini, Nov 5: Venus's distance from Earth, under the magnitude */
 const spaceBtn=(ms,name)=>`<button class="vtcb vtsb" data-sm="${Math.round(ms)}" data-cn="${esc(unsup(name).replace(/<[^>]+>/g,''))}" aria-label="Space view for this date">Space</button>`;
 /* Gemini, Nov 5: a third card button, Earth, under Chart and Space (what it opens comes next) */
 const earthBtn=(ms,name)=>`<button class="vtcb vteb" data-em="${Math.round(ms)}" data-cn="${esc(unsup(name).replace(/<[^>]+>/g,''))}" aria-label="Earth view: Venus from the ground through this morning or evening star period">Earth</button>`;
