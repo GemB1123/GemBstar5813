@@ -8391,6 +8391,9 @@ document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('
   favNew:r=>{r=Object.assign({type:'Event',cal:'a',unknown:false,ut:'noon',notes:''},r,{id:'c'+Date.now()});S.charts.push(r);S.favs.push(r.id);saveCharts();return r.id},
   home:()=>({label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}),
   cusps:(jd,lat,lon)=>cuspsFor(jd,lat,lon),   /* Nov 14: houses for Current Transits in Planetary Tables */
+  /* Nov 14 (Gemini): the Device's own Earth (gray, with the Sun, the place and the poles) for Planetary Tables' Simple Wheel, centered on 0,0 */
+  earthSvg:(jd,lat,lon,asc,R)=>{const oc=earthChart,op=earthPlace,vm=VIEW.mode,va=VIEW.asc,d0=EARTH_DR;try{const C={jd,pos:{Sun:positions(jd).Sun},lat,lon};earthChart=()=>C;earthPlace=()=>({lat,lon});VIEW.mode='as';VIEW.asc=asc;
+   return `<g transform="translate(-400 -400)">${earthDisc(null,R)}</g>`}finally{earthChart=oc;earthPlace=op;VIEW.mode=vm;VIEW.asc=va;EARTH_DR=d0}},
   rec:()=>S.baseRec?JSON.parse(JSON.stringify(S.baseRec)):null,key:()=>BIRTH.name+'|'+BIRTH.jd,base:r=>{if(r)setBase(r)},
   pick:k=>{const r=cpRec(k);if(!r)return false;setBase(r);addRecent(r);saveCharts();save();return true},
   credits:()=>CREDITS,
@@ -10033,12 +10036,13 @@ function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=sk.pos,P2=T.s
  const xy=(l,r)=>{const t=(180+l-rot)*Math.PI/180;return [r*Math.cos(t),-r*Math.sin(t)]},f=n=>n.toFixed(1);
  const pos={};PLN.forEach(k=>pos[k]=P[k]);const set=ASET(),setN=(ASETS.find(x=>x[0]===set)||[0,''])[1];
  const rings=cwRings(jd);
- let h=EAWheel.svg({pos,ret:sk.ret,cusps:c,label:cwKind()==='natal'?T.chart().name:'Chart',rings},{planets:PLN,glyph:k=>T.plg(k),sign:(i,x,y,z,col)=>T.ag(i,x,y,z,col),aspects:false,theme:'dark',big,setLabel:setN,label:'Chart wheel for '+T.date(ms)});
+ let h=EAWheel.svg({pos,ret:sk.ret,cusps:c,label:cwKind()==='natal'?T.chart().name:'Chart',rings},{planets:PLN,glyph:k=>T.plg(k),sign:(i,x,y,z,col)=>T.ag(i,x,y,z,col),aspects:false,theme:'dark',big,label:'Chart wheel for '+T.date(ms)});
+ h=h.replace(/<g filter="url\(#eawbold\w*\)">/g,'<g>');   /* Gemini, Nov 14: the sign glyphs looked too puffy (our glyph set is already the bold one) */
  if(WDIM)PLN.forEach(k=>{if(!['Sun','Moon',PN()].includes(k))h=h.replace(`<g class="eawp" data-pl="${k}">`,`<g class="eawp" data-pl="${k}" opacity=".5">`)});
  let x='';const dev=(a,b,ang)=>Math.abs(Math.abs((((a-b)%360)+540)%360-180)-ang),apl=(a0,a1,b0,b1,ang)=>dev(a1,b1,ang)<dev(a0,b0,ang),dot=PLN.map(k=>({k,l:((P[k]%360)+360)%360}));
  if(cu&&(ws||cu.even))[AS,MC].forEach(l=>{if(l==null)return;[l,l+180].forEach(q=>{const a=xy(q,190),b=xy(q,RI);x+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="#f3e7c4" stroke-width="1" stroke-dasharray="4 3" opacity=".85"/>`})});
  /* Gemini, Nov 13: the four Rs: Rise (Ascendant), Reach (Midheaven), Rest (Descendant), Root (IC) */
- if(cu)[[AS,'Rise',-9],[MC,'Reach',9],[AS==null?null:AS+180,'Rest',9],[MC==null?null:MC+180,'Root',-9]].forEach(([l,t,dd])=>{if(l==null)return;const p=xy(l+dd*.8,143);x+=`<text x="${f(p[0])}" y="${f(p[1])}" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="700" fill="#f3e7c4" stroke="#0b0f26" stroke-width="2.6" paint-order="stroke" font-family="Inter,system-ui,sans-serif">${t}</text>`});
+ if(cu)[[AS,'AS',-9],[MC,'MC',9],[AS==null?null:AS+180,'DS',9],[MC==null?null:MC+180,'IC',-9]].forEach(([l,t,dd])=>{if(l==null)return;const p=xy(l+dd*.8,143);x+=`<text x="${f(p[0])}" y="${f(p[1])}" text-anchor="middle" dominant-baseline="central" font-size="8.5" font-weight="700" fill="#f3e7c4" stroke="#0b0f26" stroke-width="2.6" paint-order="stroke" font-family="Inter,system-ui,sans-serif">${t}</text>`});
  let a='';
  if(set==='sym'){const midAp=q=>{const md=(cc,aa,bb)=>{const m=aa+((((bb-aa)%360)+540)%360-180)/2,w=v=>Math.abs((((v)%360)+540)%360-180);return Math.min(w(cc-m),w(cc-m-180))};return md(P2[q.c],P2[q.a],P2[q.b])<md(P[q.c],P[q.a],P[q.b])},at=k=>{const d=dot.find(y=>y.k===k);return d?xy(d.l,RA):null};
   for(const q of symPics(dot)){const A=at(q.a),B=at(q.b),C=at(q.c);if(!A||!B||!C)continue;const op=(.45+.5*(q.fit||0)).toFixed(2),os=q.fit!=null?orbS((1-q.fit)*1.5,midAp(q)):'';
@@ -10046,8 +10050,10 @@ function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=sk.pos,P2=T.s
  else{const AL=aspL();for(let i=0;i<dot.length;i++)for(let j=i+1;j<dot.length;j++){const p=dot[i],q=dot[j],dd=Math.abs((((p.l-q.l)%360)+540)%360-180),A=AL.find(z=>Math.abs(dd-z.a)<=aspOrb(z));if(!A||A.a===0)continue;
   const os=orbS(Math.abs(dd-A.a),apl(p.l,P2[p.k],q.l,P2[q.k],A.a));a+=aspLn(xy(p.l,RA),xy(q.l,RA),A.c,big?1.6:1.2,`${p.k} ${A.n} ${q.k} ${os}`,`${p.k}|${A.k||A.n}|${q.k}|${os}`)}}
  /* the aspect lines go inside the tap circle (before its closing tag); the four Rs sit on top of the wheel */
- const e=h.lastIndexOf('</g></svg>'),cut=setN?h.lastIndexOf('<text',e):e;   /* the Earth sits over the aspect lines, under the set label */
- const ez=cwEarth(),er=ez?RI*(ez==='large'?.6:.3):0,ea=ez?`<g pointer-events="none"><defs><radialGradient id="cwe" cx=".38" cy=".35" r=".75"><stop offset="0" stop-color="#5f9be0"/><stop offset=".55" stop-color="#24497e"/><stop offset="1" stop-color="#0d1d3a"/></radialGradient></defs><circle r="${er.toFixed(1)}" fill="url(#cwe)" stroke="#c7cdd4" stroke-width=".9"/></g>`:'';
+ const e=h.lastIndexOf('</g></svg>'),cut=e;   /* the Earth sits over the aspect lines, under the set label */
+ const ez=cwEarth(),er=ez?RI*(ez==='large'?.72:.45):0;let ea='';   /* Gemini, Nov 14: the Device's gray Earth with the Sun, the place and the poles; Large still leaves a ring of aspect lines */
+ if(ez){let pl=null;try{pl=cwPlace()||T.home()}catch(e){}try{if(T.earthSvg&&pl&&isFinite(pl.lat))ea=`<g pointer-events="none">${T.earthSvg(jd,pl.lat,pl.lon,AS!=null?AS:rot,er)}</g>`}catch(e){ea=''}
+  if(!ea)ea=`<g pointer-events="none"><circle r="${er.toFixed(1)}" fill="#8f949c" stroke="#c7cdd4" stroke-width=".9"/></g>`}
  return h.slice(0,cut)+a+ea+h.slice(cut,e)+'</g>'+x+'</svg>'}
 window.__ewReload=()=>{const o=$('#vt-cw');if(o&&!o.hidden)chartDraw()};   /* the shared copy arrived: redraw with it */
 /* Gemini, Nov 13 (every app): once a chart is cast, buttons under the wheel add Transits, Progressions and Solar Arc rings
