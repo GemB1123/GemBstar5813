@@ -9073,6 +9073,8 @@ body.eawz #vt-spc,body.eawz #vt-ea{overflow:visible;z-index:200}body.eawz #vt-ea
 /* Gemini, Nov 15: the chart's Speed label reads like Space's and Earth's */
 #vt-cw .spcsb{align-self:flex-start;background:none;border:0;padding:4px 0;color:#c9c3e8;font:500 14px Inter,system-ui,sans-serif;cursor:pointer}
 #vt-cw .spcsb b{color:#efe3c8;text-decoration:underline dotted;text-underline-offset:3px}
+/* Gemini, Nov 15: a card's description wraps onto a third line rather than ending in "…" (Gary's phase descriptions) */
+.vtc .vtn .l2{white-space:normal;overflow:visible;text-overflow:clip}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10396,6 +10398,7 @@ function eaSvg(rr){if(!rr){const r0=eaBuild();if(r0.six&&EAV.tile)return eaTiles
  h+=`<path d="${gd}" fill="url(#ea-gr)"/><path d="M0 ${eF(hy)}H${W}" stroke="#c9c3e8" stroke-opacity=".28" stroke-width=".8"/><path d="M0 ${eF(hy+10*sy)}H${W}" stroke="#e8c46a" stroke-opacity=".18" stroke-width=".6" stroke-dasharray="2 3"/><text x="4" y="${eF(hy+10*sy-3)}" class="eagl">&minus;10&deg;</text>`;   /* the depth the Sun is held at */
  let tr='';days.forEach(d=>{const p=XY(d.s[0],d.s[1]);tr+=`<circle cx="${eF(p[0])}" cy="${eF(p[1])}" r=".7"/>`});
  h+=`<g fill="#e8c46a" fill-opacity=".5">${tr}</g>`;
+ if(EAV.glow>0)h+=`<circle cx="${eF(sp[0])}" cy="${eF(sp[1])}" r="${eF(Math.max(12,s*4)*(1+3*EAV.glow))}" fill="url(#ea-sun)" opacity="${Math.min(1,EAV.glow*1.2).toFixed(2)}"/>`;   /* Gemini, Nov 15: the planet joins the Sun and they glow before the flip */
  h+=`<circle cx="${eF(sp[0])}" cy="${eF(sp[1])}" r="${eF(Math.max(12,s*4))}" fill="url(#ea-sun)"/><circle cx="${eF(sp[0])}" cy="${eF(sp[1])}" r="${eF(Math.max(2.6,s*.7))}" fill="#f6cf6d"/>`;
  h+=`<text x="${eF(sp[0])}" y="${eF(Math.min(H-3,sp[1]+Math.max(9,s*3)+8))}" class="easl">Sun &minus;10&deg;</text>`;
  h+=cmp.map(([x,n,big])=>`<text x="${eF(x)}" y="${eF(hy+(big?12:11))}" class="eacp${big?' big':''}">${n}</text>`).join('');
@@ -10449,9 +10452,21 @@ function eaTg(r){if(PL()!=='venus'&&!MER())return '';   /* Gemini, Nov 10: the o
    :`<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">${T.ag(sg,12,12,30,'currentColor')}</svg>`)+`</button>`
   +(six?`<button class="vtar" id="ea-6t" aria-pressed="${!!EAV.tile}" aria-label="${EAV.tile?'Side by side. Tap to overlap them on one sky':'Overlapped on one sky. Tap to set them side by side'}">${EAV.tile?'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="6" height="6" rx="1"/><rect x="9" y="5" width="6" height="6" rx="1"/><rect x="16" y="5" width="6" height="6" rx="1"/><rect x="2" y="13" width="6" height="6" rx="1"/><rect x="9" y="13" width="6" height="6" rx="1"/><rect x="16" y="13" width="6" height="6" rx="1"/></g></svg>':'<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="12" height="12" rx="1.5"/><rect x="6" y="6" width="12" height="12" rx="1.5"/><rect x="9" y="9" width="12" height="12" rx="1.5"/></g></svg>'}</button>`:'')+`</div>`}
 const eaDur=()=>SPD[EAV.sp][1]*2500;   /* a whole period (about 9 months) takes 2.5 times a Space cycle: Slow is 20 seconds */
-function eaStop(){EAV.on=false;cancelAnimationFrame(EAV.raf)}
+function eaStop(){EAV.on=false;cancelAnimationFrame(EAV.raf);if(EAV.glow||EAV.ftok)eaUnflip()}
 function eaAnim(){if(EAV.on){eaStop();eaDraw();return}if(EAV.p>=P_END)EAV.p=0;EAV.on=true;EAV.played=true;const pre=EAV.ecl&&EAV.p===0?2500:0;EAV.es=pre?performance.now():0;EAV.t0=performance.now()-EAV.p*eaDur()+pre;   /* Gemini, Nov 10: the Ecliptic draws over 2.5 s at an even pace; time starts as soon as it is drawn */   /* Gemini, Nov 9: the Ecliptic draws out from the Sun to the screen's edges, then time moves */   /* Gemini, Nov 9: no pause at the start (it used to wait 2.3 s) */
- const run=t=>{if(!EAV.on)return;if(t<EAV.t0){eaUpd();EAV.raf=requestAnimationFrame(run);return}EAV.p=Math.min(P_END,(t-EAV.t0)/eaDur());eaUpd();if(EAV.p<P_END)EAV.raf=requestAnimationFrame(run);else{EAV.on=false;eaDraw()}};eaDraw();EAV.raf=requestAnimationFrame(run)}
+ const run=t=>{if(!EAV.on)return;if(t<EAV.t0){eaUpd();EAV.raf=requestAnimationFrame(run);return}EAV.p=Math.min(P_END,(t-EAV.t0)/eaDur());eaUpd();if(EAV.p<P_END)EAV.raf=requestAnimationFrame(run);else if(eaChain())eaFlip(run);else{EAV.on=false;eaDraw()}};eaDraw();EAV.raf=requestAnimationFrame(run)}
+/* Gemini, Nov 15: Play runs on through the morning and evening star periods, cycle after cycle. Where the planet joins the
+   Sun beneath the ground they glow for a second and a half, then the picture flips over, right to left, to the other side's
+   sky, and Play carries on there. Venus and Mercury only; Pause stops it anywhere. */
+const eaChain=()=>(PL()==='venus'||MER())&&!eaSix();
+function eaFlip(run){const tok=EAV.ftok=(EAV.ftok||0)+1,ok=()=>EAV.on&&EAV.ftok===tok,g0=performance.now(),GL=1500,FL=420;
+ const glow=t=>{if(!ok()){EAV.glow=0;return}const u=Math.min(1,(t-g0)/GL);EAV.glow=Math.sin(u*Math.PI);eaUpd();if(u<1)EAV.raf=requestAnimationFrame(glow);else{EAV.glow=0;turn()}};
+ const turn=()=>{const w=$('#ea-w');if(w){w.style.transition=`transform ${FL}ms ease-in`;w.style.transform='perspective(1200px) rotateY(-90deg)'}
+  setTimeout(()=>{if(!ok())return eaUnflip();const r=eaBuild(),q=eaSpan(r.sp.b+(MER()?2:6));EAV.ms=((q.a+q.b)/2-2440587.5)*864e5;EAV.p=0;EAV.memo=null;eaDraw();
+   const w2=$('#ea-w');if(w2){w2.style.transition='none';w2.style.transform='perspective(1200px) rotateY(90deg)';void w2.offsetWidth;w2.style.transition=`transform ${FL}ms ease-out`;w2.style.transform='perspective(1200px) rotateY(0deg)'}
+   setTimeout(()=>{eaUnflip();if(!ok())return;EAV.t0=performance.now();EAV.raf=requestAnimationFrame(run)},FL)},FL)};
+ EAV.raf=requestAnimationFrame(glow)}
+function eaUnflip(){EAV.glow=0;const w=$('#ea-w');if(w){w.style.transition='';w.style.transform=''}}
 function eaOpen(ms,name){oneWin('vt-ea');EAV.ms=ms;EAV.name=name;EAV.p=1;EAV.six=false;EAV.tg=false;EAV.hdOff=false;EAV.played=false;eaStop();let o=$('#vt-ea');
  if(!o){o=document.createElement('div');o.id='vt-ea';o.setAttribute('role','dialog');o.setAttribute('aria-label','Earth');document.body.appendChild(o);
   o.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
