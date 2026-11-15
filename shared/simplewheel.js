@@ -158,6 +158,12 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const RCOL=T.ringCols||[];
  const band=(Pp,RXp,t,ci,main)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';spread(list,{big:8,full:13.5,compact:12,bi:11,tri:10}[mode]);
+  /* keep each glyph and its degree stack off the cusp lines (Gemini, Nov 15: Sun on the AS, Jupiter on the DS): a planet within m
+     degrees of a cusp slides to the side it is on (the open side when it sits exactly on it); its tick stays on the true degree */
+  if(cu){const m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu.slice(1,13).map(n360),dd=(a,b)=>((a-b+540)%360)-180;
+   for(let pass=0;pass<2;pass++)list.forEach((x,i)=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m)continue;
+    let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}
+    x.d=n360(c+sg*m)}})}
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   const cf=main?col:()=>ci,sh=main&&shiny;
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
