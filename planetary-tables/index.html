@@ -9166,6 +9166,26 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw .cwtoday{padding:0 14px}#vt-cw #cw-rd{padding:0 8px}
 #vt-cw .cwline .cwtm{display:flex;align-items:center;gap:8px;margin:0;width:auto;max-width:none;flex:0 1 auto;flex-wrap:wrap;justify-content:center}
 #vt-cw .cwline .cwpsplit{margin:0 8px 0 0}
+/* Gemini, Nov 15 (12:33 PM): the Time Machine on one line, small boxes */
+#vt-cw .cwline{flex-wrap:nowrap;gap:6px}
+#vt-cw .cwline .cwtm{flex-wrap:nowrap;gap:5px}
+#vt-cw .cwtm button,#vt-cw .cwtm input,#vt-cw .cwpk{height:34px;border-radius:9px;font-size:13px}
+#vt-cw .cwtm .cwar{width:30px;font-size:13px;padding:0}
+#vt-cw #cw-tq{width:38px;padding:0 2px}
+#vt-cw .cwtday{position:relative;display:inline-flex;align-items:center;justify-content:center;height:34px;min-width:64px;padding:0 6px;border:1.5px solid #c9b27a;border-radius:9px;background:#14122a;color:#efe3c8;font:600 13px Inter,system-ui,sans-serif;box-sizing:border-box;cursor:pointer}
+#vt-cw .cwtday input{position:absolute;inset:0;opacity:0;width:100%;height:100%;border:0;padding:0;cursor:pointer}
+#vt-cw .cwtm .cwtoday{width:30px;padding:0}
+#vt-cw .cwpk{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:0 5px;border:1.5px solid #c9b27a;background:#14122a;color:#efe3c8;font:600 13px Inter,system-ui,sans-serif;box-sizing:border-box;cursor:pointer;flex:0 0 auto}
+#vt-cw .cwpk select{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;font-size:16px}
+#vt-cw .cwpk:focus-within,#vt-cw .cwtday:focus-within{outline:2px solid #ffe48a;outline-offset:1px}
+#vt-cw .cwpk svg{width:20px;height:20px;display:block}
+#vt-cw .cwpk i{font-style:normal;font-size:9px;margin-left:2px;opacity:.8}
+#vt-cw .cwpk.cwtu{min-width:44px}
+#vt-cw .cwsnap{position:relative;display:flex;align-items:center;gap:4px;flex:0 0 auto;padding-left:8px;border-left:1.5px solid rgba(201,178,122,.45)}
+#vt-cw .cwsnb{height:34px;width:30px;padding:0;border:1.5px solid #c9b27a;border-radius:9px;background:#14122a;color:#efe3c8;font:600 13px Inter,system-ui,sans-serif;cursor:pointer}
+#vt-cw .cwsnb:hover,#vt-cw .cwpk:hover,#vt-cw .cwtday:hover,#vt-cw .cwtm button:hover{background:#221d40}
+#vt-cw .cwsnm{position:absolute;right:0;bottom:calc(100% + 4px);font:500 12px Inter,system-ui,sans-serif;color:#f3e7c4;background:#10142a;border:1px solid #c9b27a;border-radius:6px;padding:3px 8px;white-space:nowrap}
+@media (max-width:1099px){#vt-cw .cwline{flex-wrap:wrap}#vt-cw .cwsnap{border-left:0;padding-left:0}}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9323,9 +9343,9 @@ function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);
  hero(r);const view=V.side==='all'||!sd?{rows:r.rows}:sd[V.side],R=marks(view.rows,ch,V.side==='eve'?1:0);   /* Gemini, Nov 4: on Evening, Today (and the chart's line) only when it falls on the Evening side itself */let hi=-1;R.forEach((x,i)=>{if(x.ms<=c||(x.mk&&Math.abs(x.ms-c)<6e4))hi=i});
  $('#vt-title').innerHTML=esc(view.title||r.title||T.title(r)).replace('★','<b>★</b>')+(MOO()?'':V.side==='morn'?' <span class="vtside">Morning</span>':V.side==='eve'?' <span class="vtside">Evening</span>':'');fitTitle();{const tr=TOT()&&!view.ic&&totRise(r);if(tr)headBg(tr.sg,tr.sg);else headBg(view.ic||r.ic,view.ec||r.ecs||r.ec)}
  /* Gemini, Nov 4: a tap on a Morning or Evening line opens it into the Complete table's card, Chart button included; a tap on the card closes it */
- $('#vt-list').innerHTML=V.side==='all'?R.map((x,i)=>card(x,i===hi)).join(''):R.map((x,i)=>V.ex===Math.round(x.ms)?card(x,i===hi).replace('<li class="vtc','<li data-vx="'+Math.round(x.ms)+'" tabindex="0" role="button" aria-expanded="true" aria-label="Close this line" class="vtc vtex'):mrow(x,i===hi,V.side==='eve'&&i>0)).join('');   /* the Evening table's opening interior conjunction keeps the down arrow */
+ $('#vt-list').innerHTML=V.side==='all'&&!V.allc?R.map((x,i)=>card(x,i===hi)).join(''):R.map((x,i)=>V.ex===Math.round(x.ms)?card(x,i===hi).replace('<li class="vtc','<li data-vx="'+Math.round(x.ms)+'" tabindex="0" role="button" aria-expanded="true" aria-label="Close this line" class="vtc vtex'):mrow(x,i===hi,V.side==='eve'&&i>0)).join('');   /* the Evening table's opening interior conjunction keeps the down arrow */
  V.lastR=R;V.ahI=null;vxHl();
- if(scroll&&V.side==='all'){const n=$('#vt-list .now');if(n)n.scrollIntoView({block:'center',behavior:V.play?'auto':'smooth'})}else if(scroll)scrollTo(0,0)}
+ if(scroll&&V.side==='all'&&!V.allc){const n=$('#vt-list .now');if(n)n.scrollIntoView({block:'center',behavior:V.play?'auto':'smooth'})}else if(scroll)scrollTo(0,0)}
 function setMs(ms){V.ms=ms;draw(true)}
 /* Gemini, Nov 4: the opening header. 13 gold stars, the cycle's name ("Scorpio-Leo Venus Synodic Cycle"), its dates from interior
    conjunction to interior conjunction with arrows to the cycle before and after, and one button: Explore Your Venus Cycle and Returns.
@@ -9871,7 +9891,7 @@ function build(){const w=document.createElement('div');w.id='vt';FOOT=`${phoneNo
   /* Nov 6 (Gemini): the closed menu shows the planet in our own label so each glyph can be centered (Mars's sits high in the system font) */
   const plv=()=>{const o=PLAN.find(x=>x[0]===PL()),v=pl.parentNode.querySelector('.vtplv');if(o&&v)v.innerHTML=`<i class="g g-${o[0]}">${o[1][0]}&#xFE0E;</i>${esc(o[1].slice(2))}`};
   if(pl){pl.value=PL();plv();pl.onchange=()=>{if(pl.value===PL())return;prefSet('vt-pl',PLS.includes(pl.value)?pl.value:'venus');pl.value=PL();plv();V.memo=null;V.side=null;V.sideAt='';V.ex=null;fill();draw(true);scrollTo(0,0);if(OUT()&&/^(space|lem)$/.test(vxCur()))vxGo('chart');else vxRefresh()}}}
- $('#vt-vw').onclick=e=>{const b=e.target.closest('[data-w]');if(!b||(b.dataset.w===V.side&&V.view!=='ret'))return;V.side=b.dataset.w;V.view='cycle';draw(true)};
+ $('#vt-vw').onclick=e=>{const b=e.target.closest('[data-w]');if(!b||(b.dataset.w===V.side&&V.view!=='ret'))return;V.side=b.dataset.w;V.allc=false;V.view='cycle';draw(true)};
  $('#vt-sb').onclick=()=>sideStep(-1);$('#vt-sf').onclick=()=>sideStep(1);$('#vt-heart').onclick=()=>crOpen(!V.cr);$('#vt-cr').addEventListener('click',e=>{if(e.target.closest('#cr-x,#cr-x2'))crOpen(false)});$('#vt-gear').onclick=()=>setOpen(!V.set);
  $('#vt-sp').addEventListener('click',e=>{if(e.target.id==='vs-x')setOpen(false)});
  $('#vt-sp').addEventListener('change',e=>{if(e.target.id==='vs-ing'){prefSet('vt-ing',e.target.value);V.memo=null;draw();return}if(e.target.id==='vs-unit'){prefSet('vt-unit',e.target.value);draw();return}if(e.target.id==='vs-startv'){prefSet('vt-startv',e.target.value);return}if(e.target.id==='vs-prog'){prefSet('vt-prog',e.target.checked?'on':'');draw();return}if(e.target.id==='vs-progt'){prefSet('vt-progt',e.target.value);draw();return}if(e.target.id==='vs-chk'){prefSet('vt-chk',e.target.value==='off'?'off':'');draw();return}if(e.target.id==='vs-anim'){prefSet('vt-anim',e.target.value);$('#vs-msg').textContent='Saved. You will see it the next time the app opens.'}});
@@ -10007,7 +10027,7 @@ const hd2=n=>{const [a,b]=String(n).replace(/&amp;/g,'&').split('\n');   /* name
 /* Gemini, Nov 11: only one window at a time. Opening Chart, Space, Earth, Historical or About closes (and stops) any other,
    so the view buttons and the table's stage buttons always reach the window that is showing */
 function oneWin(keep){try{window.EAWheel&&EAWheel.zoomReset&&EAWheel.zoomReset()}catch(e){}[['vt-cw',()=>{cwStop();CW.p=1}],['vt-spc',()=>spcStop()],['vt-ea',()=>eaStop()],['vt-hs',null],['vt-ab',null]].forEach(([id,st])=>{if(id===keep)return;const o=document.getElementById(id);if(o&&!o.hidden){try{if(st)st()}catch(e){}o.hidden=true}})}
-function chartOpen(ms,name,bw){oneWin('vt-cw');CW.earth='small';CW.favId=null;if(name!==CW.name){CW.rings=[];CW.rms=null}ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
+function chartOpen(ms,name,bw){oneWin('vt-cw');CW.earth='small';CW.favId=null;if(name!==CW.name){CW.rings=[];CW.rms=null}ASET_OV='major';cwStop();CW.p=1;CW.span=null;CW.ms=ms;CW.name=name;CW.stage=false;const ch=ME()||bw?T.chart():null;CW.bms=bw&&ch&&isFinite(ch.ms)?ch.ms:null;CW.bn=ch?ch.name:'';const nat=ch&&(CW.bms!=null||Math.abs(ch.ms-ms)<6e4);CW.cu0=nat&&ch.cusps?ch.cusps:null;CW.unk=!!(nat&&ch.unknown);let o=$('#vt-cw');if(!o){o=document.createElement('div');o.id='vt-cw';o.setAttribute('role','dialog');o.setAttribute('aria-label','Chart');document.body.appendChild(o);
   o.addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;const keep=s=>{const q=$('#vt-cw '+s);if(q)q.focus()};if(t.id==='cw-g'||t.id==='cw-sx'){CW.set=!CW.set;CW.rmenu=false;if(CW.set)CW.gtm=false;chartDraw();keep(CW.set?'#cw-sx':'#cw-g');return}if(t.dataset.cwe){CW.earth=t.dataset.cwe;chartDraw();keep(`[data-cwe="${t.dataset.cwe}"]`);return}if(t.dataset.cwm){CW.mode=t.dataset.cwm;chartDraw()}else if(t.dataset.cwa){ASET_OV=t.dataset.cwa;asetSet(t.dataset.cwa);chartDraw()}else if(t.id==='cw-hs'){CW.hsOpen=!CW.hsOpen;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.dataset.hsy){prefSet('vt-hsys',t.dataset.hsy);CW.hsOpen=false;chartDraw();const q=$('#cw-hs');if(q)q.focus()}else if(t.id==='cw-x'){cwStop();CW.p=1;o.hidden=true;document.body.classList.remove('vtcw')}})}
  o.hidden=false;document.body.classList.add('vtcw');ewAttach();chartDraw();$('#cw-x').focus()}
 /* the cycle the chart sits in (the same cycle Space draws), and the moment Play has reached */
@@ -10030,7 +10050,18 @@ function cwSet(){if(!CW.set)return '';const k=hsysK(),E=cwEarth()||'none',H=CWHI
  +sec('Earth')+`<div class="cwseg" role="group" aria-label="Earth in the center">${[['small','Small'],['large','Large'],['none','None']].map(([v,n])=>`<button data-cwe="${v}" aria-pressed="${E===v}">${n}</button>`).join('')}</div>`
  +sec('Zodiac')+`<select class="cwsel" id="cw-zod" aria-label="Zodiac and ayanamsha">${ZODS.map(([v,n])=>`<option value="${v}"${ZOD()===v?' selected':''}>${n}</option>`).join('')}</select>`
  +sec('Displayed Planets')+`<div class="cwpls" role="group" aria-label="Displayed planets">${PLN.map(p=>`<label class="cwpl"><input type="checkbox" data-cwp="${p}"${H.includes(p)?'':' checked'}><i aria-hidden="true">${PLG[p]}&#xFE0E;</i><span>${p}</span></label>`).join('')}</div></div>`}
-function cwCusps(t){if(CW.cu0||CW.bms!=null||!T.cusps||!T.home)return CW.cu0;let h=null;try{h=T.home()}catch(e){}return h&&isFinite(h.lat)&&isFinite(h.lon)?T.cusps(t/864e5+2440587.5,h.lat,h.lon):null}
+/* Gemini, Nov 15: Moon, Mercury and Venus stage charts are cast as sunrise(ish) or sunset(ish) charts instead of the true Ascendant.
+   Sunrise(ish): the Ascendant sits at the Sun's degree minus 5°. Sunset(ish): the Descendant sits at the Sun's degree minus 5°.
+   The planets stay at the stage's exact moment; the houses are the ones the chart place has when its Ascendant reaches that degree.
+   Morning side of the Sun (and the waning Moon) takes sunrise; evening side (and the waxing Moon) takes sunset, with each
+   conjunction taking the side the planet moves into. A Full Moon takes sunset, rising as the Sun goes down. */
+function cwSunX(t){const pk=PL();if(!CW.stage||!['moon','mercury','venus'].includes(pk)||cwKind()==='natal'||!T.cusps||!T.home)return null;
+ if(CW.sxc&&CW.sxc.t===t)return CW.sxc.v;let h=null;try{h=T.home()}catch(e){}if(!h||!isFinite(h.lat))return null;
+ const L=(p,j)=>window.__app.cycle.lon(p,j,'geo'),P=pk[0].toUpperCase()+pk.slice(1),jd=t/864e5+2440587.5,S=L('Sun',jd),el=e180(L(P,jd)-S),el1=e180(L(P,jd+(pk==='moon'?.1:1))-L('Sun',jd+(pk==='moon'?.1:1)));
+ const set=Math.abs(el)>170||el1>0,tg=e360(S-5+(set?180:0)),A=j=>{const c=T.cusps(j,h.lat,h.lon);return c?c[1]:NaN},f=j=>e180(A(j)-tg);
+ let best=null;for(let k=-36;k<36;k++){const a=jd+k/36,b=a+1/36,fa=f(a),fb=f(b);if(!isFinite(fa)||!isFinite(fb))continue;if(fa<=0&&fb>0&&fb-fa<60){let lo=a,hi=b;for(let i=0;i<30;i++){const m=(lo+hi)/2;if(f(m)<=0)lo=m;else hi=m}const r=(lo+hi)/2;if(best==null||Math.abs(r-jd)<Math.abs(best-jd))best=r}}
+ const v=best==null?null:{cu:T.cusps(best,h.lat,h.lon),set};CW.sxc={t,v};return v}
+function cwCusps(t){{const x=cwSunX(t);if(x)return x.cu}if(CW.cu0||CW.bms!=null||!T.cusps||!T.home)return CW.cu0;let h=null;try{h=T.home()}catch(e){}return h&&isFinite(h.lat)&&isFinite(h.lon)?T.cusps(t/864e5+2440587.5,h.lat,h.lon):null}
 /* Gemini, Nov 15: during Play the houses and angles stay at the chart's moment, so only the planets move (no daily spin) */
 function cwWheel(){const t=cwMs(),cu=cuOf(cwCusps(CW.p<1&&CW.ms!=null?CW.ms:t),CW.bms!=null?CW.bms/864e5+2440587.5:t/864e5+2440587.5);WDIM=CW.p<1;try{
   if(window.EAWheel&&CW.bms==null&&(MER()||CW.mode==='asp'))return ewWheel(t,cu);return wheel(t,MER()?'asp':CW.mode,false,cu,CW.bms)}finally{WDIM=false}}
@@ -10085,25 +10116,36 @@ const cwGear=()=>`<button class="cwgear" id="cw-gt" aria-haspopup="dialog" aria-
 /* Gemini, Nov 15: the Time Machine is  −  [amount] [unit]  [Today or the date]  +  : a typed amount (1 by default) and a unit
    (second, minute, hour, day, year, decade, century; Day by default). Seconds to hours show the time as well as the date */
 const TMU=[['s','Second',1e3],['mi','Minute',6e4],['h','Hour',36e5],['d','Day',864e5],['y','Year',0],['de','Decade',0],['c','Century',0]];
-/* Gemini, Nov 15: snap to an exact aspect. Kind (Transit to Transit, Transit to Natal, Progressed to Natal, Progressed to
-   Progressed, Solar Arc to Natal), planet, aspect, other planet; the two buttons jump the added wheel to the previous or next exact hit */
-const SNK=[['tn','Transit to Natal','tr'],['tt','Transit to Transit','tr'],['pn','Progressed to Natal','pr'],['pp','Progressed to Progressed','pr'],['sn','Solar Arc to Natal','sa']];
-const SNA=[['Conjunction',0],['Opposition',180],['Square',90],['Trine',120],['Sextile',60],['Quincunx',150],['Semisextile',30],['Semisquare',45],['Sesquiquadrate',135]];
+/* Gemini, Nov 15 (12:33 PM): the whole Time Machine on one line. Snap reads like a sentence:
+   [T▾ moving: Transit, Progressed or Solar Arc] [planet] [aspect] [R▾ target: Radix, Transit, Progressed or Solar Arc] [planet], then the two snap buttons */
+const SNKA=[['T','Transit'],['P','Progressed'],['S','Solar Arc']],SNKB=[['R','Radix'],['T','Transit'],['P','Progressed'],['S','Solar Arc']],SNRING={T:'tr',P:'pr',S:'sa'};
+const SNA=[['Conjunction',0,'conj'],['Opposition',180,'opp'],['Square',90,'sq'],['Trine',120,'tri'],['Sextile',60,'sext'],['Quincunx',150,'qnx'],['Semisextile',30,'ssx'],['Semisquare',45,'ssq'],['Sesquiquadrate',135,'sesq']];
 const SNST={Moon:.05,Sun:.5,Mercury:.5,Venus:.5,Mars:.5,Jupiter:1,Saturn:1,Uranus:2,Neptune:2,Pluto:2};
-function cwSnap(){const nk=tmNat(),k=nk?(CW.sk||'tn'):'tt',a=CW.sa||'Saturn',x=CW.sx||'Conjunction',b=CW.sb||'Sun',opt=(L,v)=>L.map(([q,n])=>`<option value="${q}"${q===v?' selected':''}>${n}</option>`).join(''),pl=PLN.map(p=>[p,p]);
- return `<div class="cwsnap" role="group" aria-label="Snap to an exact aspect"><select id="cw-sk" aria-label="Kind">${opt(SNK.filter(q=>nk||q[0]==='tt').map(q=>[q[0],q[1]]),k)}</select><select id="cw-sa" aria-label="Planet">${opt(pl,a)}</select><select id="cw-sx" aria-label="Aspect">${opt(SNA.map(q=>[q[0],q[0]]),x)}</select><select id="cw-sb" aria-label="Other planet">${opt(pl,b)}</select>`
- +`<button class="cwsnb" data-snap="-1" aria-label="Previous exact ${esc(x.toLowerCase())}">&#9664;</button><button class="cwsnb" data-snap="1" aria-label="Next exact ${esc(x.toLowerCase())}">&#9654;</button>${CW.snMsg?`<span class="cwsnm" role="status">${esc(CW.snMsg)}</span>`:''}</div>`}
-function snapFind(dir){const nk=tmNat(),c=nk?T.chart():{ms:Date.now()},bj=c.ms/864e5+2440587.5,L=(p,t)=>window.__app.cycle.lon(p,t,'geo'),k=nk?(CW.sk||'tn'):'tt',A=CW.sa||'Saturn',B=CW.sb||'Sun',ang=(SNA.find(q=>q[0]===(CW.sx||'Conjunction'))||SNA[0])[1];
- const pg=t=>bj+(t-bj)/365.2422,tr=p=>t=>L(p,t),pr=p=>t=>L(p,pg(t)),nat=p=>()=>L(p,bj),sa=p=>t=>L(p,bj)+L('Sun',pg(t))-L('Sun',bj);
- const fa=k==='tt'||k==='tn'?tr(A):k==='sn'?sa(A):pr(A),fb=k==='tt'?tr(B):k==='pp'?pr(B):nat(B),prog=k==='pn'||k==='pp'||k==='sn';
- let st=Math.min(SNST[A]||1,k==='tt'||k==='pp'?SNST[B]||1:9);if(k==='sn')st=SNST.Sun;if(prog)st*=365.2422;
- const span=(prog?120:200)*365.2422,t0=tmGet().getTime()/864e5+2440587.5+dir*1e-4,tg=ang%180?[ang,-ang]:[ang];
+const TMS={s:'sec',mi:'min',h:'hr',d:'day',y:'yr',de:'dec',c:'cent'};
+/* a small box that shows a letter or glyph; the real select sits invisibly over it, so the list still reads in full words */
+const cwPick=(id,lab,show,opts,v,cls)=>`<label class="cwpk${cls?' '+cls:''}"><span aria-hidden="true">${show}</span><select id="${id}" aria-label="${lab}">${opts.map(([q,n])=>`<option value="${q}"${q===v?' selected':''}>${n}</option>`).join('')}</select></label>`;
+const cwPg=p=>`<svg viewBox="-15 -15 30 30" fill="none" stroke="currentColor">${T.plg(p)||''}</svg>`;
+const cwAg=k=>{const s=T.asg?T.asg(k,'#efe3c8'):'';return s?`<svg viewBox="-9 -9 18 18" fill="none">${s}</svg>`:k};
+const snKA=()=>tmNat()?(CW.ka||'T'):'T',snKB=()=>tmNat()?(CW.kb||'R'):'T';
+function cwSnap(){const nk=tmNat(),ka=snKA(),kb=snKB(),a=CW.sa||'Saturn',x=CW.sx||'Conjunction',b=CW.sb||'Sun',X=SNA.find(q=>q[0]===x)||SNA[0],pl=PLN.map(p=>[p,p]),dn='&#9662;';
+ return `<div class="cwsnap" role="group" aria-label="Snap to an exact aspect">`
+ +cwPick('cw-ka','Moving: '+SNKA.find(q=>q[0]===ka)[1],ka+`<i>${dn}</i>`,nk?SNKA:SNKA.slice(0,1),ka,'cwkd')
+ +cwPick('cw-sa','Planet: '+a,cwPg(a),pl,a)
+ +cwPick('cw-sx','Aspect: '+x,cwAg(X[2]),SNA.map(q=>[q[0],q[0]]),x)
+ +cwPick('cw-kb','To: '+SNKB.find(q=>q[0]===kb)[1],kb+`<i>${dn}</i>`,nk?SNKB:SNKB.slice(1,2),kb,'cwkd')
+ +cwPick('cw-sb','Other planet: '+b,cwPg(b),pl,b)
+ +`<button class="cwsnb" data-snap="-1" aria-label="Snap back to the previous exact ${esc(x.toLowerCase())}">&#9198;&#xFE0E;</button><button class="cwsnb" data-snap="1" aria-label="Snap forward to the next exact ${esc(x.toLowerCase())}">&#9197;&#xFE0E;</button>${CW.snMsg?`<span class="cwsnm" role="status">${esc(CW.snMsg)}</span>`:''}</div>`}
+function snapFind(dir){const nk=tmNat(),c=nk?T.chart():{ms:Date.now()},bj=c.ms/864e5+2440587.5,L=(p,t)=>window.__app.cycle.lon(p,t,'geo'),ka=snKA(),kb=snKB(),A=CW.sa||'Saturn',B=CW.sb||'Sun',ang=(SNA.find(q=>q[0]===(CW.sx||'Conjunction'))||SNA[0])[1];
+ const pg=t=>bj+(t-bj)/365.2422,fn=(k,p)=>k==='T'?t=>L(p,t):k==='P'?t=>L(p,pg(t)):k==='S'?t=>L(p,bj)+L('Sun',pg(t))-L('Sun',bj):()=>L(p,bj);
+ const fa=fn(ka,A),fb=fn(kb,B),sp=(k,p)=>k==='T'?SNST[p]||1:k==='P'?(SNST[p]||1)*365.2422:k==='S'?SNST.Sun*365.2422:Infinity;
+ const st=Math.min(sp(ka,A),sp(kb,B)),span=(ka==='T'||kb==='T'?200:120)*365.2422,t0=tmGet().getTime()/864e5+2440587.5+dir*1e-4,tg=ang%180?[ang,-ang]:[ang];
+ if(!isFinite(st))return null;
  const F=g=>t=>e180(fa(t)-fb(t)-g);let best=null;
  for(const g of tg){const f=F(g);let x0=t0,f0=f(x0);for(let n=1;n*st<=span;n++){const x1=t0+dir*n*st,f1=f(x1);if((f0<=0)!==(f1<=0)&&Math.abs(f0-f1)<90){let lo=x0,hi=x1,fl=f0;for(let i=0;i<50;i++){const m=(lo+hi)/2,fm=f(m);if((fm<=0)===(fl<=0)){lo=m;fl=fm}else hi=m}const r=(lo+hi)/2;if(best==null||dir*(r-best)<0)best=r;break}x0=x1;f0=f1;if(best!=null&&dir*(x1-best)>0)break}}
  return best}
-document.addEventListener('change',e=>{const id=e.target.id;if(!['cw-sk','cw-sa','cw-sx','cw-sb'].includes(id))return;CW[id.slice(3)]=e.target.value;CW.snMsg='';chartDraw();const q=$('#'+id);if(q)q.focus()});
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snap]');if(!b)return;const dir=+b.dataset.snap,r=snapFind(dir),k=tmNat()?(CW.sk||'tn'):'tt';
- if(r==null){CW.snMsg=`No exact hit within ${k==='pn'||k==='pp'||k==='sn'?120:200} years`}else{CW.snMsg='';const ms=(r-2440587.5)*864e5;if(tmNat()){CW.rms=ms;CW.rings=[(SNK.find(q=>q[0]===k)||SNK[0])[2]]}else tmSet(ms)}
+document.addEventListener('change',e=>{const id=e.target.id;if(!['cw-ka','cw-kb','cw-sa','cw-sx','cw-sb'].includes(id))return;CW[id.slice(3)]=e.target.value;CW.snMsg='';chartDraw();const q=$('#'+id);if(q)q.focus()});
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-snap]');if(!b)return;const dir=+b.dataset.snap,r=snapFind(dir),ka=snKA(),kb=snKB();
+ if(r==null){CW.snMsg=`No exact hit within ${ka==='T'||kb==='T'?200:120} years`}else{CW.snMsg='';const ms=(r-2440587.5)*864e5;if(tmNat()){CW.rms=ms;CW.rings=[SNRING[ka]]}else tmSet(ms)}
  chartDraw();const q=$(`#vt-cw [data-snap="${dir}"]`);if(q)q.focus()});
 /* Gemini, Nov 15: a general Time Machine window (all apps): previous or next station (retrograde or direct) of every planet,
    New Moon, Full Moon, Solar Eclipse or Lunar Eclipse */
@@ -10126,14 +10168,13 @@ document.addEventListener('change',e=>{if(e.target.id!=='cw-gev')return;CW.gev=e
 function tmNat(){return cwKind()==='natal'&&!!window.EAWheel}
 function tmGet(){return new Date(tmNat()?(CW.rms||Date.now()):(CW.ms!=null?CW.ms:Date.now()))}
 function tmToday(){return tmNat()?CW.rms==null:Math.abs((CW.ms||0)-Date.now())<6e4}
-function tmSet(ms){if(tmNat()){CW.rms=ms;if(!(CW.rings||[]).length)CW.rings=['tr'];return}cwStop();CW.p=1;CW.span=null;if(ms==null)ms=Date.now();CW.ms=ms;CW.name=Math.abs(ms-Date.now())<6e4?'Current Transits':'Transits'}
-function cwTM(rd){const u=CW.tmu||'d',q=CW.tmq||1,z=n=>String(n).padStart(2,'0'),sub=['s','mi','h'].includes(u),today=tmToday();
- const val=sub?`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}T${z(rd.getHours())}:${z(rd.getMinutes())}${u==='s'?':'+z(rd.getSeconds()):''}`:`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
- return `<div class="cwtm" role="group" aria-label="Time Machine"><button data-cwt="-1" aria-label="Back ${q} ${TMU.find(x=>x[0]===u)[1]}${q==1?'':'s'}">&minus;</button>`
+function tmSet(ms){CW.stage=false;if(tmNat()){CW.rms=ms;if(!(CW.rings||[]).length)CW.rings=['tr'];return}cwStop();CW.p=1;CW.span=null;if(ms==null)ms=Date.now();CW.ms=ms;CW.name=Math.abs(ms-Date.now())<6e4?'Current Transits':'Transits'}
+function cwTM(rd){const u=CW.tmu||'d',q=CW.tmq||1,z=n=>String(n).padStart(2,'0'),today=tmToday(),U=TMU.find(x=>x[0]===u),nm=U[1]+(q==1?'':'s');
+ return `<div class="cwtm" role="group" aria-label="Time Machine"><button class="cwar" data-cwt="-1" aria-label="Back ${q} ${nm}">&#9664;&#xFE0E;</button>`
  +`<input id="cw-tq" type="number" inputmode="numeric" min="1" step="1" value="${q}" aria-label="How many">`
- +`<select id="cw-tu" aria-label="Step">${TMU.map(([k,n])=>`<option value="${k}"${k===u?' selected':''}>${n}</option>`).join('')}</select>`
- +`<label class="cwtday"><span>${today?'Today':`${rd.getMonth()+1}/${rd.getDate()}/${rd.getFullYear()}`}</span><input type="date" id="cw-rd" value="${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}" aria-label="${today?'Today':'Date of the added wheel'}. Tap to choose a date"></label>${today?'':`<button class="cwtoday" data-cwt="now" aria-label="Back to today">&#8634;</button>`}`
- +`<button data-cwt="1" aria-label="Forward ${q} ${TMU.find(x=>x[0]===u)[1]}${q==1?'':'s'}">+</button></div>`+cwSnap()}
+ +cwPick('cw-tu','Step: '+U[1],TMS[u],TMU.map(([k,n])=>[k,n]),u,'cwtu')
+ +`<label class="cwtday"><span>${today?'Today':`${rd.getMonth()+1}/${rd.getDate()}/${String(rd.getFullYear()).slice(-2)}`}</span><input type="date" id="cw-rd" value="${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}" aria-label="${today?'Today':'Time Machine date'}. Tap to choose a date"></label>${today?'':`<button class="cwtoday" data-cwt="now" aria-label="Back to today">&#8634;</button>`}`
+ +`<button class="cwar" data-cwt="1" aria-label="Forward ${q} ${nm}">&#9654;&#xFE0E;</button></div>`+cwSnap()}
 function cwLine(){const R=cwKind()==='natal'&&window.EAWheel?(CW.rings||[]):[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  /* Gemini, Nov 15 (12:18 PM): the Time Machine stays up beneath the chart, wheel added or not */
  const spd=`<select class="cwspd" id="cw-spd" aria-label="Animation speed">${SPD.map((x,i)=>`<option value="${i}"${i===CW.sp?' selected':''}>${x[0]}</option>`).join('')}</select>`;
@@ -10179,7 +10220,7 @@ function cwTime(ms,tz){try{return new Intl.DateTimeFormat('en-US',{timeZone:tz||
 function cwFav(){const kd=cwKind();try{if(kd==='natal')return !!(T.isFavBase&&T.isFavBase());return !!CW.favId}catch(e){return false}}
 function cwHead(k){const kd=cwKind(),pl=cwPlace(),ch=kd==='natal'?T.chart():null,ms=kd==='natal'&&CW.bms==null?ch.ms:CW.ms,fav=cwFav(),
   rr=kd==='natal'&&CW.bms==null&&T.rec?T.rec():null,rt=rr&&/^\d{1,2}:\d{2}/.test(rr.time||'')?(([h,m])=>`${h%12||12}:${String(m).padStart(2,'0')}${h<12?'am':'pm'}`)(rr.time.split(':').map(Number)):null,
-  tl=`${T.date(ms)}${CW.unk&&kd==='natal'?'':' · '+(rt||cwTime(ms,pl&&pl.tz))}${cwCusps(CW.ms||Date.now())?' · '+hsysN(k):CW.unk?' · Birth time unknown':''}`;
+  tl=`${T.date(ms)}${CW.unk&&kd==='natal'?'':' · '+(rt||cwTime(ms,pl&&pl.tz))}${cwCusps(CW.ms||Date.now())?' · '+hsysN(k)+((x=>x?' · '+(x.set?'Sunset':'Sunrise')+' chart':'')(cwSunX(CW.ms))):CW.unk?' · Birth time unknown':''}`;
  return `<div class="cwh"><button class="cwstar" id="cw-fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button><div>${kd==='now'?'<b>Current Transits</b>':hd2(CW.name)}<small>${tl}</small>${pl&&pl.label?`<small class="cwpl">${esc(pl.label)}</small>`:''}`
  +`<span class="cwed"><button id="cw-ed">Edit</button>${kd==='now'?'':'<button id="cw-cl">Clear</button>'}</span></div><button class="vtbtn" id="cw-x">Close</button></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#cw-fav,#cw-ed,#cw-cl');if(!b)return;
@@ -10189,7 +10230,10 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
    CW.favId=T.favNew({name:nm,date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`,place:pl.label?{label:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz}:undefined})}}catch(x){}chartDraw();const q=$('#cw-fav');if(q)q.focus();return}
  if(b.id==='cw-ed'){xpOpen();return}
  if(b.id==='cw-cl'){if(ME()){try{localStorage.removeItem('vt-me')}catch(x){}stop();V.ms=Date.now();V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true)}chartOpen(Date.now(),'Current Transits',false)}});
-function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
+/* a two-line title (stage name over side) pushed the Time Machine below the window: the wheel gives up the overflow */
+function cwFit(){const o=$('#vt-cw');if(!o||o.hidden)return;const w=o.querySelector('.cww');if(!w)return;w.style.removeProperty('max-width');const over=o.scrollHeight-o.clientHeight;if(over>0)w.style.setProperty('max-width',Math.max(200,w.getBoundingClientRect().width-over-2)+'px','important')}
+function chartDraw(){chartDraw0();try{cwFit()}catch(e){}requestAnimationFrame(()=>{try{cwFit()}catch(e){}})}
+function chartDraw0(){const o=$('#vt-cw'),d=new Date(CW.ms);
  const k=hsysK();
  o.innerHTML=cwHead(k)
  +(CW.bms!=null?`<div class="cwbw"><span><i style="background:#bfe0ff"></i>Inside: ${esc(CW.bn)}, birth</span><span><i style="background:${GOLD}"></i>Outside: ${esc(String(CW.name).split('\n')[0])}</span></div>`:'')
@@ -10203,7 +10247,7 @@ function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
    Line Color, Conjunction Star, Orbit Rings, Planet Look), which leaves room under the picture for Play and an animation speed slider */
 /* Gemini, Nov 10: six speeds. Crawl and Run are set in Space settings (seconds for one cycle in Space; Earth takes 2.5 times as long);
    the four between are spaced evenly (geometrically) from one to the other. Crawl and Walk scroll the All table. */
-const SPDN=['Crawl / Scroll','Walk / Scroll','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:120,slow:60,run:12},(()=>{try{return JSON.parse(localStorage.getItem('vt-spdx3'))||{}}catch(e){return {}}})()),SPD=[];
+const SPDN=['Crawl','Walk','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:120,slow:60,run:12},(()=>{try{return JSON.parse(localStorage.getItem('vt-spdx3'))||{}}catch(e){return {}}})()),SPD=[];
 document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='spc-crawl'&&id!=='spc-run'&&id!=='spc-slow')return;const v=+e.target.value;if(!(v>0))return;SPDX[id.slice(4)]=v;try{localStorage.setItem('vt-spdx3',JSON.stringify(SPDX))}catch(x){}spdBuild();if(SPC.on)SPC.t0=performance.now()-SPC.p*spcDur();if(EAV.on)EAV.t0=performance.now()-EAV.p*eaDur()});
 /* Gemini, Nov 15: speeds are the time for the whole animation, whatever it shows. One cycle (Moon, Mercury, Venus, Mars, the
    Chart, each Earth period): Crawl 2 minutes, Slow 60 s, Run 12 s. A pattern of several cycles (Mercury 3, Venus 5): Crawl 6 minutes,
@@ -10422,12 +10466,13 @@ function animHi(){const ms=animMs();
  /* Gemini, Nov 9: during Play the table is the All table and follows along, turning to the next cycle when the animation crosses into it */
  if(ms!=null&&V.view!=='ret'&&!(V.ahMiss&&performance.now()-V.ahMiss<1500)){const D=(V.lastR||[]).filter(x=>!x.mk);
   /* Gemini, Nov 9: no scrolling: the table turns whole, Morning to Evening to the next Morning. Super Slow / Scroll keeps the scrolling All table */
-  const vs=animSq()<=1,want=vs?'all':null;
+  const vs=animSq()<=1,want=vs?'all':null;if(vs&&!V.allc){V.allc=true;V.ex=null;V.ahI=null;try{draw(false)}catch(e){}}
   if((vs?V.side!=='all':V.side==='all'&&V.ahNoSide!==PL())||!D.length||ms<D[0].ms||ms>D[D.length-1].ms){V.side=want;V.ms=ms;try{draw(true)}catch(e){}if(!vs&&V.side==='all')V.ahNoSide=PL();const E=(V.lastR||[]).filter(x=>!x.mk);if(!E.length||ms<E[0].ms||ms>E[E.length-1].ms)V.ahMiss=performance.now()}}
  const R=V.lastR||[],L=[...document.querySelectorAll('#vt-list > li')];let k=-1;
  if(ms!=null&&L.length===R.length)R.forEach((x,i)=>{if(!x.mk&&x.ms<=ms)k=i});
  if(k===V.ahI)return;V.ahI=k;L.forEach((li,i)=>li.classList.toggle('vtah',i===k));
- if(k>=0&&innerWidth>=1100&&animSq()<=1){const li=L[k],hd=document.querySelector('#vt header'),hb=hd?Math.max(0,hd.getBoundingClientRect().bottom):0;ft=document.getElementById('vt-bot'),fb=ft&&ft.offsetParent?Math.min(innerHeight,ft.getBoundingClientRect().top):innerHeight;li.style.scrollMarginTop=Math.round(hb)+'px';li.style.scrollMarginBottom=Math.round(innerHeight-fb)+'px';li.scrollIntoView({block:'center',behavior:'smooth'})}   /* Gemini, Nov 10: the present event always sits in the middle of the rows shown, between the header and the footer */}
+ /* Gemini, Nov 15: no scrolling the collapsed table: the whole table stays collapsed and the stage the animation has reached opens */
+ if(V.allc&&V.side==='all'){const x=k>=0?R[k]:null,ex=x?Math.round(x.ms):null;if(ex!==V.ex){V.ex=ex;try{draw(false)}catch(e){}const o=$('#vt-list .vtex');if(o){const hd=document.querySelector('#vt header'),hb=hd?Math.max(0,hd.getBoundingClientRect().bottom):0,ft=document.getElementById('vt-bot'),fb=ft&&!ft.hidden&&ft.getClientRects().length?Math.min(innerHeight,ft.getBoundingClientRect().top):innerHeight;o.style.scrollMarginTop=Math.round(hb+6)+'px';o.style.scrollMarginBottom=Math.round(innerHeight-fb+6)+'px';o.scrollIntoView({block:'nearest'})}const L2=[...document.querySelectorAll('#vt-list > li')];L2.forEach((li,i)=>li.classList.toggle('vtah',i===k))}}}
 function paneFit(){[['#vt-spc','#spc-w',980],['#vt-ea','#ea-w',1100]].forEach(([ps,ws,big])=>{const o=$(ps),w=o&&!o.hidden&&$(ws),sv=w&&w.querySelector('svg');if(!sv)return;
  const vb=(sv.getAttribute('viewBox')||'0 0 1 1').trim().split(/[\s,]+/).map(Number),a=vb[2]/vb[3]||1;
  o.classList.add('vtmeas');w.classList.add('vtfit');w.style.width=w.style.height='0px';
@@ -10473,7 +10518,7 @@ function wdStart(){if(!WIDE()||window.EA_PHONE_NARROW)return;wdPane();
 document.addEventListener('click',e=>{if(!WIDE()||!e.target.closest||!e.target.closest('#vt-list')||e.target.closest('[data-cm],[data-sm],[data-em]'))return;
  const k=vxCur();if(k==='table')return;setTimeout(()=>{const li=$('#vt-list .vtex')||e.target.closest('li');const b=li&&li.querySelector&&li.querySelector('[data-sm]');if(!b)return;const ms=+b.dataset.sm,nm=b.dataset.cn;
   if(k==='space')spcOpen(ms,nm);else if(k==='lem')eaOpen(ms,nm);else if(k==='chart'){/* Gemini, Nov 15: the chart snaps to the stage pressed; a birth chart keeps its wheel and the added wheel moves there */
-   if(tmNat()){tmSet(ms);chartDraw()}else{const e0=CW.earth;chartOpen(ms,nm,false);CW.earth=e0;chartDraw()}}},60)},true);   /* capture: the line re-renders on the press, before a bubbling listener could see it */
+   if(tmNat()){tmSet(ms);chartDraw()}else{const e0=CW.earth;chartOpen(ms,nm,false);CW.earth=e0;CW.stage=true;chartDraw()}}},60)},true);   /* capture: the line re-renders on the press, before a bubbling listener could see it */
 addEventListener('load',()=>setTimeout(()=>{if(WIDE())wdStart()},9000));
 /* Gemini, Nov 7: the Device opens this app on a view (planetary-tables.html#v=space, or a message when another menu is used):
    table, chart, space, earth or hist, on today's line */
@@ -10487,7 +10532,7 @@ addEventListener('message',e=>{const d=e.data;if(d&&d.pt==='view')ptView(d.v);if
 function spcClose(){spcStop();const o=$('#vt-spc');if(o)o.hidden=true;document.body.classList.remove('vtcw');animHi()}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-sm]');if(b){e.stopPropagation();spcOpen(+b.dataset.sm,b.dataset.cn)}},true);
 document.addEventListener('keydown',e=>{const o=document.getElementById('vt-spc');if(e.key==='Escape'&&o&&!o.hidden){if(SPC.set){SPC.set=false;spcDraw()}else spcClose()}});
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cm]');if(b){e.stopPropagation();chartOpen(+b.dataset.cm,b.dataset.cn,!!b.dataset.bw)}},true);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cm]');if(b){e.stopPropagation();chartOpen(+b.dataset.cm,b.dataset.cn,!!b.dataset.bw);if(!b.dataset.bw&&b.closest('#vt-list')){CW.stage=true;chartDraw()}}},true);   /* a table stage: Moon, Mercury and Venus cast sunrise(ish) or sunset(ish) */
 document.addEventListener('keydown',e=>{const o=document.getElementById('vt-cw');if(e.key==='Escape'&&o&&!o.hidden){o.hidden=true;document.body.classList.remove('vtcw')}});
 /* Startup animation (Gemini, Nov 3): five seconds in which today's Venus star is drawn inside the chart wheel, the same gradient
    lines as the chart's Venus Star, from two interior conjunctions before today, the present one glowing as it is reached,
