@@ -482,8 +482,9 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   const cf=main?col:()=>ci,sh=main&&shiny;
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
-   h+=`<circle cx="${f(t1[0])}" cy="${f(t1[1])}" r="${nb>1?2:2.4}" fill="${c}"/>`;
-   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
+   {const k0=xy(x.l,t),k1=xy(x.l,t-(nb>1?5:6.5)),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${nb>1?1.4:1.8}" stroke-linecap="round"/>`}
+   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
    h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
    if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
