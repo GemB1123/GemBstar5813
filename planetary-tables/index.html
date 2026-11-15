@@ -9069,6 +9069,10 @@ body.eawz #vt-cw{overflow:visible;z-index:200}body.eawz #vt-cw .cww{position:rel
 /* Space and Earth pinch to zoom too (Gemini, Nov 14), the zoomed picture on top */
 body.eawz #vt-spc,body.eawz #vt-ea{overflow:visible;z-index:200}body.eawz #vt-ea div.eaw,body.eawz #vt-spc .cww{overflow:visible;position:relative;z-index:50}body.eawz #vt-spc svg.eaw,body.eawz #vt-ea svg.eaw{position:relative;z-index:50}
 #vt-spc svg.eaw,#vt-ea svg.eaw{touch-action:none}
+
+/* Gemini, Nov 15: the chart's Speed label reads like Space's and Earth's */
+#vt-cw .spcsb{align-self:flex-start;background:none;border:0;padding:4px 0;color:#c9c3e8;font:500 14px Inter,system-ui,sans-serif;cursor:pointer}
+#vt-cw .spcsb b{color:#efe3c8;text-decoration:underline dotted;text-underline-offset:3px}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9833,7 +9837,8 @@ function cwSpan(){if(CW.span&&CW.span.k===PL()+MK()+CW.ms)return CW.span;const s
 function cwMs(){if(CW.p>=1)return CW.ms;const S=cwSpan();return (S.a+(S.b-S.a)*CW.p-2440587.5)*864e5}
 /* Gemini, Nov 14: Current Transits and table moments get houses too, for the Current Transits place */
 function cwCusps(t){if(CW.cu0||CW.bms!=null||!T.cusps||!T.home)return CW.cu0;let h=null;try{h=T.home()}catch(e){}return h&&isFinite(h.lat)&&isFinite(h.lon)?T.cusps(t/864e5+2440587.5,h.lat,h.lon):null}
-function cwWheel(){const t=cwMs(),cu=cuOf(cwCusps(t),CW.bms!=null?CW.bms/864e5+2440587.5:t/864e5+2440587.5);WDIM=CW.p<1;try{
+/* Gemini, Nov 15: during Play the houses and angles stay at the chart's moment, so only the planets move (no daily spin) */
+function cwWheel(){const t=cwMs(),cu=cuOf(cwCusps(CW.p<1&&CW.ms!=null?CW.ms:t),CW.bms!=null?CW.bms/864e5+2440587.5:t/864e5+2440587.5);WDIM=CW.p<1;try{
   if(window.EAWheel&&CW.bms==null&&(MER()||CW.mode==='asp'))return ewWheel(t,cu);return wheel(t,MER()?'asp':CW.mode,false,cu,CW.bms)}finally{WDIM=false}}
 /* Gemini, Nov 13: the one universal Simple Wheel (Leo, Painter World; shared/simplewheel.js on the GitHub page, a bundled copy otherwise).
    Planetary Tables adds its own aspects with hover boxes, the four Rs, Whole Sign angles, and Play dimming on top. The biwheel and the
