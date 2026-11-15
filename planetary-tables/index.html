@@ -9264,7 +9264,7 @@ const STEP=[['Day',864e5],['Week',6048e5],['Month',2629800e3],['Year',31556926e3
 const V={ms:null,step:'Month',play:null,memo:null,find:'',open:false,form:null,view:'cycle',x:-1,rm:null,rk:'',side:null,sideAt:'',tm:false,set:false,ex:null};
 let T;const MKC='#ffffff',NOW0=Date.now();   /* the Today line keeps one moment, so it can stay open across redraws */
 function cur(){return V.ms==null?T.chart().ms:V.ms}
-function calc(){const jd=cur()/864e5+2440587.5,m=V.memo;if(m&&!m.err&&jd>=m.A&&jd<m.B)return m;let r;try{r=MOO()?moonCalc(jd):MAR()?marsCalc(jd):MER()?merCalc(jd):annot(T.calc(jd))}catch(e){r={err:'Could not build this table.'}}V.memo=r;return r}
+function calc(){const jd=cur()/864e5+2440587.5,m=V.memo;if(m&&!m.err&&jd>=m.A&&jd<m.B)return m;let r;try{r=MOO()?moonCalc(jd):MAR()?marsCalc(jd):MER()?merCalc(jd):annot(T.calc(jd))}catch(e){r={err:'Could not build this table.'}}if(r&&r.rows&&pref('vt-ing')==='off')r=Object.assign({},r,{rows:r.rows.filter(x=>x.k!=='ing')});   /* Gemini, Nov 14: Sign Changes can be turned off in Settings */V.memo=r;return r}
 function ymd(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return `${String(d.getFullYear()).padStart(4,'0')}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
 /* Gemini, Nov 4: every event in the Complete table reads on two lines, the name on top and what happens below
    (Gate of Perception / Third Eye Chakra Gate; Maximum Elongation / Morning Star), so the Chart button never covers text */
@@ -9537,6 +9537,12 @@ const MCOL={apollo:'#f6e7b0',guard1:'#e9dcc4',psycho:'#c9c3dd',guard2:'#d6e3d2',
    Philosopher to evening elongation; Sage to 15 deg; Psychopomp 15 deg evening, through the interior conjunction, to 15 deg morning */
 const HPH={trick:['Trickster','Rising 15° ahead of the Sun to the morning elongation'],mess:['Messenger','Morning elongation until 15° from the Sun'],guard:['Guardian','15° before the Sun, through the exterior conjunction, to 15° after'],philo:['Philosopher','15° after the Sun to the evening elongation'],sage:['Sage','Evening elongation until 15° from the Sun'],pomp:['Psychopomp','15° from the Sun, through the interior conjunction, to 15° after']};
 const HERMCACHE=new Map();
+/* Gemini, Nov 14: Mercury's maximum brightness in the cycle. Mercury is brightest when nearly full, close to the exterior
+   conjunction, so the peak usually falls while Mercury is hidden in the Sun's light */
+function merBright(a,b,el){const mg=t=>{try{return T.vxP('Mercury',t).mag}catch(e){return null}};if(mg(a)==null)return [];
+ let bt=a,bm=1e9;for(let t=a;t<=b;t+=1){const m=mg(t);if(m<bm){bm=m;bt=t}}
+ let lo=Math.max(a,bt-1),hi=Math.min(b,bt+1);for(let i=0;i<30;i++){const m1=lo+(hi-lo)*.382,m2=hi-(hi-lo)*.382;if(mg(m1)<mg(m2))hi=m2;else lo=m1}
+ const t=(lo+hi)/2,e=el(t);return [{jd:t,mag:mg(t),side:e<0?-1:1,hid:Math.abs(e)<10}]}
 function hermCalc(jd){
  const L=(b,t)=>window.__app.cycle.lon(b,t,'geo'),w=x=>((x%360)+540)%360-180,el=t=>w(L('Mercury',t)-L('Sun',t)),sp=t=>w(L('Mercury',t+.05)-L('Mercury',t-.05));
  const roots=(f,a,b,st)=>{const out=[];let x0=a,f0=f(a);for(let x=a+st;x<=b+1e-9;x+=st){const f1=f(x);if(f0<=0!==f1<=0&&Math.abs(f0)<60&&Math.abs(f1)<60){let lo=x0,hi=x,flo=f0;for(let i=0;i<40;i++){const m=(lo+hi)/2,fm=f(m);if(flo<=0===fm<=0){lo=m;flo=fm}else hi=m}out.push({jd:(lo+hi)/2,up:f1>f0})}x0=x;f0=f1}return out};
@@ -9551,11 +9557,12 @@ function hermCalc(jd){
  const maxM=ext(el,A,m15.jd,false),maxE=ext(el,eU.jd,eD.jd,true),st=roots(sp,A-20,B+5,1);
  const R=[],add=(t,k,s1,l1,l2,o)=>{if(t==null||!isFinite(t))return;R.push(Object.assign({jd:t,k,name:l1,sa:{s:s1,l1,l2}},o||{}))};
  add(A,'trick','Trickster','Trickster Phase Begins','Mercury rises 15° ahead of the Sun in the morning sky',{b:true});
- add(maxM,'mess','Messenger','Messenger Phase Begins','Morning elongation. Greatest distance from the Sun',{b:true});
+ add(maxM,'mess','Messenger','Maximum Morning Elongation','Messenger Phase Begins. Greatest distance from the Sun',{b:true});
  add(m15.jd,'guard','Guardian','Guardian Phase Begins','15° before the Sun. Mercury fades into the light',{b:true});
  add(ec.jd,'conj','Exterior Conj','Mercury-Sun Conjunction','Exterior conjunction, farthest from Earth (behind the Sun)',{b:true,pa:0});
  add(eU.jd,'philo','Philosopher','Philosopher Phase Begins','15° after the Sun. Mercury emerges in the evening sky',{b:true});
- add(maxE,'sage','Sage','Sage Phase Begins','Evening elongation. Greatest distance from the Sun',{b:true});
+ add(maxE,'sage','Sage','Maximum Evening Elongation','Sage Phase Begins. Greatest distance from the Sun',{b:true});
+ for(const x of merBright(A,B,el))add(x.jd,'','Max Brightness','Maximum Brightness',`Magnitude ${x.mag<0?'−':'+'}${Math.abs(x.mag).toFixed(1)}${x.hid?', nearly full and hidden in the Sun\'s light':x.side<0?' as Morning Star':' as Evening Star'}`);
  add(eD.jd,'pomp','Psychopomp','Psychopomp Phase Begins','15° from the Sun. Mercury descends into the light',{b:true});
  add(ic.jd,'conj','Interior Conj','Mercury-Sun Conjunction','Interior conjunction, nearest to Earth (between Earth and Sun)',{b:true,pa:0});
  add(B,'trick','Trickster','Trickster Phase Begins','Mercury rises 15° ahead of the Sun. A new cycle begins',{b:true});
@@ -9596,6 +9603,7 @@ function merCalc(jd){if(HRM())return hermCalc(jd);
  if(e15)add(e15.jd,'hermes','Hermes Phase','Hermes Phase · Evening Star','Second Guardian ends. Exits the Threshold (15° in pm sky)',{b:true});
  if(enS)add(enS.jd,'hermes','Enters Shadow','Mercury Enters Shadow','Arrives at degree of upcoming station direct');
  add(maxE,'hermes','Max Elongation','Maximum Evening Elongation','Greatest distance from the Sun');
+ for(const x of merBright(A,B,el))add(x.jd,'','Max Brightness','Maximum Brightness',`Magnitude ${x.mag<0?'−':'+'}${Math.abs(x.mag).toFixed(1)}${x.hid?', nearly full and hidden in the Sun\'s light':x.side<0?' as Morning Star':' as Evening Star'}`);
  add(rx1.jd,'synth','Synthesis','Synthesis Begins at Station Retrograde','Mercury still point. Stations retrograde.',{stR:true,b:true});
  if(m10)add(m10.jd,'synth','Metamorphosis','Metamorphosis Begins','Enters the Interior Underworld (10° in pm sky)',{b:true});
  add(ic.jd,'conj','Interior Conj','Mercury-Sun Conjunction','Interior Underworld (between Earth & Sun)',{b:true,pa:0});
@@ -9756,6 +9764,7 @@ function setDraw(){const a=animMode();return `<div class="vth">Settings</div>`
  +`<small class="vtnote" id="vs-msg">${pref('vt-anim')?'':'Animation plays the first time the app opens, then Fast Animation.'}</small>`
  +`<div class="vtprogr"><label class="vtck"><input id="vs-prog" type="checkbox"${pref('vt-prog')==='on'?' checked':''}> Progressions</label><select id="vs-progt" aria-label="Kind of progression">${[['sec','Secondary'],['ter','Tertiary'],['min','Minor']].map(([k,n])=>`<option value="${k}"${(pref('vt-progt')||'sec')===k?' selected':''}>${n}</option>`).join('')}</select></div><small class="vtnote">With a chart open in Your Cycle, each expanded card shows when the progressed chart reaches that event, past or future. Secondary: a day for a year. Tertiary: a day for a lunar month. Minor: a lunar month for a year.</small>`
  +`<label class="vtf">Startup View<select id="vs-startv">${[['chart','Chart'],['space','Space'],['earth','Earth']].map(([k,n])=>`<option value="${k}"${STARTV()===k?' selected':''}>${n}</option>`).join('')}</select></label><small class="vtnote">On a wide screen the table opens on the left and this view on the right.</small>`
+ +`<label class="vtf">Sign Changes<select id="vs-ing"><option value="on">Show</option><option value="off"${pref('vt-ing')==='off'?' selected':''}>Hide</option></select></label>`
  +`<label class="vtf">Chakra Colors<select id="vs-chk"><option value="on">On</option><option value="off"${pref('vt-chk')==='off'?' selected':''}>Off</option></select></label>`
  +`<div class="vtrowt"><button class="vtbtn" id="vs-x">Close</button></div>`}
 function setOpen(on){V.set=on;if(on&&V.cr)crOpen(false);const p=$('#vt-sp');p.hidden=!on;$('#vt-gear').setAttribute('aria-expanded',on);if(on){if(V.open)pop(false);p.innerHTML=setDraw();$('#vs-anim').focus()}else $('#vt-gear').focus()}
@@ -9868,7 +9877,7 @@ function build(){const w=document.createElement('div');w.id='vt';FOOT=`${phoneNo
  $('#vt-vw').onclick=e=>{const b=e.target.closest('[data-w]');if(!b||(b.dataset.w===V.side&&V.view!=='ret'))return;V.side=b.dataset.w;V.view='cycle';draw(true)};
  $('#vt-sb').onclick=()=>sideStep(-1);$('#vt-sf').onclick=()=>sideStep(1);$('#vt-heart').onclick=()=>crOpen(!V.cr);$('#vt-cr').addEventListener('click',e=>{if(e.target.closest('#cr-x,#cr-x2'))crOpen(false)});$('#vt-gear').onclick=()=>setOpen(!V.set);
  $('#vt-sp').addEventListener('click',e=>{if(e.target.id==='vs-x')setOpen(false)});
- $('#vt-sp').addEventListener('change',e=>{if(e.target.id==='vs-startv'){prefSet('vt-startv',e.target.value);return}if(e.target.id==='vs-prog'){prefSet('vt-prog',e.target.checked?'on':'');draw();return}if(e.target.id==='vs-progt'){prefSet('vt-progt',e.target.value);draw();return}if(e.target.id==='vs-chk'){prefSet('vt-chk',e.target.value==='off'?'off':'');draw();return}if(e.target.id==='vs-anim'){prefSet('vt-anim',e.target.value);$('#vs-msg').textContent='Saved. You will see it the next time the app opens.'}});
+ $('#vt-sp').addEventListener('change',e=>{if(e.target.id==='vs-ing'){prefSet('vt-ing',e.target.value);V.memo=null;draw();return}if(e.target.id==='vs-startv'){prefSet('vt-startv',e.target.value);return}if(e.target.id==='vs-prog'){prefSet('vt-prog',e.target.checked?'on':'');draw();return}if(e.target.id==='vs-progt'){prefSet('vt-progt',e.target.value);draw();return}if(e.target.id==='vs-chk'){prefSet('vt-chk',e.target.value==='off'?'off':'');draw();return}if(e.target.id==='vs-anim'){prefSet('vt-anim',e.target.value);$('#vs-msg').textContent='Saved. You will see it the next time the app opens.'}});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&V.set)setOpen(false);if(e.key==='Escape'&&V.cr)crOpen(false)});addEventListener('resize',padBot);
  $('#vt-list').addEventListener('click',e=>{const vx=e.target.closest('[data-vx]');if(vx){const k=+vx.dataset.vx;V.ex=V.ex===k?null:k;draw(false);const o=$('#vt-list .vtex')||$(`#vt-list [data-vx="${k}"]`);if(o){o.scrollIntoView({block:'nearest',behavior:'smooth'});(o.tagName==='LI'?o:o).focus&&o.focus()}return}const b=e.target.closest('[data-vr]');if(!b)return;const i=+b.dataset.vr;V.x=V.x===i?-1:i;drawRet(false)});
  $('#vt-list').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('li[data-vx]')){e.preventDefault();e.target.click()}});
@@ -9905,7 +9914,7 @@ const PLN=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Ne
    Nov 5: Shamanic Astrology uses Whole Sign houses (AS and MC still drawn), so that method defaults to Whole Sign, the others to
    Placidus; a House System menu under the chart switches between them (remembered) */
 const HSYS=[['whole','Whole Sign'],['placidus','Placidus'],['koch','Koch'],['porphyry','Porphyry'],['equal','Equal'],['regio','Regiomontanus'],['campanus','Campanus'],['alcabitius','Alcabitius'],['morinus','Morinus'],['sun1','Sun on 1st'],['solarsign','Solar Sign'],['natural','Natural Zodiac']];
-const hsysK=()=>{const v=pref('vt-hsys');return HSYS.some(x=>x[0]===v)?v:TOT()?'whole':'placidus'},hsysN=k=>(HSYS.find(x=>x[0]===k)||['',''])[1];
+const hsysK=()=>{const v=pref('vt-hsys');return HSYS.some(x=>x[0]===v)?v:TOT()||HRM()?'whole':'placidus'},hsysN=k=>(HSYS.find(x=>x[0]===k)||['',''])[1];
 function cuOf(c0,jd){const k=hsysK();if(!c0||k==='natural')return null;if(k==='placidus'||!T.hsys)return c0;const P=T.sky(jd).pos;return T.hsys(c0.slice(),k,P.Sun,P.Moon)}
 /* Gemini, Nov 6: glyphs never sit on each other. Planets closer than the gap gather into a group, centred on their own degrees,
    one gap apart; groups that then touch merge, round the whole wheel (0 Aries included), until every glyph has its own space */
