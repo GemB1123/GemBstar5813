@@ -32,7 +32,8 @@
    planetColors 'gold' (default: shiny gold with a soft glow, AstroSynth's gold), 'planet' (AstroMaps colors, dark-tuned), 'element'; sign glyphs keep their element colors (signColors:'planet' to follow the planet), or {Sun:'#..', ...}
    chart.rings  [{pos, ret, label, color}, ...] up to two more charts drawn in rings outside the main one (bi- and tri-wheels);
                 chart.label names the main chart. EAWheel.legend(chart, opts) returns a small HTML legend (dot + label per ring).
-   window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root; EAWheel.zoomReset().
+   window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root: the wheel grows over the page
+     as the top layer, body.eawz is set while zoomed (apps open their containers' overflow), pinch back to full size or EAWheel.zoomReset() ends it.
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
      tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
    Other Worlds: build {pos, ret, cusps} from your own ephemeris and pass the glyph and sign providers you have. */
@@ -186,21 +187,30 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
 /* pinch to zoom on phones (Gemini, Nov 13: an imperative wherever the wheel appears on mobile): two fingers zoom about their
    midpoint, one finger pans while zoomed; touch only, no zoom on a computer (Gemini, Nov 13); the view survives re-renders */
+/* pinch to zoom (Gemini, Nov 15: a global rule): the wheel itself grows, over the tables and chart text, as the top layer.
+   It scales the <svg> with a CSS transform about the pinch point; body.eawz is set while zoomed so each app can open up its
+   containers' overflow. Pinch back to full size to end the zoom (double tap is the Earth cycle), or call EAWheel.zoomReset(). */
 const ZV={k:1,x:0,y:0};
-function zApply(sv){const w=400/ZV.k;sv.setAttribute('viewBox',`${f(ZV.x-w/2)} ${f(ZV.y-w/2)} ${f(w)} ${f(w)}`)}
-function zClamp(){ZV.k=Math.max(1,Math.min(6,ZV.k));const m=200-200/ZV.k;ZV.x=Math.max(-m,Math.min(m,ZV.x));ZV.y=Math.max(-m,Math.min(m,ZV.y));if(ZV.k===1){ZV.x=0;ZV.y=0}}
-function zoomable(root){if(root.__eawz)return;root.__eawz=1;const pts=new Map();let st=null;
+function zApply(sv){if(ZV.k===1){sv.style.transform='';sv.style.zIndex='';sv.style.position='';sv.style.transformOrigin='';return}
+ sv.style.transformOrigin='50% 50%';sv.style.position='relative';sv.style.zIndex='1000';sv.style.transform=`translate(${f(ZV.x)}px,${f(ZV.y)}px) scale(${ZV.k.toFixed(3)})`}
+function zState(){const on=ZV.k>1;if(document.body)document.body.classList.toggle('eawz',on)}
+function zoomable(){const root=document;if(root.__eawz)return;root.__eawz=1;   /* one listener for the page, whatever root attach() was given */
+ const pts=new Map();let st=null;
  const sv=()=>root.querySelectorAll?root.querySelectorAll('svg.eaw'):[];
- const loc=(s,cx,cy)=>{const r=s.getBoundingClientRect(),w=400/ZV.k;return [ZV.x-w/2+(cx-r.left)/r.width*w,ZV.y-w/2+(cy-r.top)/r.height*w]};
- new MutationObserver(()=>{if(ZV.k!==1)sv().forEach(zApply)}).observe(root.documentElement||root,{childList:true,subtree:true});
+ const all=()=>{sv().forEach(zApply);zState()};
+ new MutationObserver(()=>{if(ZV.k!==1)sv().forEach(s=>{if(!s.style.transform)zApply(s)})}).observe(root.documentElement||root,{childList:true,subtree:true});
+ /* the svg's resting center on screen (its box minus the current shift) */
+ /* a = screen px per CSS px (the page may be scaled, e.g. the Device stage), so finger moves map to the transform */
+ const sc=s=>{const r=s.getBoundingClientRect(),w=s.clientWidth||r.width/ZV.k;return r.width/ZV.k/w||1};
+ const ctr=(s,a)=>{const r=s.getBoundingClientRect();return [r.left+r.width/2-ZV.x*a,r.top+r.height/2-ZV.y*a]};
  root.addEventListener('pointerdown',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s||e.pointerType==='mouse')return;pts.set(e.pointerId,[e.clientX,e.clientY]);st=null},true);
  root.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const s=e.target.closest&&e.target.closest('svg.eaw')||sv()[0];if(!s)return;pts.set(e.pointerId,[e.clientX,e.clientY]);const P=[...pts.values()];
-  if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),cx=(P[0][0]+P[1][0])/2,cy=(P[0][1]+P[1][1])/2;
-   if(!st||st.n!==2){st={n:2,d,k:ZV.k,p:loc(s,cx,cy)};return}const r=s.getBoundingClientRect();ZV.k=st.k*d/st.d;zClamp();const w=400/ZV.k;
-   ZV.x=st.p[0]-((cx-r.left)/r.width-.5)*w;ZV.y=st.p[1]-((cy-r.top)/r.height-.5)*w;zClamp();sv().forEach(zApply);e.preventDefault()}
-  else if(ZV.k>1){if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y};return}const r=s.getBoundingClientRect(),w=400/ZV.k;ZV.x=st.x-(P[0][0]-st.c[0])/r.width*w;ZV.y=st.y-(P[0][1]-st.c[1])/r.height*w;zClamp();sv().forEach(zApply);e.preventDefault()}},{passive:false});
+  if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),mx=(P[0][0]+P[1][0])/2,my=(P[0][1]+P[1][1])/2;
+   if(!st||st.n!==2){const a=sc(s),c=ctr(s,a);st={n:2,d,k:ZV.k,c,a,p:[(mx-c[0]-ZV.x*a)/ZV.k,(my-c[1]-ZV.y*a)/ZV.k]};return}
+   ZV.k=Math.max(1,Math.min(6,st.k*d/st.d));if(ZV.k<1.03){ZV.k=1;ZV.x=0;ZV.y=0}else{ZV.x=(mx-st.c[0]-st.p[0]*ZV.k)/st.a;ZV.y=(my-st.c[1]-st.p[1]*ZV.k)/st.a}all();e.preventDefault()}
+  else if(ZV.k>1){if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y,a:sc(s)};return}ZV.x=st.x+(P[0][0]-st.c[0])/st.a;ZV.y=st.y+(P[0][1]-st.c[1])/st.a;all();e.preventDefault()}},{passive:false});
  const up=e=>{pts.delete(e.pointerId);st=null};root.addEventListener('pointerup',up,true);root.addEventListener('pointercancel',up,true);}
-function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply)}
+function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply);zState()}
 function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
  root.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
   if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
