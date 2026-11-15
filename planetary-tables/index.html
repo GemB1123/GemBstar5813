@@ -9089,6 +9089,7 @@ function ymd(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return `${S
 function two(x){let n=unsup(x.name).trim(),sup='';
  const side=x.pa<0?'Morning Star':'Evening Star';let a,b,g;
  if(MOO())return x.mk?[esc(n),x.prev&&x.prev.ph!=null?MOPH[x.prev.ph][0]+' Phase':'']:[esc(x.sa.l1),esc(x.sa.l2)];
+ if(x.mk&&HRM())return [esc(n),x.prev&&HPH[x.prev.ph]?HPH[x.prev.ph][0]+' Phase':side];   /* Gemini, Nov 15: Hermetic Today names its phase (Trickster Phase), not a Shamanic stage */
  if(x.mk)return [esc(n),MAR()&&x.prev&&x.prev.ph?(x.prev.ph==='m0'?'Phase Zero':'Phase '+MAN[x.prev.ph])+' · '+MAPH[x.prev.ph][0]:x.prev?short(x.prev)+' Stage':side];
  if(HRM()&&x.sa)return [esc(x.sa.l1),esc(x.sa.l2)];
  if(TOT()){const t=tot(x);if(t)return [esc(t.l1),esc(t.l2)]}   /* Gemini, Nov 4: Today opens to the stage it is in, the line before it plus "Stage" */
@@ -9117,7 +9118,7 @@ function more(x){if(MOO()){const ph=x.ph!=null?x.ph:moPh(x.v-x.s),a=Math.abs(x.p
  if(MAR()){const t=x.ms/864e5+2440587.5,ms=((window.__app.cycle.lon('Mars',t+.5,'geo')-window.__app.cycle.lon('Mars',t-.5,'geo'))%360+540)%360-180,a=Math.abs(x.pa);
   return `<div class="vtp"><span><small>Mars Long</small>${T.pos(x.v,x.rx)}</span><span><small>Degrees from Sun</small>${dm(a)} ${a<15?'(Underworld)':x.pa<0?'am sky':'pm sky'}</span><span><small>Mars Speed</small>${dm(ms,true)}/day</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(x.ph==='m0'?'Phase Zero · '+MAPH.m0[0]:'Phase '+MAN[x.ph]+' · '+(MAPH[x.ph]||[''])[0])}</span></div>`}
  if(MER()){const w=a=>((a%360)+540)%360-180,t=x.ms/864e5+2440587.5,L=b=>window.__app.cycle.lon(b,t,'geo'),ms=w(window.__app.cycle.lon('Mercury',t+.5,'geo')-window.__app.cycle.lon('Mercury',t-.5,'geo'));void L;
-  return `<div class="vtp"><span><small>Mercury Long</small>${T.pos(x.v,x.rx)}</span><span><small>Degrees from Sun</small>${dm(Math.abs(x.pa))} ${Math.abs(x.pa)<10?'(not visible)':x.pa<0?'am sky':'pm sky'}</span><span><small>Mercury Speed</small>${dm(ms,true)}/day</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(MPH[x.ph]||'')}</span></div>`}
+  return `<div class="vtp"><span><small>Mercury Long</small>${T.pos(x.v,x.rx)}</span><span><small>Degrees from Sun</small>${dm(Math.abs(x.pa))} ${Math.abs(x.pa)<10?'(not visible)':x.pa<0?'am sky':'pm sky'}</span><span><small>Mercury Speed</small>${dm(ms,true)}/day</span></div><div class="vtp vtp2"><span><small>Sun Long</small>${T.pos(x.s,false)}</span><span><small>Phase</small>${esc(HRM()?((HPH[x.mk&&x.prev?x.prev.ph:x.ph]||[''])[0]):(MPH[x.ph!=null?x.ph:x.prev&&x.prev.ph]||''))}</span></div>`}
  const vl=`<span><small>Venus Long</small>${T.pos(x.v,x.rx)}</span>`,sl=`<span><small>Sun Long</small>${T.pos(x.s,false)}</span>`,ph=`<span><small>Phase Angle</small>${T.pa(x.pa).replace(' Deg ','° ').replace(' Min','′')}</span>`;
  let q=VXC.get(x.ms);if(!q&&T.vx){try{q=T.vx(x.ms/864e5+2440587.5);VXC.set(x.ms,q)}catch(e){q=null}}
  if(!q)return `<div class="vtp">${vl}${sl}${ph}</div>`;const pa=x.pa;
@@ -10380,7 +10381,7 @@ function eaSvg(rr){if(!rr){const r0=eaBuild();if(r0.six&&EAV.tile)return eaTiles
   for(let j=1;j<days.length-1;j++){const d=days[j],c=sep(d);if(c<14&&c<=sep(days[j-1])&&c<sep(days[j+1])&&j-lj>20){const p=mz(d.m);if(!p)continue;lj=j;const S=XY(d.s[0],d.s[1]);mo+=eaMoon(p[0],p[1],4.6,d.mk,S[0],S[1]);BX.push([p[0]-5.5,p[1]-5.5,p[0]+5.5,p[1]+5.5]);
    const t=eaMd(d.ms),wd=t.length*4,ly=[p[1]-8,p[1]+14].find(y=>!hit([p[0]-wd/2,y-7,p[0]+wd/2,y+1.5]));if(ly!=null){BX.push([p[0]-wd/2,ly-7,p[0]+wd/2,ly+1.5]);mo+=`<text x="${eF(p[0])}" y="${eF(ly)}" class="eaml">${t}</text>`}}}}
  /* greatest elongation and greatest brightness in gold first, then the dates along the path, set on its outer side where there is room */
- const ev=[[r.ge,MOO()?'Full Moon':MAR()?'First Breath':`Greatest Elongation ${Math.round(Math.abs(days[r.ge].el))}&deg;`],[r.br,`Brightest ${days[r.br].mag.toFixed(1)}`]].filter(([j],k)=>j<=last&&days[j].v[0]>0&&!(k&&SKY()&&Math.abs(j-r.ge)<12));
+ const ev=[[r.ge,MOO()?'Full Moon':MAR()?'First Breath':`Maximum Elongation ${Math.round(Math.abs(days[r.ge].el))}&deg;`],[r.br,`Brightest ${days[r.br].mag.toFixed(1)}`]].filter(([j],k)=>j<=last&&days[j].v[0]>0&&!(k&&SKY()&&Math.abs(j-r.ge)<12));
  let tx='';if(r.six){r.six.forEach((c,ci)=>{const dd=c.days,lt=F.live?Math.floor(EAV.p*(dd.length-1)):dd.length-1;if(c.ge>lt||!vis(dd[c.ge]))return;const y=new Date(dd[c.ge].ms).getUTCFullYear();tx+=lbl(c.ge,String(y),'eaev',true,dd).replace('class="eaev"',`class="eaev" style="fill:${EA6C()[ci]}"`)})}else ev.forEach(([j,t])=>{tx+=lbl(j,t,'eaev',true)});
  let lp=null;if(!r.six&&!r.tile)up.forEach(j=>{const d=days[j],p=XY(d.v[0],d.v[1]);if(d.v[0]<=0)return;   /* dates only above the horizon */
  if(ev.some(([k])=>Math.abs(k-j)<4))return;if(lp&&Math.hypot(p[0]-lp[0],p[1]-lp[1])<26*zk)return;const o=lbl(j,eaMd(d.ms),'eadl');if(o){lp=p;tx+=o}});
