@@ -9102,6 +9102,17 @@ body.vtout #spc-e,body.vtout #spc-g,body.vtout #vt-hist,body.vtout #vt-seg,body.
 body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 /* Gemini, Nov 15: the open view's button is lit on the table's lines */
 .vtcb.vton{background:linear-gradient(#ffe48a,#e0ad3a);border-color:#8a5a00;color:#2a1a00;box-shadow:0 0 0 2px #ffe9a080,0 0 10px #ffd86a99}
+#vt-cw .cww{position:relative}
+#vt-cw .cww .cwlg{position:absolute;top:0;right:0;justify-content:flex-end;pointer-events:none;font-size:12px;max-width:45%}
+#vt-cw .cwsplit{position:relative;display:flex;justify-content:center;gap:0;margin:0 auto}
+#vt-cw .cwsplit button{height:40px;border:1.5px solid #c9b27a;background:#14122a;color:#efe3c8;font:600 14px Inter,system-ui,sans-serif}
+#vt-cw .cwsm{min-width:120px;border-radius:10px 0 0 10px;padding:0 16px}
+#vt-cw .cwsa{width:40px;border-radius:0 10px 10px 0;border-left-width:0!important;font-size:13px}
+#vt-cw .cwsa[aria-expanded=true]{background:#c9b27a;color:#14122a}
+#vt-cw .cwmenu{position:absolute;bottom:46px;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-direction:column;min-width:160px;background:#14122a;border:1.5px solid #c9b27a;border-radius:10px;overflow:hidden;box-shadow:0 6px 20px #000a}
+#vt-cw .cwmenu button{border:0;border-radius:0;text-align:left;padding:0 14px;height:42px}
+#vt-cw .cwmenu button+button{border-top:1px solid #c9b27a55}
+#vt-cw .cwmenu button:hover,#vt-cw .cwmenu button:focus-visible{background:#2a2550}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9993,12 +10004,19 @@ function cwRings(bj){if(cwKind()!=='natal'||!CW.rings||!CW.rings.length)return [
   else if(r==='pr'){const k=T.sky(bj+(rj-bj)/365.2422);out.push({pos:pick(k.pos),ret:k.ret,label:'Progressions'})}
   else if(r==='sa'){const n=T.sky(bj).pos,p=T.sky(bj+(rj-bj)/365.2422).pos,arc=p.Sun-n.Sun,o={};PLN.forEach(k=>o[k]=((n[k]+arc)%360+360)%360);out.push({pos:o,ret:{},label:'Solar Arc'})}}
  return out}
+/* the added wheel's legend, upper right of the wheel (Gemini, Nov 15) */
+function cwRingLg(){if(cwKind()!=='natal'||!window.EAWheel||!(CW.rings||[]).length)return '';try{const c=T.chart();return `<div class="cwlg">${EAWheel.legend({label:c.name,rings:cwRings(c.ms/864e5+2440587.5)},{theme:'dark'})}</div>`}catch(e){return ''}}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&CW.rmenu){CW.rmenu=false;e.stopPropagation();chartDraw();const f=$('#cw-rm');if(f)f.focus()}},true);
 function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return '';const R=CW.rings||[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
- let lg='';try{if(R.length){const c=T.chart();lg=EAWheel.legend({label:c.name,rings:cwRings(c.ms/864e5+2440587.5)},{theme:'dark'})}}catch(e){}
- return `<div class="cwrings">${lg?`<div class="cwlg">${lg}</div>`:''}<div class="cwseg" role="group" aria-label="Add a wheel">${Object.entries(RINGN).map(([k,n])=>`<button data-cwr="${k}" aria-pressed="${R.includes(k)}">${n}</button>`).join('')}</div>`
+ /* Gemini, Nov 15: one split button. Nothing added: "Transits" adds the transit wheel, the arrow offers Progressions and Solar Arc.
+    A wheel added: the button reads "Clear", and the arrow offers the other two */
+ const on=R[0],others=Object.keys(RINGN).filter(k=>on?k!==on:k!=='tr');
+ return `<div class="cwrings"><div class="cwsplit"><button class="cwsm" data-cwr="${on?'clear':'tr'}">${on?'Clear':'Transits'}</button><button class="cwsa" id="cw-rm" aria-haspopup="menu" aria-expanded="${!!CW.rmenu}" aria-label="More wheels">&#9662;</button>`
+  +(CW.rmenu?`<div class="cwmenu" role="menu">${others.map(k=>`<button role="menuitem" data-cwr="${k}">${RINGN[k]}</button>`).join('')}</div>`:'')+`</div>`
  +(R.length?`<div class="cwtm" role="group" aria-label="Time Machine for the outer wheels"><button data-cwt="-365">&minus;1y</button><button data-cwt="-30">&minus;1m</button><button data-cwt="-1">&minus;1d</button><input type="date" id="cw-rd" value="${iso}" aria-label="Date of the outer wheels"><button data-cwt="1">+1d</button><button data-cwt="30">+1m</button><button data-cwt="365">+1y</button><button data-cwt="now">Now</button></div>`:'')+`</div>`}
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cwr],[data-cwt]');if(!b||!b.closest('#vt-cw'))return;CW.rings=CW.rings||[];
- if(b.dataset.cwr){const k=b.dataset.cwr,i=CW.rings.indexOf(k);if(i>=0)CW.rings.splice(i,1);else{CW.rings.push(k);if(CW.rings.length>2)CW.rings.shift()}}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cwr],[data-cwt],#cw-rm');if(!b){if(CW.rmenu&&!(e.target.closest&&e.target.closest('.cwmenu'))){CW.rmenu=false;const m=$('#vt-cw .cwmenu');if(m)chartDraw()}return}if(!b.closest('#vt-cw'))return;CW.rings=CW.rings||[];
+ if(b.id==='cw-rm'){CW.rmenu=!CW.rmenu;chartDraw();const f=$(CW.rmenu?'#vt-cw .cwmenu button':'#cw-rm');if(f)f.focus();return}
+ if(b.dataset.cwr){const k=b.dataset.cwr;CW.rmenu=false;CW.rings=k==='clear'?[]:[k];chartDraw();const f=$('#vt-cw .cwsm');if(f)f.focus();return}
  else{const v=b.dataset.cwt;if(v==='now')CW.rms=null;else{const d=new Date(CW.rms||Date.now()),n=+v;if(Math.abs(n)===365)d.setFullYear(d.getFullYear()+Math.sign(n));else if(Math.abs(n)===30)d.setMonth(d.getMonth()+Math.sign(n));else d.setDate(d.getDate()+n);CW.rms=d.getTime()}}
  const sel=b.dataset.cwr?`[data-cwr="${b.dataset.cwr}"]`:`[data-cwt="${b.dataset.cwt}"]`;chartDraw();const q=$('#vt-cw '+sel);if(q)q.focus()});
 document.addEventListener('change',e=>{if(e.target.id!=='cw-rd'||!e.target.value)return;const t=new Date(CW.rms||Date.now()),[y,m,d]=e.target.value.split('-').map(Number);t.setFullYear(y,m-1,d);CW.rms=t.getTime();chartDraw()});
@@ -10035,7 +10053,7 @@ function chartDraw(){const o=$('#vt-cw'),d=new Date(CW.ms);
  const k=hsysK();
  o.innerHTML=cwHead(k)
  +(CW.bms!=null?`<div class="cwbw"><span><i style="background:#bfe0ff"></i>Inside: ${esc(CW.bn)}, birth</span><span><i style="background:${GOLD}"></i>Outside: ${esc(String(CW.name).split('\n')[0])}</span></div>`:'')
- +`<div class="cww" id="cw-w">${cwWheel()}</div>`+cwRingUI()
+ +`<div class="cww" id="cw-w">${cwWheel()}${cwRingLg()}</div>`+cwRingUI()
  +`<div class="spcbar cwbar"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><div class="spcsp"><button class="spcsb" id="cw-sb" aria-label="Speed ${SPD[CW.sp][0]}, tap to change">Speed: <b id="cw-sn">${SPD[CW.sp][0]}</b></button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle"></div></div>`
  +(MER()?'':`<div class="cwseg" role="group" aria-label="Center of the wheel"><button data-cwm="asp" aria-pressed="${CW.mode==='asp'}">Aspects</button><button data-cwm="star" aria-pressed="${CW.mode==='star'}">${SAV()?'Risings':'Venus Star'}</button></div>`)
  +(CW.mode==='asp'||MER()?`<div class="cwseg" role="group" aria-label="Aspect set">${ASETS.map(([v,n])=>`<button data-cwa="${v}" aria-pressed="${ASET()===v}">${n}</button>`).join('')}</div>`:'')
