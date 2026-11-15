@@ -812,9 +812,9 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-4.5);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
    h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′'+(rx?'℞':''),m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°'+(rx?'℞':''),d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
@@ -7812,8 +7812,12 @@ function earthSun(sunL,gm,rot,south,sx,sy,R){const RAD=Math.PI/180,eps=23.44*RAD
  if(q){const dx=q[0]-400,dy=q[1]-400,d=Math.hypot(dx,dy);if(q[2]){gx=q[0];gy=q[1]}else if(d>1){gx=400+dx/d*R;gy=400+dy/d*R}}
  const glow=`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${24*k}" fill="url(#esun)" style="pointer-events:none"/>`;
  /* the Sun on the Earth is an out-of-focus glow, no hard dot (Gemini, Nov 15: global) */
- return glow+(q&&q[2]?`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${(9*k).toFixed(1)}" fill="url(#esoft)" style="pointer-events:none"/>`:'')}
-function earthDisc(layers,RR){EARTH_DR=RR||EARTH_R;const EC=earthChart(),jd=EC.jd,gm=(((280.46061837+360.98564736629*(jd-2451545))%360)+360)%360,sunL=n360(EC.pos.Sun||0),a=scr(sunL)*Math.PI/180,sx=Math.sin(a),sy=-Math.cos(a),url=earthURL(VIEW.asc||0,gm,sunL,earthSouth(layers),sx,sy),R=EARTH_DR,sz=300*R/(.98*150);
+ return glow+(q&&q[2]?`<circle cx="${gx.toFixed(1)}" cy="${gy.toFixed(1)}" r="${(11*k).toFixed(1)}" fill="url(#esoft)" style="pointer-events:none"/>`:'')}
+/* each Earth gets its own gradient ids: a page can hold several Earths (Planetary Tables), and a gradient whose first copy is in a hidden
+   element draws nothing in Chrome, which is how the Sun glow vanished there (Gemini, Nov 15: Leo needs Sun) */
+let EUID=0;
+function earthDisc(layers,RR){const u='_'+(++EUID).toString(36);return earthDisc0(layers,RR).replace(/(id="|url\(#)(e(?:glow|sun|soft|pn|ps|dot|sd))\b/g,'$1$2'+u)}
+function earthDisc0(layers,RR){EARTH_DR=RR||EARTH_R;const EC=earthChart(),jd=EC.jd,gm=(((280.46061837+360.98564736629*(jd-2451545))%360)+360)%360,sunL=n360(EC.pos.Sun||0),a=scr(sunL)*Math.PI/180,sx=Math.sin(a),sy=-Math.cos(a),url=earthURL(VIEW.asc||0,gm,sunL,earthSouth(layers),sx,sy),R=EARTH_DR,sz=300*R/(.98*150);
  /* a soft blue glow around the Earth, like an atmosphere seen from space (Gemini, Oct 24) */
  const gl=R*1.13,gk=(R/gl).toFixed(3);
  return `<defs><radialGradient id="eglow"><stop offset="${gk}" stop-color="#7fb2ff" stop-opacity=".55"/><stop offset="${(+gk+.03).toFixed(3)}" stop-color="#5f8fff" stop-opacity=".28"/><stop offset="1" stop-color="#3f6fff" stop-opacity="0"/></radialGradient></defs><circle cx="400" cy="400" r="${gl.toFixed(1)}" fill="url(#eglow)" style="pointer-events:none"/><defs><radialGradient id="esun"><stop offset="0" stop-color="#fff4be"/><stop offset=".3" stop-color="#ffd26e" stop-opacity=".7"/><stop offset="1" stop-color="#ffbe3c" stop-opacity="0"/></radialGradient><radialGradient id="esoft"><stop offset="0" stop-color="#fffbe6" stop-opacity=".95"/><stop offset=".25" stop-color="#fff0b8" stop-opacity=".8"/><stop offset=".6" stop-color="#ffd26e" stop-opacity=".35"/><stop offset="1" stop-color="#ffbe3c" stop-opacity="0"/></radialGradient></defs><image href="${url}" x="${(400-sz/2).toFixed(1)}" y="${(400-sz/2).toFixed(1)}" width="${sz.toFixed(1)}" height="${sz.toFixed(1)}"/>${earthSun(sunL,gm,VIEW.asc||0,earthSouth(layers),sx,sy,R)}${earthDot(layers,gm,VIEW.asc||0,earthSouth(layers))}`}
@@ -9098,9 +9102,10 @@ function ymd(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return `${S
 function two(x){let n=unsup(x.name).trim(),sup='';
  const side=x.pa<0?'Morning Star':'Evening Star';let a,b,g;
  if(MOO())return x.mk?[esc(n),x.prev&&x.prev.ph!=null?MOPH[x.prev.ph][0]+' Phase':'']:[esc(x.sa.l1),esc(x.sa.l2)];
+ if(x.mk&&EAM())return [esc(n),x.prev&&x.prev.ph?x.prev.ph+' Stage':side];
  if(x.mk&&HRM())return [esc(n),x.prev&&HPH[x.prev.ph]?HPH[x.prev.ph][0]+' Phase':side];   /* Gemini, Nov 15: Hermetic Today names its phase (Trickster Phase), not a Shamanic stage */
  if(x.mk)return [esc(n),MAR()&&x.prev&&x.prev.ph?(x.prev.ph==='m0'?'Phase Zero':'Phase '+MAN[x.prev.ph])+' · '+MAPH[x.prev.ph][0]:x.prev?short(x.prev)+' Stage':side];
- if(HRM()&&x.sa)return [esc(x.sa.l1),esc(x.sa.l2)];
+ if((HRM()||EAM())&&x.sa)return [esc(x.sa.l1),esc(x.sa.l2)];
  if(TOT()){const t=tot(x);if(t)return [esc(t.l1),esc(t.l2)]}   /* Gemini, Nov 4: Today opens to the stage it is in, the line before it plus "Stage" */
  if((g=/^Gate of (.+) \((.+) Chakra\)$/.exec(n)))return ['Gate of '+g[1]+sup,g[2]+' Gate'];   /* Gemini, Nov 5: Crown Gate, not Crown Chakra Gate */
  if((g=/^(?:Venus )?(?:Maximum )?(Morning|Evening) Star (?:Maximum )?(Brightness|Elongation)$/.exec(n)))return ['Maximum '+g[2]+sup,g[1]+' Star'];
@@ -9212,7 +9217,7 @@ function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v
 const mdy=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`};
 /* Gemini, Nov 4: short forms for the Morning and Evening lines (Venus Rx, Venus Set, Venus Cazimi, Venus Rise, Max Brightness,
    Venus Direct, Crown Gate, Third Eye Gate...); a tap opens the full card */
-function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((MOO()||HRM())&&x.sa)return esc(x.sa.s);if(TOT()){const t=tot(x);if(t)return esc(t.s)}
+function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((MOO()||HRM()||EAM())&&x.sa)return esc(x.sa.s);if(TOT()){const t=tot(x);if(t)return esc(t.s)}
  if(/Station Retrograde/.test(n))return 'Venus Rx';if(/Station Direct/.test(n))return 'Venus Direct';
  if(/Heliacal Set/.test(n))return 'Venus Set';if(/Heliacal Rise/.test(n))return 'Venus Rise';
  if(/(Interior|Exterior) Conjunction/.test(n))return 'Venus Cazimi';
@@ -9229,7 +9234,7 @@ function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);
  $('#vt-note').textContent=V.ms==null?`Using ${ch.name}'s chart.`:'Using the date you set.';
  $('#vt-play').innerHTML=V.play?'&#9632;':'&#9654;&#9654;';$('#vt-play').setAttribute('aria-label',V.play?'Stop':'Play forward');
  if(V.view==='ret')return drawRet(scroll);
- $('#vt-foot').innerHTML=MOO()?MOOFOOT:MAR()?MARFOOT:HRM()?HFOOT():MER()?MFOOT:FOOT;
+ $('#vt-foot').innerHTML=MOO()?MOOFOOT:MAR()?MARFOOT:HRM()?HFOOT():EAM()?EAMFOOT:MER()?MFOOT:FOOT;
  if(r.err){$('#vt-title').textContent='Venus Synodic Cycle';$('#vt-list').innerHTML=`<li class="vterr">${r.err}</li>`;return}
  const sd=sides(r,c);if(sd){const at=sd.side+(sd.side==='eve'&&c<((r.rows.find(isIC)||r.rows[0]).ms)?'p':'')+r.A;if(V.side==null||(V.sideAt!==at&&V.side!=='all'))V.side=sd.side;V.sideAt=at}else if(V.side!=='all')V.side='all';
  document.querySelectorAll('.vtvs button').forEach(b=>{const on=b.dataset.w===V.side;b.setAttribute('aria-pressed',on);if(b.dataset.w==='all')b.textContent=MOO()?'Expanded':'All';if(b.dataset.w==='morn')b.textContent=MOO()?'Compressed':on?'Morning':'Morn';if(b.dataset.w==='eve')b.textContent=MOO()?(on?'Waning':'Wane'):on?'Evening':'Eve'});
@@ -9245,14 +9250,14 @@ function setMs(ms){V.ms=ms;draw(true)}
    conjunction to interior conjunction with arrows to the cycle before and after, and one button: Explore Your Venus Cycle and Returns.
    The fuller header (Venus Cycle / My Venus Returns, Chart, Date, Today, Chart Date, Copy) is kept and shows once a birth is entered */
 /* Gemini, Nov 4: styles of calculation. Only the Earthstrology Method so far; more will join this list */
-const METH=[['totams','Shamanic Astrology'],['earthstrology','Earthstrology Method']];
+const METH=[['totams','Shamanic Astrology'],['earthstrology','Earthstrology']];   /* Gemini, Nov 15: just Earthstrology */
 /* Gemini, Nov 5: this becomes a planetary cycles app. A planet menu switches between Mercury and Venus (Mars, Moon and more to come).
    Mercury has one method so far, Shamanic Astrology (TOTAMS Synodic Cycle for Mercury) */
 const PLAN=[['moon','☽ Moon',1],['mercury','☿ Mercury',1],['venus','♀ Venus',1],['mars','♂ Mars',1]];   /* Gemini, Nov 6: the Moon joins (Earthstrology Method) */
 const PLS=['mercury','mars','moon'],PL=()=>{const v=pref('vt-pl');return PLS.includes(v)?v:'venus'},PN=()=>({mercury:'Mercury',mars:'Mars',moon:'Moon'})[PL()]||'Venus',MER=()=>PL()==='mercury',MAR=()=>PL()==='mars',MOO=()=>PL()==='moon',OTH=()=>PL()!=='venus';
 /* Gemini, Nov 14: Mercury gains a second method, Hermetic Astrology (Gary Caton) */
-const MMETH=[['totams','Shamanic Astrology'],['hermetic','Hermetic Astrology']];
-const PMETH=()=>MOO()?[['earthstrology','Earthstrology Method']]:MER()?MMETH:OTH()?[['totams','Shamanic Astrology']]:METH;
+const MMETH=[['totams','Shamanic Astrology'],['hermetic','Hermetic Astrology'],['earthstrology','Earthstrology']];
+const PMETH=()=>MOO()?[['earthstrology','Earthstrology']]:MER()?MMETH:OTH()?[['totams','Shamanic Astrology']]:METH;
 /* Gemini, Nov 5: the Shamanic Astrology Mars Overstory, from the "Mars Cancer Overstory Gates" table. Opposition to opposition
    ("first breath"), named for Mars's sign at the opposition. Phase One until Mars returns to the first breath degree; Phase Two
    (the Labors of Mars) until it sinks to 15 deg from the Sun in the evening sky; Phase Three, the Underworld, until it rises 15 deg
@@ -9279,7 +9284,7 @@ const MARCACHE=new Map();
 const MOPH=[['Seeding','Conjunction'],['Stirring','Waxing Semisextile'],['Rooting','Waxing Sextile'],['Sprouting','Opening Square'],['Reaching','Waxing Trine'],['Budding','Waxing Quincunx'],
  ['Blooming','Opposition'],['Offering','Waning Quincunx'],['Ripening','Waning Trine'],['Fruiting','Closing Square'],['Gathering','Waning Sextile'],['Dreaming','Waning Semisextile']];   /* Wild Meadow set, Gemini's pick (Nov 6), with Fruiting on the closing square */
 const MOCOL={lu0:'#e3d6c2',lu1:'#ece4c0',lu2:'#dfd8b6',lu3:'#d6ecc2',lu4:'#c6e6c4',lu5:'#e2ecbe',lu6:'#f4d4e2',lu7:'#f6e6a8',lu8:'#f2d9ae',lu9:'#efc8ae',lu10:'#e6d3a6',lu11:'#d8cdc2'};
-const MOOFOOT=`<div>Earthstrology Method Moon Cycle. Each cycle runs New Moon to New Moon and is named for the signs of its New Moon and Full Moon.</div><div class="vtsmall">Twelve phases, one for each 30° of the Moon's journey from the Sun: Seeding (conjunction), Stirring, Rooting, Sprouting (opening square), Reaching, Budding, Blooming (opposition), Offering, Ripening, Fruiting (closing square), Gathering, Dreaming. Each phase is 30° of the Moon's distance from the Sun, counted from the New Moon.</div>`;
+const MOOFOOT=`<div>Earthstrology Moon Cycle. Each cycle runs New Moon to New Moon and is named for the signs of its New Moon and Full Moon.</div><div class="vtsmall">Twelve phases, one for each 30° of the Moon's journey from the Sun: Seeding (conjunction), Stirring, Rooting, Sprouting (opening square), Reaching, Budding, Blooming (opposition), Offering, Ripening, Fruiting (closing square), Gathering, Dreaming. Each phase is 30° of the Moon's distance from the Sun, counted from the New Moon.</div>`;
 /* Gemini, Nov 6: short names in the compressed table, New - Seeding, Wax30° - Stirring ... Full - Blooming ... Wane30° - Dreaming */
 const moS=k=>(k===0?'New':k===6?'Full':k<6?`Wax${k*30}°`:`Wane${360-k*30}°`)+' - '+MOPH[k][0];
 const MOOCACHE=new Map(),moPh=d=>Math.floor((((d%360)+360)%360)/30)%12;
@@ -9368,6 +9373,7 @@ const MARFOOT=`<button class="vtbtn vtabo" id="vt-ab-o">Read about this Overstor
    Moon and Node conjunctions. */
 const MPH={apollo:'Apollo Phase · Morning Star',guard1:'First Guardian of the Threshold',psycho:'Psychopomp Phase',guard2:'Second Guardian of the Threshold',hermes:'Hermes Phase · Evening Star',synth:'Synthesis and Metamorphosis'};
 const MCOL={apollo:'#f6e7b0',guard1:'#e9dcc4',psycho:'#c9c3dd',guard2:'#d6e3d2',hermes:'#c6e6dc',synth:'#e8cfdc',
+ ecaz:'#f6e3a6',ecomb:'#f2d4c8',ebeam:'#dcd8ee',estar:'#cfe5f5',   /* Earthstrology stages: gold Cazimi, warm Combust, soft Beams, sky Star */
  trick:'#edd7f6',mess:'#f6d5d3',guard:'#d6e2f8',philo:'#d5efd7',sage:'#f8ddcc',pomp:'#f6d7ea'};   /* Hermetic phases, tints of the colors in Gary Caton's illustration */
 /* Hermetic Astrology (Gary Caton), Gemini, Nov 14: Trickster from 15 deg ahead of the Sun (rising in the morning) to morning
    elongation; Messenger to 15 deg again; Guardian 15 deg morning, through the exterior conjunction, to 15 deg evening;
@@ -9411,9 +9417,46 @@ function hermCalc(jd){
  R.forEach(r=>{r.ph=r.jd>=B-1e-6?'trick':ph(r.jd);if(!r.k)r.k=r.ph;if(r.k!=='conj'&&r.k!=='ing')r.k=r.ph;r.ms=(r.jd-2440587.5)*864e5;r.v=L('Mercury',r.jd);r.s=L('Sun',r.jd);r.rx=r.stR?true:r.stD?false:sp(r.jd)<0;if(r.pa===undefined)r.pa=w(r.v-r.s)});
  const sg=SGN[sgAt(A)],out={A,B,rows:R,mer:1,herm:1,sg,nsg:SGN[sgAt(B)],ec:ec.jd,ic:sg,y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd};
  out.title=`${sg} Mercury Cycle`;HERMCACHE.set(key,out);return out}
+/* Gemini, Nov 15: Earthstrology for Mercury. A cycle runs interior conjunction to interior conjunction and is named for the
+   signs of its two conjunctions ("Scorpio-Capricorn Cycle"), as Venus is. Stages by distance from the Sun: Cazimi within 1°,
+   Combust within 8.5°, Beams 8.5° to 15°, Star beyond 15° (visible); Rx while retrograde. Birth Cazimi holds the interior
+   conjunction, Rebirth Cazimi the exterior. The 15° crossings are the heliacal rises and sets. */
+const EAMCACHE=new Map();
+function eamStg(el,rx){const a=Math.abs(el),sd=el<0?'Morning':'Evening';if(a<1)return rx?'Birth Cazimi':'Rebirth Cazimi';return `${sd} ${a<8.5?'Combust':a<15?'Beams':'Star'}${rx?' Rx':''}`}
+const EAMK=st=>/Cazimi/.test(st)?'ecaz':/Combust/.test(st)?'ecomb':/Beams/.test(st)?'ebeam':'estar';
+function eamCalc(jd){
+ const L=(b,t)=>window.__app.cycle.lon(b,t,'geo'),w=x=>((x%360)+540)%360-180,el=t=>w(L('Mercury',t)-L('Sun',t)),sp=t=>w(L('Mercury',t+.05)-L('Mercury',t-.05));
+ const roots=(f,a,b,st)=>{const out=[];let x0=a,f0=f(a);for(let x=a+st;x<=b+1e-9;x+=st){const f1=f(x);if(f0<=0!==f1<=0&&Math.abs(f0)<60&&Math.abs(f1)<60){let lo=x0,hi=x,flo=f0;for(let i=0;i<40;i++){const m=(lo+hi)/2,fm=f(m);if(flo<=0===fm<=0){lo=m;flo=fm}else hi=m}out.push({jd:(lo+hi)/2,up:f1>f0})}x0=x;f0=f1}return out};
+ const ext=(f,a,b,max)=>{let lo=a,hi=b;const g=.381966;for(let i=0;i<50;i++){const m1=lo+(hi-lo)*g,m2=hi-(hi-lo)*g,y1=f(m1),y2=f(m2);if(max?y1>y2:y1<y2)hi=m2;else lo=m1}return (lo+hi)/2};
+ const ics=roots(el,jd-170,jd+170,.5).filter(x=>!x.up),a=ics.filter(x=>x.jd<=jd).pop(),b=a&&ics.find(x=>x.jd>a.jd+60);
+ if(!a||!b)return {err:'Could not find the Mercury cycle around that date.'};
+ const key=Math.round(a.jd*10);if(EAMCACHE.has(key))return EAMCACHE.get(key);
+ const A=a.jd,B=b.jd,ec=roots(el,A+5,B-5,.5).find(x=>x.up);if(!ec)return {err:'Could not find every event in this Mercury cycle.'};
+ const R=[],add=(t,s1,l1,l2,o)=>{if(t==null||!isFinite(t))return;R.push(Object.assign({jd:t,name:l1,sa:{s:s1,l1,l2}},o||{}))},side=t=>el(t)<0?'morning':'evening';
+ const sgn=t=>SGN[Math.floor((((L('Sun',t)%360)+360)%360)/30)];
+ add(A,'Interior Conj','Interior Conjunction','Birth Cazimi. Mercury between Earth and the Sun',{b:true,pa:0,conj:1});
+ add(ec.jd,'Exterior Conj','Exterior Conjunction','Rebirth Cazimi. Mercury behind the Sun',{b:true,pa:0,conj:1});
+ add(B,'Interior Conj','Interior Conjunction','Birth Cazimi. A new cycle begins',{b:true,pa:0,conj:1});
+ for(const v of [1,8.5,15])for(const sg of [-1,1])for(const x of roots(t=>el(t)-sg*v,A+.01,B-.01,.25)){const t=x.jd,out=Math.abs(el(t+.02))>v,st=eamStg(el(t+.02),sp(t+.02)<0),sd=sg<0?'Morning':'Evening';
+  if(v===15)add(t,out?`${sd} Rise`:`${sd} Set`,out?`${sd} Heliacal Rise`:`${sd} Heliacal Set`,out?`15° from the Sun. ${st} begins: Mercury is visible ${sg<0?'before sunrise':'after sunset'}`:`15° from the Sun. ${st} begins: Mercury fades into the light`,{b:true});
+  else add(t,st,`${st} Begins`,`${v}° from the Sun in the ${sd.toLowerCase()} sky`)}
+ const maxM=ext(el,A,ec.jd,false),maxE=ext(el,ec.jd,B,true);
+ add(maxM,'Max Morning Elong','Maximum Morning Elongation',`${Math.abs(el(maxM)).toFixed(1)}° from the Sun, the farthest in the morning sky`,{b:true});
+ add(maxE,'Max Evening Elong','Maximum Evening Elongation',`${Math.abs(el(maxE)).toFixed(1)}° from the Sun, the farthest in the evening sky`,{b:true});
+ /* brightest while visible on each side (beyond 15 deg) */
+ const mg=t=>{try{return T.vxP('Mercury',t).mag}catch(e){return null}};
+ for(const [a0,b0,sd] of [[A,ec.jd,'Morning'],[ec.jd,B,'Evening']]){let bt=null,bm=1e9;for(let t=a0;t<=b0;t+=.5){if(Math.abs(el(t))<15)continue;const m=mg(t);if(m!=null&&m<bm){bm=m;bt=t}}
+  if(bt!=null)add(bt,`${sd} Brightest`,`Maximum ${sd} Brightness`,`Magnitude ${bm<0?'−':'+'}${Math.abs(bm).toFixed(1)}, the brightest while visible as ${sd} Star`,{b:true})}
+ for(const x of roots(sp,A-1,B+1,1))if(x.jd>A&&x.jd<B){const st=eamStg(el(x.jd+.05),!x.up);if(x.up)add(x.jd,'Station Direct','Mercury Stations Direct',`Still point. ${st} begins`,{stD:true});else add(x.jd,'Station Rx','Mercury Stations Retrograde',`Still point. ${st} begins`,{stR:true})}
+ const sgAt=t=>Math.floor((((L('Mercury',t)%360)+360)%360)/30);let n=0;
+ for(let t=A,g=sgAt(A);t<B;t+=.5){const h=sgAt(Math.min(B,t+.5));if(h!==g){let lo=t,hi=Math.min(B,t+.5);for(let i=0;i<30;i++){const m=(lo+hi)/2;if(sgAt(m)===g)lo=m;else hi=m}R.push({jd:hi,k:'ing',name:'Ingress into '+SGN[h],sa:{s:'Into '+SGN[h],l1:'Ingress into '+SGN[h],l2:(NTH[n]||(n+1)+'th')+' Sign Change'}});n++;g=h}}
+ R.sort((p,q)=>p.jd-q.jd);
+ R.forEach(r=>{const t=r.jd>=B-1e-6?B+.02:r.jd+.02;r.ph=r.conj?(r.jd===ec.jd?'Rebirth Cazimi':'Birth Cazimi'):eamStg(el(t),sp(t)<0);if(r.k!=='ing')r.k=EAMK(r.ph);r.ms=(r.jd-2440587.5)*864e5;r.v=L('Mercury',r.jd);r.s=L('Sun',r.jd);r.rx=r.stR?true:r.stD?false:sp(r.jd)<0;if(r.pa===undefined)r.pa=w(r.v-r.s)});
+ const out={A,B,rows:R,mer:1,eam:1,sg:sgn(A),nsg:sgn(B),ec:ec.jd,ic:sgn(A),y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd};
+ out.title=`${sgn(A)}-${sgn(ec.jd)} Cycle`;EAMCACHE.set(key,out);return out}
 const NTH=['First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth','Tenth'];
 const MERCACHE=new Map();
-function merCalc(jd){if(HRM())return hermCalc(jd);
+function merCalc(jd){if(HRM())return hermCalc(jd);if(EAM())return eamCalc(jd);
  const L=(b,t)=>window.__app.cycle.lon(b,t,'geo'),w=x=>((x%360)+540)%360-180,el=t=>w(L('Mercury',t)-L('Sun',t)),sp=t=>w(L('Mercury',t+.05)-L('Mercury',t-.05));
  const roots=(f,a,b,st,ok)=>{const out=[];let x0=a,f0=f(a);for(let x=a+st;x<=b+1e-9;x+=st){const f1=f(x);if(f0<=0!==f1<=0&&(!ok||ok(f0,f1))){let lo=x0,hi=x,flo=f0;for(let i=0;i<40;i++){const m=(lo+hi)/2,fm=f(m);if(flo<=0===fm<=0){lo=m;flo=fm}else hi=m}out.push({jd:(lo+hi)/2,up:f1>f0})}x0=x;f0=f1}return out};
  const ext=(f,a,b,max)=>{let lo=a,hi=b;const g=.381966;for(let i=0;i<50;i++){const m1=lo+(hi-lo)*g,m2=hi-(hi-lo)*g,y1=f(m1),y2=f(m2);if(max?y1>y2:y1<y2)hi=m2;else lo=m1}return (lo+hi)/2};
@@ -9483,12 +9526,13 @@ function hermArc(r){if(!r||!r.herm)return '';const L=(b,t)=>window.__app.cycle.l
  const t=cur()/864e5+2440587.5;if(t>=P[0].jd&&t<=P[6].jd)h+=`<circle cx="${X(t).toFixed(1)}" cy="${Y(t).toFixed(1)}" r="5.5" fill="#f5c35c" stroke="#111" stroke-width="1.8"><title>${T.date((t-2440587.5)*864e5)}</title></circle>`;
  return `<figure class="vtharc" aria-label="The Hermetic Mercury cycle above and below the horizon"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" style="background:#fff;border-radius:10px">${h}</svg><figcaption class="vtsmall">After Gary Caton's illustration, drawn from this cycle's real elongations. Above the line Mercury is more than 15° from the Sun. The gold dot is the table's date.</figcaption></figure>`}
 const HFOOT=()=>{let r=null;try{r=calc()}catch(e){}return hermArc(r)+`<div>Hermetic Astrology Mercury cycle (Gary Caton). Each cycle opens when Mercury rises 15° ahead of the Sun in the morning sky (Trickster) and runs through Messenger, Guardian, Philosopher, Sage, and Psychopomp to the next rising.</div><div class="vtsmall">15° from the Sun is the threshold of visibility. Guardian holds the exterior conjunction, farthest from Earth; Psychopomp holds the interior conjunction, nearest to Earth.</div>`};
+const EAMFOOT=`<div>Earthstrology Mercury Cycle. Each cycle runs interior conjunction to interior conjunction and is named for the signs of its two conjunctions.</div><div class="vtsmall">Stages by distance from the Sun: Cazimi within 1°, Combust within 8.5°, Beams from 8.5° to 15°, and Star beyond 15°, when Mercury can be seen. Rx while retrograde. The 15° crossings are the heliacal rises and sets.</div>`;
 const MFOOT=`<div>Shamanic Astrology Mercury Synodic Cycle (TOTAMS, Turning of the Ages Mystery School). Each Overstory runs Station Direct to Station Direct and takes Mercury's sign at Station Direct.</div><div class="vtsmall">The Underworld lies within 10° of the Sun; the Threshold between 10° and 15°.</div>`;
 /* Gemini, Nov 5: Shamanic Astrology (TOTAMS Venus Synodic Overstory template) is the default method for now.
    One sign per cycle, the Venus Overstory, taken from Venus's sign at the 10 deg morning heliacal rise (not the interior conjunction),
    and the template's own words for each event; chakra colors stay on the Descent and Ascent gates */
 function MK(){if(MOO())return 'earthstrology';if(MER()){const v=pref('vt-mmeth');return MMETH.some(m=>m[0]===v)?v:'totams'}if(OTH())return 'totams';const v=pref('vt-meth');return METH.some(m=>m[0]===v)?v:'totams'}
-const TOT=()=>MK()==='totams',HRM=()=>MER()&&MK()==='hermetic',sgnOf=l=>SGN[Math.floor((((l%360)+360)%360)/30)];
+const TOT=()=>MK()==='totams',HRM=()=>MER()&&MK()==='hermetic',EAM=()=>MER()&&MK()==='earthstrology',sgnOf=l=>SGN[Math.floor((((l%360)+360)%360)/30)];
 const CHK={crown:['Crown','Crown Chakra: Expanded Consciousness'],third:['3rd Eye','3rd Eye Chakra: Perception'],throat:['Throat','Throat Chakra: Communication'],heart:['Heart','Heart Chakra: Compassion'],solar:['Solar Plexus','Solar Plexus Chakra: Personal Power'],sacral:['Reproductive','Reproductive Chakra: Creativity'],root:['Root','Root Chakra: Life']};
 const ORD=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
 /* gate numbers restart at each conjunction: 1st to 7th Crown down to Root on the Descent, Root up to Crown on the Ascent */
@@ -9526,7 +9570,7 @@ function marsOps(a,b){const L=(q,t)=>window.__app.cycle.lon(q,t,'geo'),f=t=>e180
 function marStage(jd,ae){if(ae>178)return 'First Breath';if(ae<2)return 'Mars-Sun Conjunction';const r=marsCalc(jd);if(r.err)return '';const x=r.rows.filter(q=>q.jd<=jd+1e-6).pop();if(!x||!x.ph)return '';
  return `Phase ${MAN[x.ph]}: ${MAPH[x.ph][0]}`}
 /* Mercury's stages in Space and Earth, from the TOTAMS Mercury table (10 deg Underworld, 15 deg Threshold) */
-function merStage(el,rx,inc){const ae=Math.abs(el);if(ae<2)return rx?'Interior Conjunction':'Exterior Conjunction';
+function merStage(el,rx,inc){if(EAM())return eamStg(el,rx);const ae=Math.abs(el);if(ae<2)return rx?'Interior Conjunction':'Exterior Conjunction';
  if(HRM())return (ae<15?(el<0?(inc?'Psychopomp':'Guardian'):(inc?'Guardian':'Psychopomp')):el<0?(inc?'Trickster':'Messenger'):(inc?'Philosopher':'Sage'))+' Phase';
  if(el<0){if(rx)return 'Metamorphosis';if(ae<10)return 'Psychopomp Phase';if(!inc&&ae<15)return 'First Guardian';return 'Apollo Phase'}
  if(rx)return ae<10?'Metamorphosis':'Synthesis';if(ae<10)return 'Psychopomp Phase';if(inc&&ae<15)return 'Second Guardian';return 'Hermes Phase'}
@@ -9551,7 +9595,7 @@ function starCol(t){const S=[[0,[255,250,232]],[.5,[255,212,90]],[1,[226,150,48]
 function ME(){return !!pref('vt-me')}
 const mdy4=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`};
 function hero(r){const ic=r.rows.filter(isIC);let a=ic[0]?ic[0].ms:(r.A-2440587.5)*864e5,b=ic.length>1?ic[ic.length-1].ms:(r.B-2440587.5)*864e5;const tr=TOT()&&totRise(r);if(tr){a=tr.f.ms;if(tr.l)b=tr.l.ms}V.cyc=[a,b];   /* Shamanic Astrology: heliacal rise to heliacal rise */
- $('#vt-h2').textContent=MOO()||r.herm?r.title:tr?tr.sg+' '+PN()+' Overstory':String(T.title(r)).replace(/\s*★\s*/,'-').replace(/\s*\d{3,4}\s*[-–]\s*\d{3,4}\s*$/,'').replace(/Venus Synodic Cycle$/,'Venus Cycle');fitOne($('#vt-h2'),19);$('#vt-rng').textContent=`${mdy4(a)} - ${mdy4(b)}`;$('#vt-rng').setAttribute('aria-label',`${mdy4(a)} to ${mdy4(b)}. Tap to type a date`)}
+ $('#vt-h2').textContent=MOO()||r.herm||r.eam?r.title:tr?tr.sg+' '+PN()+' Overstory':String(T.title(r)).replace(/\s*★\s*/,'-').replace(/\s*\d{3,4}\s*[-–]\s*\d{3,4}\s*$/,'').replace(/Venus Synodic Cycle$/,'Venus Cycle');fitOne($('#vt-h2'),19);$('#vt-rng').textContent=`${mdy4(a)} - ${mdy4(b)}`;$('#vt-rng').setAttribute('aria-label',`${mdy4(a)} to ${mdy4(b)}. Tap to type a date`)}
 function cycStep(dir){stop();const [a,b]=V.cyc||[cur(),cur()],d=MOO()?.5:30;setMs(dir<0?a-d*864e5:b+d*864e5)}
 /* Explore: the chart picker. Date, Time (or "I don't know my birth time"), Location, and Saved / Favorites / Recents.
    Then: would you like to name the chart? Then: save it, or add it to Favorites? */
@@ -10458,7 +10502,7 @@ function eaCt(r){const sg=jd=>SGN[Math.floor(e360(eaPos(jd).Sun)/30)],ic=r.morn?
  return HRM()?`<b>${SGN[hermSg(ic)]} Mercury Cycle</b><span class="cwl2" id="ea-st">${eaState(eaFrame(r))}</span>`:TOT()?`<b>${SGN[MER()?sdSg(ic):riseSg(ic)]} Overstory</b><span class="cwl2" id="ea-st">${eaState(eaFrame(r))}</span>`:`<b>${sg(ic)}-${sg(ec)} Cycle</b><span class="cwl2" id="ea-st">${eaState(eaFrame(r))}</span>`}
 function eaDraw(){const o=$('#vt-ea'),r=eaBuild(),a=r.days[0],b=r.days[r.days.length-1];
  o.innerHTML=`<div class="cwh"><div class="spcnh"><div class="spcnm${EAV.hdOff?' off':''}">${hd2(EAV.name)}</div><div class="spcct${EAV.hdOff?'':' off'}" aria-hidden="${!EAV.hdOff}">${eaCt(r)}</div></div><button class="spcxh" id="ea-x" aria-label="Close Earth">&#10005;</button></div>`
- +`<div class="eat"><b>${MOO()?(r.morn?'Waning Moon · Morning Sky':'Waxing Moon · Evening Sky'):MAR()?(r.morn?'Mars in the Morning Sky':'Mars in the Evening Sky'):HRM()?(r.morn?'Mercury · Morning Star':'Mercury · Evening Star'):MER()?(r.morn?'Apollo · Morning Star':'Hermes · Evening Star'):TOT()?(r.morn?'Morning Star Descent':'Evening Star Ascent'):r.morn?'Morning Dance':'Evening Dance'}</b> <span class="eastar" aria-hidden="true">&#9733;</span> ${eaMdy((r.sp.a-2440587.5)*864e5)} - ${eaMdy(((r.six?r.six[5].sp.b:r.sp.b)-2440587.5)*864e5)}<small>${SKY()?`Facing ${r.lat>=0?'South':'North'}, East to West, ${r.morn?'before sunrise':'after sunset'}`:`Facing ${r.morn?'East before sunrise':'West after sunset'}`}</small></div>`
+ +`<div class="eat"><b>${MOO()?(r.morn?'Waning Moon · Morning Sky':'Waxing Moon · Evening Sky'):MAR()?(r.morn?'Mars in the Morning Sky':'Mars in the Evening Sky'):HRM()||EAM()?(r.morn?'Mercury · Morning Star':'Mercury · Evening Star'):MER()?(r.morn?'Apollo · Morning Star':'Hermes · Evening Star'):TOT()?(r.morn?'Morning Star Descent':'Evening Star Ascent'):r.morn?'Morning Dance':'Evening Dance'}</b> <span class="eastar" aria-hidden="true">&#9733;</span> ${eaMdy((r.sp.a-2440587.5)*864e5)} - ${eaMdy(((r.six?r.six[5].sp.b:r.sp.b)-2440587.5)*864e5)}<small>${SKY()?`Facing ${r.lat>=0?'South':'North'}, East to West, ${r.morn?'before sunrise':'after sunset'}`:`Facing ${r.morn?'East before sunrise':'West after sunset'}`}</small></div>`
  +`<div class="eanav"><button class="vtcy" data-cy="-1" aria-label="Previous ${SKY()?'cycle':r.morn?'morning star period':'evening star period'}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${MAR()?'<span></span>':`<div class="cwseg eame" role="group" aria-label="Morning or evening">${(MOO()?[[0,'Waxing'],[1,'Waning']]:[[1,'Morning'],[0,'Evening']]).map(([v,n])=>`<button data-me="${v}" aria-pressed="${!!v===r.morn}">${n}</button>`).join('')}</div>`}<button class="vtcy" data-cy="1" aria-label="Next ${SKY()?'cycle':r.morn?'morning star period':'evening star period'}"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>`
  +`<div class="eaw" id="ea-w">${eaSvg()}</div>`
  +`<div class="cwseg ealat" role="group" aria-label="Where you stand">${[[40,'40°N'],[0,'Equator'],[-40,'40°S']].map(([v,n])=>`<button data-el="${v}" aria-pressed="${EAV.lat===v}">${n}</button>`).join('')}</div>`
