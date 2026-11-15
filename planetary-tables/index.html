@@ -6466,7 +6466,13 @@ function ctbExt(f,a,b,max){let lo=a,hi=b;const g=.381966;for(let i=0;i<50;i++){c
 function ctbVxMars(jd){const dd=jd-2451543.5,v=helio('mars',dd),s0=sunXY(dd),g=[v[0]+s0[0],v[1]+s0[1],v[2]],r=Math.hypot(...v),R=Math.hypot(s0[0],s0[1]),d=Math.hypot(...g),
   i=deg(Math.acos(Math.max(-1,Math.min(1,(r*r+d*d-R*R)/(2*r*d))))),L=(q,t)=>CYCLE.lon(q,t,'geo');
  return {lat:deg(Math.atan2(g[2],Math.hypot(g[0],g[1]))),vs:wrapS(L('Mars',jd+.5)-L('Mars',jd-.5)),ss:wrapS(L('Sun',jd+.5)-L('Sun',jd-.5)),mag:-1.601+5*Math.log10(r*d)+0.02267*i-0.0001302*i*i,d}}
-function ctbVxP(b,jd){if(b==='Mars')return ctbVxMars(jd);if(b!=='Mercury')return ctbVx(jd);const dd=jd-2451543.5,v=helio('mercury',dd),s0=sunXY(dd),g=[v[0]+s0[0],v[1]+s0[1],v[2]],r=Math.hypot(...v),R=Math.hypot(s0[0],s0[1]),d=Math.hypot(...g),
+/* Gemini, Nov 15: Jupiter to Pluto for the Earthstrology tables. Magnitudes after Mallama and Hilton (2018), simplified;
+   Saturn's rings by their tilt toward Earth; Pluto's height above the ecliptic from its 17.1 deg tilt */
+function ctbVxOut(b,jd){const dd=jd-2451543.5,s0=sunXY(dd);let v;if(b==='Pluto'){const p=synPos('Pluto',jd,true),r0=Math.hypot(p[0],p[1]),l=Math.atan2(p[1],p[0]),z=r0*Math.tan(rad(17.14))*Math.sin(l-rad(110.3));v=[p[0],p[1],z]}else v=helio(b.toLowerCase(),dd);
+ const g=[v[0]+s0[0],v[1]+s0[1],v[2]],r=Math.hypot(...v),R=Math.hypot(s0[0],s0[1]),d=Math.hypot(...g),i=deg(Math.acos(Math.max(-1,Math.min(1,(r*r+d*d-R*R)/(2*r*d))))),L=(q,t)=>CYCLE.lon(q,t,'geo'),k=5*Math.log10(r*d);
+ let mag;if(b==='Jupiter')mag=-9.395+k+3.7e-4*i+6.16e-4*i*i;else if(b==='Saturn'){const sB=Math.abs((g[0]*0.0857+g[1]*0.4624+g[2]*0.8826)/d);mag=-8.88+k+0.044*i-2.6*sB+1.25*sB*sB}else if(b==='Uranus')mag=-7.19+k+0.002*i;else if(b==='Neptune')mag=-6.87+k;else mag=-1.01+k+0.041*i;
+ return {lat:deg(Math.atan2(g[2],Math.hypot(g[0],g[1]))),vs:wrapS(L(b,jd+.5)-L(b,jd-.5)),ss:wrapS(L('Sun',jd+.5)-L('Sun',jd-.5)),mag,d}}
+function ctbVxP(b,jd){if(b==='Mars')return ctbVxMars(jd);if(/^(Jupiter|Saturn|Uranus|Neptune|Pluto)$/.test(b))return ctbVxOut(b,jd);if(b!=='Mercury')return ctbVx(jd);const dd=jd-2451543.5,v=helio('mercury',dd),s0=sunXY(dd),g=[v[0]+s0[0],v[1]+s0[1],v[2]],r=Math.hypot(...v),R=Math.hypot(s0[0],s0[1]),d=Math.hypot(...g),
   i=deg(Math.acos(Math.max(-1,Math.min(1,(r*r+d*d-R*R)/(2*r*d))))),L=(q,t)=>CYCLE.lon(q,t,'geo');
  return {lat:deg(Math.atan2(g[2],Math.hypot(g[0],g[1]))),vs:wrapS(L('Mercury',jd+.5)-L('Mercury',jd-.5)),ss:wrapS(L('Sun',jd+.5)-L('Sun',jd-.5)),mag:-0.613+6.3280e-2*i-1.6336e-3*i*i+3.3644e-5*i**3-3.4265e-7*i**4+1.6893e-9*i**5-3.0334e-12*i**6+5*Math.log10(r*d),d}}
 function ctbVx(jd){const dd=jd-2451543.5,v=helio('venus',dd),s0=sunXY(dd),g=[v[0]+s0[0],v[1]+s0[1],v[2]],r=Math.hypot(...v),R=Math.hypot(s0[0],s0[1]),d=Math.hypot(...g),
@@ -9092,6 +9098,8 @@ body.eawz #vt-spc,body.eawz #vt-ea{overflow:visible;z-index:200}body.eawz #vt-ea
 #vt-hs .cwh .hsmeth{flex:0 1 auto;max-width:44%;height:40px;border-radius:10px;border:1.5px solid #d9dbe2;background:#14122a;color:#e9ebf0;font:inherit;font-size:13.5px;padding:0 8px;align-self:flex-start}
 #vt-hs .hsck{display:flex;align-items:center;justify-content:center;gap:8px;margin:10px auto;font-size:14px;color:#e9ebf0;min-height:44px}
 #vt-hs .hsck input{width:20px;height:20px;accent-color:#c9b27a}
+body.vtout #spc-e,body.vtout #spc-g,body.vtout #vt-hist,body.vtout #vt-seg,body.vtout [data-vsw=space],body.vtout [data-vsw=lem],body.vtout .vtsb,body.vtout [data-em]{display:none!important}
+body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -9101,17 +9109,17 @@ const STEP=[['Day',864e5],['Week',6048e5],['Month',2629800e3],['Year',31556926e3
 const V={ms:null,step:'Month',play:null,memo:null,find:'',open:false,form:null,view:'cycle',x:-1,rm:null,rk:'',side:null,sideAt:'',tm:false,set:false,ex:null};
 let T;const MKC='#ffffff',NOW0=Date.now();   /* the Today line keeps one moment, so it can stay open across redraws */
 function cur(){return V.ms==null?T.chart().ms:V.ms}
-function calc(){const jd=cur()/864e5+2440587.5,m=V.memo;if(m&&!m.err&&jd>=m.A&&jd<m.B)return m;let r;try{r=MOO()?moonCalc(jd):MAR()?marsCalc(jd):MER()?merCalc(jd):annot(T.calc(jd))}catch(e){r={err:'Could not build this table.'}}if(r&&r.rows&&pref('vt-ing')==='off')r=Object.assign({},r,{rows:r.rows.filter(x=>x.k!=='ing')});   /* Gemini, Nov 14: Sign Changes can be turned off in Settings */V.memo=r;return r}
+function calc(){const jd=cur()/864e5+2440587.5,m=V.memo;if(m&&!m.err&&jd>=m.A&&jd<m.B)return m;let r;try{r=MOO()?moonCalc(jd):EAO()?eaoCalc(jd):MAR()?marsCalc(jd):MER()?merCalc(jd):annot(T.calc(jd))}catch(e){r={err:'Could not build this table.'}}if(r&&r.rows&&pref('vt-ing')==='off')r=Object.assign({},r,{rows:r.rows.filter(x=>x.k!=='ing')});   /* Gemini, Nov 14: Sign Changes can be turned off in Settings */V.memo=r;return r}
 function ymd(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return `${String(d.getFullYear()).padStart(4,'0')}-${p(d.getMonth()+1)}-${p(d.getDate())}`}
 /* Gemini, Nov 4: every event in the Complete table reads on two lines, the name on top and what happens below
    (Gate of Perception / Third Eye Chakra Gate; Maximum Elongation / Morning Star), so the Chart button never covers text */
 function two(x){let n=unsup(x.name).trim(),sup='';
  const side=x.pa<0?'Morning Star':'Evening Star';let a,b,g;
  if(MOO())return x.mk?[esc(n),x.prev&&x.prev.ph!=null?MOPH[x.prev.ph][0]+' Phase':'']:[esc(x.sa.l1),esc(x.sa.l2)];
- if(x.mk&&EAM())return [esc(n),x.prev&&x.prev.ph?x.prev.ph+' Stage':side];
+ if(x.mk&&(EAM()||EAO()))return [esc(n),x.prev&&x.prev.ph?x.prev.ph+' Stage':side];
  if(x.mk&&HRM())return [esc(n),x.prev&&HPH[x.prev.ph]?HPH[x.prev.ph][0]+' Phase':side];   /* Gemini, Nov 15: Hermetic Today names its phase (Trickster Phase), not a Shamanic stage */
  if(x.mk)return [esc(n),MAR()&&x.prev&&x.prev.ph?(x.prev.ph==='m0'?'Phase Zero':'Phase '+MAN[x.prev.ph])+' · '+MAPH[x.prev.ph][0]:x.prev?short(x.prev)+' Stage':side];
- if((HRM()||EAM())&&x.sa)return [esc(x.sa.l1),esc(x.sa.l2)];
+ if((HRM()||EAM()||EAO())&&x.sa)return [esc(x.sa.l1),esc(x.sa.l2)];
  if(TOT()){const t=tot(x);if(t)return [esc(t.l1),esc(t.l2)]}   /* Gemini, Nov 4: Today opens to the stage it is in, the line before it plus "Stage" */
  if((g=/^Gate of (.+) \((.+) Chakra\)$/.exec(n)))return ['Gate of '+g[1]+sup,g[2]+' Gate'];   /* Gemini, Nov 5: Crown Gate, not Crown Chakra Gate */
  if((g=/^(?:Venus )?(?:Maximum )?(Morning|Evening) Star (?:Maximum )?(Brightness|Elongation)$/.exec(n)))return ['Maximum '+g[2]+sup,g[1]+' Star'];
@@ -9140,7 +9148,7 @@ function moonDist(jd){const T2=(jd-2451545)/36525,r=x=>x*Math.PI/180,D=r(297.850
 const CLON=(b,t)=>window.__app.cycle.lon(b,t,'geo'),CWS=a=>((a%360)+540)%360-180;
 function pxAt(jd){const b=PN();if(MOO()){const p=eaPos(jd),x=eaMoonX(jd,p);return {lat:x.lat,vs:CWS(CLON('Moon',jd+.5)-CLON('Moon',jd-.5)),ss:CWS(CLON('Sun',jd+.5)-CLON('Sun',jd-.5)),mag:x.mag,d:moonDist(jd)}}
  return T.vxP(b,jd)}
-const PXAVG={};function pxAvg(){const b=PN();if(PXAVG[b])return PXAVG[b];const yrs={Mercury:6,Venus:8,Mars:16,Moon:19}[b]||8,j0=2461000;let n=0,d=0,m=0;
+const PXAVG={};function pxAvg(){const b=PN();if(PXAVG[b])return PXAVG[b];const yrs={Mercury:6,Venus:8,Mars:16,Moon:19,Jupiter:12,Saturn:30,Uranus:30,Neptune:30,Pluto:30}[b]||8,j0=2461000;let n=0,d=0,m=0;
  for(let t=j0;t<j0+yrs*365.25;t+=MOO()?1.37:3.71){try{const q=pxAt(t);if(isFinite(q.d)&&isFinite(q.mag)){d+=q.d;m+=q.mag;n++}}catch(e){}}return PXAVG[b]=n?{d:d/n,mag:m/n}:null}
 function more(x){const t=x.ms/864e5+2440587.5,N=PN();let q=VXC.get(N+x.ms);if(!q){try{q=pxAt(t);VXC.set(N+x.ms,q)}catch(e){q=null}}
  const A=pxAvg(),pa=Math.abs(x.pa),mg=v=>(v<0?'−':'+')+Math.abs(v).toFixed(MOO()?1:2),
@@ -9223,7 +9231,7 @@ function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v
 const mdy=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`};
 /* Gemini, Nov 4: short forms for the Morning and Evening lines (Venus Rx, Venus Set, Venus Cazimi, Venus Rise, Max Brightness,
    Venus Direct, Crown Gate, Third Eye Gate...); a tap opens the full card */
-function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((MOO()||HRM()||EAM())&&x.sa)return esc(x.sa.s);if(TOT()){const t=tot(x);if(t)return esc(t.s)}
+function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((MOO()||HRM()||EAM()||EAO())&&x.sa)return esc(x.sa.s);if(TOT()){const t=tot(x);if(t)return esc(t.s)}
  if(/Station Retrograde/.test(n))return 'Venus Rx';if(/Station Direct/.test(n))return 'Venus Direct';
  if(/Heliacal Set/.test(n))return 'Venus Set';if(/Heliacal Rise/.test(n))return 'Venus Rise';
  if(/(Interior|Exterior) Conjunction/.test(n))return 'Venus Cazimi';
@@ -9233,14 +9241,14 @@ function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((M
 function mrow(x,on,up){const c=x.mk?MKC:KC(x.k)||T.col.plain,nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=T.pa(x.pa).replace(' Deg ','°').replace(' Min','′');
  return `<li class="vtm${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c}"${on?' aria-current="date"':''}><button data-vx="${Math.round(x.ms)}" aria-expanded="false" aria-label="${esc(mdy(x.ms)+', '+nm+'. Show the full line')}">`
  +`<span class="vtm-d">${mdy(x.ms)}</span><span class="vtm-n">${short(x)}</span><span class="vtm-v">${T.pos(x.v,x.rx)}</span><span class="vtm-p">${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
-function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());if(!me||MOO())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
+function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());document.body.classList.toggle('vtout',OUT());document.body.classList.toggle('vteao',EAO());if(!me||MOO()||OUT())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
  document.querySelectorAll('#vt-seg button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===V.view);b.textContent=b.dataset.v==='ret'?`My ${PN()} Returns`:`${PN()} Cycle`});document.body.classList.toggle('vtret',V.view==='ret');requestAnimationFrame(padBot);
  $('#vt-chart').textContent=ch.name||'';{const cn=$('#vt-cn');if(cn){const d=new Date(ch.ms);cn.hidden=!me;if(me){cn.querySelector('.n').textContent=ch.name||'Chart';cn.querySelector('.d').textContent=isFinite(d)?` \u2013 ${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`:'';cn.setAttribute('aria-label',`Chart: ${ch.name||'chart'}. Tap to change`)}}}   /* Gemini, Nov 5: the chart's title and date on one line under the stars */
  {const b=$('#vt-explore');if(b){b.textContent=me?'Main':'Your Cycle';b.setAttribute('aria-label',me?'Main: back to today\'s cycle':'Your Cycle')}}   /* Gemini, Nov 5: with a chart, the gold buttons are Main and Historical */$('#vt-date').value=ymd(c);
  $('#vt-note').textContent=V.ms==null?`Using ${ch.name}'s chart.`:'Using the date you set.';
  $('#vt-play').innerHTML=V.play?'&#9632;':'&#9654;&#9654;';$('#vt-play').setAttribute('aria-label',V.play?'Stop':'Play forward');
  if(V.view==='ret')return drawRet(scroll);
- $('#vt-foot').innerHTML=MOO()?MOOFOOT:MAR()?MARFOOT:HRM()?HFOOT():EAM()?EAMFOOT:MER()?MFOOT:FOOT;
+ $('#vt-foot').innerHTML=MOO()?MOOFOOT:EAO()?EAOFOOT():MAR()?MARFOOT:HRM()?HFOOT():EAM()?EAMFOOT:MER()?MFOOT:FOOT;
  if(r.err){$('#vt-title').textContent='Venus Synodic Cycle';$('#vt-list').innerHTML=`<li class="vterr">${r.err}</li>`;return}
  const sd=sides(r,c);if(sd){const at=sd.side+(sd.side==='eve'&&c<((r.rows.find(isIC)||r.rows[0]).ms)?'p':'')+r.A;if(V.side==null||(V.sideAt!==at&&V.side!=='all'))V.side=sd.side;V.sideAt=at}else if(V.side!=='all')V.side='all';
  document.querySelectorAll('.vtvs button').forEach(b=>{const on=b.dataset.w===V.side;b.setAttribute('aria-pressed',on);if(b.dataset.w==='all')b.textContent=MOO()?'Expanded':'All';if(b.dataset.w==='morn')b.textContent=MOO()?'Compressed':on?'Morning':'Morn';if(b.dataset.w==='eve')b.textContent=MOO()?(on?'Waning':'Wane'):on?'Evening':'Eve'});
@@ -9259,11 +9267,16 @@ function setMs(ms){V.ms=ms;draw(true)}
 const METH=[['totams','Shamanic Astrology'],['earthstrology','Earthstrology']];   /* Gemini, Nov 15: just Earthstrology */
 /* Gemini, Nov 5: this becomes a planetary cycles app. A planet menu switches between Mercury and Venus (Mars, Moon and more to come).
    Mercury has one method so far, Shamanic Astrology (TOTAMS Synodic Cycle for Mercury) */
-const PLAN=[['moon','☽ Moon',1],['mercury','☿ Mercury',1],['venus','♀ Venus',1],['mars','♂ Mars',1]];   /* Gemini, Nov 6: the Moon joins (Earthstrology Method) */
-const PLS=['mercury','mars','moon'],PL=()=>{const v=pref('vt-pl');return PLS.includes(v)?v:'venus'},PN=()=>({mercury:'Mercury',mars:'Mars',moon:'Moon'})[PL()]||'Venus',MER=()=>PL()==='mercury',MAR=()=>PL()==='mars',MOO=()=>PL()==='moon',OTH=()=>PL()!=='venus';
+const PLAN=[['moon','☽ Moon',1],['mercury','☿ Mercury',1],['venus','♀ Venus',1],['mars','♂ Mars',1],['jupiter','♃ Jupiter',1],['saturn','♄ Saturn',1],['uranus','♅ Uranus',1],['neptune','♆ Neptune',1],['pluto','♇ Pluto',1]];   /* Gemini, Nov 15: all the way out to Pluto (Earthstrology) */   /* Gemini, Nov 6: the Moon joins (Earthstrology Method) */
+const PLS=['mercury','mars','moon','jupiter','saturn','uranus','neptune','pluto'],PL=()=>{const v=pref('vt-pl');return PLS.includes(v)?v:'venus'},PN=()=>({mercury:'Mercury',mars:'Mars',moon:'Moon',jupiter:'Jupiter',saturn:'Saturn',uranus:'Uranus',neptune:'Neptune',pluto:'Pluto'})[PL()]||'Venus',MER=()=>PL()==='mercury',MAR=()=>PL()==='mars',MOO=()=>PL()==='moon',OTH=()=>PL()!=='venus';
 /* Gemini, Nov 14: Mercury gains a second method, Hermetic Astrology (Gary Caton) */
 const MMETH=[['totams','Shamanic Astrology'],['hermetic','Hermetic Astrology'],['earthstrology','Earthstrology']];
-const PMETH=()=>MOO()?[['earthstrology','Earthstrology']]:MER()?MMETH:OTH()?[['totams','Shamanic Astrology']]:METH;
+/* Gemini, Nov 15: Earthstrology for Mars and the planets beyond it, out to Pluto. Solar Conjunction to Solar Conjunction, named for the
+   signs of the conjunction and the opposition (the Earthstrology Convention: always two signs) */
+const OUTP={jupiter:398.88,saturn:378.09,uranus:369.66,neptune:367.49,pluto:366.73},OUT=()=>OUTP[PL()]!=null;
+const AMETH=[['totams','Shamanic Astrology'],['earthstrology','Earthstrology']];
+const PMETH=()=>MOO()||OUT()?[['earthstrology','Earthstrology']]:MER()?MMETH:MAR()?AMETH:METH;
+const methSet=v=>{if(MER())prefSet('vt-mmeth',v);else if(MAR())prefSet('vt-ameth',v);else if(!OTH())prefSet('vt-meth',v)};
 /* Gemini, Nov 5: the Shamanic Astrology Mars Overstory, from the "Mars Cancer Overstory Gates" table. Opposition to opposition
    ("first breath"), named for Mars's sign at the opposition. Phase One until Mars returns to the first breath degree; Phase Two
    (the Labors of Mars) until it sinks to 15 deg from the Sun in the evening sky; Phase Three, the Underworld, until it rises 15 deg
@@ -9460,6 +9473,35 @@ function eamCalc(jd){
  R.forEach(r=>{const t=r.jd>=B-1e-6?B+.02:r.jd+.02;r.ph=r.conj?(r.jd===ec.jd?'Rebirth Cazimi':'Birth Cazimi'):eamStg(el(t),sp(t)<0);if(r.k!=='ing')r.k=EAMK(r.ph);r.ms=(r.jd-2440587.5)*864e5;r.v=L('Mercury',r.jd);r.s=L('Sun',r.jd);r.rx=r.stR?true:r.stD?false:sp(r.jd)<0;if(r.pa===undefined)r.pa=w(r.v-r.s)});
  const out={A,B,rows:R,mer:1,eam:1,sg:sgn(A),nsg:sgn(B),ec:ec.jd,ic:sgn(A),y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd};
  out.title=`${sgn(A)}-${sgn(ec.jd)} Cycle`;EAMCACHE.set(key,out);return out}
+const EAO=()=>OUT()||(MAR()&&MK()==='earthstrology');
+/* stages: Cazimi within 1 deg, Combust within 8.5, Under the Beams within 15, then Morning or Evening Star (Earthstrology) */
+function eaoStg(el,rx){const a=Math.abs(el),sd=el<0?'Morning':'Evening';if(a<1)return 'Cazimi';return `${sd} ${a<8.5?'Combust':a<15?'Beams':'Star'}${rx?' Rx':''}`}
+const EAOCACHE=new Map();
+function eaoCalc(jd){const P=PN(),syn=OUTP[PL()]||779.94;
+ const L=(b,t)=>window.__app.cycle.lon(b,t,'geo'),w=x=>((x%360)+540)%360-180,el=t=>w(L(P,t)-L('Sun',t)),sp=t=>w(L(P,t+.05)-L(P,t-.05));
+ const roots=(f,a,b,st)=>{const out=[];let x0=a,f0=f(a);for(let x=a+st;x<=b+1e-9;x+=st){const f1=f(x);if(f0<=0!==f1<=0&&Math.abs(f0)<60&&Math.abs(f1)<60){let lo=x0,hi=x,flo=f0;for(let i=0;i<40;i++){const m=(lo+hi)/2,fm=f(m);if(flo<=0===fm<=0){lo=m;flo=fm}else hi=m}out.push({jd:(lo+hi)/2,up:f1>f0})}x0=x;f0=f1}return out};
+ /* the Solar Conjunction: the planet passes from the evening sky into the morning sky */
+ const cj=roots(el,jd-syn-30,jd+syn+30,1).filter(x=>!x.up),a=cj.filter(x=>x.jd<=jd).pop(),b=a&&cj.find(x=>x.jd>a.jd+syn/2);
+ if(!a||!b)return {err:`Could not find the ${P} cycle around that date.`};
+ const key=P+Math.round(a.jd*10);if(EAOCACHE.has(key))return EAOCACHE.get(key);
+ const A=a.jd,B=b.jd,op=roots(t=>w(el(t)-180),A+20,B-20,1)[0];if(!op)return {err:`Could not find every event in this ${P} cycle.`};
+ const sgAt=t=>Math.floor((((L(P,t)%360)+360)%360)/30),sA=SGN[sgAt(A)],sO=SGN[sgAt(op.jd)],cyc=`${sA}-${sO}`;
+ const R=[],add=(t,s1,l1,l2,o)=>{if(t==null||!isFinite(t))return;R.push(Object.assign({jd:t,name:l1,sa:{s:s1,l1,l2}},o||{}))};
+ add(A,'Solar Conj',`Solar Conjunction in ${sA}`,`Cazimi. ${P} with the Sun; the ${cyc} Cycle begins`,{b:true,pa:0,conj:1});
+ add(op.jd,'Opposition',`Opposition in ${sO}`,`${P} opposite the Sun: closest and brightest, up all night`,{b:true,opp:1});
+ add(B,'Solar Conj',`Solar Conjunction in ${SGN[sgAt(B)]}`,'Cazimi. A new cycle begins',{b:true,pa:0,conj:1});
+ for(const v of [1,8.5,15])for(const sg of [-1,1])for(const x of roots(t=>el(t)-sg*v,A+.01,B-.01,.5)){const t=x.jd,out=Math.abs(el(t+.05))>v,st=eaoStg(el(t+.05),sp(t+.05)<0),sd=sg<0?'Morning':'Evening';
+  if(v===15)add(t,out?`${sd} Rise`:`${sd} Set`,out?`${sd} Heliacal Rise`:`${sd} Heliacal Set`,out?`15° from the Sun. ${st} begins: ${P} is visible ${sg<0?'before sunrise':'after sunset'}`:`15° from the Sun. ${st} begins: ${P} fades into the light`,{b:true});
+  else add(t,st,`${st} Begins`,`${v}° from the Sun in the ${sd.toLowerCase()} sky`)}
+ for(const x of roots(t=>el(t)+90,A+1,B-1,1))add(x.jd,'Waxing Square','Waxing Square',`${P} 90° from the Sun in the morning sky`,{b:true});
+ for(const x of roots(t=>el(t)-90,A+1,B-1,1))add(x.jd,'Waning Square','Waning Square',`${P} 90° from the Sun in the evening sky`,{b:true});
+ for(const x of roots(sp,A-1,B+1,1))if(x.jd>A&&x.jd<B){if(x.up)add(x.jd,'Station Direct',`${P} Stations Direct`,`Still point. ${P} turns direct`,{stD:true,b:true});else add(x.jd,'Station Rx',`${P} Stations Retrograde`,`Still point. ${P} turns retrograde`,{stR:true,b:true})}
+ let n=0;for(let t=A,g=sgAt(A);t<B;t+=.5){const h=sgAt(Math.min(B,t+.5));if(h!==g){let lo=t,hi=Math.min(B,t+.5);for(let i=0;i<30;i++){const m=(lo+hi)/2;if(sgAt(m)===g)lo=m;else hi=m}R.push({jd:hi,k:'ing',name:'Ingress into '+SGN[h],sa:{s:'Into '+SGN[h],l1:'Ingress into '+SGN[h],l2:(NTH[n]||(n+1)+'th')+' Sign Change'}});n++;g=h}}
+ R.sort((p,q)=>p.jd-q.jd);
+ R.forEach(r=>{const t=r.jd>=B-1e-6?B+.02:r.jd+.02;r.ph=r.conj?'Cazimi':eaoStg(el(t),sp(t)<0);if(r.k!=='ing')r.k=EAMK(r.ph);r.ms=(r.jd-2440587.5)*864e5;r.v=L(P,r.jd);r.s=L('Sun',r.jd);r.rx=r.stR?true:r.stD?false:sp(r.jd)<0;if(r.pa===undefined)r.pa=w(r.v-r.s)});
+ const out={A,B,rows:R,eam:1,eao:1,sg:sA,nsg:SGN[sgAt(B)],ic:sA,ec:sO,y0:new Date(R[0].ms).getFullYear(),y1:new Date(R[R.length-1].ms).getFullYear(),from:jd,title:`${cyc} ${P} Cycle`};
+ EAOCACHE.set(key,out);return out}
+const EAOFOOT=()=>`<div>Earthstrology ${PN()} Cycle. Each cycle runs Solar Conjunction to Solar Conjunction and is named for the signs of its Solar Conjunction and its Opposition.</div><div class="vtsmall">Stages by distance from the Sun: Cazimi (within 1°), Combust (within 8.5°), Under the Beams (within 15°), then Morning Star or Evening Star; Rx marks retrograde. Heliacal Rise and Set are drawn at 15°.</div>`;
 const NTH=['First','Second','Third','Fourth','Fifth','Sixth','Seventh','Eighth','Ninth','Tenth'];
 const MERCACHE=new Map();
 function merCalc(jd){if(HRM())return hermCalc(jd);if(EAM())return eamCalc(jd);
@@ -9537,7 +9579,7 @@ const MFOOT=`<div>Shamanic Astrology Mercury Synodic Cycle (TOTAMS, Turning of t
 /* Gemini, Nov 5: Shamanic Astrology (TOTAMS Venus Synodic Overstory template) is the default method for now.
    One sign per cycle, the Venus Overstory, taken from Venus's sign at the 10 deg morning heliacal rise (not the interior conjunction),
    and the template's own words for each event; chakra colors stay on the Descent and Ascent gates */
-function MK(){if(MOO())return 'earthstrology';if(MER()){const v=pref('vt-mmeth');return MMETH.some(m=>m[0]===v)?v:'totams'}if(OTH())return 'totams';const v=pref('vt-meth');return METH.some(m=>m[0]===v)?v:'totams'}
+function MK(){if(MOO()||OUT())return 'earthstrology';if(MAR()){const v=pref('vt-ameth');return AMETH.some(m=>m[0]===v)?v:'totams'}if(MER()){const v=pref('vt-mmeth');return MMETH.some(m=>m[0]===v)?v:'totams'}if(OTH())return 'totams';const v=pref('vt-meth');return METH.some(m=>m[0]===v)?v:'totams'}
 const TOT=()=>MK()==='totams',HRM=()=>MER()&&MK()==='hermetic',EAM=()=>MER()&&MK()==='earthstrology',sgnOf=l=>SGN[Math.floor((((l%360)+360)%360)/30)];
 const CHK={crown:['Crown','Crown Chakra: Expanded Consciousness'],third:['3rd Eye','3rd Eye Chakra: Perception'],throat:['Throat','Throat Chakra: Communication'],heart:['Heart','Heart Chakra: Compassion'],solar:['Solar Plexus','Solar Plexus Chakra: Personal Power'],sacral:['Reproductive','Reproductive Chakra: Creativity'],root:['Root','Root Chakra: Life']};
 const ORD=n=>n+(n===1?'st':n===2?'nd':n===3?'rd':'th');
@@ -9595,7 +9637,7 @@ function fitOne(h,f0){h.style.fontSize='';let f=f0;while(h.scrollWidth>h.clientW
 function moonIcon(el,R){const c=-Math.cos(el*Math.PI/180),rx=(R*Math.abs(c)).toFixed(2),wx=el<=180,lit=`M0 ${-R}A${R} ${R} 0 0 1 0 ${R}A${rx} ${R} 0 0 ${c>=0?1:0} 0 ${-R}Z`;
  return `<svg viewBox="${-R-1} ${-R-1} ${2*R+2} ${2*R+2}" width="1em" height="1em" aria-hidden="true" style="vertical-align:-.12em"><circle r="${R}" fill="#1a1c2c" stroke="#d8dcef" stroke-opacity=".55" stroke-width=".9"/>${el%360?`<path d="${lit}" fill="#f2f0e4" transform="scale(${wx?1:-1} 1)"/>`:''}</svg>`}
 function heroStars(){if(MOO())return Array.from({length:13},(_,i)=>`<span class="vtmo${i===6?' g':''}" style="${i===6?'transform:scale(1.25);':''}">${moonIcon((12-i)*30,10)}</span>`).join('');
- if(OTH()){const [n,a,b,g]=MOO()?[13,1,11,'&#x263D;']:MAR()?[17,1,15,'&#x2642;']:[13,3,9,'&#x263F;'];return Array.from({length:n},(_,i)=>{const mid=i>=a&&i<a+(b-a+1)-(MAR()?0:0)&&i<n-a;return `<span class="${mid?'g':'w'} vtmg${MAR()?' vtma':''}${i===a||i===n-a?' gap':''}" style="${mid?'transform:scale(1.14);':''}color:${starCol(i/(n-1))}">${g}&#xFE0E;</span>`}).join('')}
+ if(OTH()){const [n,a,b,g]=MOO()?[13,1,11,'&#x263D;']:MAR()?[17,1,15,'&#x2642;']:OUT()?[13,3,9,PLAN.find(p=>p[0]===PL())[1][0]]:[13,3,9,'&#x263F;'];return Array.from({length:n},(_,i)=>{const mid=i>=a&&i<a+(b-a+1)-(MAR()?0:0)&&i<n-a;return `<span class="${mid?'g':'w'} vtmg${MAR()?' vtma':''}${i===a||i===n-a?' gap':''}" style="${mid?'transform:scale(1.14);':''}color:${starCol(i/(n-1))}">${g}&#xFE0E;</span>`}).join('')}
  return Array.from({length:13},(_,i)=>`<span class="${i<4||i>8?'w':'g'}" style="transform:rotate(${((i-6)*2.4).toFixed(1)}deg)${i>3&&i<9?' scale(1.14)':''};color:${starCol(i/12)}">★</span>`).join('')}
 function starCol(t){const S=[[0,[255,250,232]],[.5,[255,212,90]],[1,[226,150,48]]];let k=0;while(k<S.length-2&&t>S[k+1][0])k++;const [a,A]=S[k],[b,B]=S[k+1],u=(t-a)/(b-a);return 'rgb('+A.map((v,j)=>Math.round(v+(B[j]-v)*u)).join(',')+')'}
 function ME(){return !!pref('vt-me')}
@@ -9661,7 +9703,7 @@ function fitTitle(){const h=$('#vt-title');h.classList.add('one');h.style.fontSi
 /* Gemini, Nov 3: back and forward by a side of the cycle. Morning -> Evening -> next Morning; back from Morning is the Evening
    before it. With Complete on the screen they move a whole 19 month cycle (583.92 days, the mean synodic period of Venus) */
 function sideStep(dir){const r=calc(),c=cur(),sd=r.err?null:sides(r,c);stop();
- if(!sd||V.side==='all')return setMs(c+dir*(MOO()?29.5306:MAR()?779.94:MER()?115.88:583.92)*864e5);
+ if(!sd||V.side==='all')return setMs(c+dir*(MOO()?29.5306:OUT()?OUTP[PL()]:MAR()?779.94:MER()?115.88:583.92)*864e5);
  const M=sd.morn.rows,E=sd.eve.rows;let t,side;
  if(MOO()){setMs(V.side==='morn'?(dir>0?M[M.length-1].ms:M[0].ms-36e5):(dir>0?E[E.length-1].ms:E[0].ms));return}
  if(V.side==='morn'&&c>=M[0].ms){if(dir>0){t=M[M.length-1].ms;side='eve'}else{try{const P=T.calc((M[0].ms-40*864e5)/864e5+2440587.5),pe=P.rows.find(isEC);t=pe?pe.ms:M[0].ms-1;side='eve'}catch(e){t=M[0].ms-1;side='eve'}}}
@@ -9757,11 +9799,11 @@ function build(){const w=document.createElement('div');w.id='vt';FOOT=`${phoneNo
   set(false);h.onclick=()=>set(!document.body.classList.contains('vtfc'));}   /* Gemini, Nov 5: Venus Cycle / My Venus Returns sits under the method menu */
  $('#vt-seg').onclick=e=>{const b=e.target.closest('[data-v]');if(!b||b.dataset.v===V.view)return;V.view=b.dataset.v;draw(true);scrollTo(0,0);draw(true)};
  {const m=$('#vt-meth'),pl=$('#vt-pl'),fill=()=>{m.innerHTML=PMETH().map(([k,n])=>`<option value="${k}">${n}</option>`).join('');m.value=MK();m.disabled=PMETH().length<2};
-  if(m){fill();m.onchange=()=>{if(MER())prefSet('vt-mmeth',m.value);else if(!OTH())prefSet('vt-meth',m.value);V.memo=null;draw(true);vxRefresh()}}
+  if(m){fill();m.onchange=()=>{methSet(m.value);V.memo=null;draw(true);vxRefresh()}}
   /* Gemini, Nov 5: the planet is a drop-down (Venus by default), coming planets shown but not yet selectable */
   /* Nov 6 (Gemini): the closed menu shows the planet in our own label so each glyph can be centered (Mars's sits high in the system font) */
   const plv=()=>{const o=PLAN.find(x=>x[0]===PL()),v=pl.parentNode.querySelector('.vtplv');if(o&&v)v.innerHTML=`<i class="g g-${o[0]}">${o[1][0]}&#xFE0E;</i>${esc(o[1].slice(2))}`};
-  if(pl){pl.value=PL();plv();pl.onchange=()=>{if(pl.value===PL())return;prefSet('vt-pl',PLS.includes(pl.value)?pl.value:'venus');pl.value=PL();plv();V.memo=null;V.side=null;V.sideAt='';V.ex=null;fill();draw(true);scrollTo(0,0);vxRefresh()}}}
+  if(pl){pl.value=PL();plv();pl.onchange=()=>{if(pl.value===PL())return;prefSet('vt-pl',PLS.includes(pl.value)?pl.value:'venus');pl.value=PL();plv();V.memo=null;V.side=null;V.sideAt='';V.ex=null;fill();draw(true);scrollTo(0,0);if(OUT()&&/^(space|lem)$/.test(vxCur()))vxGo('chart');else vxRefresh()}}}
  $('#vt-vw').onclick=e=>{const b=e.target.closest('[data-w]');if(!b||(b.dataset.w===V.side&&V.view!=='ret'))return;V.side=b.dataset.w;V.view='cycle';draw(true)};
  $('#vt-sb').onclick=()=>sideStep(-1);$('#vt-sf').onclick=()=>sideStep(1);$('#vt-heart').onclick=()=>crOpen(!V.cr);$('#vt-cr').addEventListener('click',e=>{if(e.target.closest('#cr-x,#cr-x2'))crOpen(false)});$('#vt-gear').onclick=()=>setOpen(!V.set);
  $('#vt-sp').addEventListener('click',e=>{if(e.target.id==='vs-x')setOpen(false)});
@@ -10273,7 +10315,7 @@ document.addEventListener('click',e=>{if(!WIDE()||!e.target.closest||!e.target.c
 addEventListener('load',()=>setTimeout(()=>{if(WIDE())wdStart()},9000));
 /* Gemini, Nov 7: the Device opens this app on a view (planetary-tables.html#v=space, or a message when another menu is used):
    table, chart, space, earth or hist, on today's line */
-function ptView(v){if(!T||!$('#vt-list'))return setTimeout(()=>ptView(v),400);if(v==='start'||v==='table'&&WIDE())v=STARTV();const map={space:'space',earth:'lem',chart:'chart',table:'table'};
+function ptView(v){if(!T||!$('#vt-list'))return setTimeout(()=>ptView(v),400);if(v==='start'||v==='table'&&WIDE())v=STARTV();if(OUT()&&(v==='space'||v==='earth'||v==='hist'))v='chart';   /* Space and Earth are not built for Jupiter to Pluto yet */const map={space:'space',earth:'lem',chart:'chart',table:'table'};
  if(v==='hist'){hsOpen();return}const to=map[v];if(!to)return;const k=vxCur();if(k===to&&to!=='table')return;
  if(k==='space')spcClose();else if(k==='lem')eaClose();else if(k==='chart'){const o=$('#vt-cw');if(o)o.hidden=true;document.body.classList.remove('vtcw')}
  const hs=$('#vt-hs');if(hs&&!hs.hidden)hsClose();if(to==='table')return;const b=$('#vt-list li.now [data-sm]');let ms=b?+b.dataset.sm:V.ms,nm=b?b.dataset.cn:'Today';if(ME()){const c=T.chart();ms=c.ms;nm=c.name}else if(to==='chart'){ms=Date.now();nm='Current Transits'}
@@ -10368,7 +10410,7 @@ function eaBuild(){const k=[PL(),Math.round(EAV.ms/864e5),EAV.lat,eaSix()?6:1].j
  let ge=0,br=0;days.forEach((d,i)=>{if(Math.abs(d.el)>Math.abs(days[ge].el))ge=i;if(d.mag<days[br].mag)br=i});
  six.unshift({sp,days});six.forEach(c=>{c.ge=0;c.br=0;c.days.forEach((d,i)=>{if(Math.abs(d.el)>Math.abs(c.days[c.ge].el))c.ge=i;if(d.mag<c.days[c.br].mag)c.br=i})});
  return EAV.memo={k,sp,morn,az0,days,W,H,s,hy,sel,ge,br,lat,top,six:eaSix()?six:null}}
-const SYNP=()=>({mercury:115.88,mars:779.94,moon:29.5306})[PL()]||583.92,SKY=()=>MAR()||MOO();
+const SYNP=()=>({mercury:115.88,mars:779.94,moon:29.5306})[PL()]||OUTP[PL()]||583.92,SKY=()=>MAR()||MOO();
 /* the Moon's latitude and magnitude for Earth (magnitude from its phase angle, Allen) */
 function eaMoonX(t,p){const i=180-Math.abs(e180(p.Moon-p.Sun));return {lat:eaMoonLat(t),mag:-12.73+.026*i+4e-9*Math.pow(i,4),d:.00257}}   /* one synodic cycle in days */
 function eaSix(){return (PL()==='venus'||MER())&&!!EAV.six}   /* Gemini, Nov 10: Mercury gets six periods too, one Mercury cycle apart */
@@ -10785,7 +10827,7 @@ function hsOpen(){oneWin('vt-hs');HS.c=(ME()&&isFinite(T.chart().ms)?T.chart().m
   o.addEventListener('change',e=>{const id=e.target.id;
    if(id==='hs-eax'){HS.eax=e.target.checked;hsSave();hsDraw();const c=$('#hs-eax');if(c)c.focus();return}
    /* Gemini, Nov 15: switch methods any time inside Historical, to teach the differences */
-   if(id==='hs-meth'){const v=e.target.value;if(MER())prefSet('vt-mmeth',v);else if(!OTH())prefSet('vt-meth',v);V.memo=null;HS.memo=null;draw(true);vxRefresh();const fm=$('#vt-meth');if(fm)fm.value=v;hsDraw();const m=$('#hs-meth');if(m)m.focus();return}
+   if(id==='hs-meth'){const v=e.target.value;methSet(v);V.memo=null;HS.memo=null;draw(true);vxRefresh();const fm=$('#vt-meth');if(fm)fm.value=v;hsDraw();const m=$('#hs-meth');if(m)m.focus();return}
    if(id!=='hs-fy'&&id!=='hs-ty')return;let a=Math.round(+$('#hs-fy').value),b=Math.round(+$('#hs-ty').value);if(!isFinite(a)||!isFinite(b))return;
    a=Math.max(-3000,Math.min(5000,a));b=Math.max(-3000,Math.min(5000,b));if(b<a)[a,b]=[b,a];if(b-a<8)b=a+8;{const mx=MER()?1000:3000;if(b-a>mx)b=a+mx}HS.fy=a;HS.ty=b;hsSave();hsDraw();const n=$('#'+e.target.id);if(n)n.focus()})}
  o.hidden=false;o.scrollTop=0;document.body.classList.add('vtcw');hsDraw();$('#hs-x').focus()}
