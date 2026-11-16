@@ -481,12 +481,18 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const rings=big?[]:(chart.rings||[]).filter(r=>r&&r.pos).slice(0,2),nb=1+rings.length,H=(RP-RH)/nb;
  const RCOL=T.ringCols||[];
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
-  const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';spread(list,GAP[mode]);
+  const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
+  const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  /* spacing (Gemini, Nov 16: as close as possible without overlap, so a conjunction still looks like one): the widest piece of the
+     glyph stack, measured as an angle at its own radius, plus a hair; inner rings sit at a smaller radius so they get more */
+  const GW=[[R.gs||17,R.g,1.05],[R.ds,R.d,1.6],[R.ss,R.s,1.05],[R.ms,R.m,1.7]].filter(a=>a[0]&&a[1]).map(([z,r,w])=>z*w/r*57.3),gap=mode==='big'?GAP.big:Math.max(...GW)+.6;
+  spread(list,gap);
+
   /* keep each glyph and its degree stack off the cusp lines (Gemini, Nov 15: Sun on the AS, Jupiter on the DS): a planet within m
      degrees of a cusp slides to the side it is on (the open side when it sits exactly on it); its tick stays on the true degree */
   /* then relax: cusps push glyphs off their lines and glyphs push each other apart again, so moving off a cusp never lands a glyph
      on its neighbour (Gemini, Nov 16: natal Sun and Uranus overlapped on a biwheel) */
-  {const gp=GAP[mode],m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
+  {const gp=gap,m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
      if(!x.cs){let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}x.cs={};x.cs[c]=sg}
@@ -494,7 +500,6 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));
     for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
     if(!moved)break}}
-  const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   const cf=main?col:()=>ci,sh=main&&shiny;
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
