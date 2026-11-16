@@ -9310,6 +9310,23 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 .qml .qmcol input{margin-left:auto;width:34px;height:24px;padding:0;border:1px solid #c9b27a;border-radius:5px;background:none;cursor:pointer}
 #vt-ctip{position:fixed;z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:2px;background:#10142a;color:#f3e7c4;border:1px solid #c9b27a;border-radius:8px;padding:6px 10px;font:500 12.5px Inter,system-ui,sans-serif;box-shadow:0 4px 16px #0008;white-space:nowrap}
 #vt-ctip[hidden]{display:none}#vt-ctip b{font-weight:600}#vt-ctip span{color:#c9c3e8}
+/* Gemini, Nov 16: Chart and Space wheels share one place and size (stageFit); the listings sit in the upper corners */
+@media (min-width:1100px){
+ #vt-cw.stg,#vt-spc.stg{overflow:hidden;padding-bottom:8px}
+ #vt-cw.stg .cww,#vt-spc.stg .cww,body.eawz #vt-cw.stg .cww,body.eawz #vt-spc.stg .cww{position:absolute!important;margin:0!important;max-width:none!important;max-height:none!important;z-index:1}
+ #vt-cw.stg .cww>svg,#vt-spc.stg .cww>svg{display:block;width:100%;height:100%}
+ #vt-cw.stg .cwh,#vt-spc.stg .cwh{position:relative;z-index:3;pointer-events:none;margin-top:10px}
+ #vt-cw.stg .cwh>*,#vt-spc.stg .cwh>*{pointer-events:auto}
+ #vt-cw.stg .cwline{margin-top:auto}
+ #vt-cw.stg .cwrings{position:relative;z-index:3}
+ #vt-spc.stg .spcph{position:static;margin:auto auto 8px;z-index:3}
+ #vt-spc.stg .spcph>*,#vt-spc.stg #spc-ph svg{position:relative;z-index:3}
+ #vt-spc.stg #spc-ph .spcpt{position:absolute;left:var(--ptx,48px);top:var(--pty,100px);z-index:3;align-items:flex-start;text-align:left;gap:1px;font-size:14.5px;line-height:20px;width:auto;flex:none}
+ #vt-spc.stg #spc-ph .spcpt b{font-size:14.5px;line-height:20px}
+ #vt-spc.stg #spc-ph .spcpt #spc-d{font-size:14.5px;line-height:20px;letter-spacing:0}
+ #vt-spc.stg .cwh b{font-size:19px;line-height:24px}
+ #vt-spc.stg .spcbar{position:relative;z-index:3}
+}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10084,7 +10101,7 @@ function symPics(dot){const p={};dot.forEach(x=>p[x.k]=x.l);const A=aspApi();try
  const L=dot.map(x=>x.k),out=[],w=x=>Math.abs((((x)%360)+540)%360-180);
  for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++){const a=p[L[i]],b=p[L[j]],m=a+(((b-a)%360)+540)%360/2-90;for(const c of L){if(c===L[i]||c===L[j])continue;const o=Math.min(w(p[c]-m),w(p[c]-m-180));if(o<=1.5)out.push({a:L[i],b:L[j],c,harmonic:0,color:'#e8c46a',fit:1-o/1.5})}}
  return out}
-function wheel(ms,mode,intro,cu,bms){const AS=cu?(cu.realAS!=null?cu.realAS:cu.noAngles?null:cu[1]):null,MC=cu?(cu.realMC!=null?cu.realMC:cu.noAngles?null:cu[10]):null,ws=!!(cu&&cu.realAS!=null&&Math.abs(((cu[1]%30)+30)%30)<1e-6),rot=cu?(AS!=null&&!ws?AS:cu[1]):0;   /* Gemini, Nov 6: Whole Sign puts 0 deg of the rising sign on the left, so the houses read as whole signs */const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=sk.pos,P2=(()=>{let c=null;return ()=>c||(c=T.sky(jd+1/24).pos)})(),
+function wheel(ms,mode,intro,cu,bms){cu=zCu(cu,ms/864e5+2440587.5);   /* Gemini, Nov 16: the Synodic wheel follows the chosen zodiac too */const AS=cu?(cu.realAS!=null?cu.realAS:cu.noAngles?null:cu[1]):null,MC=cu?(cu.realMC!=null?cu.realMC:cu.noAngles?null:cu[10]):null,ws=!!(cu&&cu.realAS!=null&&Math.abs(((cu[1]%30)+30)%30)<1e-6),rot=cu?(AS!=null&&!ws?AS:cu[1]):0;   /* Gemini, Nov 6: Whole Sign puts 0 deg of the rising sign on the left, so the houses read as whole signs */const jd=ms/864e5+2440587.5,sk=T.sky(jd),P=zP(sk.pos,jd),P2=(()=>{let c=null;return ()=>c||(c=zP(T.sky(jd+1/24).pos,jd))})(),ZA=ayan(jd),
   dev=(x,y,a)=>Math.abs(Math.abs((((x-y)%360)+540)%360-180)-a),apl=(a0,a1,b0,b1,ang)=>dev(a1,b1,ang)<dev(a0,b0,ang),   /* applying: the orb is closing */
   mdev=(c,a,b)=>{const m=a+((((b-a)%360)+540)%360-180)/2,w=x=>Math.abs((((x)%360)+540)%360-180);return Math.min(w(c-m),w(c-m-180))},midAp=q=>{const Q=P2();return mdev(Q[q.c],Q[q.a],Q[q.b])<mdev(P[q.c],P[q.a],P[q.b])},RX=sk.ret,rad=d=>d*Math.PI/180,bw=bms!=null,nk=bw?T.sky(bms/864e5+2440587.5):null;
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]},f=n=>n.toFixed(1);
@@ -10110,16 +10127,16 @@ function wheel(ms,mode,intro,cu,bms){const AS=cu?(cu.realAS!=null?cu.realAS:cu.n
    if(Math.abs(x.d-x.l)>.8){const e=xy(x.d,rg+(rt-6-rg)*.45);h+=`<line x1="${f(tk2[0])}" y1="${f(tk2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${col}" stroke-width=".7" opacity=".75"/>`}   /* Gemini, Nov 6: a moved glyph points to its degree */
    const dm=WDIM&&!['Sun','Moon',PN()].includes(x.k)?' opacity=".5"':'';h+=`<g transform="translate(${f(g[0])} ${f(g[1])}) scale(${sc})" fill="none" stroke="${col}" color="${col}" stroke-linecap="round" stroke-linejoin="round"${dm}>${T.plg(x.k)}</g>`;
    h+=`<text x="${f(t[0])}" y="${f(t[1])}" text-anchor="middle" dominant-baseline="central" font-size="${fs}" fill="${RX[x.k]?'#ff9a8a':'#f3e7c4'}" font-family="Inter,system-ui,sans-serif" font-weight="600"${WDIM&&!['Sun','Moon',PN()].includes(x.k)?' opacity=".5"':''}>${dg}°${String(mn).padStart(2,'0')}</text>`});return L};
- const dot=intro?[]:band(P,RX,R1,bw?129:122,bw?114:101,bw?.5:.62,bw?7:8,GOLD,bw?12:14),ndot=bw&&!intro?band(nk.pos,nk.ret,104,92,77,.46,6.6,'#bfe0ff',15):null;
+ const dot=intro?[]:band(P,RX,R1,bw?129:122,bw?114:101,bw?.5:.62,bw?7:8,GOLD,bw?12:14),ndot=bw&&!intro?band(zP(nk.pos,bms/864e5+2440587.5),nk.ret,104,92,77,.46,6.6,'#bfe0ff',15):null;
  if(mode==='star'){const ic=!intro&&SAV()?T.ics(jd).map(x=>riseAt(x.jd)):T.ics(jd),   /* Gemini, Nov 10: Shamanic Astrology draws the star from the 10 degree heliacal rises (Risings) */pi=ic.reduce((a,x,i)=>x.jd<=jd?i:a,-1),pts=(intro?ic.slice(Math.max(0,pi-2),pi+3):ic.slice(Math.max(0,pi-1),pi+4));
   /* Gemini, Nov 3: each line runs 70% in the color of the conjunction it comes from, then blends to the one it goes to.
      Element colors by sign; when two signs of one element are on the star, cardinal boldest, fixed lighter, mutable lightest */
-  const q=pts.map(x=>xy(x.lon,RA-4)),sg=pts.map(x=>Math.floor((((x.lon%360)+360)%360)/30)),mixW=(c,t)=>{const v=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));return '#'+v.map(n=>Math.round(n+(255-n)*t).toString(16).padStart(2,'0')).join('')};
+  const q=pts.map(x=>xy(x.lon-ZA,RA-4)),sg=pts.map(x=>Math.floor(((((x.lon-ZA)%360)+360)%360)/30)),mixW=(c,t)=>{const v=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));return '#'+v.map(n=>Math.round(n+(255-n)*t).toString(16).padStart(2,'0')).join('')};
   const col=g=>{const b=T.elc[g%4];if(!sg.some(x=>x!==g&&x%4===g%4))return b;const m=g%3;return m===0?b:mixW(b,m===1?.25:.5)};
   const seg=q.map((p,i)=>i<q.length-1?[i,i+1]:q.length===5?[i,0]:null).filter(Boolean);
   h+=`<defs>${seg.map(([i,j],n)=>`<linearGradient id="cws${n}" gradientUnits="userSpaceOnUse" x1="${f(q[i][0])}" y1="${f(q[i][1])}" x2="${f(q[j][0])}" y2="${f(q[j][1])}"><stop offset="0" stop-color="${col(sg[i])}"/><stop offset=".7" stop-color="${col(sg[i])}"/><stop offset="1" stop-color="${col(sg[j])}"/></linearGradient>`).join('')}</defs>`;
   h+='<g class="cwstar">';seg.forEach(([i,j],n)=>{h+=`<line class="cwl" data-n="${n}" x1="${f(q[i][0])}" y1="${f(q[i][1])}" x2="${f(q[j][0])}" y2="${f(q[j][1])}" stroke="url(#cws${n})" stroke-width="${intro?3.4:2}" stroke-linecap="round"/>`});
-  pts.forEach((x,i)=>{const p=q[i],prev=ic.indexOf(x)===pi,yr=new Date(x.ms).getFullYear(),lp=xy(x.lon,intro?RA-22:RA-20);
+  pts.forEach((x,i)=>{const p=q[i],prev=ic.indexOf(x)===pi,yr=new Date(x.ms).getFullYear(),lp=xy(x.lon-ZA,intro?RA-22:RA-20);
    h+=`<g class="cwpt" data-i="${i}">`;if(prev)h+=`<circle class="cwglow" cx="${f(p[0])}" cy="${f(p[1])}" r="${intro?15:9}" fill="#ffe27a" filter="url(#cwg)"/>`;
    h+=`<circle cx="${f(p[0])}" cy="${f(p[1])}" r="${(prev?4.6:3.4)*(intro?1.6:1)}" fill="${col(sg[i])}" stroke="${prev?'#fff3c0':'#0b0f26'}" stroke-width="${prev?1.4:.8}"/>${intro?'':`<text x="${f(lp[0])}" y="${f(lp[1])}" text-anchor="middle" dominant-baseline="central" font-size="${intro?11:7.5}" fill="#efe3c8" font-family="Inter,system-ui,sans-serif" font-weight="${prev?700:500}">${yr}</text>`}</g>`});h+='</g>';if(intro)h+=VSUN}
  else if(ndot){const AL=ASET()==='harmo'||ASET()==='minor'?aspL():T.asp;for(const a of ndot)for(const b of dot){const dd=Math.abs((((a.l-b.l)%360)+540)%360-180),A=AL.find(z=>Math.abs(dd-z.a)<=Math.min(5,aspOrb(z))-(z.n==='Sextile'?2:0));if(!A||A.a===0)continue;   /* between the two charts, tighter orbs */
@@ -10449,7 +10466,22 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 /* a two-line title (stage name over side) pushed the Time Machine below the window: the wheel gives up the overflow */
 /* Gemini, Nov 16: the wheel takes all the room the pane has, and follows every window resize.
    Start from the full pane width, then give back exactly what overflows the pane's height */
+/* Gemini, Nov 16: Chart and Space put their wheels in the same place at the same size: a square centred under the view tabs,
+   as large as it can be while the four corners stay free for the listings (upper left and right) and the small labels and buttons (lower left and right) */
+const STG={tl:[250,122],tr:[250,122],bl:[112,118],br:[112,118],bot:76};
+function stageFit(o,w){if(!o||!w)return false;if(!PANE()){o.classList.remove('stg');['position','left','top','width','height'].forEach(k=>w.style.removeProperty(k));return false}
+ o.classList.add('stg');const vx=o.querySelector('.vtvx');if(!vx)return false;const pr=o.getBoundingClientRect(),xr=vx.getBoundingClientRect(),L=xr.left,W=xr.width,T=xr.bottom+6,B=pr.bottom-STG.bot,cx=L+W/2;
+ let best=0,bcy=(T+B)/2;for(let cy=T+40;cy<=B-40;cy+=2){let r=Math.min(W/2,cy-T,B-cy);
+  for(const [x,y,dx,dy] of [[L+STG.tl[0],T+STG.tl[1],1,1],[L+W-STG.tr[0],T+STG.tr[1],-1,1],[L+STG.bl[0],B-STG.bl[1],1,-1],[L+W-STG.br[0],B-STG.br[1],-1,-1]]){
+   const px=dx*(cx-x)>0?x:cx,py=dy*(cy-y)>0?y:cy;r=Math.min(r,Math.hypot(cx-px,cy-py)-6)}
+  if(r>best+.5){best=r;bcy=cy}}
+ const S=Math.max(200,Math.floor(best*2)),ox=pr.left+o.clientLeft,oy=pr.top+o.clientTop;
+ Object.assign(w.style,{position:'absolute',left:Math.round(cx-S/2-ox)+'px',top:Math.round(bcy-S/2-oy)+'px',width:S+'px',height:S+'px'});
+ /* Space: the readout sits under the title in the upper left, where Chart's listing lives */
+ const t=o.querySelector('.cwh .spcnh');if(t){const tr=t.getBoundingClientRect(),tb=t.querySelector('b'),bb=tb?tb.getBoundingClientRect():tr;o.style.setProperty('--ptx',Math.round(tr.left-ox)+'px');o.style.setProperty('--pty',Math.round(bb.bottom+4-oy)+'px')}
+ return true}
 function cwFit(){const o=$('#vt-cw');if(!o||o.hidden)return;const w=o.querySelector('.cww');if(!w)return;
+ if(stageFit(o,w))return;
  if(!PANE()){w.style.removeProperty('max-width');const over=o.scrollHeight-o.clientHeight;if(over>0)w.style.setProperty('max-width',Math.max(200,w.getBoundingClientRect().width-over-2)+'px','important');return}
  const cs=getComputedStyle(o),aw=Math.floor(o.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-8);w.style.setProperty('max-width',aw+'px','important');
  for(let i=0;i<3;i++){const over=o.scrollHeight-o.clientHeight;if(over<=0)break;w.style.setProperty('max-width',Math.max(220,Math.floor(w.getBoundingClientRect().width-over-1))+'px','important')}}
@@ -10696,6 +10728,7 @@ function animHi(){const ms=animMs();
  /* Gemini, Nov 15: no scrolling the collapsed table: the whole table stays collapsed and the stage the animation has reached opens */
  if(V.allc&&V.side==='all'){const x=k>=0?R[k]:null,ex=x?Math.round(x.ms):null;if(ex!==V.ex){V.ex=ex;try{draw(false)}catch(e){}const o=$('#vt-list .vtex');if(o){const hd=document.querySelector('#vt header'),hb=hd?Math.max(0,hd.getBoundingClientRect().bottom):0,ft=document.getElementById('vt-bot'),fb=ft&&!ft.hidden&&ft.getClientRects().length?Math.min(innerHeight,ft.getBoundingClientRect().top):innerHeight;o.style.scrollMarginTop=Math.round(hb+6)+'px';o.style.scrollMarginBottom=Math.round(innerHeight-fb+6)+'px';o.scrollIntoView({block:'nearest'})}const L2=[...document.querySelectorAll('#vt-list > li')];L2.forEach((li,i)=>li.classList.toggle('vtah',i===k))}}}
 function paneFit(){[['#vt-spc','#spc-w',980],['#vt-ea','#ea-w',1100]].forEach(([ps,ws,big])=>{const o=$(ps),w=o&&!o.hidden&&$(ws),sv=w&&w.querySelector('svg');if(!sv)return;
+ if(ps==='#vt-spc'){w.classList.remove('vtfit');if(stageFit(o,w))return;w.classList.add('vtfit')}
  const vb=(sv.getAttribute('viewBox')||'0 0 1 1').trim().split(/[\s,]+/).map(Number),a=vb[2]/vb[3]||1;
  o.classList.add('vtmeas');w.classList.add('vtfit');w.style.width=w.style.height='0px';
  const cs=getComputedStyle(o),inH=o.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom),inW=o.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
