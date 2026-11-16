@@ -682,7 +682,8 @@ window.APP_GLYB=[[[-30.5,29.5,-37.5,38.5],[-30.5,30.3,-37.9,38.4],[-30.5,31.1,-3
    window.EAWheel.attach(root, {tap, dbl}) also turns on pinch to zoom (touch screens only) for every wheel under root: the wheel grows over the page
      as the top layer, body.eawz is set while zoomed (apps open their containers' overflow), pinch back to full size or EAWheel.zoomReset() ends it.
    window.EAWheel.attach(root, {tap, dbl}) listens once on root for taps on the aspect circle ([data-eaw="asp"]):
-     tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter).
+     tap() after a single tap (or Enter), dbl() after a double tap (or Shift+Enter); planet(name, ring, event) when a planet is tapped
+     (ring 0 = main chart, 1-2 = outer rings), so each app can open its planet info box.
    Other Worlds: build {pos, ret, cusps} from your own ephemeris and pass the glyph and sign providers you have. */
 (function(){
 const ELC=['#a8382f','#2f6b53','#9a7333','#33408f'];   /* fire, earth, air, water, deepened from the wheel colors so they read on paper */
@@ -709,6 +710,8 @@ const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus',
 const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
+/* glyph spacing in degrees per wheel mode (Gemini, Nov 16: more room, above all on bi- and tri-wheels) */
+const GAP={big:8.5,full:14.5,compact:13,bi:13.5,tri:12};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
 /* aspect types with default orbs (Gemini, Nov 13: turn any aspect type on or off and choose its orb).
    opts.aspectTypes {angle: orb | false} overrides any row; a row with on:false starts off (minor types). */
@@ -803,28 +806,34 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     the last one outermost; each ring's glyphs take its color so the legend dot matches. The main chart stays innermost. */
  const rings=big?[]:(chart.rings||[]).filter(r=>r&&r.pos).slice(0,2),nb=1+rings.length,H=(RP-RH)/nb;
  const RCOL=T.ringCols||[];
- const band=(Pp,RXp,t,ci,main)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
-  const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';spread(list,{big:8,full:13.5,compact:12,bi:11,tri:10}[mode]);
+ const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
+  const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';spread(list,GAP[mode]);
   /* keep each glyph and its degree stack off the cusp lines (Gemini, Nov 15: Sun on the AS, Jupiter on the DS): a planet within m
      degrees of a cusp slides to the side it is on (the open side when it sits exactly on it); its tick stays on the true degree */
-  if(cu){const m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu.slice(1,13).map(n360),dd=(a,b)=>((a-b+540)%360)-180;
-   for(let pass=0;pass<2;pass++)list.forEach((x,i)=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m)continue;
-    let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}
-    x.d=n360(c+sg*m)}})}
+  /* then relax: cusps push glyphs off their lines and glyphs push each other apart again, so moving off a cusp never lands a glyph
+     on its neighbour (Gemini, Nov 16: natal Sun and Uranus overlapped on a biwheel) */
+  {const gp=GAP[mode],m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
+   if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
+    list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
+     if(!x.cs){let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}x.cs={};x.cs[c]=sg}
+     const sg=(x.cs[c]!=null?x.cs[c]:(x.cs[c]=Math.sign(e)||1));x.d=n360(c+sg*m);moved=true}});
+    const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));
+    for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
+    if(!moved)break}}
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   const cf=main?col:()=>ci,sh=main&&shiny;
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
    {const k0=xy(x.l,t),k1=xy(x.l,t-(nb>1?5:6.5)),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${nb>1?1.4:1.8}" stroke-linecap="round"/>`}
-   if(Math.abs(x.d-x.l)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
-   h+=`<g class="eawp" data-pl="${x.k}"${main?'':` data-ring="${ci}"`}><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
+   h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
    if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
    else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
    else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
- rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false)});
+ rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false,i+1)});
  const L=band(P,RX,RP-H*rings.length,null,true);
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
@@ -866,7 +875,10 @@ function zoomable(){const root=document;if(root.__eawz)return;root.__eawz=1;   /
  const up=e=>{pts.delete(e.pointerId);st=null};root.addEventListener('pointerup',up,true);root.addEventListener('pointercancel',up,true);}
 function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply);zState()}
 function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
- root.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
+ root.addEventListener('click',e=>{const pl=e.target.closest&&e.target.closest('g.eawp');
+  /* tap a planet: cb.planet(name, ring, event), ring 0 = the main chart, 1 and 2 the outer rings (Gemini, Nov 16: a planet info box) */
+  if(pl&&root.__eaw.planet){e.preventDefault();root.__eaw.planet(pl.dataset.pl,+pl.dataset.ring||0,e);return}
+  const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
   if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
 /* legend for bi- and tri-wheels: one line per ring, inner to outer, a dot in the ring's color and its label */
