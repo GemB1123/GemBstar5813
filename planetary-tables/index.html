@@ -7911,7 +7911,7 @@ function dialBox(){const D=S.dl,lab=(t,i)=>`<label class="fl"><span>${t}</span>$
  +`<div class="btns"><button data-act="gback">Back To Chart Wheel</button></div><small class="note">The pointer line and its opposite end both count. A planetary picture means two bodies sit evenly on either side of the pointer, the Hamburg School's midpoint test.</small>`}
 /* right-click quick menu */
 (function(){let m=null;const hide=()=>{if(m){m.remove();m=null}};
- document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('#box,.tile,[data-slot],[data-corner],.lb,.ib,#dock,#imgx,[data-pl],#syn-bar,input,select,textarea,#cmenu'))return;e.preventDefault();hide();
+ document.addEventListener('contextmenu',e=>{if(window.EA_PHONE)return;   /* Planetary Tables keeps its own chart menu */if(e.target.closest&&e.target.closest('#box,.tile,[data-slot],[data-corner],.lb,.ib,#dock,#imgx,[data-pl],#syn-bar,input,select,textarea,#cmenu'))return;e.preventDefault();hide();
   const items=[['Displayed Planets',()=>{S.open='settings';S.sub='displayed'}],['Charts On The Wheel',()=>{S.open='settings';S.sub='charts'}],['Label Options',()=>{S.open='settings';S.sub='label'}],['Aspects (Aspect Grid)',()=>{S.synView=false;S.gv='grid';S.open='agrid'}],['Dial View',()=>{S.synView=false;S.gv='dial';S.open='dial'}],['Wheel Display',()=>{S.open='wdisp'}],['House System ▸',null,'hs'],['Aspects ▸',null,'asp']];
   m=document.createElement('div');m.id='cmenu';m.style.left=Math.min(e.clientX,innerWidth-230)+'px';m.style.top=Math.min(e.clientY,innerHeight-230)+'px';
   const fill=list=>{m.innerHTML='';list.forEach(([t,fn,sub])=>{const b=document.createElement('button');b.type='button';b.textContent=t;if(sub==='hs')b.onclick=ev=>{ev.stopPropagation();hsMenu()};else if(sub==='asp')b.onclick=ev=>{ev.stopPropagation();aspMenu()};else if(!fn)b.disabled=true;else b.onclick=ev=>{ev.stopPropagation();hide();fn();renderAll()};m.appendChild(b)})};
@@ -9286,6 +9286,13 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw .cwgcap{font:600 14px Inter,system-ui,sans-serif;color:#efe3c8}#vt-cw .cwgsvg{display:block;width:100%;height:auto}
 #vt-cw .cwglg{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 12px;font:500 12px Inter,system-ui,sans-serif;color:#b3a688}#vt-cw .cwglg span{display:inline-flex;align-items:center;gap:4px}
 #vt-cw .cwgnote{font:500 11.5px Inter,system-ui,sans-serif;color:#b3a688;text-align:center}
+/* Gemini, Nov 16: the gear sits at the left of the Time Machine line; the chart menu takes the Device's right-click look */
+#vt-cw .cwline .cwgear{margin-right:14px;flex:0 0 auto}
+#cw-cm{position:fixed;z-index:210;display:flex;flex-direction:column;gap:2px;padding:5px;border-radius:11px;border:1px solid #d1ab7466;background:#1c1710;min-width:230px;max-height:calc(100vh - 16px);overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);font:500 14px Inter,system-ui,sans-serif;box-sizing:border-box}
+#cw-cm button{font:inherit;text-align:left;padding:8px 11px;border:0;border-radius:7px;background:none;color:#efe6d2;cursor:pointer;white-space:nowrap}
+#cw-cm button:hover,#cw-cm button:focus-visible{background:rgba(214,205,184,.15);outline:none}
+#cw-cm .qmx{position:absolute;top:5px;right:5px;padding:4px 8px;font-size:12px;color:#b3a688}#cw-cm>button:not(.qmx){padding-right:34px}#cw-cm .qmc{display:inline-block;width:18px;color:#e8c46a}
+#cw-cm .qms{font-size:11.5px;color:#b3a688;padding:6px 11px 2px;text-transform:none}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10356,13 +10363,13 @@ document.addEventListener('click',e=>{if(!CW.tmenu||(e.target.closest&&e.target.
 function cwLine(){const R=cwKind()==='natal'&&window.EAWheel?(CW.rings||[]):[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  /* Gemini, Nov 15 (12:18 PM): the Time Machine stays up beneath the chart, wheel added or not */
  const spd=`<select class="cwspd" id="cw-spd" aria-label="Animation speed">${SPD.map((x,i)=>`<option value="${i}"${i===CW.sp?' selected':''}>${x[0]}</option>`).join('')}</select>`;
- if(CW.on||CW.p<1)return `<div class="cwline cwplay"><button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle">${spd}<button class="vtbtn" id="cw-stop" aria-label="Stop and return to the Time Machine">&#9632;</button></div>`;
- return `<div class="cwline"><div class="cwsplit cwpsplit"><button class="cwsm cwpl1" id="cw-pm" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Play the cycle: choose a speed">&#9654;</button><button class="cwsa" id="cw-pm2" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Choose a speed and play">&#9662;</button>${CW.pmenu?`<div class="cwmenu" role="menu" aria-label="Speed">${SPD.map((x,i)=>`<button role="menuitem" data-cwsp="${i}"${i===CW.sp?' aria-current="true"':''}>${x[0]}</button>`).join('')}</div>`:''}</div>`+cwTM(tmGet())+`</div>`}
-function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="cwrings"><div class="cwtools">${cwGear()}</div>${cwSet()}${cwGtm()}</div>`;const R=CW.rings||[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
+ if(CW.on||CW.p<1)return `<div class="cwline cwplay">${cwGear()}<button class="vtbtn solid" id="cw-a" aria-label="${CW.on?'Pause':'Play'}">${CW.on?'&#10074;&#10074;':'&#9654;'}</button><input id="cw-s" type="range" min="0" max="1000" step="1" value="${Math.round((CW.p<1?CW.p:0)*1000)}" aria-label="Scrub through the cycle">${spd}<button class="vtbtn" id="cw-stop" aria-label="Stop and return to the Time Machine">&#9632;</button></div>`;
+ return `<div class="cwline">${cwGear()}<div class="cwsplit cwpsplit"><button class="cwsm cwpl1" id="cw-pm" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Play the cycle: choose a speed">&#9654;</button><button class="cwsa" id="cw-pm2" aria-haspopup="menu" aria-expanded="${!!CW.pmenu}" aria-label="Choose a speed and play">&#9662;</button>${CW.pmenu?`<div class="cwmenu" role="menu" aria-label="Speed">${SPD.map((x,i)=>`<button role="menuitem" data-cwsp="${i}"${i===CW.sp?' aria-current="true"':''}>${x[0]}</button>`).join('')}</div>`:''}</div>`+cwTM(tmGet())+`</div>`}
+function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="cwrings">${cwSet()}${cwGtm()}</div>`;const R=CW.rings||[],rd=new Date(CW.rms||Date.now()),z=n=>String(n).padStart(2,'0'),iso=`${rd.getFullYear()}-${z(rd.getMonth()+1)}-${z(rd.getDate())}`;
  /* Gemini, Nov 15: one split button. Nothing added: "Transits" adds the transit wheel, the arrow offers Progressions and Solar Arc.
     A wheel added: the button reads "Clear", and the arrow offers the other two */
  const on=R[0],others=Object.keys(RINGN).filter(k=>on?k!==on:k!=='tr');
- return `<div class="cwrings"><div class="cwtools">${cwGear()}<div class="cwsplit"><button class="cwsm" data-cwr="${on?'clear':'tr'}">${on?'One Wheel':'Transits'}</button><button class="cwsa" id="cw-rm" aria-haspopup="menu" aria-expanded="${!!CW.rmenu}" aria-label="More wheels">&#9662;</button>`
+ return `<div class="cwrings"><div class="cwtools"><div class="cwsplit"><button class="cwsm" data-cwr="${on?'clear':'tr'}">${on?'One Wheel':'Transits'}</button><button class="cwsa" id="cw-rm" aria-haspopup="menu" aria-expanded="${!!CW.rmenu}" aria-label="More wheels">&#9662;</button>`
   +(CW.rmenu?`<div class="cwmenu" role="menu">${others.map(k=>`<button role="menuitem" data-cwr="${k}">${RINGN[k]}</button>`).join('')}</div>`:'')+`</div></div>`+cwSet()+cwGtm()
  +`</div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-cwr],[data-cwt],#cw-rm');if(!b){if(CW.pmenu&&!(e.target.closest&&e.target.closest('.cwmenu,#cw-pm,#cw-pm2'))){CW.pmenu=false;chartDraw()}if(CW.rmenu&&!(e.target.closest&&e.target.closest('.cwmenu'))){CW.rmenu=false;const m=$('#vt-cw .cwmenu');if(m)chartDraw()}return}if(!b.closest('#vt-cw'))return;CW.rings=CW.rings||[];
@@ -11316,6 +11323,45 @@ function cwBody(){if(!CW.grid||!cwGridOk())return cwWheel();const B=plBase(),A=p
  return `<div class="cwgrid"><div class="cwgcap">${esc(cap)}</div>${gridSvg({A,B:O,lab:'Aspect grid, '+cap},640,600,!O,'cwgsvg')}<div class="cwglg">${lg.map(x=>`<span><svg viewBox="-8 -8 16 16" width="15" height="15" aria-hidden="true">${x.svg}</svg>${esc(x.n)} ${x.o}°</span>`).join('')}</div>`
  +`<small class="cwgnote">Orb in degrees, A or S, minutes. A = Applying, S = Separating.${O?'':' Above the diagonal: Parallels (gold) and Contraparallels (silver).'}</small></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#vt-cw [data-cwv]');if(!b)return;e.stopPropagation();CW.grid=b.dataset.cwv==='grid';plClose();chartDraw();const q=$(`#vt-cw [data-cwv="${b.dataset.cwv}"]`);if(q)q.focus()},true);
+/* Gemini, Nov 16: one simple chart menu, the Device's right-click look. Right-click on the chart pane, or press the gear (now at the
+   left of the Time Machine line), opens it; each item opens its own list in place, with Back. X and Escape close it. */
+const QM={open:false,sub:null,x:0,y:0,from:null};
+function qmItems(){const nat=cwKind()==='natal'&&window.EAWheel,R=(CW.rings||[])[0]||'',H=CWHIDE(),ck=on=>on?'✓ ':'';
+ if(QM.sub==='pl')return {t:'Displayed Planets',L:PLN.map(p=>[ck(!H.includes(p))+p,'pl:'+p,1])};
+ if(QM.sub==='rings')return {t:'Charts On The Wheel',L:[[ck(!R)+'One Wheel','ring:clear']].concat(Object.keys(RINGN).map(k=>[ck(R===k)+RINGN[k],'ring:'+k]))};
+ if(QM.sub==='wd'){const E=cwEarth()||'none';return {t:'Wheel Display',L:[['Earth in the center',null]].concat([['small','Small Earth'],['large','Large Earth'],['none','No Earth']].map(([v,n])=>[ck(E===v)+n,'earth:'+v,1]))
+  .concat(MER()?[]:[['Center of the wheel',null],[ck(CW.mode==='asp')+'Aspects','mode:asp',1],[ck(CW.mode==='star')+(SAV()?'Risings':'Venus Star'),'mode:star',1]])}}
+ if(QM.sub==='hs'){const v=pref('vt-hsys');return {t:'House System',L:[[ck(!v)+`Method default (${hsysN(hsysK())})`,'hs:',1]].concat(HSYS.map(([k,n])=>[ck(v===k)+n,'hs:'+k,1]))}}
+ if(QM.sub==='zod')return {t:'Zodiac',L:ZODS.map(([k,n])=>[ck(ZOD()===k)+n,'zod:'+k,1])};
+ if(QM.sub==='asp')return {t:'Aspects',L:ASETS.map(([k,n])=>[ck(ASET()===k)+n,'aset:'+k,1])};
+ return {t:'Chart',L:[['Displayed Planets ▸','sub:pl'],[nat?'Charts On The Wheel ▸':'Charts On The Wheel (natal charts)',nat?'sub:rings':null],[ck(!!CW.grid)+'Aspects (Aspect Grid)',cwGridOk()?'grid':null],
+  ['Wheel Display ▸','sub:wd'],[cwCusps(CW.ms||Date.now())?'House System ▸':'House System (no houses)',cwCusps(CW.ms||Date.now())?'sub:hs':null],['Zodiac ▸','sub:zod'],['Aspects ▸','sub:asp']]}}
+function qmDraw(focus){let m=$('#cw-cm');if(!QM.open){if(m)m.remove();const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','false');return}
+ if(!m){m=document.createElement('div');m.id='cw-cm';m.setAttribute('role','menu');document.body.appendChild(m)}const I=qmItems();m.setAttribute('aria-label',I.t);
+ const ckc=/✓ /.test(I.L.map(x=>x[0]).join('|')),lab=t=>{const on=t.startsWith('✓ ');return (ckc?`<span class="qmc" aria-hidden="true">${on?'✓':''}</span>`:'')+esc(on?t.slice(2):t)};
+ m.innerHTML=`<button class="qmx" data-qm="x" aria-label="Close menu">&#10005;</button>`+(QM.sub?'<button class="qmb" data-qm="back" role="menuitem">◂ Back</button>':'')
+  +I.L.map(([t,a])=>a?`<button role="${t.startsWith('✓ ')||ckc?'menuitemcheckbox':'menuitem'}"${ckc?` aria-checked="${t.startsWith('✓ ')}"`:''} data-qm="${esc(a)}">${lab(t)}</button>`:`<div class="qms">${esc(t)}</div>`).join('');
+ const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','true');
+ const w=m.offsetWidth,h=m.offsetHeight;let x=QM.x,y=QM.y;if(QM.from==='gear'){y=QM.y-h-10}m.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+'px';m.style.top=Math.max(8,Math.min(innerHeight-h-8,y))+'px';
+ if(focus){const f=typeof focus==='string'?m.querySelector(`[data-qm="${focus}"]`):null;(f||m.querySelector('[data-qm]:not(.qmx)')||m.querySelector('.qmx')).focus()}}
+function qmOpen(x,y,from){QM.open=true;QM.sub=null;QM.x=x;QM.y=y;QM.from=from;CW.set=false;plClose&&plClose();qmDraw(true)}
+function qmClose(focus){QM.open=false;QM.sub=null;qmDraw();if(focus){const g=$('#cw-g');if(g)g.focus()}}
+function qmAct(a){const [k,v]=a.split(/:(.*)/s);
+ if(k==='x'){qmClose(true);return}if(k==='back'){const s=QM.sub;QM.sub=null;qmDraw('sub:'+s);return}if(k==='sub'){QM.sub=v;qmDraw(true);return}
+ if(k==='pl'){const h=CWHIDE().filter(q=>q!==v);if(!CWHIDE().includes(v))h.push(v);try{localStorage.setItem('vt-cwhide',JSON.stringify(h))}catch(x){}}
+ else if(k==='ring'){CW.rings=v==='clear'?[]:[v];CW.rmenu=false}
+ else if(k==='grid'){CW.grid=!CW.grid}
+ else if(k==='earth')CW.earth=v;else if(k==='mode')CW.mode=v;
+ else if(k==='hs')prefSet('vt-hsys',v);else if(k==='zod')prefSet('vt-zod',v==='trop'?'':v);else if(k==='aset'){ASET_OV=v;asetSet(v)}
+ chartDraw();if(k==='ring'||k==='grid'){qmClose(false);return}qmDraw(a)}   /* lists stay open so several can be ticked */
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#cw-cm [data-qm]');if(b){e.stopPropagation();e.preventDefault();qmAct(b.dataset.qm);return}
+ const g=e.target.closest&&e.target.closest('#cw-g');if(g&&g.closest('#vt-cw')){e.stopPropagation();e.preventDefault();if(QM.open){qmClose(true);return}const r=g.getBoundingClientRect();qmOpen(r.left,r.top,'gear');return}
+ if(QM.open&&!(e.target.closest&&e.target.closest('#cw-cm')))qmClose(false)},true);
+document.addEventListener('contextmenu',e=>{const o=e.target.closest&&e.target.closest('#vt-cw');if(!o||e.target.closest('input,select,textarea'))return;e.preventDefault();e.stopPropagation();qmOpen(e.clientX,e.clientY,'ctx')},true);
+document.addEventListener('keydown',e=>{if(!QM.open)return;if(e.key==='Escape'){e.stopPropagation();e.preventDefault();if(QM.sub){qmAct('back')}else qmClose(true);return}
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){const L=[...document.querySelectorAll('#cw-cm [data-qm]')],i=L.indexOf(document.activeElement);e.preventDefault();(L[(i+(e.key==='ArrowDown'?1:-1)+L.length)%L.length]||L[0]).focus()}
+ else if(e.key==='ArrowLeft'&&QM.sub){e.preventDefault();qmAct('back')}else if(e.key==='ArrowRight'){const b=document.activeElement;if(b&&b.dataset&&/^sub:/.test(b.dataset.qm||'')){e.preventDefault();qmAct(b.dataset.qm)}}},true);
+addEventListener('resize',()=>{if(QM.open)qmClose(false)});
 addEventListener('load',()=>setTimeout(go,200));
 })();
 </script><script src="../shared/simplewheel.js" onload="window.__ewReload&&window.__ewReload()" onerror="0"></script>
