@@ -10337,7 +10337,13 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
  if(b.id==='cw-ed'){xpOpen();return}
  if(b.id==='cw-cl'){if(ME()){try{localStorage.removeItem('vt-me')}catch(x){}stop();V.ms=Date.now();V.memo=null;V.side=null;V.ex=null;V.rk='';V.view='cycle';draw(true)}chartOpen(Date.now(),'Current Transits',false)}});
 /* a two-line title (stage name over side) pushed the Time Machine below the window: the wheel gives up the overflow */
-function cwFit(){const o=$('#vt-cw');if(!o||o.hidden)return;const w=o.querySelector('.cww');if(!w)return;w.style.removeProperty('max-width');const over=o.scrollHeight-o.clientHeight;if(over>0)w.style.setProperty('max-width',Math.max(200,w.getBoundingClientRect().width-over-2)+'px','important')}
+/* Gemini, Nov 16: the wheel takes all the room the pane has, and follows every window resize.
+   Start from the full pane width, then give back exactly what overflows the pane's height */
+function cwFit(){const o=$('#vt-cw');if(!o||o.hidden)return;const w=o.querySelector('.cww');if(!w)return;
+ if(!PANE()){w.style.removeProperty('max-width');const over=o.scrollHeight-o.clientHeight;if(over>0)w.style.setProperty('max-width',Math.max(200,w.getBoundingClientRect().width-over-2)+'px','important');return}
+ const cs=getComputedStyle(o),aw=Math.floor(o.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-8);w.style.setProperty('max-width',aw+'px','important');
+ for(let i=0;i<3;i++){const over=o.scrollHeight-o.clientHeight;if(over<=0)break;w.style.setProperty('max-width',Math.max(220,Math.floor(w.getBoundingClientRect().width-over-1))+'px','important')}}
+{let fq=0;const fit=()=>{if(fq)return;fq=requestAnimationFrame(()=>{fq=0;try{cwFit()}catch(e){}})};addEventListener('resize',fit);try{new ResizeObserver(fit).observe(document.documentElement)}catch(e){}}
 function chartDraw(){chartDraw0();try{cwFit()}catch(e){}requestAnimationFrame(()=>{try{cwFit()}catch(e){}})}
 function chartDraw0(){const o=$('#vt-cw'),d=new Date(CW.ms);
  const k=hsysK();
