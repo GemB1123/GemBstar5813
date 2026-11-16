@@ -9276,7 +9276,7 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw g.eawp{cursor:pointer}#vt-cw g.eawp:focus{outline:none}#vt-cw g.eawp:focus-visible{outline:2px solid #ffd98a;outline-offset:2px}
 #cw-pi{position:fixed;z-index:70;background:#0f0d22;color:#efe3c8;border:1.5px solid #c9b27a;border-radius:14px;box-shadow:0 10px 30px #000a;padding:10px 12px 12px;font:500 13.5px Inter,system-ui,sans-serif;max-width:min(480px,calc(100vw - 16px));min-width:260px;box-sizing:border-box}
 #cw-pi .plh{display:flex;align-items:center;gap:8px;margin-bottom:6px}#cw-pi .plh b{font-size:17px;color:#f3e7c4}#cw-pi .plh small{color:#b3a688;font-size:12.5px}#cw-pi .plx{margin-left:auto}
-#cw-pi .plt{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}#cw-pi .plt th{text-align:left;font-weight:500;color:#b3a688;padding:3px 14px 3px 0;white-space:nowrap}#cw-pi .plt td{padding:3px 0;color:#f3e7c4}
+#cw-pi .plt{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}#cw-pi .plt th{text-align:left;font-weight:500;color:#b3a688;padding:3px 14px 3px 0;white-space:nowrap}#cw-pi .plt td{padding:3px 0;color:#f3e7c4;white-space:nowrap}
 #cw-pi .ploob{color:#ffd98a;font-weight:700;margin-left:6px;font-size:12px}
 #cw-pi .plab{margin-top:8px;font:600 13px Inter,system-ui,sans-serif;color:#f3e7c4;background:#1b2340;border:1px solid #c9b27a;border-radius:8px;padding:5px 12px;cursor:pointer}#cw-pi .plab[aria-expanded="true"]{background:#c9b27a;color:#0f0d22}
 #cw-pi .plag{margin-top:8px;display:flex;flex-direction:column;gap:6px;overflow-x:auto}#cw-pi .plgw small{display:block;color:#b3a688;font-size:12px;margin-bottom:2px}#cw-pi .plgrid{display:block;max-width:100%;height:auto}
@@ -11258,7 +11258,14 @@ function plPosT(l){const q=dmsP(l);return `${q.d} degrees ${SGN[q.sg]} ${q.m} mi
 function plHouse(cu,l){if(!cu)return null;for(let i=1;i<=12;i++){const a=cu[i],b=cu[i%12+1];if(a==null||b==null)return null;const w=((b-a)%360+360)%360,x=((l-a)%360+360)%360;if(x<w)return i}return null}
 function plStage(k,t){if(t==null||k!==PN())return null;let best=null;document.querySelectorAll('#vt-list [data-cm]:not([data-bw])').forEach(b=>{const m=+b.dataset.cm;if(m<=t+6e4&&(!best||m>best.m))best={m,n:String(b.dataset.cn||'').split('\n')[0]}});return best&&best.n?best.n:null}
 function plData(k,r){const B=plBase(),R=plRing(B,r);if(!R||R.pos[k]==null)return null;let I=null;if(R.jd!=null&&T.pinfo){try{I=T.pinfo(k,R.jd)}catch(e){}}
- const rx=I?I.sp<0:false;return {k,r,R,B,lon:R.pos[k],I,rx,house:plHouse(B.cu,R.pos[k]),stage:plStage(k,R.t)}}
+ const rx=I?I.sp<0:false,cu=B.cu,as=cu?(cu.realAS!=null?cu.realAS:cu.noAngles?null:cu[1]):null,ws=as==null?null:((Math.floor(((R.pos[k]%360)+360)%360/30)-Math.floor(((as%360)+360)%360/30)+12)%12)+1;
+ return {k,r,R,B,lon:R.pos[k],I,rx,house:plHouse(cu,R.pos[k]),ws,stage:plStage(k,R.t)}}
+/* Gemini, Nov 16: each planet's average distance and magnitude beside today's: sampled across many of its cycles (the Moon a month,
+   Mercury 6 years, Venus 8, Mars 15, then one orbit for Jupiter out to Pluto), worked out once per planet */
+const PLAVG={},AVGSPAN={Sun:365.25,Moon:27.5546,Mercury:2191.5,Venus:2922,Mars:5479,Jupiter:4332.6,Saturn:10759,Uranus:30687,Neptune:60190,Pluto:90560};
+function plAvg(k){if(PLAVG[k])return PLAVG[k];const sp=AVGSPAN[k];if(!sp||!T.pinfo)return null;const n=k==='Moon'?60:144,j0=2451545;let sd=0,nd=0,sm=0,nm=0;
+ for(let i=0;i<n;i++){try{const I=T.pinfo(k,j0+sp*(i+.5)/n);if(I.dist!=null){sd+=k==='Moon'?(I.km||I.dist*149597870.7):I.dist;nd++}if(I.mag!=null&&isFinite(I.mag)){sm+=I.mag;nm++}}catch(e){}}
+ return PLAVG[k]={d:nd?sd/nd:null,mag:nm&&k!=='Sun'&&k!=='Moon'?sm/nm:null}}
 /* hover: the short list */
 {let tp=null;const hide=()=>{if(tp)tp.hidden=true};
  document.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const g=e.target.closest&&e.target.closest('#vt-cw g.eawp');if(!g||CW.pi&&CW.pi.k===g.dataset.pl&&CW.pi.r===(+g.dataset.ring||0)){hide();return}
@@ -11271,14 +11278,16 @@ function plOpen(k,r,e){hideTips();if(CW.pi&&CW.pi.k===k&&CW.pi.r===r){plClose();
  CW.pi={k,r,asp:false,x:e&&isFinite(e.clientX)&&e.clientX?e.clientX:rc.left+rc.width/2,y:e&&isFinite(e.clientY)&&e.clientY?e.clientY:rc.top+rc.height/3};plRefresh();const b=$('#cw-pi .plx');if(b)b.focus()}
 function hideTips(){const t=$('#vt-ptip');if(t)t.hidden=true}
 function plClose(focus){const k=CW.pi&&CW.pi.k,r=CW.pi&&CW.pi.r;CW.pi=null;const b=$('#cw-pi');if(b)b.remove();if(focus&&k){const g=$(`#vt-cw g.eawp[data-pl="${k}"][data-ring="${r||0}"]`);if(g)g.focus()}}
-function plRows(D){const I=D.I,row=(n,v,cl)=>v==null||v===''?'':`<tr${cl?` class="${cl}"`:''}><th scope="row">${n}</th><td>${v}</td></tr>`,UN=pref('vt-unit')||'moon';
- const dist=!I||I.dist==null?null:D.k==='Moon'?(()=>{const km=I.km||I.dist*149597870.7;return UN==='moon'?`${(km/3474.8).toFixed(1)} Moons`:UN==='km'?`${Math.round(km).toLocaleString('en-US')} km`:`${Math.round(km*.621371).toLocaleString('en-US')} mi`})():`${I.dist.toFixed(3)} AU`;
- return row('Position',plPosH(D.lon,D.rx))+row('House',D.house)+row('Motion',I?(D.rx?'<span class="plrx">Retrograde</span>':'Direct'):null)
+function plRows(D){const I=D.I,row=(n,v,cl)=>v==null||v===''?'':`<tr${cl?` class="${cl}"`:''}><th scope="row">${n}</th><td>${v}</td></tr>`,UN=pref('vt-unit')||'moon',A=I?plAvg(D.k):null;
+ const mo=km=>UN==='moon'?(km/3474.8).toFixed(1):Math.round(UN==='km'?km:km*.621371).toLocaleString('en-US'),au=v=>v<10?v.toFixed(2):v.toFixed(1),
+  dist=!I||I.dist==null?null:D.k==='Moon'?(()=>{const km=I.km||I.dist*149597870.7;return `${mo(km)}${A&&A.d?' / '+mo(A.d):''} ${UN==='moon'?'Moons':UN==='km'?'km':'mi'}`})():`${au(I.dist)}${A&&A.d?' / '+au(A.d):''} AU`,
+  mg=v=>(v<0?'−':'')+Math.abs(v).toFixed(2),mag=I&&I.mag!=null?mg(I.mag)+(A&&A.mag!=null?' / '+mg(A.mag):''):null,wsK=hsysK()==='whole';
+ return row('Position',plPosH(D.lon,D.rx))+(wsK||D.ws==null?row('House',D.house):row('House / Sign',D.house!=null?`${D.house} / ${D.ws}`:null))+row('Motion',I?(D.rx?'<span class="plrx">Retrograde</span>':'Direct'):null)
  +row('Speed',I&&I.sp!=null?`${I.sp<0?'−':''}${dmA(I.sp)} per day`:null)+row('Latitude',I&&I.lat!=null?dmA(I.lat,['N','S']):null)
  +row('Declination',I&&I.dec!=null?dmA(I.dec,['N','S'])+(I.oob?' <b class="ploob">Out of Bounds</b>':''):null)
- +row('Right ascension',I&&I.ra!=null?(()=>{const t=Math.floor(I.ra/15*3600+.5)%86400;return `${Math.floor(t/3600)}h ${p2(Math.floor(t%3600/60))}m ${p2(t%60)}s`})():null)
+ +row('Right Ascension',I&&I.ra!=null?(()=>{const t=Math.floor(I.ra/15*3600+.5)%86400;return `${Math.floor(t/3600)}h ${p2(Math.floor(t%3600/60))}m ${p2(t%60)}s`})():null)
  +row('Elongation',I&&I.el!=null&&D.k!=='Moon'?`${dmA(I.el)} ${I.side==='W'?'morning':'evening'}`:I&&I.el!=null?dmA(I.el):null)
- +row('Distance',dist)+row('Magnitude',I&&I.mag!=null?(I.mag<0?'−':'')+Math.abs(I.mag).toFixed(1):null)
+ +row(A&&A.d?'Dist / Avg':'Distance',dist)+row(A&&A.mag!=null?'Mag / Avg':'Magnitude',mag)
  +row('Illumination',I&&I.ill!=null&&/^(Moon|Mercury|Venus)$/.test(D.k)?Math.round(I.ill)+'%':null)+row('Stage',D.stage?esc(D.stage):null)}
 /* the Device's aspect grid, built from this chart's rings */
 function plBodies(B,r,omit){const R=plRing(B,r);if(!R)return null;const L=CWPL().filter(n=>n!==omit&&R.pos[n]!=null),p={},sp={},dec={};L.forEach(n=>p[n]=R.pos[n]);
