@@ -9321,7 +9321,7 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
  #vt-cw.stg .cwrings{position:relative;z-index:3}
  #vt-spc.stg .spcph{position:static;margin:auto auto 8px;z-index:3}
  #vt-spc.stg .spcph>*,#vt-spc.stg #spc-ph svg{position:relative;z-index:3}
- #vt-spc.stg #spc-ph .spcpt{position:absolute;left:var(--ptx,48px);top:var(--pty,100px);z-index:3;align-items:flex-start;text-align:left;gap:1px;font-size:14.5px;line-height:20px;width:auto;flex:none}
+ #vt-spc.stg #spc-ph .spcpt{position:absolute;left:auto;right:var(--ptr,56px);top:var(--pty,70px);z-index:3;align-items:flex-end;text-align:right;gap:1px;font-size:14.5px;line-height:20px;width:auto;flex:none}
  #vt-spc.stg #spc-ph .spcpt b{font-size:14.5px;line-height:20px}
  #vt-spc.stg #spc-ph .spcpt #spc-d{font-size:14.5px;line-height:20px;letter-spacing:0}
  #vt-spc.stg .cwh b{font-size:19px;line-height:24px}
@@ -10478,7 +10478,7 @@ function stageFit(o,w){if(!o||!w)return false;if(!PANE()){o.classList.remove('st
  const S=Math.max(200,Math.floor(best*2)),ox=pr.left+o.clientLeft,oy=pr.top+o.clientTop;
  Object.assign(w.style,{position:'absolute',left:Math.round(cx-S/2-ox)+'px',top:Math.round(bcy-S/2-oy)+'px',width:S+'px',height:S+'px'});
  /* Space: the readout sits under the title in the upper left, where Chart's listing lives */
- const t=o.querySelector('.cwh .spcnh');if(t){const tr=t.getBoundingClientRect(),tb=t.querySelector('b'),bb=tb?tb.getBoundingClientRect():tr;o.style.setProperty('--ptx',Math.round(tr.left-ox)+'px');o.style.setProperty('--pty',Math.round(bb.bottom+4-oy)+'px')}
+ const t=o.querySelector('.cwh .spcnh');if(t){const tr=t.getBoundingClientRect(),cy=o.querySelectorAll('.cwh .vtcy'),nx=cy.length?cy[cy.length-1].getBoundingClientRect():tr;o.style.setProperty('--ptr',Math.round(ox+o.clientWidth-nx.left+10)+'px');o.style.setProperty('--pty',Math.round(tr.top+2-oy)+'px')}   /* Gemini, Nov 16: the readout sits in the upper right, beside the next-cycle arrow */
  return true}
 function cwFit(){const o=$('#vt-cw');if(!o||o.hidden)return;const w=o.querySelector('.cww');if(!w)return;
  if(stageFit(o,w))return;
