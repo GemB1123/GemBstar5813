@@ -8445,8 +8445,8 @@ document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('
   home:()=>({label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}),
   cusps:(jd,lat,lon)=>cuspsFor(jd,lat,lon),   /* Nov 14: houses for Current Transits in Planetary Tables */
   /* Nov 14 (Gemini): the Device's own Earth (gray, with the Sun, the place and the poles) for Planetary Tables' Simple Wheel, centered on 0,0 */
-  earthSvg:(jd,lat,lon,asc,R)=>{const oc=earthChart,op=earthPlace,vm=VIEW.mode,va=VIEW.asc,d0=EARTH_DR;try{const C={jd,pos:{Sun:positions(jd).Sun},lat,lon};earthChart=()=>C;earthPlace=()=>({lat,lon});VIEW.mode='as';VIEW.asc=asc;
-   return `<g transform="translate(-400 -400)">${earthDisc(null,R)}</g>`}finally{earthChart=oc;earthPlace=op;VIEW.mode=vm;VIEW.asc=va;EARTH_DR=d0}},
+  earthReady:()=>!(window.APP_PTEX||{}).earth||!!(ETX.earth&&ETX.earth.ok),earthSvg:(jd,lat,lon,asc,R,look)=>{const oc=earthChart,op=earthPlace,vm=VIEW.mode,va=VIEW.asc,d0=EARTH_DR,et=S.wd.etx;if(look)S.wd.etx=look==='real'?'real':'silver';try{const C={jd,pos:{Sun:positions(jd).Sun},lat,lon};earthChart=()=>C;earthPlace=()=>({lat,lon});VIEW.mode='as';VIEW.asc=asc;
+   return `<g transform="translate(-400 -400)">${earthDisc(null,R)}</g>`}finally{earthChart=oc;earthPlace=op;VIEW.mode=vm;VIEW.asc=va;EARTH_DR=d0;if(look)S.wd.etx=et}},
   rec:()=>S.baseRec?JSON.parse(JSON.stringify(S.baseRec)):null,key:()=>BIRTH.name+'|'+BIRTH.jd,base:r=>{if(r)setBase(r)},
   pick:k=>{const r=cpRec(k);if(!r)return false;setBase(r);addRecent(r);saveCharts();save();return true},
   credits:()=>CREDITS,
@@ -9288,20 +9288,28 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
 #vt-cw .cwgnote{font:500 11.5px Inter,system-ui,sans-serif;color:#b3a688;text-align:center}
 /* Gemini, Nov 16: the gear sits at the left of the Time Machine line; the chart menu takes the Device's right-click look */
 #vt-cw .cwline .cwgear{margin-right:14px;flex:0 0 auto}
-#cw-cm{position:fixed;z-index:210;display:flex;flex-direction:column;gap:2px;padding:5px;border-radius:11px;border:1px solid #d1ab7466;background:#1c1710;min-width:230px;max-height:calc(100vh - 16px);overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);font:500 14px Inter,system-ui,sans-serif;box-sizing:border-box}
-#cw-cm button{font:inherit;text-align:left;padding:8px 11px;border:0;border-radius:7px;background:none;color:#efe6d2;cursor:pointer;white-space:nowrap}
-#cw-cm button:hover,#cw-cm button:focus-visible{background:rgba(214,205,184,.15);outline:none}
-#cw-cm .qmx{position:absolute;top:5px;right:5px;padding:4px 8px;font-size:12px;color:#b3a688}#cw-cm>button:not(.qmx){padding-right:34px}#cw-cm .qmc{display:inline-block;width:18px;color:#e8c46a}
-#cw-cm .qms{font-size:11.5px;color:#b3a688;padding:6px 11px 2px;text-transform:none}
-#cw-cm .qmrow,#cw-cm2 .qmrow{display:flex;align-items:stretch;gap:2px}#cw-cm .qmrow>button:first-child,#cw-cm2 .qmrow>button:first-child{flex:1 1 auto}
-#cw-cm .qmarr{padding:8px 10px;color:#e8c46a}#cw-cm .qmpre{display:flex;align-items:center}#cw-cm .qmpre .qmar{margin-left:auto;padding-left:14px;color:#e8c46a}
-#cw-cm .qmrow>button:first-child{padding-right:11px}#cw-cm>.qmrow:first-of-type{margin-right:28px}
-#cw-cm .qmsv{color:#e8c46a}#cw-cm .qmsave{display:flex;gap:6px;padding:4px 6px}#cw-cm .qmsave input{flex:1 1 auto;min-width:0;font:inherit;font-size:13px;background:#0f0d22;color:#efe6d2;border:1px solid #c9b27a;border-radius:7px;padding:6px 8px}
-#cw-cm .qmsave button{background:#c9b27a;color:#1c1710;font-weight:600}
-#cw-cm2{position:fixed;z-index:211;display:flex;flex-direction:column;gap:2px;padding:5px;border-radius:11px;border:1px solid #d1ab7466;background:#1c1710;min-width:210px;max-height:calc(100vh - 16px);overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);font:500 14px Inter,system-ui,sans-serif;box-sizing:border-box}
-#cw-cm2 button{font:inherit;text-align:left;padding:8px 11px;border:0;border-radius:7px;background:none;color:#efe6d2;cursor:pointer;white-space:nowrap}
-#cw-cm2 button:hover,#cw-cm2 button:focus-visible{background:rgba(214,205,184,.15);outline:none}#cw-cm2 .qmc{display:inline-block;width:18px;color:#e8c46a}
-#cw-cm2 .qms{font-size:11.5px;color:#b3a688;padding:6px 11px 2px}#cw-cm2 .qmdel{padding:4px 8px;font-size:11px;color:#b3a688}
+.qml{position:fixed;z-index:210;display:flex;flex-direction:column;gap:2px;padding:5px;border-radius:11px;border:1px solid #d1ab7466;background:#1c1710;min-width:230px;max-height:calc(100vh - 16px);overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);font:500 14px Inter,system-ui,sans-serif;box-sizing:border-box}
+.qml button{font:inherit;text-align:left;padding:8px 11px;border:0;border-radius:7px;background:none;color:#efe6d2;cursor:pointer;white-space:nowrap}
+.qml button:hover,.qml button:focus-visible{background:rgba(214,205,184,.15);outline:none}
+.qml .qmx{position:absolute;top:5px;right:5px;padding:4px 8px;font-size:12px;color:#b3a688}.qml>button:not(.qmx){padding-right:34px}.qml .qmc{display:inline-block;width:18px;color:#e8c46a}
+.qml .qms{font-size:11.5px;color:#b3a688;padding:6px 11px 2px;text-transform:none}
+.qml .qmrow,.qml .qmrow{display:flex;align-items:stretch;gap:2px}.qml .qmrow>button:first-child,.qml .qmrow>button:first-child{flex:1 1 auto}
+.qml .qmarr{padding:8px 10px;color:#e8c46a}.qml .qmpre{display:flex;align-items:center}.qml .qmpre .qmar{margin-left:auto;padding-left:14px;color:#e8c46a}
+.qml .qmrow>button:first-child{padding-right:11px}
+.qml .qmsv{color:#e8c46a}.qml .qmsave{display:flex;gap:6px;padding:4px 6px}.qml .qmsave input{flex:1 1 auto;min-width:0;font:inherit;font-size:13px;background:#0f0d22;color:#efe6d2;border:1px solid #c9b27a;border-radius:7px;padding:6px 8px}
+.qml .qmsave button{background:#c9b27a;color:#1c1710;font-weight:600}
+.qml{position:fixed;z-index:211;display:flex;flex-direction:column;gap:2px;padding:5px;border-radius:11px;border:1px solid #d1ab7466;background:#1c1710;min-width:210px;max-height:calc(100vh - 16px);overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);font:500 14px Inter,system-ui,sans-serif;box-sizing:border-box}
+.qml button{font:inherit;text-align:left;padding:8px 11px;border:0;border-radius:7px;background:none;color:#efe6d2;cursor:pointer;white-space:nowrap}
+.qml button:hover,.qml button:focus-visible{background:rgba(214,205,184,.15);outline:none}.qml .qmc{display:inline-block;width:18px;color:#e8c46a}
+.qml .qms{font-size:11.5px;color:#b3a688;padding:6px 11px 2px}.qml .qmdel{padding:4px 8px;font-size:11px;color:#b3a688}
+
+.qml{position:fixed}.qml>button:not(.qmx),.qml .qmrow>button:first-child{display:flex;align-items:center;gap:0}.qml .qmar{margin-left:auto;padding-left:16px;color:#e8c46a}
+.qml .qmh2{margin-left:10px;font-size:11px;color:#b3a688;font-weight:500}.qml .qmrow .qmarr{flex:0 0 auto}
+.qml .qmx{position:absolute;top:5px;right:5px}.qml>:nth-child(2){margin-right:26px}
+.qml .qmcol{display:flex;align-items:center;gap:0;padding:6px 11px;color:#efe6d2;cursor:pointer;border-radius:7px}.qml .qmcol:hover{background:rgba(214,205,184,.15)}
+.qml .qmcol input{margin-left:auto;width:34px;height:24px;padding:0;border:1px solid #c9b27a;border-radius:5px;background:none;cursor:pointer}
+#vt-ctip{position:fixed;z-index:60;pointer-events:none;display:flex;flex-direction:column;gap:2px;background:#10142a;color:#f3e7c4;border:1px solid #c9b27a;border-radius:8px;padding:6px 10px;font:500 12.5px Inter,system-ui,sans-serif;box-shadow:0 4px 16px #0008;white-space:nowrap}
+#vt-ctip[hidden]{display:none}#vt-ctip b{font-weight:600}#vt-ctip span{color:#c9c3e8}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10201,7 +10209,7 @@ function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),as0=cwAS(CW.p<1
  const xy=(l,r)=>{const t=(180+l-rot)*Math.PI/180;return [r*Math.cos(t),-r*Math.sin(t)]},f=n=>n.toFixed(1);
  const pos={};SH.forEach(k=>pos[k]=P[k]);const set=ASET(),setN=(ASETS.find(x=>x[0]===set)||[0,''])[1];
  const rings=cwRings(jd);
- let h=EAWheel.svg({pos,ret:sk.ret,cusps:c,label:cwKind()==='natal'?T.chart().name:'Chart',rings},{planets:SH,glyph:k=>glyphOf(k),sign:(i,x,y,z,col)=>T.ag(i,x,y,z,col),aspects:false,theme:'dark',big,label:'Chart wheel for '+T.date(ms)});
+ let h=EAWheel.svg({pos,ret:sk.ret,cusps:c,label:cwKind()==='natal'?T.chart().name:'Chart',rings},{...wheelOpts(),planets:SH,glyph:k=>glyphOf(k),sign:(i,x,y,z,col)=>T.ag(i,x,y,z,col),aspects:false,theme:'dark',big,label:'Chart wheel for '+T.date(ms)});
  if(WDIM)PLN.forEach(k=>{if(!['Sun','Moon',PN()].includes(k))h=h.replace(new RegExp(`<g class="eawp" data-pl="${k}" data-ring="0"`),`<g class="eawp" data-pl="${k}" data-ring="0" opacity=".5"`)});
  h=h.replace(/(<g class="eawp"[^>]*)><title>([^<]*)<\/title>/g,'$1 role="button" tabindex="0" aria-label="$2, details">');
  let x='';const dev=(a,b,ang)=>Math.abs(Math.abs((((a-b)%360)+540)%360-180)-ang),apl=(a0,a1,b0,b1,ang)=>dev(a1,b1,ang)<dev(a0,b0,ang),dot=SH.map(k=>({k,l:((P[k]%360)+360)%360}));
@@ -10216,7 +10224,7 @@ function ewWheel(ms,cu){const jd=ms/864e5+2440587.5,sk=T.sky(jd),as0=cwAS(CW.p<1
  /* the aspect lines go inside the tap circle (before its closing tag); the four Rs sit on top of the wheel */
  const e=h.lastIndexOf('</g></svg>'),cut=e;   /* the Earth sits over the aspect lines, under the set label */
  const ez=cwEarth(),er=ez?RI*(ez==='large'?.72:.45):0;let ea='';   /* Gemini, Nov 14: the Device's gray Earth with the Sun, the place and the poles; Large still leaves a ring of aspect lines */
- if(ez){let pl=null;try{pl=cwPlace()||T.home()}catch(e){}try{if(T.earthSvg&&pl&&isFinite(pl.lat))ea=`<g pointer-events="none">${T.earthSvg(jd,pl.lat,pl.lon,AS!=null?AS:rot,er)}</g>`}catch(e){ea=''}
+ if(ez){let pl=null;try{pl=cwPlace()||T.home()}catch(e){}try{if(T.earthSvg&&pl&&isFinite(pl.lat))ea=`<g pointer-events="none">${T.earthSvg(jd,pl.lat,pl.lon,AS!=null?AS:rot,er,eLook())}</g>`;if(eLook()==='real'&&T.earthReady&&!T.earthReady()&&!CW.ewait&&(CW.ewn=(CW.ewn||0)+1)<20){CW.ewait=1;setTimeout(()=>{CW.ewait=0;const o=$('#vt-cw');if(o&&!o.hidden)chartDraw()},700)}}catch(e){ea=''}
   if(!ea)ea=`<g pointer-events="none"><circle r="${er.toFixed(1)}" fill="#8f949c" stroke="#c7cdd4" stroke-width=".9"/></g>`}
  return h.slice(0,cut)+a+ea+h.slice(cut,e)+'</g>'+x+'</svg>'}
 window.__ewReload=()=>{const o=$('#vt-cw');if(o&&!o.hidden)chartDraw()};   /* the shared copy arrived: redraw with it */
@@ -11341,76 +11349,115 @@ function cwBody(){if(!CW.grid||!cwGridOk())return cwWheel();const B=plBase(),A=p
  return `<div class="cwgrid"><div class="cwgcap">${esc(cap)}</div>${gridSvg({A,B:O,lab:'Aspect grid, '+cap},640,600,!O,'cwgsvg')}<div class="cwglg">${lg.map(x=>`<span><svg viewBox="-8 -8 16 16" width="15" height="15" aria-hidden="true">${x.svg}</svg>${esc(x.n)} ${x.o}°</span>`).join('')}</div>`
  +`<small class="cwgnote">Orb in degrees, A or S, minutes. A = Applying, S = Separating.${O?'':' Above the diagonal: Parallels (gold) and Contraparallels (silver).'}</small></div>`}
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#vt-cw [data-cwv]');if(!b)return;e.stopPropagation();CW.grid=b.dataset.cwv==='grid';plClose();chartDraw();const q=$(`#vt-cw [data-cwv="${b.dataset.cwv}"]`);if(q)q.focus()},true);
-/* Gemini, Nov 16: one simple chart menu, the Device's right-click look. Right-click on the chart pane, or press the gear (now at the
-   left of the Time Machine line), opens it; each item opens its own list in place, with Back. X and Escape close it. */
-const QM={open:false,sub:null,x:0,y:0,from:null};
-function qmItems(){const nat=cwKind()==='natal'&&window.EAWheel,R=(CW.rings||[])[0]||'',H=CWHIDE(),ck=on=>on?'✓ ':'';
- if(QM.sub==='pl'){const S=CWPL(),m=plsMatch(S);return {t:'Displayed Planets',pre:1,L:ALLB.map(p=>[ck(S.includes(p))+bName(p),'pl:'+p,1]).concat(m?[]:[['save',QM.saving?'saving':'save:']])}}
- if(QM.sub==='rings')return {t:'Charts On The Wheel',L:[[ck(!R)+'One Wheel','ring:clear']].concat(Object.keys(RINGN).map(k=>[ck(R===k)+RINGN[k],'ring:'+k]))};
- if(QM.sub==='wd'){const E=cwEarth()||'none';return {t:'Wheel Display',L:[['Earth in the center',null]].concat([['small','Small Earth'],['large','Large Earth'],['none','No Earth']].map(([v,n])=>[ck(E===v)+n,'earth:'+v,1]))
-  .concat(MER()?[]:[['Center of the wheel',null],[ck(CW.mode==='asp')+'Aspects','mode:asp',1],[ck(CW.mode==='star')+(SAV()?'Risings':'Venus Star'),'mode:star',1]])}}
- if(QM.sub==='hs'){const v=pref('vt-hsys');return {t:'House System',L:[[ck(!v)+`Method default (${hsysN(hsysK())})`,'hs:',1]].concat(HSYS.map(([k,n])=>[ck(v===k)+n,'hs:'+k,1]))}}
- if(QM.sub==='zod')return {t:'Zodiac',L:ZODS.map(([k,n])=>[ck(ZOD()===k)+n,'zod:'+k,1])};
- if(QM.sub==='asp')return {t:'Aspects',L:ASETS.map(([k,n])=>[ck(ASET()===k)+n,'aset:'+k,1])};
- return {t:'Chart',L:[['Displayed Planets','sub:pl','pre'],[nat?'Charts On The Wheel ▸':'Charts On The Wheel (natal charts)',nat?'sub:rings':null],
-  ['Wheel Display ▸','sub:wd'],[cwCusps(CW.ms||Date.now())?'House System ▸':'House System (no houses)',cwCusps(CW.ms||Date.now())?'sub:hs':null],['Zodiac ▸','sub:zod'],['Aspects ▸','sub:asp']]}}
-function qmDraw(focus){let m=$('#cw-cm');if(!QM.open){if(m)m.remove();const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','false');return}
- if(!m){m=document.createElement('div');m.id='cw-cm';m.setAttribute('role','menu');document.body.appendChild(m)}const I=qmItems();m.setAttribute('aria-label',I.t);
- const ckc=/✓ /.test(I.L.map(x=>x[0]).join('|')),lab=t=>{const on=t.startsWith('✓ ');return (ckc?`<span class="qmc" aria-hidden="true">${on?'✓':''}</span>`:'')+esc(on?t.slice(2):t)};
- m.innerHTML=`<button class="qmx" data-qm="x" aria-label="Close menu">&#10005;</button>`+(QM.sub?'<button class="qmb" data-qm="back" role="menuitem">◂ Back</button>':'')
-  +(I.pre?`<div class="qmrow"><button role="menuitem" data-qm="pre" class="qmpre" aria-haspopup="menu" aria-expanded="${!!QM.fly}">${ckc?'<span class="qmc"></span>':''}Presets<span class="qmar" aria-hidden="true">▸</span></button></div>`:'')
-  +I.L.map(([t,a,x])=>t==='save'?(a==='saving'?`<div class="qmsave"><input id="cw-qmn" type="text" maxlength="40" placeholder="Name this set" aria-label="Name for this set of planets" value="${esc(QM.sname||'')}"><button data-qm="dosave">Save</button></div>`:`<button role="menuitem" data-qm="save:" class="qmsv">${ckc?'<span class="qmc"></span>':''}Save This Set…</button>`)
-   :x==='pre'?`<div class="qmrow"><button role="menuitem" data-qm="${esc(a)}">${esc(t)}</button><button class="qmarr" data-qm="pre" aria-haspopup="menu" aria-expanded="${!!QM.fly}" aria-label="Displayed Planets presets">▸</button></div>`
-   :a?`<button role="${t.startsWith('✓ ')||ckc?'menuitemcheckbox':'menuitem'}"${ckc?` aria-checked="${t.startsWith('✓ ')}"`:''} data-qm="${esc(a)}">${lab(t)}</button>`:`<div class="qms">${esc(t)}</div>`).join('');
- const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','true');
- const w=m.offsetWidth,h=m.offsetHeight;let x=QM.x,y=QM.y;if(QM.from==='gear'){y=QM.y-h-10}m.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+'px';m.style.top=Math.max(8,Math.min(innerHeight-h-8,y))+'px';
- if(focus){const f=typeof focus==='string'?m.querySelector(`[data-qm="${focus}"]`):null;(f||m.querySelector('[data-qm]:not(.qmx)')||m.querySelector('.qmx')).focus()}}
-function qmOpen(x,y,from){QM.open=true;QM.sub=null;QM.x=x;QM.y=y;QM.from=from;CW.set=false;plClose&&plClose();qmDraw(true)}
-function qmClose(focus){QM.open=false;QM.sub=null;QM.saving=false;flyClose();qmDraw();if(focus){const g=$('#cw-g');if(g)g.focus()}}
-function qmAct(a){const [k,v]=a.split(/:(.*)/s);
- if(k==='x'){qmClose(true);return}if(k==='back'){const s=QM.sub;QM.sub=null;QM.saving=false;flyClose();qmDraw('sub:'+s);return}if(k==='sub'){QM.sub=v;flyClose();qmDraw(true);return}
- if(k==='pre'){flyOpen(true);return}if(k==='save'){QM.saving=true;QM.sname='';qmDraw();const i=$('#cw-qmn');if(i)i.focus();return}
- if(k==='dosave'){const i=$('#cw-qmn'),n=(i&&i.value||'').trim()||`My Set ${PLSETS().length+1}`,L=PLSETS().filter(x=>x.n!==n);L.push({n,L:CWPL()});try{localStorage.setItem('vt-plsets',JSON.stringify(L))}catch(e){}QM.saving=false;qmDraw('pre');return}
- if(k==='preset'){const P=plsAll().find(x=>x.id===v);if(P)CWSAVE(P.L);flyClose();chartDraw();qmDraw('pre');return}
- if(k==='del'){try{localStorage.setItem('vt-plsets',JSON.stringify(PLSETS().filter(x=>'u:'+x.n!==v)))}catch(e){}flyOpen(true);return}
- if(k==='pl'){const S=CWPL(),h=S.filter(q=>q!==v);if(!S.includes(v))h.push(v);CWSAVE(h);QM.saving=false}
- else if(k==='ring'){CW.rings=v==='clear'?[]:[v];CW.rmenu=false}
- else if(k==='grid'){CW.grid=!CW.grid}
- else if(k==='earth')CW.earth=v;else if(k==='mode')CW.mode=v;
- else if(k==='hs')prefSet('vt-hsys',v);else if(k==='zod')prefSet('vt-zod',v==='trop'?'':v);else if(k==='aset'){ASET_OV=v;asetSet(v)}
- chartDraw();if(k==='ring'||k==='grid'){qmClose(false);return}qmDraw(a)}   /* lists stay open so several can be ticked */
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('#cw-cm [data-qm],#cw-cm2 [data-qm]');if(b){e.stopPropagation();e.preventDefault();qmAct(b.dataset.qm);return}
- const g=e.target.closest&&e.target.closest('#cw-g');if(g&&g.closest('#vt-cw')){e.stopPropagation();e.preventDefault();if(QM.open){qmClose(true);return}const r=g.getBoundingClientRect();qmOpen(r.left,r.top,'gear');return}
- if(QM.open&&!(e.target.closest&&e.target.closest('#cw-cm,#cw-cm2')))qmClose(false)},true);
-document.addEventListener('contextmenu',e=>{const o=e.target.closest&&e.target.closest('#vt-cw');if(!o||e.target.closest('input,select,textarea'))return;e.preventDefault();e.stopPropagation();qmOpen(e.clientX,e.clientY,'ctx')},true);
-document.addEventListener('keydown',e=>{if(!QM.open)return;if(e.target&&e.target.id==='cw-qmn'){if(e.key==='Enter'){e.preventDefault();qmAct('dosave')}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();QM.saving=false;qmDraw('save:')}return}
- const fl=$('#cw-cm2');if(fl&&fl.contains(document.activeElement)){if(e.key==='Escape'||e.key==='ArrowLeft'){e.preventDefault();e.stopPropagation();flyClose();const b=$('#cw-cm [data-qm="pre"]');if(b)b.focus();return}
-  if(e.key==='ArrowDown'||e.key==='ArrowUp'){const L=[...fl.querySelectorAll('[data-qm]')],i=L.indexOf(document.activeElement);e.preventDefault();(L[(i+(e.key==='ArrowDown'?1:-1)+L.length)%L.length]||L[0]).focus()}return}
- if(e.key==='Escape'){e.stopPropagation();e.preventDefault();if(QM.fly){flyClose();return}if(QM.sub){qmAct('back')}else qmClose(true);return}
- if(e.key==='ArrowDown'||e.key==='ArrowUp'){const L=[...document.querySelectorAll('#cw-cm [data-qm]')],i=L.indexOf(document.activeElement);e.preventDefault();(L[(i+(e.key==='ArrowDown'?1:-1)+L.length)%L.length]||L[0]).focus()}
- else if(e.key==='ArrowLeft'&&QM.sub){e.preventDefault();qmAct('back')}else if(e.key==='ArrowRight'){const b=document.activeElement;if(b&&b.dataset&&/^(sub:|pre$)/.test(b.dataset.qm||'')){e.preventDefault();qmAct(b.dataset.qm)}}},true);
-addEventListener('resize',()=>{if(QM.open)qmClose(false)});
-/* Gemini, Nov 16: Displayed Planets presets. The arrow beside Displayed Planets (hover, click or Right arrow) opens them: this
-   table's synodic pairs first, then the sets the person saved, then Traditional, Visible, Inner, Outer and All Planets. A set that
-   matches none of them can be saved under a name (Save This Set at the foot of the Displayed Planets list). */
+/* Gemini, Nov 16: one simple chart menu in the Device's right-click look. Right-click on the chart pane, or press the gear (at the left
+   of the Time Machine line), opens it. Hovering (or clicking) an item with ▸ opens its popup beside it, and each popup can open one more
+   above it. A click outside closes them all; each popup has an X; Escape (or Left arrow) closes the top one. */
+const QM={open:false,x:0,y:0,from:null,stack:[],saving:false};
 const PLSETS=()=>{try{const v=JSON.parse(localStorage.getItem('vt-plsets'));return Array.isArray(v)?v.filter(x=>x&&x.n&&Array.isArray(x.L)):[]}catch(e){return []}};
+/* Displayed Planets presets: this table's synodic sets, the person's saved sets, then Traditional, Visible, Inner, Outer and All Planets */
 function plsAll(){const X=PN(),syn=X==='Moon'?[{id:'s:ms',n:'Moon-Sun',L:['Sun','Moon']}]:[{id:'s:xs',n:`${X}-Sun`,L:['Sun',X]},{id:'s:mxs',n:`Moon-${X}-Sun`,L:['Sun','Moon',X]}];
  const V=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn'];
  return syn.map(x=>Object.assign(x,{g:'syn'})).concat(PLSETS().map(x=>({id:'u:'+x.n,n:x.n,L:x.L,g:'user'})))
   .concat([{id:'d:trad',n:'Traditional',L:V.concat(['Node','SNode','Fortune','Spirit'])},{id:'d:vis',n:'Visible',L:V},{id:'d:inner',n:'Inner',L:['Sun','Moon','Mercury','Venus','Mars']},
    {id:'d:outer',n:'Outer',L:['Jupiter','Saturn','Uranus','Neptune','Pluto']},{id:'d:all',n:'All Planets',L:PLN.slice()}].map(x=>Object.assign(x,{g:'def'})))}
 function plsMatch(S){const k=L=>ALLB.filter(x=>L.includes(x)).join();return plsAll().find(x=>k(x.L)===k(S))||null}
-let flyT=0;
-function flyOpen(focus){clearTimeout(flyT);QM.fly=true;const a=$('#cw-cm [data-qm="pre"]'),m=$('#cw-cm');if(!a||!m){QM.fly=false;return}a.setAttribute('aria-expanded','true');
- let f=$('#cw-cm2');if(!f){f=document.createElement('div');f.id='cw-cm2';f.setAttribute('role','menu');f.setAttribute('aria-label','Displayed Planets presets');document.body.appendChild(f);
-  f.addEventListener('mouseenter',()=>clearTimeout(flyT));f.addEventListener('mouseleave',flyLater)}
- const cur=plsMatch(CWPL()),A=plsAll(),sec=(g,t)=>{const L=A.filter(x=>x.g===g);return L.length?`<div class="qms">${t}</div>`+L.map(x=>`<div class="qmrow"><button role="menuitemcheckbox" aria-checked="${cur&&cur.id===x.id}" data-qm="preset:${esc(x.id)}"><span class="qmc" aria-hidden="true">${cur&&cur.id===x.id?'✓':''}</span>${esc(x.n)}</button>${g==='user'?`<button class="qmdel" data-qm="del:${esc(x.id)}" aria-label="Delete ${esc(x.n)}">&#10005;</button>`:''}</div>`).join(''):''};
- f.innerHTML=sec('syn',`${esc(PN())} cycle`)+sec('user','Saved')+sec('def','Presets');
- const r=m.getBoundingClientRect(),ar=a.getBoundingClientRect(),w=f.offsetWidth,h=f.offsetHeight;let x=r.right+4;if(x+w>innerWidth-8)x=r.left-w-4;
- f.style.left=Math.max(8,x)+'px';f.style.top=Math.max(8,Math.min(innerHeight-h-8,ar.top-6))+'px';if(focus){const q=f.querySelector('[aria-checked="true"]')||f.querySelector('[data-qm]');if(q)q.focus()}}
-function flyClose(){clearTimeout(flyT);QM.fly=false;const f=$('#cw-cm2');if(f)f.remove();const a=$('#cw-cm [data-qm="pre"]');if(a)a.setAttribute('aria-expanded','false')}
-function flyLater(){clearTimeout(flyT);flyT=setTimeout(flyClose,280)}
-document.addEventListener('mouseover',e=>{if(!QM.open||!e.target.closest)return;if(e.target.closest('#cw-cm [data-qm="pre"]')){if(!QM.fly||!$('#cw-cm2'))flyOpen(false);else clearTimeout(flyT)}else if(QM.fly&&e.target.closest('#cw-cm')&&!e.target.closest('#cw-cm2'))flyLater()});
+/* Wheel Style and Wheel Colors (Gemini, Nov 16): a few presets, and Custom colors to get creative */
+const WSTY=[['metal','Metal'],['silver','Silver Band'],['houses','Houses Outside']],WCOL=[['gold','Gold'],['planet','Planet Colors'],['element','Element Colors'],['custom','Custom']],
+ WCUSTK=[['pl','Planets','#f5c35c'],['bg','Wheel Background','#0b0f26'],['bz1','Bezel Light','#eef1f4'],['bz2','Bezel Dark','#4b4a48'],['edge','Ring Edges','#c9b27a']];
+const wSty=()=>{const v=pref('vt-wsty');return WSTY.some(x=>x[0]===v)?v:'metal'},wCol=()=>{const v=pref('vt-wcol');return WCOL.some(x=>x[0]===v)?v:'gold'},
+ wCust=()=>{let o={};try{o=JSON.parse(localStorage.getItem('vt-wcust'))||{}}catch(e){}const r={};WCUSTK.forEach(([k,,d])=>r[k]=/^#[0-9a-f]{6}$/i.test(o[k]||'')?o[k]:d);return r},
+ eLook=()=>pref('vt-elook')==='real'?'real':'silver';
+function wheelOpts(){const s=wSty(),c=wCol(),o={};if(s==='silver')o.cuspRing='silver';if(s==='houses')o.ringStyle='houses';if(pref('vt-wbold'))o.signBold=1;
+ if(c==='planet'||c==='element')o.planetColors=c;
+ if(c==='custom'){const C=wCust(),mix=(a,b,t)=>'#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)*(1-t)+parseInt(b.slice(i,i+2),16)*t).toString(16).padStart(2,'0')).join('');
+  o.planetColors=Object.fromEntries(ALLB.map(k=>[k,C.pl]));o.colors={bg:C.bg,house:mix(C.bg,'#ffffff',.04),aspBg:mix(C.bg,'#ffffff',.02),bezel:[C.bz1,mix(C.bz1,C.bz2,.35),mix(C.bz1,C.bz2,.7),C.bz2],ringEdge:C.edge,line:C.edge+'99',soft:C.edge}}
+ return o}
+/* Gemini, Nov 16: House System defaults to Placidus (Whole Sign for Shamanic and Hermetic), Zodiac to Tropical; the person's choice is
+   remembered, and anyone who switches among several sees their most used choices first */
+const HSORD=['placidus','whole','equal','natural','regio','alcabitius','campanus','koch','morinus','sun1','solarsign','porphyry'];
+const useGet=k=>{try{return JSON.parse(localStorage.getItem(k))||{}}catch(e){return {}}},useAdd=(k,v)=>{if(!v)return;const o=useGet(k);o[v]=(o[v]||0)+1;try{localStorage.setItem(k,JSON.stringify(o))}catch(e){}},
+ useTop=k=>{const o=useGet(k),L=Object.keys(o).filter(x=>o[x]>=2);return L.length>=2?L.sort((a,b)=>o[b]-o[a]).slice(0,4):[]};
+function qmDef(id){const nat=cwKind()==='natal'&&window.EAWheel,R=(CW.rings||[])[0]||'';
+ const sec=t=>({k:'sec',t}),it=(t,a,ck)=>({t,a,ck});
+ if(id==='root')return {t:'Chart',L:[{t:'Displayed Planets',sub:'pl',sub2:'pre'},nat?{t:'Charts On The Wheel',sub:'rings'}:{t:'Charts On The Wheel (natal charts)'},{t:'Wheel Display',sub:'wd'},
+  cwCusps(CW.ms||Date.now())?{t:'House System',sub:'hs'}:{t:'House System (no houses)'},{t:'Zodiac',sub:'zod'},{t:'Aspects',sub:'asp',hint:'Click center'}]};
+ if(id==='pl'){const S=CWPL();return {t:'Displayed Planets',L:[{t:'Presets',sub:'pre'}].concat(ALLB.map(p=>it(bName(p),'pl:'+p,S.includes(p)))).concat(plsMatch(S)?[]:[{k:'save'}])}}
+ if(id==='pre'){const cur=plsMatch(CWPL()),A=plsAll(),g=(k,t)=>{const L=A.filter(x=>x.g===k);return L.length?[sec(t)].concat(L.map(x=>Object.assign(it(x.n,'preset:'+x.id,!!cur&&cur.id===x.id),k==='user'?{del:'del:'+x.id}:{}))):[]};
+  return {t:'Displayed Planets presets',L:g('syn',PN()+' cycle').concat(g('user','Saved'),g('def','Presets'))}}
+ if(id==='rings')return {t:'Charts On The Wheel',L:[it('One Wheel','ring:clear',!R)].concat(Object.keys(RINGN).map(k=>it(RINGN[k],'ring:'+k,R===k)))};
+ if(id==='wd')return {t:'Wheel Display',L:[sec('Wheel Center'),{t:'Aspects',sub:'asp',hint:'Click center'},{t:'Earth',sub:'earth',hint:'Double-click center'},sec('Wheel'),{t:'Wheel Style',sub:'style'},{t:'Wheel Colors',sub:'colors'}]};
+ if(id==='asp'){const st=CW.mode==='star'&&!MER(),a=ASET();return {t:'Aspects',L:[it('Major Aspects','aset:major',!st&&a==='major'),it('Minor Aspects','aset:minor',!st&&a==='minor'),it('Symmetry','aset:sym',!st&&a==='sym')].concat(MER()?[]:[it('Synodic','mode:star',st)])}}
+ if(id==='earth'){const E=cwEarth()||'none',L=eLook();return {t:'Earth',L:[it('Small','earth:small',E==='small'),it('Large','earth:large',E==='large'),it('Hide','earth:none',E==='none'),sec('Look'),it('Silver','elook:silver',L==='silver'),it('Realistic','elook:real',L==='real')]}}
+ if(id==='style')return {t:'Wheel Style',L:WSTY.map(([k,n])=>it(n,'wsty:'+k,wSty()===k)).concat([sec('Signs'),it('Bold Sign Glyphs','wbold',!!pref('vt-wbold'))])};
+ if(id==='colors')return {t:'Wheel Colors',L:WCOL.slice(0,3).map(([k,n])=>it(n,'wcol:'+k,wCol()===k)).concat([{t:'Custom',sub:'cust',ck:wCol()==='custom'}])};
+ if(id==='cust'){const C=wCust();return {t:'Custom colors',L:WCUSTK.map(([k,n])=>({k:'color',t:n,key:k,v:C[k]})).concat([it('Use Custom','wcol:custom',wCol()==='custom'),it('Reset Custom','wreset')])}}
+ if(id==='hs'){const v=pref('vt-hsys'),O=HSORD.map(k=>HSYS.find(x=>x[0]===k)).filter(Boolean).concat(HSYS.filter(x=>!HSORD.includes(x[0]))),F=useTop('vt-hsuse');
+  return {t:'House System',L:[it(`Method default (${TOT()||HRM()?'Whole Sign':'Placidus'})`,'hs:',!v)].concat(F.length?[sec('Most used')].concat(F.map(k=>it(hsysN(k),'hs:'+k,v===k)),[sec('All')]):[],O.filter(([k])=>!F.includes(k)).map(([k,n])=>it(n,'hs:'+k,v===k)))}}
+ if(id==='zod'){const F=useTop('vt-zuse'),nm=k=>(ZODS.find(x=>x[0]===k)||['',''])[1];return {t:'Zodiac',L:(F.length?[sec('Most used')].concat(F.map(k=>it(nm(k),'zod:'+k,ZOD()===k)),[sec('All')]):[]).concat(ZODS.filter(([k])=>!F.includes(k)).map(([k,n])=>it(n,'zod:'+k,ZOD()===k)))}}
+ return {t:'',L:[]}}
+function qmRow(x,lv){if(x.k==='sec')return `<div class="qms">${esc(x.t)}</div>`;
+ if(x.k==='save')return QM.saving?`<div class="qmsave"><input id="cw-qmn" type="text" maxlength="40" placeholder="Name this set" aria-label="Name for this set of planets" value=""><button data-qm="dosave">Save</button></div>`:`<button role="menuitem" data-qm="save" class="qmsv"><span class="qmc"></span>Save This Set…</button>`;
+ if(x.k==='color')return `<label class="qmcol"><span class="qmc"></span>${esc(x.t)}<input type="color" data-qmc="${x.key}" value="${x.v}" aria-label="${esc(x.t)} color"></label>`;
+ const ck=x.ck!=null?`<span class="qmc" aria-hidden="true">${x.ck?'✓':''}</span>`:'<span class="qmc"></span>',open=QM.stack[lv+1],hint=x.hint?`<small class="qmh2">${esc(x.hint)}</small>`:'';
+ if(x.sub){const main=`<button role="menuitem" aria-haspopup="menu" aria-expanded="${open===x.sub}" data-sub="${x.sub}" data-lv="${lv}">${ck}${esc(x.t)}${hint}${x.sub2?'':'<span class="qmar" aria-hidden="true">▸</span>'}</button>`;
+  return x.sub2?`<div class="qmrow">${main}<button class="qmarr" aria-haspopup="menu" aria-expanded="${open===x.sub2}" data-sub="${x.sub2}" data-lv="${lv}" aria-label="${esc(x.t)} presets">▸</button></div>`:main}
+ if(!x.a)return `<button role="menuitem" disabled>${ck}${esc(x.t)}</button>`;
+ const b=`<button role="${x.ck!=null?'menuitemcheckbox':'menuitem'}"${x.ck!=null?` aria-checked="${!!x.ck}"`:''} data-qm="${esc(x.a)}">${ck}${esc(x.t)}</button>`;
+ return x.del?`<div class="qmrow">${b}<button class="qmdel" data-qm="${esc(x.del)}" aria-label="Delete ${esc(x.t)}">&#10005;</button></div>`:b}
+function qmDraw(focus){const els=[...document.querySelectorAll('.qml')];if(!QM.open){els.forEach(e=>e.remove());const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','false');return}
+ els.forEach(e=>{if(+e.dataset.lv>=QM.stack.length)e.remove()});const g=$('#cw-g');if(g)g.setAttribute('aria-expanded','true');
+ QM.stack.forEach((id,lv)=>{let m=document.querySelector(`.qml[data-lv="${lv}"]`);if(!m){m=document.createElement('div');m.className='qml';m.dataset.lv=lv;m.setAttribute('role','menu');if(!lv)m.id='cw-cm';m.style.zIndex=210+lv;document.body.appendChild(m)}
+  const D=qmDef(id);m.dataset.id=id;m.setAttribute('aria-label',D.t);m.innerHTML=`<button class="qmx" data-qm="x:${lv}" aria-label="Close ${esc(D.t)}">&#10005;</button>`+D.L.map(x=>qmRow(x,lv)).join('');
+  const w=m.offsetWidth,h=m.offsetHeight;let x,y;
+  if(!lv){x=QM.x;y=QM.from==='gear'?QM.y-h-10:QM.y}else{const pm=document.querySelector(`.qml[data-lv="${lv-1}"]`),pr=pm.getBoundingClientRect(),row=pm.querySelector(`[data-sub="${id}"]`),rr=(row||pm).getBoundingClientRect();x=pr.right+3;if(x+w>innerWidth-8)x=pr.left-w-3;y=rr.top-6}
+  m.style.left=Math.max(8,Math.min(innerWidth-w-8,x))+'px';m.style.top=Math.max(8,Math.min(innerHeight-h-8,y))+'px'});
+ if(focus){const top=document.querySelector(`.qml[data-lv="${QM.stack.length-1}"]`),f=typeof focus==='string'?document.querySelector(`.qml [data-qm="${focus}"],.qml [data-sub="${focus}"]`):null;(f||top&&top.querySelector('[data-qm]:not(.qmx),[data-sub]')||top&&top.querySelector('.qmx')).focus()}}
+function qmOpen(x,y,from){QM.open=true;QM.stack=['root'];QM.x=x;QM.y=y;QM.from=from;QM.saving=false;CW.set=false;try{plClose()}catch(e){}qmDraw(true)}
+function qmClose(focus){QM.open=false;QM.stack=[];QM.saving=false;clearTimeout(QM.ht);qmDraw();if(focus){const g=$('#cw-g');if(g)g.focus()}}
+function qmSub(lv,id,focus){clearTimeout(QM.ht);if(QM.stack[lv+1]===id&&QM.stack.length===lv+2){if(focus)qmDraw(true);return}QM.stack=QM.stack.slice(0,lv+1).concat([id]);QM.saving=false;qmDraw(focus)}
+function qmBack(){if(QM.stack.length<=1){qmClose(true);return}const id=QM.stack.pop();QM.saving=false;qmDraw(id)}
+function qmAct(a){const i=a.indexOf(':'),k=i<0?a:a.slice(0,i),v=i<0?'':a.slice(i+1);
+ if(k==='x'){const lv=+v;if(!lv){qmClose(true);return}const id=QM.stack[lv];QM.stack=QM.stack.slice(0,lv);qmDraw(id);return}
+ if(k==='save'){QM.saving=true;qmDraw();const n=$('#cw-qmn');if(n)n.focus();return}
+ if(k==='dosave'){const n=$('#cw-qmn'),nm=(n&&n.value||'').trim()||`My Set ${PLSETS().length+1}`,L=PLSETS().filter(x=>x.n!==nm);L.push({n:nm,L:CWPL()});try{localStorage.setItem('vt-plsets',JSON.stringify(L))}catch(e){}QM.saving=false;qmDraw(true);return}
+ if(k==='del'){try{localStorage.setItem('vt-plsets',JSON.stringify(PLSETS().filter(x=>'u:'+x.n!==v)))}catch(e){}qmDraw(true);return}
+ if(k==='pl'){const S=CWPL(),h=S.filter(q=>q!==v);if(!S.includes(v))h.push(v);CWSAVE(h);QM.saving=false}
+ else if(k==='preset'){const P=plsAll().find(x=>x.id===v);if(P)CWSAVE(P.L)}
+ else if(k==='ring'){CW.rings=v==='clear'?[]:[v];CW.rmenu=false}
+ else if(k==='earth')CW.earth=v;else if(k==='elook')prefSet('vt-elook',v==='real'?'real':'');
+ else if(k==='mode'){CW.mode=v}else if(k==='aset'){CW.mode='asp';ASET_OV=v;asetSet(v)}
+ else if(k==='wsty')prefSet('vt-wsty',v==='metal'?'':v);else if(k==='wbold')prefSet('vt-wbold',pref('vt-wbold')?'':'1');
+ else if(k==='wcol')prefSet('vt-wcol',v==='gold'?'':v);else if(k==='wreset'){try{localStorage.removeItem('vt-wcust')}catch(e){}}
+ else if(k==='hs'){prefSet('vt-hsys',v);useAdd('vt-hsuse',v||hsysK())}else if(k==='zod'){prefSet('vt-zod',v==='trop'?'':v);useAdd('vt-zuse',v)}
+ chartDraw();if(k==='ring'){qmClose(false);return}qmDraw(a)}   /* lists stay open so several can be changed */
+document.addEventListener('input',e=>{const c=e.target.dataset&&e.target.dataset.qmc;if(!c)return;const o=wCust();o[c]=e.target.value;try{localStorage.setItem('vt-wcust',JSON.stringify(o))}catch(x){}prefSet('vt-wcol','custom');chartDraw()});
+document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.qmc&&QM.open)qmDraw()});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target;if(!t)return;const s=t.closest('.qml [data-sub]');if(s){e.stopPropagation();e.preventDefault();qmSub(+s.dataset.lv,s.dataset.sub,true);return}
+ const b=t.closest('.qml [data-qm]');if(b){e.stopPropagation();e.preventDefault();qmAct(b.dataset.qm);return}if(t.closest('.qml'))return;
+ const g=t.closest('#cw-g');if(g&&g.closest('#vt-cw')){e.stopPropagation();e.preventDefault();if(QM.open){qmClose(true);return}const r=g.getBoundingClientRect();qmOpen(r.left,r.top,'gear');return}
+ if(QM.open)qmClose(false)},true);
+document.addEventListener('contextmenu',e=>{const o=e.target.closest&&e.target.closest('#vt-cw');if(!o||e.target.closest('input,select,textarea'))return;e.preventDefault();e.stopPropagation();qmOpen(e.clientX,e.clientY,'ctx')},true);
+/* hover: a ▸ row opens its popup; a plain row closes anything deeper (a short delay lets the pointer travel across) */
+document.addEventListener('mousemove',()=>{QM.kb=false},true);
+document.addEventListener('mouseover',e=>{if(!QM.open||QM.kb||!e.target.closest)return;const m=e.target.closest('.qml');if(!m)return;const lv=+m.dataset.lv,s=e.target.closest('[data-sub]');clearTimeout(QM.ht);
+ if(s){if(QM.stack[lv+1]!==s.dataset.sub||QM.stack.length!==lv+2)QM.ht=setTimeout(()=>qmSub(lv,s.dataset.sub,false),130)}
+ else if(QM.stack.length>lv+1&&e.target.closest('button,label'))QM.ht=setTimeout(()=>{QM.stack=QM.stack.slice(0,lv+1);qmDraw()},320)});
+document.addEventListener('keydown',e=>{if(!QM.open)return;QM.kb=true;clearTimeout(QM.ht);const t=e.target;
+ if(t&&t.id==='cw-qmn'){if(e.key==='Enter'){e.preventDefault();qmAct('dosave')}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();QM.saving=false;qmDraw('save')}return}
+ if(e.key==='Escape'){e.stopPropagation();e.preventDefault();qmBack();return}
+ const m=t&&t.closest&&t.closest('.qml');if(!m)return;const lv=+m.dataset.lv;
+ if(e.key==='ArrowDown'||e.key==='ArrowUp'){const L=[...m.querySelectorAll('[data-qm]:not(.qmx),[data-sub],input')],i=L.indexOf(t);e.preventDefault();(L[(i+(e.key==='ArrowDown'?1:-1)+L.length)%L.length]||L[0]).focus()}
+ else if(e.key==='ArrowRight'&&t.dataset&&t.dataset.sub){e.preventDefault();qmSub(lv,t.dataset.sub,true)}
+ else if(e.key==='ArrowLeft'&&lv>0){e.preventDefault();qmBack()}},true);
+addEventListener('resize',()=>{if(QM.open)qmClose(false)});
+/* teach the center (Gemini, Nov 16): hovering the aspect circle names what a click and a double click do */
+{let tp=null,tt=0;const hide=()=>{clearTimeout(tt);if(tp)tp.hidden=true};
+ document.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const c=e.target.closest&&e.target.closest('#vt-cw [data-eaw="asp"]');if(!c||e.target.closest('g.eawp,.cwa')){hide();return}
+  if(!tp){tp=document.createElement('div');tp.id='vt-ctip';tp.setAttribute('role','tooltip');document.body.appendChild(tp)}
+  const a=(ASETS.find(x=>x[0]===ASET())||['',''])[1],nx=(ASETS.find(x=>x[0]===ATAP[(ATAP.indexOf(ASET())+1)%ATAP.length])||['',''])[1];
+  tp.innerHTML=`<b>${esc(a)} aspects</b><span>Click: ${esc(nx)} · Double-click: Earth size</span>`;
+  if(tp.hidden!==false){tp.hidden=true;clearTimeout(tt);tt=setTimeout(()=>{tp.hidden=false},450)}tp.style.left=Math.min(innerWidth-tp.offsetWidth-8,e.clientX+14)+'px';tp.style.top=(e.clientY+18)+'px'});
+ document.addEventListener('pointerdown',hide,true)}
 
 addEventListener('load',()=>setTimeout(go,200));
 })();
