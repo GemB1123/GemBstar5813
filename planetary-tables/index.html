@@ -10309,12 +10309,12 @@ function cwTM(rd){const u=CW.tmu||'d',q=CW.tmq||1,z=n=>String(n).padStart(2,'0')
  +`</div>`+cwEv()}
 /* Step Chart to Event: Aspect, R/D, Ing, Pos, House, Return, Lun/Ecl. Prev and Next search from the Time Machine's moment */
 const EVT=[['asp','Aspect'],['rd','R/D'],['ing','Ing'],['pos','Pos'],['house','House'],['ret','Return'],['lun','Lun/Ecl']];
-const EVLUN=[['new','New Moon'],['fq','First Quarter Moon'],['full','Full Moon'],['lq','Last Quarter Moon'],['seclipse','Solar Eclipse'],['leclipse','Lunar Eclipse']];
+const EVLUN=[['new','New Moon'],['fq','First Quarter Moon'],['full','Full Moon'],['lq','Last Quarter Moon'],['eclipse','Any Eclipse'],['seclipse','Solar Eclipse'],['leclipse','Lunar Eclipse']];
 const EVP=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
 function evSeek(f,st,span,t0,dir,jm){let x0=t0+dir*1e-4,f0=f(x0);for(let n=1;n*st<=span;n++){const x1=t0+dir*n*st,f1=f(x1);if((f0<=0)!==(f1<=0)&&Math.abs(f0-f1)<jm){let lo=x0,fl=f0,hi=x1;for(let i=0;i<50;i++){const m=(lo+hi)/2,fm=f(m);if((fm<=0)===(fl<=0)){lo=m;fl=fm}else hi=m}return (lo+hi)/2}x0=x1;f0=f1}return null}
 function evFind(dir){const L=(p,t)=>window.__app.cycle.lon(p,t,'geo'),t0=tmGet().getTime()/864e5+2440587.5,tab=CW.evt||'asp',Y=365.2422,nat=tmNat(),ch=nat?T.chart():null,st=p=>SNST[p]||1,near=a=>{a=a.filter(x=>x&&x.t!=null);a.sort((x,y)=>dir*(x.t-y.t));return a[0]||null};
  if(tab==='asp'){const r=snapFind(dir),ka=snKA(),kb=snKB(),N={T:'',P:'Progressed ',S:'Solar Arc ',R:'Natal '};return {t:r,ring:SNRING[ka],lab:`${N[ka]}${CW.sa||'Saturn'} ${CW.sx||'Conjunction'} ${N[kb]}${CW.sb||'Sun'}`}}
- if(tab==='lun'){const k=CW.le||'new';return {t:gtmFind(k,t0,dir),lab:(EVLUN.find(q=>q[0]===k)||EVLUN[0])[1]}}
+ if(tab==='lun'){const k=CW.le||'new';if(k==='eclipse'){const a=gtmFind('seclipse',t0,dir),b=gtmFind('leclipse',t0,dir),sol=b==null||(a!=null&&(dir>0?a<=b:a>=b));return {t:sol?a:b,lab:sol?'Solar Eclipse':'Lunar Eclipse'}}return {t:gtmFind(k,t0,dir),lab:(EVLUN.find(q=>q[0]===k)||EVLUN[0])[1]}}
  if(tab==='rd'){const p=CW.rdp||'Mercury',w=CW.rdw||'any',W=w==='any'?['rx','d']:[w];return near(W.map(x=>({t:gtmFind(p+'|'+x,t0,dir),lab:`${p} Stations ${x==='rx'?'Retrograde':'Direct'}`})))}
  if(tab==='ing'){const p=CW.ip||'Sun',s=CW.is==null?-1:+CW.is,w15=x=>((x+15)%30+30)%30-15;
   const t=s<0?evSeek(t=>w15(L(p,t)),st(p),200*Y,t0,dir,15):evSeek(t=>e180(L(p,t)-s*30),st(p),400*Y,t0,dir,90);
