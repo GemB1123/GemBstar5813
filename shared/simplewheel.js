@@ -8,7 +8,8 @@
    window.EAWheel.svg(chart, opts) returns an <svg> string.
      chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
      opts (all optional):
-       planets  list of bodies to draw (default Sun..Pluto, Node, SNode; AS and MC are drawn from the cusps)
+       planets  list of bodies to draw (default Sun..Pluto; add Node, SNode, Fortune, Spirit to show them; AS and MC are drawn from the cusps)
+       chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
        glyph    k => inner SVG of a planet glyph in a -15..15 box, stroked with currentColor (Device: PLG)
        sign     (i,x,y,size,color) => SVG of sign glyph i (Device: agSvg, Ana's glyphs)
        aspects  p => [{a,b,angle,color,minor}]  (Device: the shared aspect set); false for none
@@ -58,8 +59,9 @@ const BT=[[['Jupiter',6],['Venus',12],['Mercury',20],['Mars',25],['Saturn',30]],
 const PT='Ju6 Ve8 Me7 Ma5 Sa4|Ve8 Me7 Ju7 Sa2 Ma6|Me7 Ju6 Ve7 Ma6 Sa4|Ma6 Ju7 Me7 Ve7 Sa3|Sa6 Me7 Ve6 Ju6 Ma5|Me7 Ve6 Ju5 Sa6 Ma6|Sa6 Ve5 Me5 Ju8 Ma6|Ma6 Ju8 Ve7 Me6 Sa3|Ju8 Ve6 Me5 Sa6 Ma5|Ve6 Me6 Ju7 Sa6 Ma5|Sa6 Me6 Ve8 Ju5 Ma5|Ve8 Ju6 Me6 Ma5 Sa5',AB={Ju:'Jupiter',Ve:'Venus',Me:'Mercury',Ma:'Mars',Sa:'Saturn'};
 const BND={egyptian:BT.flatMap((s,i)=>s.map(([g,e],j)=>[g,i*30+(j?s[j-1][1]:0),i*30+e])),
  ptolemaic:PT.split('|').flatMap((x,i)=>{let a=i*30;return x.split(' ').map(t=>{const e=a+ +t.slice(2),r=[AB[t.slice(0,2)],a,e];a=e;return r})})};
-const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋'};
-const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
+const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋',Fortune:'⊗',Spirit:'⊕'};
+/* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
+const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
 const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
@@ -159,6 +161,11 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     the last one outermost; each ring's glyphs take its color so the legend dot matches. The main chart stays innermost. */
  const rings=big?[]:(chart.rings||[]).filter(r=>r&&r.pos).slice(0,2),nb=1+rings.length,H=(RP-RH)/nb;
  const RCOL=T.ringCols||[];
+ /* hover: name, degree minute second, sign, retrograde, and declination when the app gives it (Gemini, Nov 16) */
+ const PN={Node:'North Node',SNode:'South Node',Fortune:'Part of Fortune',Spirit:'Part of Spirit'},
+  hov=(x,Pp,ri)=>{const v=n360(Pp[x.k]),t=Math.round(v*3600)%1296000,d=Math.floor(t/3600)%30,m=Math.floor(t/60)%60,sc=t%60,dc=((ri?((chart.rings||[])[ri-1]||{}).dec:chart.dec)||{})[x.k],
+   rx=((ri?((chart.rings||[])[ri-1]||{}).ret:chart.ret)||{})[x.k];
+   return `${PN[x.k]||x.k} ${d}° ${SN[Math.floor(t/108000)%12]} ${String(m).padStart(2,'0')}′ ${String(sc).padStart(2,'0')}″${rx?' retrograde':''}${dc!=null?` · Dec ${dc<0?'−':'+'}${Math.floor(Math.abs(dc))}°${String(Math.floor(Math.abs(dc)%1*60)).padStart(2,'0')}′`:''}`};
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
@@ -185,7 +192,7 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    {const k0=xy(x.l,t),k1=xy(x.l,t-(nb>1?5:6.5)),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${nb>1?1.4:1.8}" stroke-linecap="round"/>`}
    if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    const g=xy(x.d,R.g),gs=R.gs||17;
-   h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${x.k} ${q.d}° ${SN[q.s]} ${String(q.m).padStart(2,'0')}′${rx?' retrograde':''}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
+   h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
    if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
    else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
    else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
@@ -196,7 +203,7 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
  const at=k=>pp[k]!=null?xy(pp[k],RI-2):null;
- h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Tap for the next set, double tap to ${big?'make smaller':'make larger'}" style="cursor:pointer;touch-action:manipulation;outline:none"><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
+ h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
   h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
