@@ -76,7 +76,7 @@ video#cam{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;z-index
 /* Teacher (Gemini, Nov 13): the sky as usual, the selfie small in the upper right; the corner buttons move to the upper left */
 body.teach video#cam{inset:auto;top:calc(env(safe-area-inset-top) + 10px);right:10px;width:min(30vw,140px);height:min(40vw,186px);border-radius:14px;border:2px solid #cfd4da;box-shadow:0 4px 18px rgba(0,0,0,.55);z-index:4;opacity:1!important;pointer-events:none}
 body.teach #cbtn.corner{right:auto!important;left:62px!important}body.teach .flipov,body.teach .mixov,body.teach .camtag{display:none!important}
-body.teach #snapchip{left:114px!important;max-width:calc(100% - 134px - min(30vw,140px))!important}body.teach #globe{right:auto!important;left:8px!important;top:calc(env(safe-area-inset-top) + 60px)!important}
+body.teach #snapchip{left:114px!important;max-width:calc(100% - 134px - min(30vw,140px))!important}body.teach #globe{right:auto!important;left:8px!important;top:calc(env(safe-area-inset-top) + 60px)!important}body.teach.globeon #snapchip{max-width:calc(100% - 134px - min(30vw,140px))!important}
 canvas#sky{z-index:1}
 #start{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:120px;height:120px;border-radius:50%;padding:0 14px;font:600 17px/1.15 'Cormorant Garamond',Georgia,serif;letter-spacing:.03em;text-align:center;background:radial-gradient(circle at 35% 30%,#ffffff 0%,#e3e7eb 22%,#aeb4bc 55%,#8d939b 78%,#c9ced4 100%);color:#0b0e16;border:1px solid rgba(255,255,255,.55);z-index:3;box-shadow:0 0 18px rgba(210,220,230,.35),0 8px 30px rgba(0,0,0,.6),inset 0 -3px 8px rgba(0,0,0,.25)}
 #info{position:fixed;left:10px;right:10px;bottom:calc(env(safe-area-inset-bottom) + 60px);max-height:40vh;overflow:auto;background:rgba(10,12,22,.9);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13.5px;z-index:3;max-width:520px;margin:0 auto}
@@ -110,19 +110,20 @@ body.camon #snapchip{top:calc(env(safe-area-inset-top) + 50px)}
 .pbret{background:rgba(255,150,215,.2)!important;border-color:rgba(255,150,215,.6)!important}.pbar .pbused{border-color:var(--gold)}
 /* every box that scrolls gets a second X at its bottom right (Gemini, Nov 13) */
 .xb{display:none}.scrolls>.xb{display:block;position:sticky;bottom:0;margin:6px 0 0 auto;width:40px;height:40px;min-height:40px;padding:0;border-radius:50%;font-size:20px;background:rgba(10,12,22,.95);border:1px solid var(--line);color:var(--dim);z-index:1}
-/* landscape on a phone: the info panel docks on the right as a column, the object sits in the open sky on the left */
+/* landscape on a phone: the info panel docks on the LEFT as a column (the upper right is the teacher space, Gemini Nov 16), the object sits in the open sky */
 @media (orientation:landscape) and (max-height:520px){
- #info{left:auto;right:10px;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
- #plist{left:auto;right:10px;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
+ #info{left:62px;right:auto;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
+ #plist{left:62px;right:auto;width:min(44vw,420px);top:calc(env(safe-area-inset-top) + 8px);max-height:none;margin:0}
  #info dl{grid-template-columns:auto 1fr;font-size:12.5px}#info .ib{margin-bottom:6px}
 }
-#globe{position:fixed;right:8px;top:calc(env(safe-area-inset-top) + 8px);width:min(52vw,240px);background:rgba(8,10,20,.82);border:1px solid rgba(209,171,116,.45);border-radius:14px;z-index:3;padding:4px 4px 6px}
+/* the upper right is the teacher space (Gemini's camera): the Globe lives upper left, below the Night and Tour buttons */
+#globe{position:fixed;left:8px;top:calc(env(safe-area-inset-top) + 112px);width:min(52vw,240px);background:rgba(8,10,20,.82);border:1px solid rgba(209,171,116,.45);border-radius:14px;z-index:3;padding:4px 4px 6px}
 #globe[hidden]{display:none}#gcv{display:block;width:100%;aspect-ratio:1;touch-action:none;cursor:grab}
 #globe button{position:absolute;top:4px;width:32px;height:32px;min-height:32px;padding:0;border-radius:50%;font-size:14px;background:rgba(10,12,22,.9)}#gx{right:4px;font-size:18px!important}#gplay{left:4px}
 #gmsg{min-height:15px;text-align:center;font-size:11.5px;color:var(--ink);padding:0 4px}
 body.chartview #globe{display:none}body.globeon #snapchip{max-width:calc(100% - min(52vw,240px) - 30px)}body.globeon #snapchip span{max-width:30vw}
-body.camon #globe{top:calc(env(safe-area-inset-top) + 60px)}
-@media (orientation:landscape) and (max-height:520px){#globe{width:min(30vh,170px);right:auto;left:8px;top:calc(env(safe-area-inset-top) + 50px)}}
+body.camon #globe{top:calc(env(safe-area-inset-top) + 112px)}
+@media (orientation:landscape) and (max-height:520px){#globe{width:min(30vh,170px);right:auto;left:62px;top:calc(env(safe-area-inset-top) + 58px)!important}}
 #chhead{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 6px);text-align:center;z-index:2;color:#d1ab74;pointer-events:none}#chhead{transition:opacity .2s}body.chartview.eawz #chhead{opacity:0}
 #chhead[hidden]{display:none}#chhead button{pointer-events:auto}
 #chhead .cht{display:flex;align-items:center;justify-content:center;gap:4px;font-size:17px}#chhead .cht b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -141,8 +142,8 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 .cc label{display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:2px 8px 2px 0}.cc input[type=color]{width:34px;height:28px;padding:0;border:1px solid #6b5a3a;border-radius:6px;background:none}
 .corner{position:fixed;top:calc(env(safe-area-inset-top) + 8px);width:44px;height:44px;min-height:44px;padding:0;border-radius:50%;background:rgba(10,12,22,.6);border:1px solid rgba(209,171,116,.35);z-index:2;display:flex;align-items:center;justify-content:center}.corner svg{width:26px;height:26px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round}
 #night.corner{left:10px}#cbtn.corner{right:10px}#night[aria-pressed="true"]{background:rgba(255,90,74,.2)}body.chartview #cbtn{display:none}
-.flipov{right:62px!important}.camtag{left:62px!important}#snapchip{left:62px!important;max-width:calc(100% - 124px)!important}body.globeon #snapchip{max-width:calc(100% - min(52vw,240px) - 80px)!important}
-#globe{top:calc(env(safe-area-inset-top) + 60px)!important}#chhead{left:60px!important;right:60px!important}
+.flipov{right:62px!important}.camtag{left:62px!important}#snapchip{left:62px!important;max-width:calc(100% - 124px)!important}body.globeon #snapchip{max-width:calc(100% - 124px)!important}
+#globe{top:calc(env(safe-area-inset-top) + 112px)!important}#chhead{left:60px!important;right:60px!important}
 .bar .ic{width:calc((100vw - 12px)/7);max-width:58px;min-height:48px}.bar .ic svg,.bar .ic canvas{width:32px!important;height:32px!important}
 .bar .cv{display:none!important}body.chartview .bar .cv{display:flex!important}body.chartview .bar .sv{display:none!important}
 .bar #chbtn .skyi{display:none}body.chartview .bar #chbtn .skyi{display:block}body.chartview .bar #chbtn .chi{display:none}
