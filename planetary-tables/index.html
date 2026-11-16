@@ -10501,12 +10501,12 @@ function chartDraw0(){const o=$('#vt-cw'),d=new Date(CW.ms);
    Line Color, Conjunction Star, Orbit Rings, Planet Look), which leaves room under the picture for Play and an animation speed slider */
 /* Gemini, Nov 10: six speeds. Crawl and Run are set in Space settings (seconds for one cycle in Space; Earth takes 2.5 times as long);
    the four between are spaced evenly (geometrically) from one to the other. Crawl and Walk scroll the All table. */
-const SPDN=['Crawl','Walk','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:120,slow:60,run:12},(()=>{try{return JSON.parse(localStorage.getItem('vt-spdx3'))||{}}catch(e){return {}}})()),SPD=[];
-document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='spc-crawl'&&id!=='spc-run'&&id!=='spc-slow')return;const v=+e.target.value;if(!(v>0))return;SPDX[id.slice(4)]=v;try{localStorage.setItem('vt-spdx3',JSON.stringify(SPDX))}catch(x){}spdBuild();if(SPC.on)SPC.t0=performance.now()-SPC.p*spcDur();if(EAV.on)EAV.t0=performance.now()-EAV.p*eaDur()});
+const SPDN=['Crawl','Walk','Slow','Medium','Fast','Run'],SPDX=Object.assign({crawl:120,slow:30,run:6},(()=>{try{const v=JSON.parse(localStorage.getItem('vt-spdx4'));if(v)return v;const o=JSON.parse(localStorage.getItem('vt-spdx3'));return o&&o.crawl?{crawl:o.crawl}:{}}catch(e){return {}}})())   /* Gemini, Nov 16: Crawl stays very slow for teaching; Walk to Run twice as fast as Nov 15 (Slow 30 s, Run 6 s) */,SPD=[];
+document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id!=='spc-crawl'&&id!=='spc-run'&&id!=='spc-slow')return;const v=+e.target.value;if(!(v>0))return;SPDX[id.slice(4)]=v;try{localStorage.setItem('vt-spdx4',JSON.stringify(SPDX))}catch(x){}spdBuild();if(SPC.on)SPC.t0=performance.now()-SPC.p*spcDur();if(EAV.on)EAV.t0=performance.now()-EAV.p*eaDur()});
 /* Gemini, Nov 15: speeds are the time for the whole animation, whatever it shows. One cycle (Moon, Mercury, Venus, Mars, the
    Chart, each Earth period): Crawl 2 minutes, Slow 60 s, Run 12 s. A pattern of several cycles (Mercury 3, Venus 5): Crawl 6 minutes,
    Slow 90 s, Run 18 s. Walk sits evenly between Crawl and Slow, Medium and Fast evenly between Slow and Run. */
-const SPDM=[];function spdBuild(){const a=Math.max(2,+SPDX.crawl||120),b=Math.max(1,Math.min(a,+SPDX.slow||60)),c=Math.max(.5,Math.min(b,+SPDX.run||12));SPD.length=0;SPDM.length=0;
+const SPDM=[];function spdBuild(){const a=Math.max(2,+SPDX.crawl||120),b=Math.max(1,Math.min(a,+SPDX.slow||30)),c=Math.max(.5,Math.min(b,+SPDX.run||6));SPD.length=0;SPDM.length=0;
  SPDN.forEach((n,i)=>{SPD.push([n,i<=2?a*Math.pow(b/a,i/2):b*Math.pow(c/b,(i-2)/3)]);SPDM.push(i<=2?3*Math.pow(.5,i/2):1.5)})}
 spdBuild();
 /* Gemini, Nov 4: Space opens on the Full Pattern, the whole rose, as a still, with the current 19 month cycle lit */
@@ -10549,7 +10549,7 @@ function spcMoonPhase(r){const done=SPC.p>=1,IX=spcIdx(r),t=done?r.jd:spcJd(r,IX
   nm=ae>178.5?'Full Moon':ae<1.5?'New Moon':MOPH[ph][0]+' Phase',body=PT.Moon?`<image href="${PT.Moon}" x="${f1(-R)}" y="${f1(-R)}" width="${f1(2*R)}" height="${f1(2*R)}" clip-path="url(#spc-phc)"/>`:`<path d="${lit}" fill="#eef1f8"/>`;
  return `<svg viewBox="-55 -55 110 110" width="100%" height="100%" role="img" aria-label="Moon phase from Earth, ${Math.round(k*100)}% lit, ${nm}"><defs><clipPath id="spc-phc"><path d="${lit}"/></clipPath></defs>`
   +`<g transform="scale(${ev?1:-1} 1)"><circle r="${R}" fill="#14120e" stroke="#3a3426" stroke-width=".5"/>${body}</g></svg>`
-  +`<i class="spcpt"><small id="spc-d">${spcSd(T.date((t-2440587.5)*864e5))}</small><b>${nm}</b><span>${MOPH[ph][1]}</span><span>${Math.round(k*100)}% Lit</span><span>${Math.round(ae)}&deg; ${ev?'waxing':'waning'}</span></i>`}
+  +`<i class="spcpt"><small id="spc-d">${spcDT((t-2440587.5)*864e5)}</small><b>${nm}</b><span>${MOPH[ph][1]}</span><span>${Math.round(k*100)}% Lit</span><span>${Math.round(ae)}&deg; ${ev?'waxing':'waning'}</span></i>`}
 function spcSave(){const o={};Object.keys(SPC0).forEach(k=>o[k]=SPC[k]);try{localStorage.setItem('vt-spc8',JSON.stringify(o))}catch(e){}}
 function spcBuild(){const k=[PL(),SPC.f,SPC.orb,SPC.cyc,SPC.step,Math.round(SPC.ms/864e5)].join('|');if(SPC.memo&&SPC.memo.k===k)return SPC.memo;const jd=SPC.ms/864e5+2440587.5;
  if(MOO())return SPC.memo=spcMoonBuild(k,jd);
@@ -10608,7 +10608,8 @@ function spcSvg(){const r=spcBuild();if(!r)return '<p>Could not build this cycle
  return h+'</svg>'}
 /* Gemini, Nov 5: short 10/24/26 dates in Space, so the header keeps the same number of lines while it animates */
 const spcSd=t=>{const m=String(t).match(/^([A-Za-z]+) (\d+), (-?\d+)$/),M='JanFebMarAprMayJunJulAugSepOctNovDec'.indexOf(m?m[1].slice(0,3):'#')/3;return m&&M>=0?`${String(M+1).padStart(2,'0')}/${m[2].padStart(2,'0')}/${String(Math.abs(+m[3])%100).padStart(2,'0')}`:t};
-function spcDate(){const r=spcBuild();if(!r)return '';return spcSd(SPC.p>=1?T.date(SPC.ms):T.date((spcJd(r,spcIdx(r).m)-2440587.5)*864e5))}
+const spcTz=()=>{try{const p=cwPlace();return p&&p.tz}catch(e){return undefined}},spcDT=ms=>`${spcSd(T.date(ms))} ${cwTime(ms,spcTz())}`;   /* Gemini, Nov 16: date and time, 12/04/26 12:32pm */
+function spcDate(){const r=spcBuild();if(!r)return '';return spcDT(SPC.p>=1?SPC.ms:(spcJd(r,spcIdx(r).m)-2440587.5)*864e5)}
 function spcSetHtml(){const sg=(k,opts)=>`<div class="cwseg" role="group">${opts.map(([v,n])=>`<button data-sk="${k}" data-sv="${v}" aria-pressed="${String(SPC[k])===String(v)}">${n}</button>`).join('')}</div>`,lb=t=>`<div class="vtcap">${t}</div>`;
  return `<div class="vth spch">Space Settings<button class="spcx" id="spc-sx2" aria-label="Close settings">&#10005;</button></div>`   /* Gemini, Nov 4: a clear X to close the settings and stay in Space */+lb('Frame')+sg('f',[['geo','Geo'],['helio','Helio']])+lb('Range')+sg('cyc',[['one','One Cycle'],['full','Full Pattern']])
  +(MAR()?`<small class="vtnote">One Cycle runs opposition to opposition (first breath to first breath), about 26 months. Full Pattern runs seven cycles, about 15 years, Mars's seven-pointed pattern, with the current cycle lit (three before it, three after).</small>`:MER()?`<small class="vtnote">One Cycle runs ${SAM()?'Station Direct to Station Direct (one Overstory)':'interior conjunction to interior conjunction'}, about 4 months. Full Pattern runs three cycles, about a year, Mercury's near-triangle, with the current cycle lit (one before it, one after).</small>`:`<small class="vtnote">One Cycle runs interior conjunction to interior conjunction, about 19 months. Full Pattern runs five cycles, about 8 years, and draws the whole rose, with the current cycle lit (two cycles before it, two after).</small>`)
