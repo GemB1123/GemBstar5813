@@ -10271,6 +10271,8 @@ body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:10px}
 /* Gemini, Nov 17: Rx hugs the phase angle; the longitude group has three columns */
 .vtm-v,#vt-list.norx .vtm-v{grid-template-columns:2.3ch 3.4ch 2.3ch}
 .vtm-p .vtrx{font-style:normal;margin-right:3px}
+.vtm-p .vtme{display:inline-block;width:1.3ch;margin-left:3px;text-align:left;font-style:normal}   /* M or E, a fixed slot so the degrees stay aligned */
+.vtp .vtme{font-style:normal;margin-left:4px}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10323,7 +10325,7 @@ const PXAVG={};function pxAvg(){const b=PN();if(PXAVG[b])return PXAVG[b];const y
  for(let t=j0;t<j0+yrs*365.25;t+=MOO()?1.37:3.71){try{const q=pxAt(t);if(isFinite(q.d)&&isFinite(q.mag)){d+=q.d;m+=q.mag;n++}}catch(e){}}return PXAVG[b]=n?{d:d/n,mag:m/n}:null}
 function more(x){const t=x.ms/864e5+2440587.5,N=PN();let q=VXC.get(N+x.ms);if(!q){try{q=pxAt(t);VXC.set(N+x.ms,q)}catch(e){q=null}}
  const A=pxAvg(),pa=Math.abs(x.pa),mg=v=>(v<0?'−':'+')+Math.abs(v).toFixed(MOO()?1:2),
-  pl=`<span><small>${N} Long</small>${T.pos(x.v,MOO()?false:x.rx)}</span>`,sl=`<span><small>Sun Long</small>${T.pos(x.s,false)}</span>`,ph=`<span><small>Phase Angle</small>${T.pa(x.pa).replace(' Deg ','° ').replace(' Min','′')}</span>`;
+  pl=`<span><small>${N} Long</small>${T.pos(x.v,MOO()?false:x.rx)}</span>`,sl=`<span><small>Sun Long</small>${T.pos(x.s,false)}</span>`,ph=`<span><small>Phase Angle</small>${paME(x.pa)}</span>`;
  if(!q)return `<div class="vtp">${pl}${sl}${ph}</div>`;
  const hid=MOO()?pa<8:MAR()?pa<15:TOT()?pa<(MER()?10:T.hel):pa<8.5,
   note=MOO()||MAR()||MER()||TOT()?(hid?'not visible':''):pa<1?'Cazimi':pa<8.5?'Combust':'',
@@ -10403,6 +10405,7 @@ function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v
 /* Gemini, Nov 17: table columns line up: dates zero-padded (01/03/27), positions split into degree, sign, minute, and Rx columns */
 const mdyP=ms=>{const d=new Date(ms);return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`},
  posCols=t=>{const m=/^(\d+) (\S+) (\d+)( Rx)?$/.exec(String(t).trim());return m?`<i>${m[1]}</i><i>${m[2]}</i><i>${m[3]}</i>`:t},
+ paME=a=>{const m=Math.floor(Math.abs(a)*60+.5),d=Math.floor(m/60),L=m===0||m===10800?'':a<0?'M':'E';return `${d}°${String(m%60).padStart(2,'0')}′<i class="vtme">${L}</i>`},   /* Gemini, Nov 17: no minus or plus sign; M (morning) or E (evening) after the phase angle */
  isRx=t=>/ Rx$/.test(String(t).trim());   /* Gemini, Nov 17: Rx sits right beside the phase angle, so direct rows show a clean gap after the minutes */
 /* Gemini, Nov 17: the color tab, date, name, longitude, phase angle, and arrow are columns with equal space between them.
    Each column is as wide as its widest entry in this table (measured), and the space left over is shared evenly */
@@ -10420,7 +10423,7 @@ function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((M
  if(/Brightness/.test(n))return 'Max Brightness';if(/Elongation/.test(n))return 'Max Elongation';
  if((g=/^Gate of .+ \((.+) Chakra\)$/.exec(n)))return g[1]==='Solar Plexus'?'Solar Plexus':g[1]+' Gate';   /* Gemini, Nov 5: Crown Gate; Solar Plexus drops Gate to fit */
  if(n==='Gate of Transformation')return 'Transformation Gate';return n}
-function mrow(x,on,up){const [c,e,sw]=tcol(x),nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=T.pa(x.pa).replace(' Deg ','°').replace(' Min','′');
+function mrow(x,on,up){const [c,e,sw]=tcol(x),nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=paME(x.pa);
  return `<li class="vtm${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c};--e:${e}"${on?' aria-current="date"':''}><button data-vx="${Math.round(x.ms)}" aria-expanded="false" aria-label="${esc(mdy(x.ms)+', '+nm+'. Show the full line')}">`
  +`<span class="vtm-d">${mdyP(x.ms)}</span><span class="vtm-n">${sw}${short(x)}</span><span class="vtm-v">${posCols(T.pos(x.v,x.rx))}</span><span class="vtm-p">${isRx(T.pos(x.v,x.rx))?'<i class="vtrx">Rx</i>':''}${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
 function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());document.body.classList.toggle('vtout',OUT());document.body.classList.toggle('vteao',EAO());if(!me||MOO()||OUT())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
