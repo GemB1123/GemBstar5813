@@ -1895,9 +1895,9 @@ $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerC
  if(hit.length<12)for(const p of PL){if(!p[4].startsWith(q)&&(p[4].includes(q)||p[5].includes(q)))hit.push(p);if(hit.length>=12)break}
  R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
  $('clock').scrollTop=0;R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3],p[6])}}});
-function locateMe(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
-  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;homeSet();save();barText()}},
- ()=>{say('Location was not shared: tap the globe to choose a place.',5000)},{enableHighAccuracy:false,timeout:15000,maximumAge:6e5})}
+function locateMe(){if(!navigator.geolocation){say('This browser cannot share its location: choose a place in the Clock menu.',5000);return}say('Finding your location…',4000);navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
+  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;homeSet();save();barText();say('Now at '+ST.place+'.',3000)}},
+ e=>{say(e&&e.code===1?'Location is blocked for this page. Allow it in the browser\'s site settings, or choose a place in the Clock menu.':'Your location could not be found just now. Try again, or choose a place in the Clock menu.',7000)},{enableHighAccuracy:false,timeout:15000,maximumAge:6e5})}
 $('here').onclick=()=>{closeSheets();locateMe()};
 /* ---- the camera (Gemini, Nov 12): the live camera behind the sky, the selfie camera with the sky behind you, photos and video ---- */
 const vid=$('cam');let STREAM=null;
