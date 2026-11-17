@@ -1455,7 +1455,12 @@ const REMEMBER=(()=>{try{return localStorage.getItem('skymode-remember')!=='0'}c
 try{let s=JSON.parse(localStorage.getItem('skymode')||'{}');if(!REMEMBER)s={off:s.off,lat:s.lat,lon:s.lon,place:s.place,tz:s.tz,camFov:s.camFov,magdec:s.magdec};if(typeof s.off==='number')ST.off=s.off;if(s.magdec===false)ST.magdec=false;if(s.night)ST.night=true;if(s.dock)ST.dock=true;if(s.chring===false)ST.chring=false;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
  if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.gcol==='string'&&/^#[0-9a-f]{6}$/i.test(s.gcol))ST.gcol=s.gcol;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(typeof s.bandOp==='number')ST.bandOp=s.bandOp;if(typeof s.rbOp==='number')ST.rbOp=s.rbOp;if(/^(trad|elem|mod)$/.test(s.decgm))ST.decgm=s.decgm;if(typeof s.hw==='number')ST.hw=s.hw;if(/^(all|ang|none)$/.test(s.hnum))ST.hnum=s.hnum;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({magdec:ST.magdec!==false,chring:ST.chring!==false,dock:!!ST.dock,off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,gcol:ST.gcol||null,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,rbOp:ST.rbOp,decgm:ST.decgm,hw:ST.hw,rbOp:ST.rbOp,hnum:ST.hnum}))}catch(e){}};
+/* HOME (Gemini, Nov 17): the user's own place. Opening a chart moves the sky to the chart's place for as long as the chart is up,
+   but only HOME is saved, and going back to Current Transits returns to it, so a birth chart never becomes where you live. */
+const HOME={lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz};
+function homeSet(){HOME.lat=ST.lat;HOME.lon=ST.lon;HOME.place=ST.place;HOME.tz=ST.tz}
+function homeBack(){ST.lat=HOME.lat;ST.lon=HOME.lon;ST.place=HOME.place;ST.tz=HOME.tz}
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({magdec:ST.magdec!==false,chring:ST.chring!==false,dock:!!ST.dock,off:ST.off,night:ST.night,lat:HOME.lat,lon:HOME.lon,place:HOME.place,tz:HOME.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,gcol:ST.gcol||null,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,rbOp:ST.rbOp,decgm:ST.decgm,hw:ST.hw,rbOp:ST.rbOp,hnum:ST.hnum}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -1861,7 +1866,7 @@ function playTick(){if(!PLAY.dir)return;const t=performance.now(),dt=Math.min(.2
  const ms=Date.now()+TOFF+PLAY.dir*sp[2]*dt*1000,y=new Date(ms).getUTCFullYear();if(y<LIM[0]||y>LIM[1]){playSet(0);return}
  TOFF=ms-Date.now();if(sp[2]>1)K=null}
 try{const v=(localStorage.getItem('skymode-step')||'').split(' ');if(+v[0]>0&&UNIT[v[1]]){$('camt').value=v[0];$('cunit').value=v[1]}}catch(e){}
-$('now').onclick=$('now2').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
+$('now').onclick=$('now2').onclick=()=>{if(PLAY.dir)playSet(0);if(typeof CHREC!=='undefined'&&CHREC){CHREC=null;homeBack()}TOFF=0;SKY=null;K=null;barText()};
 $('kbtn').onclick=()=>{openSheet('clock');loadPlaces();$('clock').scrollTop=0};
 function dockUI(){const d=!!ST.dock;$('tmdock').hidden=!d;document.body.classList.toggle('docked',d);$('dockb').setAttribute('aria-pressed',d);$('dockb').textContent=d?'Undock The Time Machine':'Dock The Time Machine'}
 $('dockb').onclick=()=>{ST.dock=!ST.dock;save();dockUI()};
@@ -1883,7 +1888,7 @@ function loadPlaces(){if(PL||PLwait)return PLwait;PLwait=(async()=>{for(const u 
   for(let i=2;i<L.length;i++){const f=L[i].split('|');if(f.length<6)continue;a.push([plabel(f[0],f[2],f[3]),f[2],+f[4],+f[5],f[0].toLowerCase(),(f[7]||'').toLowerCase(),TZ[+f[6]]||null])}PL=a;relabel();return a}catch(e){}}PL=[];return PL})();return PLwait}
 /* a place saved before the labels changed gets its state or country added */
 function relabel(){if(!ST.place||ST.place.includes(',')||ST.place==='My Location')return;const n=ST.place.toLowerCase();let b=null,bd=1e9;for(const q of PL){if(q[4]!==n)continue;const d=(q[2]-ST.lat)**2+(q[3]-ST.lon)**2;if(d<bd){bd=d;b=q}}if(b&&bd<0.01){ST.place=b[0];save();barText()}}
-function setPlace(name,lat,lon,tz){ST.lat=lat;ST.lon=lon;ST.place=name;ST.tz=tz||null;SKY=null;K=null;save();barText();if($('clock').hidden)closeSheets();else{$('lq').value='';$('lres').innerHTML='';$('lq').blur();$('clock').scrollTop=0;say('Now in '+name+'. Date and time show its local time.',2600)}}
+function setPlace(name,lat,lon,tz){ST.lat=lat;ST.lon=lon;ST.place=name;ST.tz=tz||null;homeSet();SKY=null;K=null;save();barText();if($('clock').hidden)closeSheets();else{$('lq').value='';$('lres').innerHTML='';$('lq').blur();$('clock').scrollTop=0;say('Now in '+name+'. Date and time show its local time.',2600)}}
 loadPlaces();
 $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerCase(),R=$('lres');if(q.length<2){R.innerHTML='';return}await loadPlaces();
  const hit=[];for(const p of PL){if(p[4].startsWith(q))hit.push(p);if(hit.length>=12)break}
@@ -1891,7 +1896,7 @@ $('lq').addEventListener('input',async()=>{const q=$('lq').value.trim().toLowerC
  R.innerHTML=hit.length?hit.map((p,j)=>`<button class="pl" data-j="${j}">${p[0].replace(/</g,'&lt;')} <small>${Math.abs(p[2]).toFixed(2)}°${p[2]>=0?'N':'S'} ${Math.abs(p[3]).toFixed(2)}°${p[3]>=0?'E':'W'}</small></button>`).join(''):(PL.length?'<small>No match.</small>':'<small>The place list could not load here.</small>');
  $('clock').scrollTop=0;R.onclick=e=>{const b=e.target.closest('[data-j]');if(b){const p=hit[+b.dataset.j];setPlace(p[0],p[2],p[3],p[6])}}});
 function locateMe(){if(!navigator.geolocation)return;navigator.geolocation.getCurrentPosition(async p=>{const lat=p.coords.latitude,lon=p.coords.longitude;setPlace('My Location',lat,lon);
-  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;save();barText()}},
+  await loadPlaces();let best=null,bd=1e9;for(const q of PL){const d=(q[2]-lat)**2+((q[3]-lon)*Math.cos(rad(lat)))**2;if(d<bd){bd=d;best=q}}if(best&&bd<0.25){ST.place=best[0];ST.tz=best[6]||null;homeSet();save();barText()}},
  ()=>{say('Location was not shared: tap the globe to choose a place.',5000)},{enableHighAccuracy:false,timeout:15000,maximumAge:6e5})}
 $('here').onclick=()=>{closeSheets();locateMe()};
 /* ---- the camera (Gemini, Nov 12): the live camera behind the sky, the selfie camera with the sky behind you, photos and video ---- */
@@ -2341,8 +2346,8 @@ if(CHS)CHS.onChange(chList);
 document.addEventListener('click',e=>{if(!e.target.closest('#charts,#chform'))return;const o=e.target.closest('[data-cho]'),f=e.target.closest('[data-chf]');
  if(o){const t=o.dataset.cho,L={r:CHL.rec,f:CHL.fav,s:CHL.sav}[t[0]];chOpen(L&&L[+t.slice(1)]);return}
  if(f){CHS.toggleFav(f.dataset.chf);return}
- if(e.target.id==='chclr'){CHS.clearRecents();CHREC=null;TOFF=0;SKY=null;K=null;barText();chList();say('Recent charts cleared. Back to now.',3000)}
- if(e.target.id==='chnew')chForm(null);if(e.target.id==='chnow'){CHREC=null;TOFF=0;SKY=null;K=null;barText();closeSheets()}});
+ if(e.target.id==='chclr'){CHS.clearRecents();CHREC=null;homeBack();TOFF=0;SKY=null;K=null;barText();chList();say('Recent charts cleared. Back to now.',3000)}
+ if(e.target.id==='chnew')chForm(null);if(e.target.id==='chnow'){CHREC=null;homeBack();TOFF=0;SKY=null;K=null;barText();closeSheets()}});
 $('chq').addEventListener('input',chList);
 /* Enter Chart Data: name, date, time, and place, as in Main's pop-up */
 let CHF={place:null,rec:null};
@@ -2580,7 +2585,7 @@ function chHead(){const el=$('chhead');if(!el)return;if(el.hidden){el.hidden=fal
   plc=B?((B.place&&B.place.label)||''):ST.place,lg=chLegend(),key=[title,t,plc,fav,now,CHO.theme,lg].join('|');if(key===CHHK)return;CHHK=key;
  el.className=CHO.theme==='light'&&CHO.style==='basic'?'light':'';
  el.innerHTML=`<div class="cht"><b>${chEsc(title)}</b><button class="chstar" data-chh="fav" aria-pressed="${fav}" aria-label="${fav?'Remove from favorites':'Add to favorites'}">${fav?'★':'☆'}</button></div><div class="chl">${t}</div><div class="chl">${chEsc(plc)}</div>${lg?`<div class="chlg">${lg}</div>`:''}<div class="chb"><button data-chh="edit">Edit</button>${now?'':'<button data-chh="clear">Clear</button>'}</div>`}
-function chClear(){CHR.base=null;CHR.rings=[];CHR.partner=null;CHR.mode=null;CHREC=null;TOFF=0;SKY=null;K=null;if(PLAY.dir)playSet(0);barText();CHHK='';say('Current Transits.',2000)}
+function chClear(){CHR.base=null;CHR.rings=[];CHR.partner=null;CHR.mode=null;CHREC=null;homeBack();TOFF=0;SKY=null;K=null;if(PLAY.dir)playSet(0);barText();CHHK='';say('Current Transits.',2000)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-chh]');if(!b||!CHS)return;const a=b.dataset.chh,cur=chCur();
  if(a==='clear'){chClear();return}
  if(a==='edit'){chForm(CHR.base||cur||chNowRec());return}
@@ -2625,7 +2630,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-chr]');if(
  else{const i=CHR.rings.indexOf(a);if(i>=0)CHR.rings.splice(i,1);else{const add=()=>{if(!CHR.rings.includes(a)){CHR.rings.push(a);if(CHR.rings.length>2)CHR.rings.shift()}CHRK='';CHHK=''};if(a==='syn'&&!CHR.partner){chPickPartner(add);return}add()}}
  CHRK='';CHHK=''});
 $('chrbtn').onclick=()=>{ST.chring=ST.chring===false;save();CHRK='';chRowUI()};
-$('chtnow').onclick=()=>{if(PLAY.dir)playSet(0);TOFF=0;SKY=null;K=null;barText()};
+$('chtnow').onclick=()=>{if(PLAY.dir)playSet(0);if(CHREC){CHREC=null;homeBack()}TOFF=0;SKY=null;K=null;barText()};
 document.querySelectorAll('[data-chp]').forEach(b=>b.onclick=()=>playSet(+b.dataset.chp));
 window.__sky&&(window.__sky.chcc=()=>CHCC,window.__sky.cho=CHO);
 
@@ -2664,7 +2669,7 @@ function sgzInit(){if(SGZ.api)return SGZ.api;const W=window.EA_WORLDS&&window.EA
   localToMs:sgzLocal,parts:sgzParts,toast:t=>say(t,2600),pln:()=>({astro}),openSky:sgzSky};
  try{SGZ.api=W(A)}catch(e){console.error(e);return null}return SGZ.api}
 /* "Preview In Planetarium": the sky itself turns to that moment, place, and direction */
-function sgzSky(o){if(!o)return;const q=o.place;if(q&&(Math.abs(q.lat-ST.lat)>1e-4||Math.abs(q.lon-ST.lon)>1e-4)){ST.lat=q.lat;ST.lon=q.lon;ST.place=q.label||ST.place;ST.tz=q.tz||ST.tz;SKY=null;save()}
+function sgzSky(o){if(!o)return;const q=o.place;if(q&&(Math.abs(q.lat-ST.lat)>1e-4||Math.abs(q.lon-ST.lon)>1e-4)){ST.lat=q.lat;ST.lon=q.lon;ST.place=q.label||ST.place;ST.tz=q.tz||ST.tz;homeSet();SKY=null;save()}
  closeSheets();if(ST.view==='chart'&&typeof chView==='function')chView('sky');if(o.ms)jump(o.ms);
  if(o.az!=null){if(ST.track){ST.track=false;trackBtn()}ST.yaw=n360(o.az-(ST.off||0));ST.pitch=Math.max(5,Math.min(60,(o.alt||0)+12))}
  K=null;barText()}
@@ -2822,6 +2827,11 @@ function magUI(){const b=$('magb');if(!b)return;const on=ST.magdec!==false;if(on
 magUI();$('magb').onclick=()=>{ST.magdec=ST.magdec===false;ST.icorr=null;save();magUI();say(ST.magdec?'Compass corrected to true north.':'Compass shows magnetic north.',2500)};
 /* once: an older calibration already absorbed the magnetic declination, so it would now count twice; clear it and say so */
 try{if(!localStorage.getItem('skymode-mag1')){localStorage.setItem('skymode-mag1','1');if(ST.off){ST.off=0;save();setTimeout(()=>say('Sky now corrects the compass to true north, so your earlier calibration was cleared. Calibrate again if anything is still off.',6000),8000)}}}catch(e){}
+/* once (Nov 17): before HOME, opening a chart saved the chart's place as the user's own (Gemini's Boston birth chart); if the
+   saved place is a recent chart's place, go back to the default, Oakland, until the phone shares its location */
+try{if(!localStorage.getItem('skymode-home1')){localStorage.setItem('skymode-home1','1');const C=window.EA_CHARTS,L=C?C.recents().concat(C.favorites()):[];
+ if(L.some(c=>c.place&&Math.abs(c.place.lat-HOME.lat)<1e-4&&Math.abs(c.place.lon-HOME.lon)<1e-4)&&!(Math.abs(HOME.lat-37.8044)<1e-3&&Math.abs(HOME.lon+122.2712)<1e-3)){
+  ST.lat=37.8044;ST.lon=-122.2712;ST.place='Oakland, CA, USA';ST.tz='America/Los_Angeles';homeSet();SKY=null;K=null;save();barText()}}}catch(e){}
 
 })();</script>
 
