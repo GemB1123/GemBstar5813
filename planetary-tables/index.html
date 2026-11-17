@@ -10239,6 +10239,12 @@ body.tc-blend .vtm.mk .vtm-n,body.tc-blend .vtc.mk .vtn,body.tc-one .vtm.mk .vtm
 body.tc-blend .vtp small,body.tc-one .vtp small{color:#a9a3c8}
 body.tc-blend .vtcb:not(.vton),body.tc-one .vtcb:not(.vton){background:#0b0f2699;border-color:#c9c3e8;color:#efe3c8}
 body.tc-blend .vtc.vtex,body.tc-one .vtc.vtex{background:#151b3d}   /* Leo, Nov 17: the open card is navy in both modes */
+/* Gemini, Nov 17: every column lines up; room between the color tab and the date */
+.vtm button{grid-template-columns:54px 1fr 84px 50px 12px}
+.vtm-d{font-variant-numeric:tabular-nums}
+.vtm-v{display:grid;grid-template-columns:2.3ch 3.1ch 2.3ch 2.5ch;column-gap:3px;justify-content:end}
+.vtm-v i{font-style:normal;text-align:right}.vtm-v i:nth-child(2),.vtm-v i:nth-child(4){text-align:left}
+body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:13px}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10368,6 +10374,9 @@ function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v
  if(c<R[i].ms){try{const P=annot(T.calc((R[i].ms-40*864e5)/864e5+2440587.5)),pi=P.rows.findIndex(isIC),pe=P.rows.findIndex(isEC),pn=P.rows.findIndex((x,j)=>j>pe&&isIC(x));
   if(pi>=0&&pe>=0)ev={rows:[P.rows[pi]].concat(P.rows.slice(pe,pn<0?P.rows.length:pn+1)),ic:P.ic,ec:P.ec,title:T.title(P)}}catch(err){}}
  return {morn:{rows:R.slice(i,e+1)},eve:ev,side:c<R[i].ms||c>=R[e].ms?'eve':'morn'}}
+/* Gemini, Nov 17: table columns line up: dates zero-padded (01/03/27), positions split into degree, sign, minute, and Rx columns */
+const mdyP=ms=>{const d=new Date(ms);return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`},
+ posCols=t=>{const m=/^(\d+) (\S+) (\d+)( Rx)?$/.exec(String(t).trim());return m?`<i>${m[1]}</i><i>${m[2]}</i><i>${m[3]}</i><i>${m[4]?'Rx':''}</i>`:t};
 const mdy=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`};
 /* Gemini, Nov 4: short forms for the Morning and Evening lines (Venus Rx, Venus Set, Venus Cazimi, Venus Rise, Max Brightness,
    Venus Direct, Crown Gate, Third Eye Gate...); a tap opens the full card */
@@ -10380,7 +10389,7 @@ function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((M
  if(n==='Gate of Transformation')return 'Transformation Gate';return n}
 function mrow(x,on,up){const [c,e,sw]=tcol(x),nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=T.pa(x.pa).replace(' Deg ','°').replace(' Min','′');
  return `<li class="vtm${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c};--e:${e}"${on?' aria-current="date"':''}><button data-vx="${Math.round(x.ms)}" aria-expanded="false" aria-label="${esc(mdy(x.ms)+', '+nm+'. Show the full line')}">`
- +`<span class="vtm-d">${mdy(x.ms)}</span><span class="vtm-n">${sw}${short(x)}</span><span class="vtm-v">${T.pos(x.v,x.rx)}</span><span class="vtm-p">${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
+ +`<span class="vtm-d">${mdyP(x.ms)}</span><span class="vtm-n">${sw}${short(x)}</span><span class="vtm-v">${posCols(T.pos(x.v,x.rx))}</span><span class="vtm-p">${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
 function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());document.body.classList.toggle('vtout',OUT());document.body.classList.toggle('vteao',EAO());if(!me||MOO()||OUT())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
  document.querySelectorAll('#vt-seg button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===V.view);b.textContent=b.dataset.v==='ret'?`My ${PN()} Returns`:`${PN()} Cycle`});document.body.classList.toggle('vtret',V.view==='ret');requestAnimationFrame(padBot);
  $('#vt-chart').textContent=ch.name||'';{const cn=$('#vt-cn');if(cn){const d=new Date(ch.ms);cn.hidden=!me;if(me){cn.querySelector('.n').textContent=ch.name||'Chart';cn.querySelector('.d').textContent=isFinite(d)?` \u2013 ${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`:'';cn.setAttribute('aria-label',`Chart: ${ch.name||'chart'}. Tap to change`)}}}   /* Gemini, Nov 5: the chart's title and date on one line under the stars */
