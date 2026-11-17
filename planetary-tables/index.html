@@ -10254,6 +10254,11 @@ body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:13px}
 /* Gemini, Nov 17: longitude sits close to the phase angle, giving the stage names in the middle more room */
 .vtm-v{grid-template-columns:2.3ch 3.5ch 2.3ch 2.2ch;column-gap:2px}
 @media (min-width:1100px){.vtm button{grid-template-columns:54px 1fr 74px 46px 34px;column-gap:4px}}
+/* Gemini, Nov 17: the sign sits evenly between degrees and minutes, and the longitude group hugs the phase angle */
+.vtm-v{grid-template-columns:2.3ch 3.4ch 2.3ch 2.2ch;column-gap:4px}
+.vtm-v i:nth-child(2){text-align:center}.vtm-v i:nth-child(4){margin-left:-1px}
+.vtm button{grid-template-columns:54px 1fr auto 50px 12px}
+@media (min-width:1100px){.vtm button{grid-template-columns:54px 1fr auto 48px 34px}}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
