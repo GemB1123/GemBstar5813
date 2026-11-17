@@ -242,7 +242,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
  <div class="cap">CAPTURE</div><div class="row"><button id="snapb">Take Photo</button><button id="recb">Record Video</button></div>
  <label class="sl">Camera ↔ Stars <input type="range" id="cmix" min="0" max="100" step="5" aria-label="Camera to stars"><b id="cmixv"></b></label>
  <div class="row"><button id="micb" aria-pressed="true">Microphone</button></div><p class="sub">With Microphone on, videos record sound.</p>
- <div class="cap">CALIBRATE</div><div class="row"><button id="calcb">Calibrate With Camera</button><button id="calsb">Calibrate On A Star</button><button id="calrb">Reset</button></div>
+ <div class="cap">CALIBRATE</div><div class="row"><button id="calcb">Calibrate With Camera</button><button id="calsb">Calibrate On A Star</button><button id="calrb">Reset</button></div><div class="row"><button id="magb" aria-pressed="true">True North</button></div><p class="sub" id="magv"></p><p class="sub">Phone compasses point to magnetic north. With True North on, Sky turns the compass by the magnetic declination for your place (NOAA World Magnetic Model 2025), so calibration only fixes what is left.</p>
  <div class="cap">ILLUMINATE</div><div class="row"><button id="illb" aria-pressed="false">Illuminate</button><label class="gcl">Color <input type="color" id="illc" value="#ffffff" aria-label="Illuminate color"></label></div>
  <label class="sl">Brightness <input type="range" id="illr" min="10" max="100" step="5" aria-label="Illuminate brightness"><b id="illv"></b></label>
  <p class="sub">Illuminate lights your face with a glowing border around the screen, in the sky and in the chart.</p></div>
@@ -1452,10 +1452,10 @@ const ST={lat:37.8044,lon:-122.2712,place:'Oakland, CA, USA',tz:'America/Los_Ang
 for(const s of SW)ST[s[0]]=s[2];
 /* Remember My Settings (Gemini, Nov 14): off, Sky opens at its defaults every time, keeping only the place and the calibration */
 const REMEMBER=(()=>{try{return localStorage.getItem('skymode-remember')!=='0'}catch(e){return true}})();
-try{let s=JSON.parse(localStorage.getItem('skymode')||'{}');if(!REMEMBER)s={off:s.off,lat:s.lat,lon:s.lon,place:s.place,tz:s.tz,camFov:s.camFov};if(typeof s.off==='number')ST.off=s.off;if(s.night)ST.night=true;if(s.dock)ST.dock=true;if(s.chring===false)ST.chring=false;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
+try{let s=JSON.parse(localStorage.getItem('skymode')||'{}');if(!REMEMBER)s={off:s.off,lat:s.lat,lon:s.lon,place:s.place,tz:s.tz,camFov:s.camFov,magdec:s.magdec};if(typeof s.off==='number')ST.off=s.off;if(s.magdec===false)ST.magdec=false;if(s.night)ST.night=true;if(s.dock)ST.dock=true;if(s.chring===false)ST.chring=false;if(s.place&&typeof s.lat==='number'){ST.lat=s.lat;ST.lon=s.lon;ST.place=s.place;ST.tz=s.tz||null}
  if(s.sw)for(const x of SW)if(typeof s.sw[x[0]]==='boolean')ST[x[0]]=s.sw[x[0]];
  if(typeof s.camMix==='number')ST.camMix=s.camMix;if(s.mic===false)ST.mic=false;if(s.hsys&&CFG.houses.some(h=>h[0]===s.hsys))ST.hsys=s.hsys;if(s.psize==='real')ST.psize='real';if(typeof s.mwBr==='number')ST.mwBr=s.mwBr;if(s.proj==='gnomo'||s.proj==='stereo')ST.proj=s.proj;if(typeof s.seeThru3==='number')ST.seeThru=s.seeThru3;if(typeof s.gcol==='string'&&/^#[0-9a-f]{6}$/i.test(s.gcol))ST.gcol=s.gcol;if(typeof s.cw==='number')ST.cw=s.cw;if(typeof s.hsz==='number')ST.hsz=s.hsz;if(typeof s.bandOp==='number')ST.bandOp=s.bandOp;if(typeof s.rbOp==='number')ST.rbOp=s.rbOp;if(/^(trad|elem|mod)$/.test(s.decgm))ST.decgm=s.decgm;if(typeof s.hw==='number')ST.hw=s.hw;if(/^(all|ang|none)$/.test(s.hnum))ST.hnum=s.hnum;if(s.zod==='trop'||PLN_AYAN.some(a=>a[0]===s.zod))ST.zod=s.zod;if(s.hlab>=0&&s.hlab<=2)ST.hlab=s.hlab;if(/^(gly|name|none)$/.test(s.plab))ST.plab=s.plab;if(typeof s.camFov==='number')ST.camFov=s.camFov;ST.armMem=s.armMem||null}catch(e){}
-const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({chring:ST.chring!==false,dock:!!ST.dock,off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,gcol:ST.gcol||null,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,rbOp:ST.rbOp,decgm:ST.decgm,hw:ST.hw,rbOp:ST.rbOp,hnum:ST.hnum}))}catch(e){}};
+const save=()=>{try{const sw={};for(const x of SW)sw[x[0]]=ST[x[0]];localStorage.setItem('skymode',JSON.stringify({magdec:ST.magdec!==false,chring:ST.chring!==false,dock:!!ST.dock,off:ST.off,night:ST.night,lat:ST.lat,lon:ST.lon,place:ST.place,tz:ST.tz,sw,hsys:ST.hsys,psize:ST.psize,mwBr:ST.mwBr,seeThru3:ST.seeThru,gcol:ST.gcol||null,cw:ST.cw,hsz:ST.hsz,proj:ST.proj,zod:ST.zod,hlab:ST.hlab,plab:ST.plab,camFov:ST.camFov,camMix:ST.camMix,mic:ST.mic,armMem:ST.armMem,bandOp:ST.bandOp,rbOp:ST.rbOp,decgm:ST.decgm,hw:ST.hw,rbOp:ST.rbOp,hnum:ST.hnum}))}catch(e){}};
 /* ---- sky positions, refreshed every few seconds ---- */
 /* ?t=2026-11-08T05:00Z shows another moment (for testing and previews); otherwise the live clock */
 let TOFF=(()=>{try{const t=new URLSearchParams(location.search).get('t');const ms=t?Date.parse(t):NaN;return isNaN(ms)?0:ms-Date.now()}catch(e){return 0}})();
@@ -1533,13 +1533,15 @@ let lastAbs=0;
 function onOrient(e,abs){if(e.alpha==null)return;
  if(!abs&&e.webkitCompassHeading==null&&Date.now()-lastAbs<1500)return;   /* Android: prefer the absolute (true north) event */
  if(abs)lastAbs=Date.now();let M=matrix(e.alpha,e.beta||0,e.gamma||0);
+ /* Android's absolute event is referenced to magnetic north: turn it to true north by the place's magnetic declination */
+ if(abs&&e.webkitCompassHeading==null)M=rotUp(M,magDec());
  if(e.webkitCompassHeading!=null&&!isNaN(e.webkitCompassHeading)){   /* iPhone: alpha is relative, so turn the sky until it agrees with the compass */
   /* Gemini, Nov 12: tilting up toward the zenith made the sky snap about 180° and back, because iOS changes which edge its
      compass heading follows as the phone tips past its tilt limits. Only read the compass while the phone is clearly upright
      (heading = where the camera points) or clearly lying face up (heading = the top edge); in between, and while looking
      up overhead, keep the last correction and let the gyroscope carry the view. */
   const z=col(M,2),up=Math.abs(z[2])<0.55,faceUp=z[2]>0.85,ref=up?z.map(x=>-x):faceUp?col(M,1):null;
-  if(ref&&(e.webkitCompassAccuracy==null||e.webkitCompassAccuracy<0||e.webkitCompassAccuracy<=25||ST.icorr==null)){const refAz=deg(Math.atan2(ref[0],ref[1])),corr=n360(e.webkitCompassHeading-refAz),dd=((((corr-(ST.icorr??corr))%360)+540)%360)-180;
+  if(ref&&(e.webkitCompassAccuracy==null||e.webkitCompassAccuracy<0||e.webkitCompassAccuracy<=25||ST.icorr==null)){const refAz=deg(Math.atan2(ref[0],ref[1])),corr=n360(e.webkitCompassHeading+magDec()-refAz),dd=((((corr-(ST.icorr??corr))%360)+540)%360)-180;
    if(ST.icorr==null||Math.abs(dd)<=60){ST.icorr=ST.icorr==null?corr:n360(ST.icorr+dd*0.08);ST.jt=0}
    else if(!ST.jt)ST.jt=Date.now();else if(Date.now()-ST.jt>2500){ST.icorr=corr;ST.jt=0}}   /* a sudden jump of more than 60° is ignored unless it holds steady for 2.5 s */
   if(ST.icorr!=null)M=rotUp(M,ST.icorr)}
@@ -1768,7 +1770,7 @@ function holdable(id,tap,hold){const b=typeof id==='string'?$(id):id;let t=0,hel
  b.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.shiftKey){e.preventDefault();hold()}})}   /* Shift+Enter opens the settings from the keyboard */
 const ARM=SW.filter(s=>s[3]==='arm').map(s=>s[0]);
 const armOn=()=>ARM.some(k=>ST[k]);
-function sync(){$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttribute('aria-pressed',ST.houses);$('obtn').setAttribute('aria-pressed',ST.cons);$('cbtn').setAttribute('aria-pressed',!!ST.cam);
+function sync(){try{magUI()}catch(e){}$('abtn').setAttribute('aria-pressed',armOn());$('hbtn').setAttribute('aria-pressed',ST.houses);$('obtn').setAttribute('aria-pressed',ST.cons);$('cbtn').setAttribute('aria-pressed',!!ST.cam);
  $('kbtn').classList.toggle('live',TOFF!==0);
  document.querySelectorAll('#subbar [data-sub]').forEach(b=>{const it=SUBI[b.dataset.sub];b.setAttribute('aria-pressed',it.keys.some(k=>ST[k]))});
  document.querySelectorAll('[data-proj]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.proj===ST.proj));document.querySelectorAll('[data-sw]').forEach(b=>b.setAttribute('aria-pressed',!!ST[b.dataset.sw]));
@@ -2794,6 +2796,32 @@ function remDef(b,label){if(b.dataset.sure!=='1'){b.dataset.sure='1';b.textConte
 $('remb').onclick=remTog;$('defb').onclick=()=>remDef($('defb'),'Restore Defaults');
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rem]');if(!b)return;e.stopPropagation();if(b.dataset.rem==='tog')remTog();else remDef(b,'Restore Defaults')},true);
 remUI();
+
+/* ---------- Magnetic declination (Gemini, Nov 17): phone compasses point to MAGNETIC north, about 13° from true north in
+   Oakland. Sky computes the declination for the chosen place from NOAA's World Magnetic Model 2025 (WMM2025, public domain,
+   valid 2025 to 2030; coefficients from NOAA NCEI, 11/13/2024) and turns the compass to true north. Uses the real date now,
+   not the Time Machine's, because the correction is about the phone today. Calibration then only fixes what is left. ---------- */
+const WMM_C=[1,0,-29351.8,0,12,0,1,1,-1410.8,4545.4,9.7,-21.5,2,0,-2556.6,0,-11.6,0,2,1,2951.1,-3133.6,-5.2,-27.7,2,2,1649.3,-815.1,-8,-12.1,3,0,1361,0,-1.3,0,3,1,-2404.1,-56.6,-4.2,4,3,2,1243.8,237.5,0.4,-0.3,3,3,453.6,-549.5,-15.6,-4.1,4,0,895,0,-1.6,0,4,1,799.5,278.6,-2.4,-1.1,4,2,55.7,-133.9,-6,4.1,4,3,-281.1,212,5.6,1.6,4,4,12.1,-375.6,-7,-4.4,5,0,-233.2,0,0.6,0,5,1,368.9,45.4,1.4,-0.5,5,2,187.2,220.2,0,2.2,5,3,-138.7,-122.9,0.6,0.4,5,4,-142,43,2.2,1.7,5,5,20.9,106.1,0.9,1.9,6,0,64.4,0,-0.2,0,6,1,63.8,-18.4,-0.4,0.3,6,2,76.9,16.8,0.9,-1.6,6,3,-115.7,48.8,1.2,-0.4,6,4,-40.9,-59.8,-0.9,0.9,6,5,14.9,10.9,0.3,0.7,6,6,-60.7,72.7,0.9,0.9,7,0,79.5,0,-0,0,7,1,-77,-48.9,-0.1,0.6,7,2,-8.8,-14.4,-0.1,0.5,7,3,59.3,-1,0.5,-0.8,7,4,15.8,23.4,-0.1,0,7,5,2.5,-7.4,-0.8,-1,7,6,-11.1,-25.1,-0.8,0.6,7,7,14.2,-2.3,0.8,-0.2,8,0,23.2,0,-0.1,0,8,1,10.8,7.1,0.2,-0.2,8,2,-17.5,-12.6,0,0.5,8,3,2,11.4,0.5,-0.4,8,4,-21.7,-9.7,-0.1,0.4,8,5,16.9,12.7,0.3,-0.5,8,6,15,0.7,0.2,-0.6,8,7,-16.8,-5.2,-0,0.3,8,8,0.9,3.9,0.2,0.2,9,0,4.6,0,-0,0,9,1,7.8,-24.8,-0.1,-0.3,9,2,3,12.2,0.1,0.3,9,3,-0.2,8.3,0.3,-0.3,9,4,-2.5,-3.3,-0.3,0.3,9,5,-13.1,-5.2,0,0.2,9,6,2.4,7.2,0.3,-0.1,9,7,8.6,-0.6,-0.1,-0.2,9,8,-8.7,0.8,0.1,0.4,9,9,-12.9,10,-0.1,0.1,10,0,-1.3,0,0.1,0,10,1,-6.4,3.3,0,0,10,2,0.2,0,0.1,-0,10,3,2,2.4,0.1,-0.2,10,4,-1,5.3,-0,0.1,10,5,-0.6,-9.1,-0.3,-0.1,10,6,-0.9,0.4,0,0.1,10,7,1.5,-4.2,-0.1,0,10,8,0.9,-3.8,-0.1,-0.1,10,9,-2.7,0.9,-0,0.2,10,10,-3.9,-9.1,-0,-0,11,0,2.9,0,0,0,11,1,-1.5,0,-0,-0,11,2,-2.5,2.9,0,0.1,11,3,2.4,-0.6,0,-0,11,4,-0.6,0.2,0,0.1,11,5,-0.1,0.5,-0.1,-0,11,6,-0.6,-0.3,0,-0,11,7,-0.1,-1.2,-0,0.1,11,8,1.1,-1.7,-0.1,-0,11,9,-1,-2.9,-0.1,0,11,10,-0.2,-1.8,-0.1,0,11,11,2.6,-2.3,-0.1,0,12,0,-2,0,0,0,12,1,-0.2,-1.3,0,-0,12,2,0.3,0.7,-0,0,12,3,1.2,1,-0,-0.1,12,4,-1.3,-1.4,-0,0.1,12,5,0.6,-0,-0,-0,12,6,0.6,0.6,0.1,-0,12,7,0.5,-0.1,-0,-0,12,8,-0.1,0.8,0,0,12,9,-0.4,0.1,0,-0,12,10,-0.2,-1,-0.1,-0,12,11,-1.3,0.1,-0,0,12,12,-0.7,0.2,-0.1,-0.1];
+function wmmDec(latDeg,lonDeg,year,altKm){const N=12,a=6371.2,A=6378.137,f=1/298.257223563,e2=f*(2-f),t=Math.max(2025,Math.min(2030,year))-2025;
+ const g=[],h=[];for(let n=0;n<=N;n++){g.push(new Array(N+1).fill(0));h.push(new Array(N+1).fill(0))}
+ for(let i=0;i<WMM_C.length;i+=6){const n=WMM_C[i],m=WMM_C[i+1];g[n][m]=WMM_C[i+2]+t*WMM_C[i+4];h[n][m]=WMM_C[i+3]+t*WMM_C[i+5]}
+ const ph=latDeg*Math.PI/180,la=lonDeg*Math.PI/180,sp=Math.sin(ph),Rc=A/Math.sqrt(1-e2*sp*sp),hk=altKm||0,p=(Rc+hk)*Math.cos(ph),z=(Rc*(1-e2)+hk)*sp,r=Math.hypot(p,z),pc=Math.asin(z/r);
+ const x=Math.sin(pc),s=Math.max(1e-9,Math.cos(pc));   /* cos and sin of the geocentric colatitude */
+ const P=[],dP=[];for(let n=0;n<=N;n++){P.push(new Array(N+1).fill(0));dP.push(new Array(N+1).fill(0))}
+ let dfac=1;for(let m=0;m<=N;m++){if(m>0)dfac*=(2*m-1);P[m][m]=dfac*Math.pow(s,m);if(m<N)P[m+1][m]=x*(2*m+1)*P[m][m];for(let n=m+2;n<=N;n++)P[n][m]=((2*n-1)*x*P[n-1][m]-(n+m-1)*P[n-2][m])/(n-m)}
+ const fact=k=>{let v=1;for(let i=2;i<=k;i++)v*=i;return v};
+ for(let n=1;n<=N;n++)for(let m=0;m<=n;m++){dP[n][m]=(n*x*P[n][m]-(n+m)*(n>m?P[n-1][m]:0))/s}
+ let X=0,Y=0,Z=0;
+ for(let n=1;n<=N;n++){const ar=Math.pow(a/r,n+2);for(let m=0;m<=n;m++){const S=Math.sqrt((m?2:1)*fact(n-m)/fact(n+m)),Pn=P[n][m]*S,dPn=dP[n][m]*S,cm=Math.cos(m*la),sm=Math.sin(m*la),gh=g[n][m]*cm+h[n][m]*sm;
+  X+=ar*gh*dPn;Y+=ar*m*(g[n][m]*sm-h[n][m]*cm)*Pn/s;Z-=(n+1)*ar*gh*Pn}}
+ const ps=pc-ph,Xg=X*Math.cos(ps)-Z*Math.sin(ps);return Math.atan2(Y,Xg)*180/Math.PI}
+const MAGD={key:'',d:0};
+function magDec(){if(ST.magdec===false)return 0;const k=ST.lat.toFixed(2)+','+ST.lon.toFixed(2);if(MAGD.key!==k){MAGD.key=k;try{const now=new Date(),yr=now.getUTCFullYear()+(now-Date.UTC(now.getUTCFullYear(),0,1))/31557600000;MAGD.d=wmmDec(ST.lat,ST.lon,yr)}catch(e){MAGD.d=0}}return MAGD.d}
+const magTxt=()=>{const d=(MAGD.key?MAGD.d:magDec());return `${Math.abs(d).toFixed(1)}° ${d>=0?'East':'West'}`};
+function magUI(){const b=$('magb');if(!b)return;const on=ST.magdec!==false;if(on)magDec();else{const k=ST.magdec;ST.magdec=true;magDec();ST.magdec=k}b.setAttribute('aria-pressed',on);$('magv').textContent=`True North: ${on?'On':'Off'} · magnetic declination here is ${magTxt()}`}
+magUI();$('magb').onclick=()=>{ST.magdec=ST.magdec===false;ST.icorr=null;save();magUI();say(ST.magdec?'Compass corrected to true north.':'Compass shows magnetic north.',2500)};
+/* once: an older calibration already absorbed the magnetic declination, so it would now count twice; clear it and say so */
+try{if(!localStorage.getItem('skymode-mag1')){localStorage.setItem('skymode-mag1','1');if(ST.off){ST.off=0;save();setTimeout(()=>say('Sky now corrects the compass to true north, so your earlier calibration was cleared. Calibrate again if anything is still off.',6000),8000)}}}catch(e){}
 
 })();</script>
 
