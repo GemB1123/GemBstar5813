@@ -10227,6 +10227,17 @@ body.vteao .vtvs [data-w=morn],body.vteao .vtvs [data-w=eve]{display:none}
  #vt-spc.stg .cwh b{font-size:19px;line-height:24px}
  #vt-spc.stg .spcbar{position:relative;z-index:3}
 }
+/* Gemini and Ana, Nov 17: Table Colors (Wheel Blend, One Color) sit with the zodiac wheel: navy rows, light ink, chakra as a left edge or a square */
+body.tc-blend .vtm,body.tc-blend .vtc,body.tc-one .vtm,body.tc-one .vtc{color:#efe3c8;box-shadow:inset 4px 0 0 var(--e,transparent)}
+body.tc-one .vtm,body.tc-one .vtc{color:#e8c46a}
+body.tc-blend .vtm.now,body.tc-blend .vtc.now,body.tc-one .vtm.now,body.tc-one .vtc.now{box-shadow:inset 4px 0 0 var(--e,transparent),0 0 0 1.5px var(--gold),0 0 12px #ffcc3388}
+body.tc-blend .vtc .vtn .l2,body.tc-one .vtc .vtn .l2{color:#c9c3e8}
+body.tc-blend .vtm-t,body.tc-one .vtm-t{color:#efe3c8aa}
+body.tc-blend .vtm.mk,body.tc-blend .vtc.mk,body.tc-one .vtm.mk,body.tc-one .vtc.mk{border-color:#e8c46a}
+body.tc-blend .vtm.mk .vtm-n,body.tc-blend .vtc.mk .vtn,body.tc-one .vtm.mk .vtm-n,body.tc-one .vtc.mk .vtn,body.tc-blend .vtc.mk .vtn .l2,body.tc-one .vtc.mk .vtn .l2,body.tc-blend .vtm.mk .vtm-t,body.tc-one .vtm.mk .vtm-t{color:#e8c46a}
+.tcsw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0;flex:0 0 auto;box-shadow:0 0 0 1px #0006}
+body.tc-blend .vtp small,body.tc-one .vtp small{color:#a9a3c8}
+body.tc-blend .vtcb:not(.vton),body.tc-one .vtcb:not(.vton){background:#0b0f2699;border-color:#c9c3e8;color:#efe3c8}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10260,9 +10271,9 @@ const PROG_K={sec:365.2422,ter:27.32166,min:365.2422/27.32166};
 function progNote(x){if(x.mk||pref('vt-prog')!=='on'||!ME())return '';let b;try{b=T.chart().ms}catch(e){return ''}if(!(x.ms>=b))return '';
  const pd=b+(x.ms-b)*(PROG_K[pref('vt-progt')]||PROG_K.sec);if(!isFinite(pd)||Math.abs(pd)>8e15)return '';const dt=new Date(pd),ds=`${dt.getUTCMonth()+1}/${dt.getUTCDate()}/${dt.getUTCFullYear()}`;
  return `<div class="vtprog">${pd<=Date.now()?'Progressed here on':'Will progress here on'} ${ds}</div>`}
-function card(x,on){const c=x.mk?MKC:KC(x.k)||T.col.plain,band=!['plain','conj','hel','mark'].includes(x.k);
- return `<li class="vtc${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c}"${on?' aria-current="date"':''}>`
- +`<div class="vtd">${T.date(x.ms)}</div><div class="vtn">${(([a,b])=>`<span class="l1">${a}</span><span class="l2">${b}</span>`)(two(x))}</div>`
+function card(x,on){const [c,e,sw]=tcol(x),band=!['plain','conj','hel','mark'].includes(x.k);
+ return `<li class="vtc${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c};--e:${e}"${on?' aria-current="date"':''}>`
+ +`<div class="vtd">${T.date(x.ms)}</div><div class="vtn">${(([a,b])=>`<span class="l1">${sw}${a}</span><span class="l2">${b}</span>`)(two(x))}</div>`
  +`${more(x)}${progNote(x)}${band?'<i class="vtband"></i>':''}${(n2=>chartBtn(x.ms,n2)+spaceBtn(x.ms,n2)+earthBtn(x.ms,n2))(two(x).join('\n'))}</li>`}
 /* Gemini, Nov 4: within 1° of the Sun the magnitude reads Cazimi, within 8½° Combust: she can't be seen, so no number. Venus latitude, Venus and Sun speed (degrees per day) and Venus's apparent magnitude on every Complete card */
 const VXC=new Map();
@@ -10323,9 +10334,9 @@ function retSp(ms){const jd=ms/864e5+2440587.5,L=t=>window.__app.cycle.lon(PN(),
 const VOVC=new Map();
 function vOv(ms){const jd=ms/864e5+2440587.5,k=Math.round(jd);if(VOVC.has(k))return VOVC.get(k);const ic=T.ics(jd),r=ic.map(x=>riseAt(x.jd));let i=-1;r.forEach((x,j)=>{if(x.jd<=jd)i=j});
  const md=m=>{const d=new Date(m);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()%100).padStart(2,'0')}`},o=i<0||!r[i+1]?null:{cyc:SGN[Math.floor(r[i].lon/30)],range:`${md(r[i].ms)} - ${md(r[i+1].ms)}`,rangeFull:`${T.date(r[i].ms)} to ${T.date(r[i+1].ms)}`};VOVC.set(k,o);return o}
-function retCard(x,i,on){const c=KC(x.k)||T.col.plain,op=V.x===i;if(SAV()){const o=vOv(x.ms);if(o)x=Object.assign({},x,o,{ov:1,star:false})}
- return `<li class="vtc vtr${on?' now':''}" style="--c:${c}"${on?' aria-current="date"':''}><button class="vtrb" data-vr="${i}" aria-expanded="${op}">`
- +`<div class="vtd">${x.date} <small>${x.age?(x.sr?'Solar Return ':'Age ')+x.age:'Birth'}</small></div><div class="vtn"><b>${esc(x.sh)}</b></div>`
+function retCard(x,i,on){const [c,e,sw]=tcol(x),op=V.x===i;if(SAV()){const o=vOv(x.ms);if(o)x=Object.assign({},x,o,{ov:1,star:false})}
+ return `<li class="vtc vtr${on?' now':''}" style="--c:${c};--e:${e}"${on?' aria-current="date"':''}><button class="vtrb" data-vr="${i}" aria-expanded="${op}">`
+ +`<div class="vtd">${x.date} <small>${x.age?(x.sr?'Solar Return ':'Age ')+x.age:'Birth'}</small></div><div class="vtn">${sw}<b>${esc(x.sh)}</b></div>`
  +`<div class="vtp"><span><small>${OTH()||x.ov?'Overstory':'Venus Cycle'}</small>${esc(x.cyc)}${x.star?' *':''}</span><span><small>Range</small>${x.range}</span><span><small>Phase</small>${x.pa}</span><span><small>Speed</small>${retSp(x.ms)}</span></div>`
  +(op?`<div class="vtx"><b>${x.full}</b>, since ${x.since}.<br>${OTH()||x.ov?x.cyc+' '+PN()+' Overstory':'Venus cycle'} ${x.rangeFull}.</div>`:'')+`</button>${chartBtn(x.ms,x.age?(x.sr?'Solar Return ':'Age ')+x.age:'Birth',x.age>0)}</li>`}
 /* Gemini, Nov 3: the header takes the cycle's colors, interior conjunction sign's element to the exterior's (Virgo / Gemini: green to yellow) */
@@ -10366,9 +10377,9 @@ function short(x){const n=unsup(x.name).trim();let g;if(x.mk)return esc(n);if((M
  if(/Brightness/.test(n))return 'Max Brightness';if(/Elongation/.test(n))return 'Max Elongation';
  if((g=/^Gate of .+ \((.+) Chakra\)$/.exec(n)))return g[1]==='Solar Plexus'?'Solar Plexus':g[1]+' Gate';   /* Gemini, Nov 5: Crown Gate; Solar Plexus drops Gate to fit */
  if(n==='Gate of Transformation')return 'Transformation Gate';return n}
-function mrow(x,on,up){const c=x.mk?MKC:KC(x.k)||T.col.plain,nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=T.pa(x.pa).replace(' Deg ','°').replace(' Min','′');
- return `<li class="vtm${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c}"${on?' aria-current="date"':''}><button data-vx="${Math.round(x.ms)}" aria-expanded="false" aria-label="${esc(mdy(x.ms)+', '+nm+'. Show the full line')}">`
- +`<span class="vtm-d">${mdy(x.ms)}</span><span class="vtm-n">${short(x)}</span><span class="vtm-v">${T.pos(x.v,x.rx)}</span><span class="vtm-p">${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
+function mrow(x,on,up){const [c,e,sw]=tcol(x),nm=unsup(x.name).replace(/<[^>]+>/g,''),pa=T.pa(x.pa).replace(' Deg ','°').replace(' Min','′');
+ return `<li class="vtm${on?' now':''}${x.b?' b':''}${x.mk?' mk':''}" style="--c:${c};--e:${e}"${on?' aria-current="date"':''}><button data-vx="${Math.round(x.ms)}" aria-expanded="false" aria-label="${esc(mdy(x.ms)+', '+nm+'. Show the full line')}">`
+ +`<span class="vtm-d">${mdy(x.ms)}</span><span class="vtm-n">${sw}${short(x)}</span><span class="vtm-v">${T.pos(x.v,x.rx)}</span><span class="vtm-p">${pa}</span><span class="vtm-t" aria-hidden="true">${up?'&#9652;':'&#9662;'}</span></button></li>`}
 function draw(scroll){const me=ME();document.body.classList.toggle('vtnew',!me);document.body.classList.toggle('vttot',TOT());document.body.classList.toggle('vtmer',MER());{const hs=$('.vtstars');if(hs&&hs.dataset.pl!==PL()){hs.dataset.pl=PL();hs.innerHTML=heroStars()}}document.body.classList.toggle('vtmar',MAR());document.body.classList.toggle('vtmoo',MOO());document.body.classList.toggle('vtout',OUT());document.body.classList.toggle('vteao',EAO());if(!me||MOO()||OUT())V.view='cycle';const r=calc(),c=cur(),ch=me?T.chart():{name:'',ms:NaN};
  document.querySelectorAll('#vt-seg button').forEach(b=>{b.setAttribute('aria-pressed',b.dataset.v===V.view);b.textContent=b.dataset.v==='ret'?`My ${PN()} Returns`:`${PN()} Cycle`});document.body.classList.toggle('vtret',V.view==='ret');requestAnimationFrame(padBot);
  $('#vt-chart').textContent=ch.name||'';{const cn=$('#vt-cn');if(cn){const d=new Date(ch.ms);cn.hidden=!me;if(me){cn.querySelector('.n').textContent=ch.name||'Chart';cn.querySelector('.d').textContent=isFinite(d)?` \u2013 ${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`:'';cn.setAttribute('aria-label',`Chart: ${ch.name||'chart'}. Tap to change`)}}}   /* Gemini, Nov 5: the chart's title and date on one line under the stars */
@@ -10733,7 +10744,24 @@ function saStage(el,rx){const ae=Math.abs(el);if(ae<2)return rx?'Interior Conjun
  if(el>0)return rx?'Metamorphosis Journey':ae<T.hel?'Inanna Underworld':'Evening Star Ascent';
  return ae<T.hel?(rx?'Metamorphosis Journey':'Inanna Underworld'):'Morning Star Descent'}
 /* Gemini, Nov 5: Chakra Colors setting (on by default); off, the Moon gates take the plain row color */
-const KC=k=>MOCOL[k]?(pref('vt-chk')==='off'?T.col.plain:MOCOL[k]):MACOL[k]?(pref('vt-chk')==='off'?T.col.plain:MACOL[k]):MCOL[k]?(pref('vt-chk')==='off'?T.col.plain:MCOL[k]):k==='ing'||k==='moon'||k==='node'?T.col.plain:pref('vt-chk')==='off'&&CHK[k]?T.col.plain:T.col[k];
+const KC=k=>{const off=TCM()==='off';return MOCOL[k]?(off?T.col.plain:MOCOL[k]):MACOL[k]?(off?T.col.plain:MACOL[k]):MCOL[k]?(off?T.col.plain:MCOL[k]):k==='ing'||k==='moon'||k==='node'?T.col.plain:off&&CHK[k]?T.col.plain:T.col[k]};
+/* Gemini and Ana, Nov 17: Table Colors blend with the zodiac wheel (palette by Leo, from simplewheel.js).
+   Wheel Blend (default): each chakra keeps its hue at the wheel's softer tone, as a light tint on the wheel's navy with a solid left edge.
+   One Color: every row the wheel's navy with gold text; each gate row shows a small chakra square before its name.
+   Classic Chakra: the original bright chakra rows. Off: plain rows. */
+const TCM=()=>{const v=pref('vt-tcol');return v==='classic'||v==='one'||v==='off'||v==='blend'?v:pref('vt-chk')==='off'?'off':'blend'};
+const WBL={root:'#c0675c',sacral:'#c98a5a',solar:'#c9a96e',heart:'#6f9a86',throat:'#6f97b8',third:'#7d86c2',crown:'#9b86c2'},TNAV='#151b3d';
+const tcHex=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)||0)},
+ tcMix=(a,b,t)=>{const A=tcHex(a),B=tcHex(b);return '#'+A.map((v,i)=>Math.round(v*(1-t)+B[i]*t).toString(16).padStart(2,'0')).join('')},
+ tcSoft=c=>{let [r,g,b]=tcHex(c).map(v=>v/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=d?d/(1-Math.abs(2*l-1)):0;
+  if(d)h=mx===r?((g-b)/d+6)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;s=Math.min(.42,Math.max(.22,s*.6));const L=.6,C=(1-Math.abs(2*L-1))*s,X=C*(1-Math.abs(h/60%2-1)),m=L-C/2;
+  const q=h<60?[C,X,0]:h<120?[X,C,0]:h<180?[0,C,X]:h<240?[0,X,C]:h<300?[X,0,C]:[C,0,X];return '#'+q.map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('')};   /* any other phase color at the wheel's softness */
+function tcol(x){const m=TCM(),k=x.k,cl=x.mk?MKC:KC(k)||T.col.plain;{const b=document.body;if(b&&b.dataset.tc!==m){b.dataset.tc=m;b.classList.toggle('tc-blend',m==='blend');b.classList.toggle('tc-one',m==='one')}}
+ if(m==='classic'||m==='off')return [cl,'transparent',''];
+ const tone=x.mk?'#e8c46a':WBL[k]||(k==='conj'?'#8a8986':k==='hel'?'#c7cdd4':MOCOL[k]||MACOL[k]||MCOL[k]?tcSoft(MOCOL[k]||MACOL[k]||MCOL[k]):CHK[k]&&T.col[k]?tcSoft(T.col[k]):null),
+  gate=!!tone&&!x.mk&&k!=='conj'&&k!=='hel';
+ if(m==='blend')return [tone?tcMix(TNAV,tone,.2):TNAV,tone||'transparent',''];
+ return [TNAV,'transparent',gate?`<i class="tcsw" style="background:${tone}" aria-hidden="true"></i>`:'']}
 /* the cycle's first and last morning heliacal rise in a table */
 function totRise(r){if(r.mer)return {f:r.rows[0],l:r.rows[r.rows.length-1],sg:r.sg};const R=r.rows,i=R.findIndex(isIC),f=R.slice(i+1).find(x=>x.k==='hel'&&x.pa<0),l=R.slice().reverse().find(x=>x.k==='hel'&&x.pa<0);return f?{f,l:l&&l!==f?l:null,sg:sgnOf(f.v)}:null}
 /* Mercury (Shamanic Astrology): the Overstory sign is Mercury's sign at the Station Direct that follows an interior conjunction */
@@ -10823,7 +10851,7 @@ function setDraw(){const a=animMode();return `<div class="vth">Settings</div>`
  +`<label class="vtf">Startup View<select id="vs-startv">${[['last','Last Used'],['chart','Chart'],['space','Space'],['earth','Earth']].map(([k,n])=>`<option value="${k}"${(({chart:1,space:1,earth:1})[pref('vt-startv')]?pref('vt-startv'):'last')===k?' selected':''}>${n}</option>`).join('')}</select></label><small class="vtnote">On a wide screen the table opens on the left and this view on the right.</small>`
  +`<label class="vtf">Sign Changes<select id="vs-ing"><option value="on">Show</option><option value="off"${pref('vt-ing')==='off'?' selected':''}>Hide</option></select></label>`
  +`<label class="vtf">Moon Distance<select id="vs-unit"><option value="moon">Moons (lunar diameters)</option><option value="mi"${pref('vt-unit')==='mi'?' selected':''}>Miles</option><option value="km"${pref('vt-unit')==='km'?' selected':''}>Kilometers</option></select></label>`   /* Gemini, Nov 15: Moons (lunar diameters) by default; miles or kilometers in Settings */
- +`<label class="vtf">Chakra Colors<select id="vs-chk"><option value="on">On</option><option value="off"${pref('vt-chk')==='off'?' selected':''}>Off</option></select></label>`
+ +`<label class="vtf">Table Colors<select id="vs-tcol">${[['blend','Wheel Blend'],['one','One Color with Chakra Squares'],['classic','Classic Chakra'],['off','Off']].map(([v,n])=>`<option value="${v}"${TCM()===v?' selected':''}>${n}</option>`).join('')}</select></label>`   /* Gemini and Ana, Nov 17: replaces Chakra Colors On/Off */
  +`<div class="vtrowt"><button class="vtbtn" id="vs-x">Close</button></div>`}
 function setOpen(on){V.set=on;if(on&&V.cr)crOpen(false);const p=$('#vt-sp');p.hidden=!on;$('#vt-gear').setAttribute('aria-expanded',on);if(on){if(V.open)pop(false);p.innerHTML=setDraw();$('#vs-anim').focus()}else $('#vt-gear').focus()}
 /* Gemini, Nov 3: a smaller header. The Venus Cycle title stays on one line, shrinking to fit */
@@ -10935,7 +10963,7 @@ function build(){const w=document.createElement('div');w.id='vt';FOOT=`${phoneNo
  $('#vt-vw').onclick=e=>{const b=e.target.closest('[data-w]');if(!b||(b.dataset.w===V.side&&V.view!=='ret'))return;V.side=b.dataset.w;V.allc=false;V.view='cycle';draw(true)};
  $('#vt-sb').onclick=()=>sideStep(-1);$('#vt-sf').onclick=()=>sideStep(1);$('#vt-heart').onclick=()=>crOpen(!V.cr);$('#vt-cr').addEventListener('click',e=>{if(e.target.closest('#cr-x,#cr-x2'))crOpen(false)});$('#vt-gear').onclick=()=>setOpen(!V.set);
  $('#vt-sp').addEventListener('click',e=>{if(e.target.id==='vs-x')setOpen(false)});
- $('#vt-sp').addEventListener('change',e=>{if(e.target.id==='vs-ing'){prefSet('vt-ing',e.target.value);V.memo=null;draw();return}if(e.target.id==='vs-unit'){prefSet('vt-unit',e.target.value);draw();return}if(e.target.id==='vs-startv'){prefSet('vt-startv',e.target.value);return}if(e.target.id==='vs-prog'){prefSet('vt-prog',e.target.checked?'on':'');draw();return}if(e.target.id==='vs-progt'){prefSet('vt-progt',e.target.value);draw();return}if(e.target.id==='vs-chk'){prefSet('vt-chk',e.target.value==='off'?'off':'');draw();return}if(e.target.id==='vs-anim'){prefSet('vt-anim',e.target.value);$('#vs-msg').textContent='Saved. You will see it the next time the app opens.'}});
+ $('#vt-sp').addEventListener('change',e=>{if(e.target.id==='vs-ing'){prefSet('vt-ing',e.target.value);V.memo=null;draw();return}if(e.target.id==='vs-unit'){prefSet('vt-unit',e.target.value);draw();return}if(e.target.id==='vs-startv'){prefSet('vt-startv',e.target.value);return}if(e.target.id==='vs-prog'){prefSet('vt-prog',e.target.checked?'on':'');draw();return}if(e.target.id==='vs-progt'){prefSet('vt-progt',e.target.value);draw();return}if(e.target.id==='vs-tcol'){prefSet('vt-tcol',e.target.value);draw();return}if(e.target.id==='vs-anim'){prefSet('vt-anim',e.target.value);$('#vs-msg').textContent='Saved. You will see it the next time the app opens.'}});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&V.set)setOpen(false);if(e.key==='Escape'&&V.cr)crOpen(false)});addEventListener('resize',padBot);
  $('#vt-list').addEventListener('click',e=>{const vx=e.target.closest('[data-vx]');if(vx){const k=+vx.dataset.vx;V.ex=V.ex===k?null:k;draw(false);const o=$('#vt-list .vtex')||$(`#vt-list [data-vx="${k}"]`);if(o){o.scrollIntoView({block:'nearest',behavior:'smooth'});(o.tagName==='LI'?o:o).focus&&o.focus()}return}const b=e.target.closest('[data-vr]');if(!b)return;const i=+b.dataset.vr;V.x=V.x===i?-1:i;drawRet(false)});
  $('#vt-list').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('li[data-vx]')){e.preventDefault();e.target.click()}});
