@@ -1520,7 +1520,7 @@ function sky(){const jd=jdNow(),eps=obl(jd),gm=E.gmst(jd),lst=n360(gm+ST.lon),ph
  let hs=null,non=null;if(ST.houses){const h0=cuspsFor(jd,ST.lat,ST.lon),c=houseSystem(h0,ST.hsys);hs=[];for(let i=1;i<=12;i++){const L=c[i],pts=[];for(let b=-90;b<=90;b+=3)pts.push(ev(L,b));
   const nx=c[i%12+1],mid=n360(L+(((nx-L)%360+360)%360)/2);hs.push({i,L,pts,lab:ev(L,0),deg:ev(L,CFG.bandHalf+3.5)})}
   /* the nonagesimals (Gemini, Nov 12): 90° from the Ascendant, above and below, marked in every house system */
-  non=[n360(h0[1]-90),n360(h0[1]+90)].map(L=>[ev(L,-2.6),ev(L,2.6),ev(L,0)])}
+  non=[n360(h0[1]-90),n360(h0[1]+90)].map(L=>[ev(L,-2.6),ev(L,2.6),ev(L,0),L])}
  const sunAlt=deg(Math.asin(sv[2]));
  /* J2000 equatorial to east, north, up, for the photo Milky Way */
  const t=rad(lst),ct=Math.cos(t),st=Math.sin(t),cp=Math.cos(phi),sp=Math.sin(phi);
@@ -1726,9 +1726,9 @@ function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky()
  requestAnimationFrame(draw)}
 /* ---- taps: what is that? ---- */
 cv.addEventListener('click',ev=>{if(dragged)return;if(!K)return;if(ST.view==='chart'){chartTap(ev);return}let best=null,bd=34;const tryV=(v,info)=>{const p=proj(v);if(!p)return;const d=Math.hypot(p[0]-ev.clientX,p[1]-ev.clientY);if(d<bd){bd=d;best=info(v)}};
- if(ST.planets)for(const b of K.bodies)tryV(b.v,v=>({n:GLY[b.k]+' '+b.k,v,lon:b.lon,k:b.k}));for(const [i,n] of NAMED)if(K.stars[i])tryV(K.stars[i],v=>({n,v,lon:null,i}));
+ if(ST.planets)for(const b of K.bodies)tryV(b.v,v=>({n:GLY[b.k]+' '+b.k,v,lon:b.lon,k:b.k}));if(K.non&&ST.nong)K.non.forEach((n,j)=>tryV(n[2],v=>({n:'Nonagesimal',v,lon:n[3],nj:j})));for(const [i,n] of NAMED)if(K.stars[i])tryV(K.stars[i],v=>({n,v,lon:null,i}));
  if(!best){for(let i=0;i<K.stars.length;i++){const v=K.stars[i];if(!v||D.stars[i][2]>3.5)continue;const f=D.info[i];tryV(v,v=>({n:(f&&f[7])||(f&&f[2]?f[2]+' '+(D.gen&&D.gen[f[4]]||f[4]):'Star'),v,i}))}}
- if(!best){infoClose();return}ST.tapInfo=best;infoShow(best.i!=null?{t:'s',i:best.i}:{t:'p',k:best.k})});
+ if(!best){infoClose();return}ST.tapInfo=best;infoShow(best.nj!=null?{t:'n',j:best.nj}:best.i!=null?{t:'s',i:best.i}:{t:'p',k:best.k})});
 /* drag to look around when there are no sensors (or while held) */
 let dragging=null,dragged=false;
 /* pinch to zoom (Gemini, Nov 12): two fingers set the field of view; a pinch never turns tracking off */
@@ -2041,6 +2041,13 @@ function infoRows(sel){const jd=K.jd,rows=[],add=(a,b)=>rows.push([a,b]),topo={l
  if(!JPL)return {title:sel.t==='p'?sel.k:'Star',sub:'',rows:[['Note','The NASA ephemeris did not load on this page.']]};
  const Sg=JPL.body('Sun',jd,{speed:false});if(!Sg){JPL.need(jd).then(()=>infoShow()).catch(()=>{});return null}const sl=Sg.lon;
  const azalt=v=>{const [az,al]=azAlt(v);add('Az, Alt',`${iDMS(az,0,3)} ${dirName(az)} · ${iDMS(al,1)}${al<0?' (below the horizon)':''}`)};
+ /* the nonagesimals (Gemini, Nov 17): tap a dot to learn what it is */
+ if(sel.t==='n'){const N=K.non&&K.non[sel.j];if(!N)return {title:'Nonagesimal',sub:'Turn on Houses to see it',rows:[]};const L=N[3],up=N[2][2]>=0;
+  iZods(add,L,jd);azalt(N[2]);
+  try{const c=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys),mc=c[10],dm=((L-mc+540)%360)-180,other=((L-mc+360)%360)>90&&((L-mc+360)%360)<270;add('From the MC',`${iDMS(Math.abs(other?180-Math.abs(dm):dm))} ${other?'from the IC':''}`.trim())}catch(e){}
+  add('What it is',sel.j===0?'The highest point of the zodiac above the horizon, exactly 90° from the Ascendant. It is the true midpoint of the zodiac you can see, so it often differs from the MC, which is where the zodiac crosses the meridian.':'The lowest point of the zodiac, below the horizon, exactly 90° from the Ascendant on the other side. It is the midpoint of the hidden half of the zodiac, opposite the upper nonagesimal.');
+  add('Why it matters',sel.j===0?'Of every zodiac degree in the sky right now, this one stands highest. Uranian astrologers read it as a sensitive point, and astronomers once used it to work out the Moon\'s parallax for eclipses.':'It mirrors the upper nonagesimal and is read as a sensitive point by Uranian astrologers.');
+  return {title:sel.j===0?'Upper Nonagesimal':'Lower Nonagesimal',sub:up?'Above the horizon':'Below the horizon',rows}}
  if(sel.t==='s'){const s=D.stars[sel.i],f=D.info&&D.info[sel.i]||[];const [hr,hd,bay,fl,cn0,plx,sp,com,vr]=f,gen=D.gen||{},cn=cn0||(window.plnConAt?plnConAt(s[0],s[1]):'');
   const des=[bay&&gen[cn]?bay+' '+gen[cn]:'',fl&&gen[cn]?fl+' '+gen[cn]:'',hr?'HR '+hr:'',hd?'HD '+hd:''].filter(Boolean),name=com||des[0]||('HR '+hr);
   const st=SKY&&SKY.st[sel.i],ra=st?st.ra:s[0],de=st?st.de:s[1],[l,b]=eqToEcl(ra,de,obl(jd));
@@ -2082,14 +2089,14 @@ function infoShow(sel){if(sel)ISEL=sel;if(!ISEL||!K)return;const el=$('info');le
 function infoClose(){ISEL=null;$('info').hidden=true;iUnaim()}
 function infoTick(){if(ISEL&&K&&Math.abs(K.jd-IJD)>1/1440)infoShow()}
 /* a gold ring around what is selected */
-function infoRing(g){if(!ISEL||!K)return;const v=ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i];if(!v)return;const p=proj(v);if(!p)return;
- const r=ISEL.t==='p'?bodyR(K.bodies.find(b=>b.k===ISEL.k))+7:9;g.strokeStyle='rgba(209,171,116,.9)';g.lineWidth=1.5;g.beginPath();g.arc(p[0],p[1],r,0,7);g.stroke()}
+function infoRing(g){if(!ISEL||!K)return;const v=ISEL.t==='n'?iSelV():ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i];if(!v)return;const p=proj(v);if(!p)return;
+ const r=ISEL.t==='n'?8:ISEL.t==='p'?bodyR(K.bodies.find(b=>b.k===ISEL.k))+7:9;g.strokeStyle='rgba(209,171,116,.9)';g.lineWidth=1.5;g.beginPath();g.arc(p[0],p[1],r,0,7);g.stroke()}
 
 /* Gemini, Nov 13: the info panel never covers what is selected. The view turns so the object sits near the top of the screen,
    with the panel beneath; closing the panel turns the view back, unless it was moved meanwhile. Not while tracking the sky
    with the phone, which aims itself. */
 let IAIM=null,IANIM=0;
-function iSelV(){if(!ISEL||!K)return null;return ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i]}
+function iSelV(){if(!ISEL||!K)return null;if(ISEL.t==='n')return K.non&&K.non[ISEL.j]?K.non[ISEL.j][2]:null;return ISEL.t==='p'?(K.bodies.find(b=>b.k===ISEL.k)||{}).v:K.stars[ISEL.i]}
 function iTurn(yaw,pitch,done){const y0=ST.yaw,p0=ST.pitch,dy=((yaw-y0+540)%360)-180,t0=performance.now(),id=++IANIM;
  const step=t=>{if(id!==IANIM)return;const k=Math.min(1,(t-t0)/380),e=k*k*(3-2*k);ST.yaw=n360(y0+dy*e);ST.pitch=p0+(pitch-p0)*e;if(k<1)requestAnimationFrame(step);else if(done)done()};requestAnimationFrame(step)}
 const iLand=()=>W>H&&H<=520;
@@ -2103,7 +2110,7 @@ function iUnaim(){const a=IAIM;IAIM=null;if(!a||a.ay==null||ST.track||ST.view!==
    from NASA JPL, retrograde stretches in red, a dot every step, and its stations circled. Both stay until switched off. */
 const IPATH={da:new Map(),op:new Map()};
 const iKey=sel=>sel.t==='p'?'p:'+sel.k:'s:'+sel.i;
-function iBtns(){if(!ISEL)return '';const k=iKey(ISEL),da=IPATH.da.has(k),op=IPATH.op.has(k);
+function iBtns(){if(!ISEL||ISEL.t==='n')return '';const k=iKey(ISEL),da=IPATH.da.has(k),op=IPATH.op.has(k);
  return `<div class="ib"><button id="ibda" aria-pressed="${da}">Arc</button>${ISEL.t==='p'?`<button id="ibop" aria-pressed="${op}">Orbit</button>`:''}</div>`}
 $('info').addEventListener('click',e=>{const id=e.target.id;if(id!=='ibda'&&id!=='ibop'||!ISEL)return;const M=id==='ibda'?IPATH.da:IPATH.op,k=iKey(ISEL);const ty=id==='ibda'?'arc':'orbit';
  if(M.has(k)&&!(PB.type!==ty||!PB.sel||iKey(PB.sel)!==k)){M.delete(k);pbClose()}else{M.set(k,Object.assign({},ISEL));pbOpen(ty,ISEL)}e.target.setAttribute('aria-pressed',M.has(k))});
