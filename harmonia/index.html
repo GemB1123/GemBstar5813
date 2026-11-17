@@ -162,6 +162,76 @@ const CREDIT={
 };
 window.EA_HARMONIA={plates:P,chapters:CHAPTERS,timeline:TIMELINE,credit:CREDIT};
 })();
+
+/* ---------- Harmonia: images beyond Cellarius (round 2: Egypt, Babylonia, the harmony of the spheres) ----------
+   Each image carries its own credit {by, lic, url, line}. Lesson texts are DRAFTS in Gemini Brett's voice.
+   n = the image's word id (its file is plates/<n>.jpg and thumbs/<n>.jpg). */
+(function(){'use strict';
+const H=window.EA_HARMONIA;if(!H)return;
+const C='https://commons.wikimedia.org/wiki/File:';
+const M=[
+{n:'senenmut',ch:'egypt',short:'Senenmut\'s Ceiling',era:'c. 1470 BCE',place:'Thebes, Egypt',english:'The Star Ceiling of Senenmut\'s Tomb',
+ story:`Let's begin about 3,500 years ago, under the ceiling of a tomb near Thebes. Senenmut, the great architect of Queen Hatshepsut, had the night sky painted above his resting place, and it is the oldest Egyptian star map we know. The southern half lists the decans, the 36 star groups that rose one after another through the night and kept time like the hands of a clock. Sah, the figure we call Orion, and Sopdet, the star we call Sirius, sail across it in their boats. Planets ride boats too: Jupiter, Saturn, Mercury, and Venus. The northern half circles the pole with the Bull's Foreleg, the stars we call the Big Dipper, and the twelve months of the year as wheels. Before there was a zodiac, there was this: the sky as a calendar and a clock.`,
+ ask:'The decans rose one by one through the night. How might you tell the time tonight using only the stars rising in the east?',
+ look:[{t:'The Northern Circles',x:.5,y:.75,z:2.5,d:'The circles are the months of the year, gathered around the stars of the north that never set.'},
+       {t:'Boats of the Sky',x:.5,y:.25,z:2.5,d:'Stars and planets sail in boats across the sky river, just as the Sun sails through the day.'}],
+ credit:{by:'Facsimile painting by Charles K. Wilkinson, The Metropolitan Museum of Art',lic:'CC0 (Met Open Access)',url:C+'Astronomical_Ceiling,_Tomb_of_Senenmut_MET_DT207429.jpg',line:'The Metropolitan Museum of Art, CC0'}},
+{n:'dendera-nut',ch:'egypt',short:'Nut over Dendera',era:'c. 50 BCE',place:'Dendera, Egypt',english:'The Sky Goddess Nut on the Ceiling of Dendera',
+ story:`Here is Nut, the sky goddess, stretched across the porch ceiling of the Temple of Hathor at Dendera, drawn by the French scholars of the Description de l'Égypte. Her head is at the left and her arms reach down to the earth, and the long body arches over the whole band of sky. Every evening Nut swallows the Sun, and every morning Nut gives birth to the Sun again. The Sun travels through Nut's body all night long. This is the Egyptian way of telling the daily cycle we teach as Rise, Reach, Rest, and Root. Along Nut's body you can find the signs of the zodiac, which had just arrived in Egypt from Babylon by way of the Greeks.`,
+ ask:'Where on Nut\'s body would the Sun be at midnight?',
+ look:[{t:'Nut Swallows the Sun',x:.07,y:.2,z:3,d:'The Sun disc sits at Nut\'s mouth. Each evening Nut swallows the Sun, and each morning gives birth to the Sun again.'},
+       {t:'The Fishes',x:.285,y:.37,z:5,d:'Two fishes tied together: Pisces, one of the zodiac signs newly arrived from Babylon.'}],
+ credit:{by:'Description de l\'Égypte, Antiquités vol. IV (Imprimerie impériale, 1809 to 1828); scan The New York Public Library',lic:'Public domain',url:C+'Denderah_(Dandara)_(Tentyris)._Zodiaque_sculpt%C3%A9_au_plafond_du_portique_du_Grand_Temple._(Outline)_(NYPL_b14212718-1268113).jpg',line:'Description de l\'Égypte, NYPL, public domain'}},
+{n:'dendera',ch:'egypt',short:'The Dendera Zodiac',era:'c. 50 BCE',place:'Dendera, Egypt',english:'The Round Zodiac of Dendera',
+ story:`This is the round zodiac carved on a chapel ceiling at Dendera, drawn here by the French scholars who reached Egypt with Napoleon. It is a meeting of two worlds. Inside the circle are the zodiac signs that came from Babylon: the Ram, the Bull, the Twins, the Scorpion, and the rest. Around the edge march the 36 Egyptian decans. Many scholars read the planets on it as standing in their exaltations, the signs where each planet is honored. Four goddesses and eight falcon-headed spirits hold up the whole sky. This one ceiling is a map of how astrology was born: Babylonian signs, Egyptian time, and Greek ideas, all in one circle.`,
+ ask:'Find the Scorpion and the Lion. What is different about the way they are drawn here compared with Cellarius\'s plates?',
+ look:[{t:'The Twelve Signs',x:.4,y:.5,z:2.4,d:'The zodiac figures circle the center, close to the shapes we still use.'},
+       {t:'The Decans at the Edge',x:.4,y:.27,z:2.6,d:'The 36 decans walk around the outer ring, each one a ten-degree face of the sky.'},
+       {t:'Nut Stands Beside',x:.86,y:.5,z:2,d:'The engravers set Nut, the sky goddess, beside the circle with her arms raised to hold up the sky.'}],
+ credit:{by:'Description de l\'Égypte, 2nd edition (Panckoucke, 1822), vol. 4, plate 21; via the World Digital Library',lic:'Public domain',url:C+'Description_of_Egypt._2nd_edition._1822._Vol._4._Pl._21_(Dendera_Circular_Zodiac).jpg',line:'Description de l\'Égypte (1822), public domain'}},
+{n:'kudurru',ch:'babylon',short:'A Babylonian Boundary Stone',era:'c. 1180 BCE',place:'Babylonia',english:'The Boundary Stone of King Melishipak',
+ story:`In Babylonia, a gift of land was sealed with a carved stone called a kudurru, and the gods were called to witness it. At the very top of this stone, made for King Melishipak, you can see three lights side by side: the crescent of Sin, the Moon; the disc of Shamash, the Sun; and the eight-pointed star of Ishtar, the planet Venus. The Babylonians watched these lights night after night and wrote down what they saw, and from their records came the first zodiac. Look at the animal symbols too. Some of them, like the scorpion and the goat with the tail of a fish, would one day become our Scorpio and Capricorn.`,
+ ask:'Why might the Moon, the Sun, and Venus be placed together at the top, above all the other gods?',
+ look:[{t:'Moon, Sun, and Venus',x:.5,y:.14,z:2.6,d:'The eight-pointed star of Venus, the crescent Moon, and the Sun disc: the three brightest lights.'}],
+ credit:{by:'Photograph by Jastrow (2005), Louvre Museum, Sb 23',lic:'Public domain (released by the photographer)',url:C+'Kudurru_Melishipak_Louvre_Sb23.jpg',line:'Photo Jastrow, Louvre, public domain'}},
+{n:'mul-apin',ch:'babylon',short:'The Star Book MUL.APIN',era:'first millennium BCE',place:'Babylonia',english:'MUL.APIN, the Babylonian Book of Stars',
+ story:`This little clay tablet is a star catalog. Its name, MUL.APIN, means "the Plough star," the first star on its list. Babylonian sky watchers pressed these wedge-shaped signs into wet clay to record which stars rise on which days, which stars stand on the path of the Moon, and how to keep the calendar in step with the Sun. In its list of the stars "in the path of the Moon" we find the ancestors of our zodiac constellations: the Bull of Heaven, the Great Twins, the Lion, the Scorpion, and the Goat-Fish. A few centuries later these became the twelve signs of thirty degrees each.`,
+ ask:'Why would the path of the Moon be the first road the Babylonians mapped, before the path of the Sun?',
+ look:[],
+ credit:{by:'Photograph by Bautsch, Vorderasiatisches Museum Berlin, VAT 9412',lic:'CC0',url:C+'MUP.APIN.VAT09412.P1078712.jpg',line:'Photo Bautsch, CC0'}},
+{n:'kepler-solids',ch:'harmony',short:'Kepler\'s Nested Solids',era:'1596',place:'Tübingen, Germany',english:'Kepler\'s Cosmic Cup of the Five Perfect Solids',lang:'la',latin:'Mysterium Cosmographicum',
+ story:`Now we leap forward to the young Johannes Kepler, who asked a question no one had asked before: why are there six planets, and why are they spaced the way they are? His answer was geometry. Nest the five perfect solids of Plato one inside another, cube, tetrahedron, dodecahedron, icosahedron, and octahedron, and the spheres between them fall almost exactly where the orbits of Saturn, Jupiter, Mars, Earth, Venus, and Mercury lie. Kepler was not quite right, but this dream of a cosmos built on geometry led him to his real discoveries. Here astrology, astronomy, and sacred geometry hold hands.`,
+ ask:'Which solid sits between Earth and Venus in Kepler\'s cup?',
+ look:[{t:'The Cube of Saturn',x:.5,y:.3,z:1.8,d:'The outer cube sits inside the sphere of Saturn and holds the sphere of Jupiter.'}],
+ credit:{by:'Johannes Kepler, Mysterium Cosmographicum (Tübingen, 1596), plate III',lic:'Public domain',url:C+'Kepler_Mysterium_Platonic_Solids.jpg',line:'Kepler, Mysterium Cosmographicum (1596), public domain'}},
+{n:'kepler-music',ch:'harmony',short:'The Harmony of the World',era:'1619',place:'Linz, Austria',english:'Kepler\'s Harmony of the World',lang:'la',latin:'Harmonices Mundi, Book V',
+ story:`This is the title page of Kepler's Harmony of the World, printed in Linz in 1619. Inside, twenty-three years after his nested solids, Kepler found a deeper music. He measured how fast each planet moves when closest to the Sun and when farthest away, and turned those speeds into musical notes. Saturn sings low and slow, Mercury runs high and wide, and Earth sings only two notes, mi and fa. Kepler joked that Earth sings "misery and famine." In this same book he gave us his third law, the true rule that links each planet's distance to the length of its year. The music of the spheres, an idea as old as Pythagoras, became real mathematics.`,
+ ask:'Earth swings between just two notes. What does that tell you about the shape of Earth\'s orbit?',
+ look:[{t:'Five Books',x:.45,y:.35,z:2,d:'The title lists five books: geometry, harmony, music, astrology, and finally the harmony of the planets themselves.'}],
+ credit:{by:'Johannes Kepler, Harmonices Mundi (Linz, 1619), title page; scan Carnegie Mellon University Libraries, Posner Collection',lic:'Public domain',url:C+'Harmonices_Mundi_0001-lg.jpg',line:'Kepler, Harmonices Mundi (1619), public domain'}},
+{n:'fludd',ch:'harmony',short:'Fludd\'s Monochord',era:'1617',place:'Oppenheim, Germany',english:'Robert Fludd\'s Divine Monochord',lang:'la',latin:'Utriusque Cosmi Historia',
+ story:`Robert Fludd, an English physician and mystic, pictured the whole cosmos as one string. A hand reaches out of the clouds to tune it. The string runs from Earth at the bottom, up through water, air, and fire, past the Moon, the Sun, and the planets, to the heavens of light at the top. Along the string are the musical ratios of Pythagoras: the octave, the fifth, and the fourth. As above, so below, in tune. Fludd and Kepler argued with each other in print about whose harmony was right, and both were reaching for the same mystery.`,
+ ask:'Where does the Sun sit on Fludd\'s string, and why might the middle be the right place for the Sun?',
+ look:[{t:'The Hand of the Tuner',x:.6,y:.06,z:3,d:'A hand reaches from the clouds to turn the tuning peg of the cosmos.'},
+       {t:'Terra at the Bottom',x:.5,y:.93,z:3,d:'Earth, Terra, is the lowest note, where the string is fixed.'}],
+ credit:{by:'Robert Fludd, Utriusque Cosmi Historia (Oppenheim, 1617); scan Deutsche Fotothek (df_tg_0006469)',lic:'Public domain',url:C+'Fotothek_df_tg_0006469_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg',line:'Fludd (1617), Deutsche Fotothek, public domain'}}
+];
+M.forEach(p=>H.plates.push(p));
+H.chapters.unshift(
+ {id:'egypt',name:'Egypt: Nut, the Decans, and the First Zodiac',intro:`Before the zodiac, Egypt read the sky as a clock and a calendar. Then the signs arrived from Babylon and met the Egyptian decans on the temple ceilings of Dendera.`},
+ {id:'babylon',name:'Babylonia: Where the Signs Were Born',intro:`The Babylonians watched the Moon, the Sun, and Venus for centuries and wrote down everything. From their records came the twelve signs of the zodiac.`});
+H.chapters.push({id:'harmony',name:'The Harmony of the Spheres',intro:`Pythagoras heard music in the planets. Two thousand years later Kepler and Fludd went looking for that music, one with geometry and one with a single string.`});
+H.timeline.push(
+ {y:-1470,t:'Senenmut\'s tomb ceiling: the oldest Egyptian star map',plate:'senenmut'},
+ {y:-1180,t:'King Melishipak\'s boundary stone shows the Moon, Sun, and Venus',plate:'kudurru'},
+ {y:-686,t:'The oldest dated copy of MUL.APIN lists the stars in the path of the Moon',plate:'mul-apin'},
+ {y:-50,t:'The Dendera zodiac joins the Babylonian signs and the Egyptian decans',plate:'dendera'},
+ {y:1596,t:'Kepler nests the five perfect solids between the planets',plate:'kepler-solids'},
+ {y:1617,t:'Robert Fludd draws the divine monochord',plate:'fludd'},
+ {y:1619,t:'Kepler publishes the melodies of the planets',plate:'kepler-music'});
+H.timeline.sort((a,b)=>a.y-b.y);
+
+})();
 </script>
 <script>/* ---------- Harmonia World (Cellarius): an illustrated history of astrology ----------
    Gemini, Nov 16, 2026: use the public-domain plates of Andreas Cellarius's Harmonia Macrocosmica (1660) to teach an
@@ -176,14 +246,18 @@ window.EA_HARMONIA={plates:P,chapters:CHAPTERS,timeline:TIMELINE,credit:CREDIT};
 const HM_CFG={
  base:'harmonia/',                                   /* folder that holds plates/ and thumbs/ (relative to the page) */
  fallback:'https://gemb1123.github.io/GemBstar5813/harmonia/',  /* used when the local folder is missing */
- plate:n=>'plates/'+String(n).padStart(2,'0')+'.jpg', /* about 2600 px wide, for deep zoom */
- thumb:n=>'thumbs/'+String(n).padStart(2,'0')+'.jpg', /* about 480 px wide, for cards */
+ plate:n=>'plates/'+(typeof n==='number'?String(n).padStart(2,'0'):n)+'.jpg', /* about 2600 px wide, for deep zoom */
+ thumb:n=>'thumbs/'+(typeof n==='number'?String(n).padStart(2,'0'):n)+'.jpg', /* about 480 px wide, for cards */
  maxZoom:8,
  theme:{bg:'#0b0d16',panel:'#141827',ink:'#efe6d2',soft:'#b9ad92',gold:'#d8b25a',line:'#2b3149',accent:'#7fb4e6',ok:'#7cc48a',no:'#e0806f'}
 };
 const SYS={ptolemy:'Ptolemy',aratus:'Aratus',tycho:'Tycho Brahe',copernicus:'Copernicus'};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const D=()=>window.EA_HARMONIA;
+const key=id=>/^\d+$/.test(String(id))?+id:String(id);   /* Cellarius plates are numbers; other images have word ids */
+const isCel=p=>typeof p.n==='number';
+const lbl=p=>isCel(p)?'Plate '+p.n:p.short;
+const ORDER=()=>{const H=D();return H.chapters.flatMap(c=>H.plates.filter(p=>p.ch===c.id))};   /* the journey: chapter by chapter */
 
 function css(){const t=HM_CFG.theme;return `
 .hm{--bg:${t.bg};--pn:${t.panel};--ink:${t.ink};--soft:${t.soft};--gold:${t.gold};--ln:${t.line};--acc:${t.accent};--ok:${t.ok};--no:${t.no};
@@ -269,46 +343,46 @@ function Reader(root,opt){
  opt=opt||{};const ST={view:'home',ch:null,n:1,cmpA:1,cmpB:4,cut:50,quiz:null,score:[0,0],look:true};
  let base=opt.base!=null?opt.base:HM_CFG.base,zoom=null;
  const src=(n,big)=>base+(big?HM_CFG.plate(n):HM_CFG.thumb(n));
- const plate=n=>D().plates.find(p=>p.n===+n);
+ const plate=n=>D().plates.find(p=>String(p.n)===String(n));
  root.className='hm'+(opt.standalone?' std':'');root.setAttribute('role','dialog');root.setAttribute('aria-label','Harmonia, an illustrated history of astrology');if(!opt.standalone)root.setAttribute('aria-modal','true');
  if(!document.getElementById('hm-css')){const s=document.createElement('style');s.id='hm-css';s.textContent=css();document.head.appendChild(s)}
  /* one quick probe: if the local plate folder is missing, use the published copy */
  const probe=new Image();probe.onerror=()=>{if(base!==HM_CFG.fallback){base=HM_CFG.fallback;render()}};probe.src=src(1,false);
 
  function top(title,back){return `<div class="hm-top">${back?`<button class="hm-ib" data-hm="back" aria-label="Back">‹ Back</button>`:''}${opt.onClose&&!back?`<button class="hm-ib" data-hm="close" aria-label="Close Harmonia">✕ Close</button>`:''}<h1>${esc(title)}</h1></div>`}
- const card=p=>`<button class="hm-card" data-hm="plate" data-id="${p.n}"><img loading="lazy" src="${src(p.n)}" alt=""><div><small>Plate ${p.n}</small><b>${esc(p.english)}</b></div></button>`;
+ const card=p=>`<button class="hm-card" data-hm="plate" data-id="${p.n}"><img loading="lazy" src="${src(p.n)}" alt=""><div><small>${esc(isCel(p)?'Plate '+p.n:p.era)}</small><b>${esc(p.english)}</b></div></button>`;
 
  function home(){const H=D();return top('Harmonia')+`<div class="hm-main"><div class="hm-wrap">
   <div class="hm-hero"><img src="${src(2,true)}" alt="Plate 2, the Ptolemaic world system, with the zodiac figures circling Earth"><div>
-   <h2>An Illustrated History of Astrology</h2><p>Walk through the 29 hand-colored plates of Andreas Cellarius's star atlas of 1660, with Gemini Brett.</p>
-   <button class="hm-cta" data-hm="plate" data-id="1">Begin the Journey</button></div></div>
+   <h2>An Illustrated History of Astrology</h2><p>From the star ceilings of Egypt and the boundary stones of Babylon, through the hand-colored plates of Cellarius's atlas of 1660, to Kepler's music of the planets, with Gemini Brett.</p>
+   <button class="hm-cta" data-hm="plate" data-id="${ORDER()[0].n}">Begin the Journey</button></div></div>
   <div class="hm-sec">Explore</div><div class="hm-tiles">
    <button class="hm-tile" data-hm="go" data-id="compare"><b>Three Ways to See the Sky</b><span>Slide between Ptolemy, Tycho Brahe, and Copernicus</span></button>
    <button class="hm-tile" data-hm="go" data-id="quiz"><b>Which World Is This?</b><span>A quick game: name the system</span></button>
-   <button class="hm-tile" data-hm="go" data-id="timeline"><b>Timeline</b><span>From Aratus to Cellarius</span></button>
-   <button class="hm-tile" data-hm="go" data-id="all"><b>All 29 Plates</b><span>The whole atlas</span></button></div>
-  <div class="hm-sec">Chapters</div><div class="hm-tiles">${H.chapters.map((c,i)=>`<button class="hm-tile" data-hm="ch" data-id="${c.id}"><b>${i+1}. ${esc(c.name)}</b><span>${H.plates.filter(p=>p.ch===c.id).length} plates</span></button>`).join('')}</div>
+   <button class="hm-tile" data-hm="go" data-id="timeline"><b>Timeline</b><span>From Senenmut to Kepler</span></button>
+   <button class="hm-tile" data-hm="go" data-id="all"><b>All Images</b><span>Every picture, in journey order</span></button></div>
+  <div class="hm-sec">Chapters</div><div class="hm-tiles">${H.chapters.map((c,i)=>`<button class="hm-tile" data-hm="ch" data-id="${c.id}"><b>${i+1}. ${esc(c.name)}</b><span>${H.plates.filter(p=>p.ch===c.id).length} images</span></button>`).join('')}</div>
   <div class="hm-sec">About</div><div class="hm-tiles"><button class="hm-tile" data-hm="go" data-id="credits"><b>Credits and Sources</b><span>Public-domain scans and where they came from</span></button></div>
  </div></div>`}
  function chapter(){const H=D(),c=H.chapters.find(x=>x.id===ST.ch);return top(c.name,1)+`<div class="hm-main"><div class="hm-wrap"><p class="hm-intro">${esc(c.intro)}</p>
   <div class="hm-cards">${H.plates.filter(p=>p.ch===c.id).map(card).join('')}</div></div></div>`}
- function all(){return top('All 29 Plates',1)+`<div class="hm-main"><div class="hm-wrap"><div class="hm-cards">${D().plates.map(card).join('')}</div></div></div>`}
- function plateView(){const p=plate(ST.n),L=D().plates,i=L.indexOf(p),prev=L[i-1],next=L[i+1],looks=p.look||[];
-  return top('Plate '+p.n+' of 29',1)+`<div class="hm-plate">
-  <div class="hm-view" id="hm-view" tabindex="0" aria-label="Plate ${p.n}, ${esc(p.english)}. Drag or use arrow keys to move, plus and minus to zoom, 0 to fit.">
+ function all(){return top('All Images',1)+`<div class="hm-main"><div class="hm-wrap"><div class="hm-cards">${ORDER().map(card).join('')}</div></div></div>`}
+ function plateView(){const p=plate(ST.n),L=ORDER(),i=L.indexOf(p),prev=L[i-1],next=L[i+1],looks=p.look||[];
+  return top(isCel(p)?'Plate '+p.n+' of 29':p.short,1)+`<div class="hm-plate">
+  <div class="hm-view" id="hm-view" tabindex="0" aria-label="${esc(lbl(p))}, ${esc(p.english)}. Drag or use arrow keys to move, plus and minus to zoom, 0 to fit.">
    <div class="hm-load">Loading the engraving…</div>
-   <img id="hm-img" alt="Plate ${p.n}: ${esc(p.english)}" src="${src(p.n,true)}">
+   <img id="hm-img" alt="${esc(lbl(p))}: ${esc(p.english)}" src="${src(p.n,true)}">
    <div class="hm-cap" id="hm-cap" role="status" hidden></div>
    <div class="hm-zc"><button data-hm="zin" aria-label="Zoom in">+</button><button data-hm="zout" aria-label="Zoom out">−</button><button data-hm="zfit" aria-label="Fit the whole plate">Fit</button></div>
   </div>
   <div class="hm-sheet"><div class="hm-wrap">
-   <div class="hm-num">PLATE ${p.n}${p.sys&&SYS[p.sys]?' · '+SYS[p.sys].toUpperCase():''}</div>
-   <div class="hm-lat" lang="la">${esc(p.latin)}</div><h2 class="hm-eng">${esc(p.english)}</h2>
+   <div class="hm-num">${isCel(p)?'PLATE '+p.n+(p.sys&&SYS[p.sys]?' · '+SYS[p.sys].toUpperCase():''):esc((p.era+' · '+p.place).toUpperCase())}</div>
+   ${p.latin?`<div class="hm-lat" lang="${p.lang||'la'}">${esc(p.latin)}</div>`:''}<h2 class="hm-eng">${esc(p.english)}</h2>
    <p class="hm-story">${esc(p.story)}</p>
    ${looks.length?`<div class="hm-lbl">Look Closer</div><div class="hm-row" role="group" aria-label="Look Closer">${looks.map((l,k)=>`<button class="hm-chip" data-hm="look" data-id="${k}">${esc(l.t)}</button>`).join('')}</div>`:''}
    <div class="hm-ask"><b>Ask Yourself</b>${esc(p.ask)}</div>
    <div class="hm-row"><button class="hm-chip" data-hm="save" data-id="png">Save As PNG</button><button class="hm-chip" data-hm="save" data-id="jpeg">Save As JPEG</button><button class="hm-chip" data-hm="copy">Copy to Clipboard</button></div>
-   <div class="hm-nav">${prev?`<button class="hm-ib" data-hm="plate" data-id="${prev.n}">‹ Plate ${prev.n}</button>`:'<span></span>'}${next?`<button class="hm-ib" data-hm="plate" data-id="${next.n}">Plate ${next.n} ›</button>`:`<button class="hm-ib" data-hm="go" data-id="home">Finish</button>`}</div>
+   <div class="hm-nav">${prev?`<button class="hm-ib" data-hm="plate" data-id="${prev.n}">‹ ${esc(lbl(prev))}</button>`:'<span></span>'}${next?`<button class="hm-ib" data-hm="plate" data-id="${next.n}">${esc(lbl(next))} ›</button>`:`<button class="hm-ib" data-hm="go" data-id="home">Finish</button>`}</div>
    <p id="hm-note" class="hm-fb" aria-live="polite"></p>
   </div></div></div>`}
  const CMP=[[1,'Ptolemy, flat'],[2,'Ptolemy, in space'],[8,'Aratus'],[6,'Tycho Brahe, flat'],[7,'Tycho Brahe, in space'],[4,'Copernicus, flat'],[5,'Copernicus, in space']];
@@ -335,11 +409,12 @@ function Reader(root,opt){
   ${q.pick?`<div class="hm-row"><button class="hm-cta" data-hm="qnext">Next Plate</button><button class="hm-chip" data-hm="plate" data-id="${q.n}">Read About Plate ${q.n}</button></div>`:''}
   <p style="color:var(--soft)">Score ${ST.score[0]} of ${ST.score[1]}</p></div></div>`}
  function timeline(){const yt=y=>y<0?(-y)+' BCE':'c. '+y+' CE';return top('Timeline',1)+`<div class="hm-main"><div class="hm-wrap"><ol class="hm-tl">${D().timeline.map(e=>`<li><b>${e.y<1000?yt(e.y):e.y}</b>${esc(e.t)}<br><button data-hm="plate" data-id="${e.plate}">See Plate ${e.plate}</button></li>`).join('')}</ol></div></div>`}
- function credits(){const C=D().credit;return top('Credits and Sources',1)+`<div class="hm-main"><div class="hm-wrap hm-cred">
-  <p><b>The atlas.</b> ${esc(C.work)}. The engravings are in the public domain.</p>
-  <p><b>The scans.</b> ${esc(C.copy)}, shared on Wikimedia Commons and marked public domain by the library.</p>
+ function credits(){const C=D().credit,L=ORDER(),cel=L.filter(isCel),oth=L.filter(p=>!isCel(p));return top('Credits and Sources',1)+`<div class="hm-main"><div class="hm-wrap hm-cred">
   <p><b>The words.</b> Lessons by Gemini Brett, Earthstrology.</p>
-  <table><tbody>${D().plates.map(p=>`<tr><td>${p.n}</td><td lang="la"><i>${esc(p.latin)}</i></td><td><a href="${esc(p.src)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table></div></div>`}
+  <p><b>Cellarius's atlas.</b> ${esc(C.work)}. Scans: ${esc(C.copy)}, shared on Wikimedia Commons and marked public domain by the library.</p>
+  <table><tbody>${cel.map(p=>`<tr><td>${p.n}</td><td lang="la"><i>${esc(p.latin)}</i></td><td><a href="${esc(p.src)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table>
+  ${oth.length?`<p style="margin-top:16px"><b>The other images.</b></p>
+  <table><tbody>${oth.map(p=>`<tr><td>${esc(p.english)}</td><td>${esc(p.credit.by)}. ${esc(p.credit.lic)}.</td><td><a href="${esc(p.credit.url)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table>`:''}</div></div>`}
 
  function render(){const v={home,chapter,all,plate:plateView,compare,quiz,timeline,credits}[ST.view]||home;root.innerHTML=v();
   if(ST.view==='plate')zoom=Zoom(root.querySelector('#hm-view'),root.querySelector('#hm-img'));else zoom=null;
@@ -353,8 +428,8 @@ function Reader(root,opt){
  function blob(type){return new Promise((res,rej)=>{const img=root.querySelector('#hm-img');if(!img||!img.naturalWidth)return rej(new Error('not loaded'));
   const W=img.naturalWidth,H=img.naturalHeight,band=Math.round(W*.035),c=document.createElement('canvas');c.width=W;c.height=H+band;const x=c.getContext('2d');
   x.fillStyle='#0b0d16';x.fillRect(0,0,W,H+band);x.drawImage(img,0,0);x.fillStyle='#efe6d2';x.font=`${Math.round(band*.42)}px Georgia,serif`;x.textBaseline='middle';
-  x.fillText(D().credit.line,band*.4,H+band/2);try{c.toBlob(b=>b?res(b):rej(new Error('encode')),type==='jpeg'?'image/jpeg':'image/png',.92)}catch(e){rej(e)}})}
- async function save(type){try{const b=await blob(type),name=`Cellarius-Plate-${String(ST.n).padStart(2,'0')}.${type==='jpeg'?'jpg':'png'}`;let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
+  x.fillText((plate(ST.n).credit&&plate(ST.n).credit.line)||D().credit.line,band*.4,H+band/2);try{c.toBlob(b=>b?res(b):rej(new Error('encode')),type==='jpeg'?'image/jpeg':'image/png',.92)}catch(e){rej(e)}})}
+ async function save(type){try{const b=await blob(type),name=`${typeof ST.n==='number'?'Cellarius-Plate-'+String(ST.n).padStart(2,'0'):'Harmonia-'+ST.n}.${type==='jpeg'?'jpg':'png'}`;let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
   if(dl){await dl.save({filename:name,data:b});note('Plate saved.');return}
   const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;root.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);note('Plate saved to Downloads.')}
   catch(e){note('Saving is not available here.')}}
@@ -365,7 +440,7 @@ function Reader(root,opt){
   else if(a==='back')back();
   else if(a==='go'){if(id==='home'){hist.length=0;ST.view='home';render()}else go(id)}
   else if(a==='ch')go('chapter',{ch:id});
-  else if(a==='plate'){if(ST.view==='plate'){ST.n=+id;render();const m=root.querySelector('.hm-sheet');if(m)m.scrollTop=0}else go('plate',{n:+id})}
+  else if(a==='plate'){if(ST.view==='plate'){ST.n=key(id);render();const m=root.querySelector('.hm-sheet');if(m)m.scrollTop=0}else go('plate',{n:key(id)})}
   else if(a==='zin')zoom&&zoom.by(1.6);else if(a==='zout')zoom&&zoom.by(1/1.6);else if(a==='zfit'){zoom&&zoom.fit();const c=root.querySelector('#hm-cap');if(c)c.hidden=true}
   else if(a==='look'){const l=(plate(ST.n).look||[])[+id];if(l&&zoom){zoom.to(l.x,l.y,l.z||3);const c=root.querySelector('#hm-cap');if(c){c.innerHTML=`<b>${esc(l.t)}</b>${esc(l.d)}`;c.hidden=false}root.querySelectorAll('[data-hm=look]').forEach(x=>x.classList.toggle('on',x===b));const v=root.querySelector('#hm-view');if(v&&v.scrollIntoView)v.scrollIntoView({block:'nearest'})}}
   else if(a==='save')save(id);else if(a==='copy')copy();
@@ -379,7 +454,7 @@ function Reader(root,opt){
  const onKey=e=>{if(!root.isConnected)return;if(e.key==='Tab'&&!opt.standalone){const F=[...root.querySelectorAll('button,select,input,[tabindex="0"]')].filter(x=>x.offsetParent);if(F.length){const i=F.indexOf(document.activeElement);if(e.shiftKey&&i<=0){F[F.length-1].focus();e.preventDefault()}else if(!e.shiftKey&&(i===F.length-1||i<0)){F[0].focus();e.preventDefault()}}return}if(e.key==='Escape'){if(ST.view!=='home'){back();e.preventDefault();e.stopPropagation()}else if(opt.onClose){opt.onClose();e.preventDefault();e.stopPropagation()}}};
  document.addEventListener('keydown',onKey,true);
  render();
- return {open(o){if(o&&o.plate)go('plate',{n:+o.plate})},destroy(){document.removeEventListener('keydown',onKey,true);root.innerHTML=''},config:HM_CFG};
+ return {open(o){if(o&&o.plate)go('plate',{n:key(o.plate)})},destroy(){document.removeEventListener('keydown',onKey,true);root.innerHTML=''},config:HM_CFG};
 }
 
 /* ------------- deep zoom: drag, pinch, wheel, double tap, keys ------------- */
@@ -416,11 +491,11 @@ window.EA_WORLDS.harmonia=function(A){
   if(!R)R=Reader(host,{onClose:close});if(o)R.open(o)}
  function close(){if(R){R.destroy();R=null}if(host){host.remove();host=null}const b=document.querySelector('[data-act="hmopen"]');if(b)b.focus()}
  function box(){const H=D();if(!H)return head('harmonia','Harmonia','not assigned')+'<p>The plates did not load.</p>';
-  return head('harmonia','Harmonia','not assigned')+`<p style="margin:6px 0 10px;line-height:1.5">An illustrated history of astrology, told through the 29 plates of Andreas Cellarius's <i>Harmonia Macrocosmica</i> (1660).</p>
+  return head('harmonia','Harmonia','not assigned')+`<p style="margin:6px 0 10px;line-height:1.5">An illustrated history of astrology, from Egypt and Babylon through the plates of Andreas Cellarius's <i>Harmonia Macrocosmica</i> (1660) to Kepler.</p>
   <button class="hm-open" data-act="hmopen" data-id="">Open Harmonia</button>
   <div style="margin:12px 0 4px;font-size:12px;letter-spacing:.08em;opacity:.75">CHAPTERS</div>
   ${H.chapters.map(c=>{const f=H.plates.find(p=>p.ch===c.id);return `<button class="hm-chap" data-act="hmopen" data-id="${f.n}">${esc(c.name)}</button>`}).join('')}`}
- function act(a,id){if(a==='hmopen')openReader(id?{plate:+id}:null)}
+ function act(a,id){if(a==='hmopen')openReader(id?{plate:id}:null)}
  return {box,act,open:openReader,close,config:HM_CFG}};
 })();
 </script>
