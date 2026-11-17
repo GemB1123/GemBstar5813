@@ -10279,6 +10279,11 @@ body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:10px}
 .vtm-v i:nth-child(2){text-align:center}
 .vtm-v i.vtrx{font-style:normal;text-align:left;margin-left:0}
 #vt-list.norx .vtm-v i.vtrx{display:none}
+/* V261 (Gemini, Nov 17): the table and the open card take the chart wheel's background; the color tab is part of the row's button, so a tap on it opens the row */
+body.tc-blend .vtc.vtex,body.tc-one .vtc.vtex{background:var(--tb,#151b3d)}
+body.tc-blend .vtm>button:hover,body.tc-one .vtm>button:hover{cursor:pointer}
+body.tc-blend .vtm:hover,body.tc-blend .vtc:hover{box-shadow:inset 6px 0 0 var(--e,transparent)}
+body.tc-blend .vtm.now:hover,body.tc-blend .vtc.now:hover{box-shadow:inset 6px 0 0 var(--e,transparent),0 0 0 1.5px var(--gold),0 0 12px #ffcc3388}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10808,12 +10813,18 @@ const tcHex=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.split('').ma
  tcSoft=c=>{let [r,g,b]=tcHex(c).map(v=>v/255);const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,d=mx-mn;let h=0,s=d?d/(1-Math.abs(2*l-1)):0;
   if(d)h=mx===r?((g-b)/d+6)%6:mx===g?(b-r)/d+2:(r-g)/d+4;h*=60;s=Math.min(.42,Math.max(.22,s*.6));const L=.6,C=(1-Math.abs(2*L-1))*s,X=C*(1-Math.abs(h/60%2-1)),m=L-C/2;
   const q=h<60?[C,X,0]:h<120?[X,C,0]:h<180?[0,C,X]:h<240?[0,X,C]:h<300?[X,0,C]:[C,0,X];return '#'+q.map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('')};   /* any other phase color at the wheel's softness */
+/* Gemini, Nov 17: the table matches the chart wheel's background (navy by default); change the wheel color and the table follows */
+function tBase(){const w=typeof wCol==='function'?wCol():'navy';if(w==='navy')return TNAV;const f=w==='custom'?wCust().bg:(WCOL.find(x=>x[0]===w)||[])[2];return /^#[0-9a-f]{6}$/i.test(f||'')?tcMix(f,'#ffffff',.05):TNAV}
+/* Gemini, Nov 17: Moon tabs follow the Moon's light, black at New, white at Full, black again at the next New */
+const moonTab=x=>{let a=Number(x.pa);if(!isFinite(a)){const i=+String(x.k).slice(2);a=i*30}const f=(1-Math.cos(a*Math.PI/180))/2,v=Math.round(255*f).toString(16).padStart(2,'0');return '#'+v+v+v};
 function tcol(x){const m=TCM(),k=x.k,cl=x.mk?MKC:KC(k)||T.col.plain;{const b=document.body;if(b&&b.dataset.tc!==m){b.dataset.tc=m;b.classList.toggle('tc-blend',m==='blend');b.classList.toggle('tc-one',m==='one')}}
+ const TB=tBase();if(document.body&&document.body.style.getPropertyValue('--tb')!==TB)document.body.style.setProperty('--tb',TB);
  if(m==='classic'||m==='off')return [cl,'transparent',''];
+ if(MOCOL[k]&&!x.mk){const g=moonTab(x);return m==='blend'?[TB,g,'']:[TB,'transparent',`<i class="tcsw" style="background:${g};box-shadow:0 0 0 1px #c9c3e866" aria-hidden="true"></i>`]}
  const nm8=String(x.name||''),tone=x.mk?'#e8c46a':/Elder Moon Gate/.test(nm8)?'#8a6f5a':/Gate of Transformation/.test(nm8)?'#b8bcc6':WBL[k]||(k==='conj'?'#8a8986':k==='hel'?'#c7cdd4':MOCOL[k]||MACOL[k]||MCOL[k]?tcSoft(MOCOL[k]||MACOL[k]||MCOL[k]):CHK[k]&&T.col[k]?tcSoft(T.col[k]):null),
   gate=!!tone&&!x.mk&&k!=='conj'&&k!=='hel';
- if(m==='blend')return [tone?tcMix(TNAV,tcMix(tone,'#ffffff',.08),.28):TNAV,tone||'transparent',''];   /* Leo, Nov 17: 28% of a tone lifted 8%, so the gates stay clearly colored */
- return [TNAV,'transparent',gate?`<i class="tcsw" style="background:${tone}" aria-hidden="true"></i>`:'']}
+ if(m==='blend')return [tone?tcMix(TB,tcMix(tone,'#ffffff',.08),.28):TB,tone||'transparent',''];   /* Leo, Nov 17: 28% of a tone lifted 8%, so the gates stay clearly colored */
+ return [TB,'transparent',gate?`<i class="tcsw" style="background:${tone}" aria-hidden="true"></i>`:'']}
 /* the cycle's first and last morning heliacal rise in a table */
 function totRise(r){if(r.mer)return {f:r.rows[0],l:r.rows[r.rows.length-1],sg:r.sg};const R=r.rows,i=R.findIndex(isIC),f=R.slice(i+1).find(x=>x.k==='hel'&&x.pa<0),l=R.slice().reverse().find(x=>x.k==='hel'&&x.pa<0);return f?{f,l:l&&l!==f?l:null,sg:sgnOf(f.v)}:null}
 /* Mercury (Shamanic Astrology): the Overstory sign is Mercury's sign at the Station Direct that follows an interior conjunction */
@@ -12457,9 +12468,10 @@ function qmAct(a){const i=a.indexOf(':'),k=i<0?a:a.slice(0,i),v=i<0?'':a.slice(i
  else if(k==='wsty')prefSet('vt-wsty',v==='metal'?'':v);
  else if(k==='wbg')prefSet('vt-wbg',v==='navy'?'':v);else if(k==='pcol')prefSet('vt-pcol',v==='gold'?'':v);else if(k==='scol')prefSet('vt-scol',v==='element'?'':v);
  else if(k==='wreset'){try{localStorage.removeItem('vt-wcust')}catch(e){}if(wCol()==='custom')prefSet('vt-wbg','');if(pCol()==='custom')prefSet('vt-pcol','')}
+ if(k==='wbg'||k==='wreset')draw();   /* the table follows the wheel background */
  else if(k==='hs'){prefSet('vt-hsys',v);useAdd('vt-hsuse',v||hsysK())}else if(k==='zod'){prefSet('vt-zod',v==='trop'?'':v);useAdd('vt-zuse',v)}
  chartDraw();if(k==='ring'){qmClose(false);return}qmDraw(a)}   /* lists stay open so several can be changed */
-document.addEventListener('input',e=>{const c=e.target.dataset&&e.target.dataset.qmc;if(!c)return;const o=wCust();o[c]=e.target.value;try{localStorage.setItem('vt-wcust',JSON.stringify(o))}catch(x){}if(c==='pl')prefSet('vt-pcol','custom');else prefSet('vt-wbg','custom');chartDraw()});
+document.addEventListener('input',e=>{const c=e.target.dataset&&e.target.dataset.qmc;if(!c)return;const o=wCust();o[c]=e.target.value;try{localStorage.setItem('vt-wcust',JSON.stringify(o))}catch(x){}if(c==='pl')prefSet('vt-pcol','custom');else{prefSet('vt-wbg','custom');if(c==='bg')draw()}chartDraw()});
 document.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.qmc&&QM.open)qmDraw()});
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target;if(!t)return;const s=t.closest('.qml [data-sub]');if(s){e.stopPropagation();e.preventDefault();qmSub(+s.dataset.lv,s.dataset.sub,true);return}
  const b=t.closest('.qml [data-qm]');if(b){e.stopPropagation();e.preventDefault();qmAct(b.dataset.qm);return}if(t.closest('.qml'))return;
