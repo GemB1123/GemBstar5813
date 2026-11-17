@@ -10235,9 +10235,10 @@ body.tc-blend .vtc .vtn .l2,body.tc-one .vtc .vtn .l2{color:#c9c3e8}
 body.tc-blend .vtm-t,body.tc-one .vtm-t{color:#efe3c8aa}
 body.tc-blend .vtm.mk,body.tc-blend .vtc.mk,body.tc-one .vtm.mk,body.tc-one .vtc.mk{border-color:#e8c46a}
 body.tc-blend .vtm.mk .vtm-n,body.tc-blend .vtc.mk .vtn,body.tc-one .vtm.mk .vtm-n,body.tc-one .vtc.mk .vtn,body.tc-blend .vtc.mk .vtn .l2,body.tc-one .vtc.mk .vtn .l2,body.tc-blend .vtm.mk .vtm-t,body.tc-one .vtm.mk .vtm-t{color:#e8c46a}
-.tcsw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:0;flex:0 0 auto;box-shadow:0 0 0 1px #0006}
+.tcsw{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:0;flex:0 0 auto;box-shadow:0 0 0 1px #0006}
 body.tc-blend .vtp small,body.tc-one .vtp small{color:#a9a3c8}
 body.tc-blend .vtcb:not(.vton),body.tc-one .vtcb:not(.vton){background:#0b0f2699;border-color:#c9c3e8;color:#efe3c8}
+body.tc-blend .vtc.vtex,body.tc-one .vtc.vtex{background:#151b3d}   /* Leo, Nov 17: the open card is navy in both modes */
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10758,9 +10759,9 @@ const tcHex=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.split('').ma
   const q=h<60?[C,X,0]:h<120?[X,C,0]:h<180?[0,C,X]:h<240?[0,X,C]:h<300?[X,0,C]:[C,0,X];return '#'+q.map(v=>Math.round((v+m)*255).toString(16).padStart(2,'0')).join('')};   /* any other phase color at the wheel's softness */
 function tcol(x){const m=TCM(),k=x.k,cl=x.mk?MKC:KC(k)||T.col.plain;{const b=document.body;if(b&&b.dataset.tc!==m){b.dataset.tc=m;b.classList.toggle('tc-blend',m==='blend');b.classList.toggle('tc-one',m==='one')}}
  if(m==='classic'||m==='off')return [cl,'transparent',''];
- const tone=x.mk?'#e8c46a':WBL[k]||(k==='conj'?'#8a8986':k==='hel'?'#c7cdd4':MOCOL[k]||MACOL[k]||MCOL[k]?tcSoft(MOCOL[k]||MACOL[k]||MCOL[k]):CHK[k]&&T.col[k]?tcSoft(T.col[k]):null),
+ const nm8=String(x.name||''),tone=x.mk?'#e8c46a':/Elder Moon Gate/.test(nm8)?'#8a6f5a':/Gate of Transformation/.test(nm8)?'#b8bcc6':WBL[k]||(k==='conj'?'#8a8986':k==='hel'?'#c7cdd4':MOCOL[k]||MACOL[k]||MCOL[k]?tcSoft(MOCOL[k]||MACOL[k]||MCOL[k]):CHK[k]&&T.col[k]?tcSoft(T.col[k]):null),
   gate=!!tone&&!x.mk&&k!=='conj'&&k!=='hel';
- if(m==='blend')return [tone?tcMix(TNAV,tone,.2):TNAV,tone||'transparent',''];
+ if(m==='blend')return [tone?tcMix(TNAV,tcMix(tone,'#ffffff',.08),.28):TNAV,tone||'transparent',''];   /* Leo, Nov 17: 28% of a tone lifted 8%, so the gates stay clearly colored */
  return [TNAV,'transparent',gate?`<i class="tcsw" style="background:${tone}" aria-hidden="true"></i>`:'']}
 /* the cycle's first and last morning heliacal rise in a table */
 function totRise(r){if(r.mer)return {f:r.rows[0],l:r.rows[r.rows.length-1],sg:r.sg};const R=r.rows,i=R.findIndex(isIC),f=R.slice(i+1).find(x=>x.k==='hel'&&x.pa<0),l=R.slice().reverse().find(x=>x.k==='hel'&&x.pa<0);return f?{f,l:l&&l!==f?l:null,sg:sgnOf(f.v)}:null}
