@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d16">
+<title>Harmonia</title>
+<style>html,body{margin:0;height:100%;background:#0b0d16;color:#efe6d2}body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}</style>
+</head>
+<body>
+<main id="app"></main>
+<script>/* ---------- Harmonia (Cellarius World): the 29 plates and the lessons ----------
+   Andreas Cellarius, Harmonia Macrocosmica (Amsterdam: Johannes Janssonius, 1660). The engravings are public domain.
+   Scans: Biblioteca comunale di Trento (BCT), copy on Wikimedia Commons, marked Public Domain by the library.
+   Plate numbers follow the page order of the Trento copy (it agrees with plates 1, 7, 20, and 22 in published lists;
+   check the rest against Robert van Gent's plate list before print).
+   Every lesson text is a DRAFT in Gemini Brett's voice, for Gemini to edit. Text is data: edit freely.
+   look: hotspots {x,y} as fractions of the image (0 to 1), z = zoom, t = title, d = note. */
+(function(){'use strict';
+const COMMONS='https://commons.wikimedia.org/wiki/File:';
+const P=[
+{n:1,look:[{t:"Earth and the Elements",x:0.5,y:0.5,z:4,d:"Earth in the center, ringed by water, air, and fire: the four elements of the world below the Moon."},{t:"The Sun's Chariot",x:0.5,y:0.2,z:3.5,d:"Each planet rides a chariot through the sky. At the top, the Sun drives across the heavens."},{t:"The Planet Glyphs",x:0.67,y:0.6,z:4,d:"The seven planet glyphs in order from Earth: Moon, Mercury, Venus, Sun, Mars, Jupiter, and Saturn."},{t:"Aries Begins the Zodiac",x:0.15,y:0.5,z:4,d:"The zodiac ring starts with Aries at the Eastquinox, on the left, and runs around the whole cosmos."},{t:"Astronomers at Work",x:0.13,y:0.82,z:3,d:"Scholars with books, globes, and instruments: Cellarius always shows people studying the sky."}],cbt:'5869542',ch:'center',sys:'ptolemy',latin:'Planisphaerium Ptolemaicum',english:'The Ptolemaic Planisphere',
+ file:'Planisphaerium_Ptolemaicum,_sive,_Machina_orbium_mundi_ex_hypothesi_Ptolemaica_in_plano..._-_CBT_5869542.jpg',
+ story:`Here is where our story begins: the sky exactly as we see it from Earth. Earth sits in the center, wrapped in the elements, and around Earth the Moon, Mercury, Venus, the Sun, Mars, Jupiter, and Saturn each ride their own sphere. Beyond Saturn the fixed stars turn, and the zodiac rings the whole cosmos. For about fourteen hundred years this was the map every astrologer carried in their mind. When people call it "wrong," I like to smile, because it is a beautiful, accurate picture of Earth's point of view, and Earth's point of view is where astrology lives.`,
+ ask:'Count the rings from Earth outward. Which planet sits in the middle of the seven, and why might the old astrologers have called that place the heart of the heavens?'},
+{n:2,cbt:'5869583',ch:'center',sys:'ptolemy',latin:'Scenographia Systematis Mundani Ptolemaici',english:'A Scene of the Ptolemaic World System',
+ file:'Scenographia_systematis_mundani_Ptolemaici_-_CBT_5869583.jpg',
+ story:`Cellarius now lifts the flat map into three dimensions, and suddenly we are floating in space looking back at Earth. Look how the zodiac becomes a great band of living figures: the Ram, the Bull, the Twins, all parading around the sky. The planetary rings tilt and overlap like the circles of an armillary sphere. This is the picture I want you to hold when you stand outside at night: the zodiac is not on a page, it is a road wrapped all the way around us.`,
+ ask:'Find your own Sun sign in the band of figures. Which signs sit beside it?'},
+{n:3,cbt:'5869591',ch:'center',sys:'ptolemy',latin:'Orbium Planetarum Terram Complectentium Scenographia',english:'The Planetary Orbits Embracing the Earth',
+ file:'Orbium_planetarum_Terram_complectentium_scenographia_-_CBT_5869591.jpg',
+ story:`"Embracing" is the word Cellarius chose, and I love it. Each planet's orbit is drawn as a hoop, and all the hoops hold Earth like hands around a precious seed. Look at the little scenes in the corners: astronomers measuring and debating, because even in 1660 this was a living conversation. This plate reminds us that the planets are in relationship with Earth, and so are we.`,
+ ask:'Why might it feel different to say the planets embrace Earth rather than circle around Earth?'},
+{n:4,look:[{t:"The Sun in the Center",x:0.5,y:0.47,z:4,d:"The Sun takes the center, with Mercury and Venus on the nearest circles."},{t:"Earth and the Moon",x:0.5,y:0.32,z:5,d:"Earth has become a planet, carrying the Moon along on a small circle."},{t:"Jupiter's Four Moons",x:0.73,y:0.42,z:5,d:"Four tiny moons around Jupiter, first seen by Galileo in 1610: new evidence in the great debate."},{t:"Saturn at the Edge",x:0.23,y:0.5,z:4,d:"Saturn, the farthest planet the ancients knew, rides the outermost circle."},{t:"Astronomers at Work",x:0.88,y:0.8,z:3,d:"A scholar with an armillary sphere and a globe, the tools of the debate."}],cbt:'5869605',ch:'three',sys:'copernicus',latin:'Planisphaerium Copernicanum',english:'The Copernican Planisphere',
+ file:'Planisphaerium_Copernicanum,_sive,_Systema_vniuersi_totius_creati_ex_hypothesi_Copernicana_in..._-_CBT_5869605.jpg',
+ story:`Now the Sun takes the center seat. Nicolaus Copernicus published this arrangement in 1543, and Cellarius, writing more than a century later, still presents it as one hypothesis among three. Look closely at Jupiter: four tiny moons ride along, the moons Galileo first saw through his telescope in 1610. Here Earth becomes a planet, carrying the Moon around the Sun. It is the view from space, and it explains so much, especially why the planets seem to turn back in their Retro Zones.`,
+ ask:'Find Earth on this plate. What travels with Earth that no other planet here carries?'},
+{n:5,cbt:'5869621',ch:'three',sys:'copernicus',latin:'Scenographia Systematis Copernicani',english:'A Scene of the Copernican System',
+ file:'Scenographia_systematis_Copernicani_-_CBT_5869621.jpg',
+ story:`Cellarius shows the Sun-centered cosmos in three dimensions, with the zodiac figures floating around the outside. Watch Earth on its journey: the tilt of Earth stays pointed the same way all year, and that steady tilt gives us the seasons, the Eastquinox, the Northstice, the Westquinox, and the Southstice. This is the secret every Earthstrologer carries: the signs of the Earth zodiac are written by Earth's tilt and Earth's year.`,
+ ask:'If Earth\'s tilt always points the same way, why does the Sun climb high in summer and stay low in winter?'},
+{n:6,look:[{t:"Earth Holds the Center",x:0.5,y:0.49,z:5,d:"Earth stays still in the middle, with the Moon on the nearest circle."},{t:"The Sun Carries Mercury and Venus",x:0.5,y:0.36,z:4,d:"The Sun circles Earth, and Mercury and Venus circle the Sun."},{t:"Jupiter's Moons",x:0.38,y:0.21,z:5,d:"Even in Tycho's system, Cellarius shows the four moons of Jupiter."},{t:"Astronomers at Work",x:0.85,y:0.8,z:2.5,d:"Scholars measuring with globes and instruments. Tycho was the greatest observer before the telescope."}],cbt:'5869634',ch:'three',sys:'tycho',latin:'Planisphaerium Braheum',english:'The Planisphere of Tycho Brahe',
+ file:'Planisphaerium_Braheum,_sive,_Structura_mundi_totius_ex_hypothesi_Tychonis_Brahei_in..._-_CBT_5869634.jpg',
+ story:`Tycho Brahe, the great Danish observer, offered a brilliant middle way in 1588. Earth stays still in the center, the Moon and the Sun circle Earth, and Mercury, Venus, Mars, Jupiter, and Saturn all circle the Sun. Here is the beautiful secret: seen from Earth, Tycho's cosmos and Copernicus's cosmos produce exactly the same sky. So the question was never only "what moves?" It was "from where are we looking?"`,
+ ask:'Trace Venus on this plate. Around what does Venus travel, and how does that explain why Venus is only ever a morning or evening star?'},
+{n:7,cbt:'5869647',ch:'three',sys:'tycho',latin:'Scenographia Compagis Mundanae Brahea',english:'A Scene of Tycho Brahe\'s World',
+ file:'Scenographia_compagis_mundanae_Brahea_-_CBT_5869647.jpg',
+ story:`Tycho's world in three dimensions. Earth again holds the center, and the Sun, carrying the five planets along, circles around us. Look at the figures in the corners studying instruments; Tycho measured the sky more precisely than anyone before the telescope. His careful numbers became the foundation Johannes Kepler used to discover that orbits are ellipses.`,
+ ask:'Why might a great observer want to keep Earth at the center?'},
+{n:8,cbt:'5869649',ch:'three',sys:'aratus',latin:'Planisphaerium Arateum',english:'The Planisphere of Aratus',
+ file:'Planisphaerium_Arateum,_sive,_Compages_orbium_mundanorum_ex_hypothesi_Aratea_in_plano..._-_CBT_5869649.jpg',
+ story:`This arrangement is even older than Tycho's. Mercury and Venus circle the Sun, while the Sun, the Moon, Mars, Jupiter, and Saturn circle Earth. Cellarius names it for Aratus, the Greek poet of the stars, and ancient writers such as Martianus Capella described the same idea. Ancient sky watchers noticed that Mercury and Venus never wander far from the Sun, and this plate is their answer. These are the interior planets, always our morning and evening stars.`,
+ ask:'What did ancient watchers see in the sky that led them to put Mercury and Venus around the Sun?'},
+{n:9,cbt:'5869653',ch:'three',sys:'tycho',latin:'Tychonis Brahe Calculus Planetarum Cursus et Altitudines',english:'Tycho Brahe\'s Calculation of the Planets\' Courses and Heights',
+ file:'Tychonis_Brahe_calculus_planetarum_cursus_et_altitudines_ob_oculos_ponens_-_CBT_5869653.jpg',
+ story:`"Placing before the eyes" the courses and heights of the planets: that is Cellarius's promise here. This plate shows Tycho's system as a working machine, with the planets' paths drawn so you can see how far each one travels from Earth. It is a reminder that astrology and astronomy grew up together; the same people who cast charts measured the heavens.`,
+ ask:'Which planets come closest to Earth in this picture?'},
+{n:10,cbt:'5869938',ch:'moon',sys:'sizes',latin:'Corporum Coelestium Magnitudines',english:'The Sizes of the Heavenly Bodies',
+ file:'Corporum_coelestium_magnitudines_-_CBT_5869938.jpg',
+ story:`How big is the Sun? How big is Saturn? Here Cellarius lines up the heavenly bodies by size, following the best estimates of his day. Some numbers are far from what we know now, and that is part of the lesson: every age measures the cosmos with the tools it has, and every age is humbled by what comes next.`,
+ ask:'Which body did Cellarius draw largest? Is that still true today?'},
+{n:11,cbt:'5869948',ch:'earth',sys:'sphere',latin:'Situs Terrae Circulis Coelestibus Circundatae',english:'The Earth Surrounded by the Celestial Circles',
+ file:'Situs_Terrae_circulis_coelestibus_circundatae_-_CBT_5869948.jpg',
+ story:`Here is Earth wearing the great circles of the sky: the equator, the two tropics, the polar circles, and the slanting band of the ecliptic, the Sun's road through the zodiac. These are the circles of the armillary sphere and the bones of every chart we cast. The Tropic of Cancer marks the Northstice, the Tropic of Capricorn the Southstice. When you see these lines on Earth, you are seeing the sky printed on the ground.`,
+ ask:'Find the Tropic of Cancer. On the day of the Northstice, where on Earth is the Sun straight overhead at noon?'},
+{n:12,cbt:'5869960',ch:'earth',sys:'sphere',latin:'Haemisphaeria Sphaerarum Rectae et Obliquae',english:'The Right and Oblique Spheres',
+ file:'Haemisphaeria_sphaerarum_rectae_et_obliquae_utriusque_motus_et_longitudines_tam_coelestes..._-_CBT_5869960.jpg',
+ story:`Stand on the equator and the stars Rise straight up and Root straight down: that is the right sphere. Travel north and the whole sky tilts: that is the oblique sphere, where some stars never set and some signs Rise quickly while others take their time. This is why your Ascendant depends on where you were born, and why Earthstrology always asks: where are your feet on the ground?`,
+ ask:'Where you live, which signs Rise fastest, and which take the longest?'},
+{n:13,cbt:'5870039',ch:'earth',sys:'sphere',latin:'Haemisphaerium Orbis Antiqui',english:'The Hemisphere of the Ancient World',
+ file:'Haemisphaerium_orbis_antiqui_cumzonis_circulis_et_situ_populorum_diuerso_-_CBT_5870039.jpg',
+ story:`This is the world as the ancient geographers knew it, divided into zones and climes, bands of latitude where the longest day has the same length. Astrologers used the climes to know how the signs Rise in each land. Look for Kemet, the land we now call Egypt, where so much of our astrology was born.`,
+ ask:'Why would an astrologer in Alexandria need different rising times than one in Rome?'},
+{n:14,look:[{t:"The Epicycle, Far from Earth",x:0.47,y:0.17,z:4,d:"At the top the planet rides its small circle far from Earth: the apogee."},{t:"The Epicycle, Close to Earth",x:0.47,y:0.7,z:4,d:"At the bottom the planet comes closest to Earth: the perigee. Here the planet seems to move backward, in the Retro Zone."},{t:"Earth and the Eccentric Center",x:0.5,y:0.48,z:3.5,d:"Earth is not quite at the center of the great circle. The eccentric center sits just beside Earth."},{t:"Two Small Diagrams",x:0.12,y:0.86,z:3,d:"In the corners, Cellarius draws the same idea in miniature."}],cbt:'5870049',ch:'wheels',sys:'ptolemy',latin:'Hypothesis Ptolemaica',english:'The Ptolemaic Hypothesis: Eccentrics and Epicycles',
+ file:'Hypothesis_Ptolemaica,_sive,_Communis_planetarum_motus_per_eccentricos_et_epicyclos_demonstrans..._-_CBT_5870049.jpg',
+ story:`How do you explain a planet that stops, turns back, and goes forward again? Ptolemy's answer was the epicycle, a small circle riding on a larger one. As the planet spins around the small circle, from Earth we see the planet slow, station, and enter the Retro Zone. Today we know the Retro Zone happens because Earth and the planet pass each other, but Ptolemy's wheels predicted the sky remarkably well for fourteen centuries.`,
+ ask:'Trace one epicycle with your finger. Where on the small circle would the planet seem to move backward?'},
+{n:15,cbt:'5870074',ch:'moon',sys:'aspects',latin:'Typus Aspectuum, Oppositionum et Conjunctionum',english:'The Aspects, Oppositions, and Conjunctions of the Planets',
+ file:'Typus_aspectuum_oppositionum_et_coniunctionum_etz_in_planetis_-_CBT_5870074.jpg',
+ story:`Here is pure astrology in an astronomy book! Cellarius draws the classic aspects: the conjunction, the sextile, the square, the trine, and the opposition, each a geometry of the circle. This is where astrology meets the quadrivium: number, geometry, harmony, and astronomy all in one picture. The trine divides the circle by three, the square by four, the sextile by six, and the opposition by two.`,
+ ask:'Find the trine. How many signs apart are two planets in a trine?'},
+{n:16,cbt:'5870124',ch:'wheels',sys:'sun',latin:'Theoria Solis per Eccentricum sine Epicyclo',english:'The Theory of the Sun by an Eccentric Circle',
+ file:'Theoria_Solis_per_eccentricum_sine_epicyclo_-_CBT_5870124.jpg',
+ story:`Did you know the seasons are not equal in length? From the Eastquinox to the Westquinox is several days longer than the other half of the year. The ancients explained this by putting the Sun's circle a little off center from Earth, an eccentric. Today we know Earth's orbit is an ellipse, but the old picture captures the same truth: the Sun seems to move faster in our winter and slower in our summer.`,
+ ask:'Count the days from the Eastquinox to the Westquinox this year, then from the Westquinox back to the Eastquinox. Which half is longer?'},
+{n:17,look:[{t:"Earth in the Middle",x:0.5,y:0.48,z:3,d:"Earth sits in the center of the Sun's spiral."},{t:"The Zodiac Band",x:0.45,y:0.42,z:3.5,d:"The slanting band with the zodiac figures is the ecliptic, the Sun's yearly road."},{t:"The Sun's Daily Spiral",x:0.72,y:0.3,z:2.5,d:"Each loop is one day of the Sun around Earth, shifting a little north or south between the tropics."}],cbt:'5870137',ch:'wheels',sys:'sun',latin:'Solis circa Orbem Terrarum Spiralis Revolutio',english:'The Spiral Revolution of the Sun around the Earth',
+ file:'Solis_circa_orbem_Terrarum_spiralis_revolutio_-_CBT_5870137.jpg',
+ story:`This is one of my favorite plates. Day by day the Sun circles Earth, but each day the circle shifts a little north or south, so over the year the Sun traces a spiral between the two tropics. This is the Sun's Arc, the dance of the solstices, and it is exactly what we feel on the ground as the days grow longer and shorter. Ancient sky watchers saw a spiral; we see it every time the Sun Rises a little farther along the horizon.`,
+ ask:'Watch where the Sun Rises on your horizon for one month. Which way is the spiral turning right now?'},
+{n:18,cbt:'5870150',ch:'moon',sys:'moon',latin:'Theoria Lunae',english:'The Theory of the Moon',
+ file:'Theoria_Lunae_eius_motum_per_eccentricum_et_epicyclum_demonstrans_-_CBT_5870150.jpg',
+ story:`The Moon is the fastest traveler in our sky and also the trickiest to predict. Here Cellarius shows the wheels within wheels that astronomers used to follow the Moon: an eccentric circle plus an epicycle, to explain why the Moon sometimes races and sometimes lingers. Every lunar calendar and every eclipse prediction grew from this careful watching.`,
+ ask:'Why might the Moon have been the hardest planet for ancient astronomers to predict?'},
+{n:19,cbt:'5870173',ch:'moon',sys:'moon',latin:'Typus Selenographicus Lunae Phases',english:'The Phases and Aspects of the Moon',
+ file:'Typus_selenographicus_Lunae_phases_et_aspectus_varios_adumbrans_-_CBT_5870173.jpg',
+ story:`Here is the Moon going through the whole lunar cycle around Earth, lit by the Sun, with the face we see from Earth shown at each step. New, crescent, quarter, gibbous, full, and back again: the Moon's phases are aspects to the Sun. In Earthstrology we walk this cycle from Seeding to Dreaming, and this plate is the perfect map for that journey.`,
+ ask:'Which phase of the Moon is happening tonight? Find it on the plate.'},
+{n:20,cbt:'5870180',ch:'wheels',sys:'outer',latin:'Theoria Trium Superiorum Planetarum',english:'The Theory of the Three Superior Planets',
+ file:'Theoria_trium_superiorum_planetarum_-_CBT_5870180.jpg',
+ story:`Mars, Jupiter, and Saturn, the three planets beyond the Sun, each with an epicycle to explain their Retro Zones. Notice that each epicycle stays in step with the Sun: Mars, Jupiter, and Saturn are always in the middle of the Retro Zone when they stand opposite the Sun. The ancients noticed that link long before anyone knew why. That is the Solar Opposition, the heart of every exterior planet's cycle.`,
+ ask:'When Mars is in the Retro Zone, where is the Sun?'},
+{n:21,cbt:'5870197',ch:'wheels',sys:'inner',latin:'Theoria Veneris et Mercurii',english:'The Theory of Venus and Mercury',
+ file:'Theoria_Veneris_et_Mercurii_-_CBT_5870197.jpg',
+ story:`Venus and Mercury, our interior planets, get their own plate. Their epicycles are centered on the line to the Sun, which is why they never wander far from the Sun and why they are always morning or evening stars. Here you can see the geometry behind the Venus cycle we love so much: the dance of the interior and exterior conjunctions.`,
+ ask:'Is Venus a morning star or an evening star right now?'},
+{n:22,cbt:'5870336',ch:'stars',sys:'christian',latin:'Coeli Stellati Christiani Haemisphaerium Prius',english:'The Christian Starry Sky, First Hemisphere',
+ file:'Coeli_stellati_christiani_haemisphaerium_prius_-_CBT_5870336.jpg',
+ story:`Now something surprising. In 1627 Julius Schiller tried to baptize the sky: he replaced the old constellations with saints and Bible stories, and the twelve zodiac signs with the twelve apostles. Cellarius reproduced Schiller's sky here. It never caught on, but it shows us how every culture writes its own stories in the same stars.`,
+ ask:'What stories would you write in the stars if you could rename them?'},
+{n:23,cbt:'5870364',ch:'stars',sys:'christian',latin:'Coeli Stellati Christiani Haemisphaerium Posterius',english:'The Christian Starry Sky, Second Hemisphere',
+ file:'Coeli_stellati_christiani_haemisphaerium_posterius_-_CBT_5870364.jpg',
+ story:`The other half of Schiller's Christian sky. Compare this plate with the ancient star maps that follow, and you will see the same stars wearing different costumes. The stars do not change; the stories do.`,
+ ask:'Find a star pattern you know. What did Schiller turn it into?'},
+{n:24,cbt:'5870375',ch:'stars',sys:'stars',latin:'Haemisphaerium Stellatum Boreale Antiquum',english:'The Ancient Northern Starry Hemisphere',
+ file:'Haemisphaerium_stellatum_boreale_antiquum_-_CBT_5870375.jpg',
+ story:`The northern sky with the constellations the Greeks and Ptolemy knew: the Great Bear, the Dragon, Perseus, Andromeda, and the zodiac figures running around the edge. These are the pictures our ancestors saw when they looked up, and the stories behind many of the fixed stars we still use in astrology today.`,
+ ask:'Find the Ram and the Bull. Which bright stars live in the Bull?'},
+{n:25,cbt:'5870392',ch:'earth',sys:'stars',latin:'Haemisphaerii Borealis Coeli et Terrae Sphaerica Scenographia',english:'The Northern Hemisphere of Sky and Earth',
+ file:'Haemisphaerii_borealis_coeli_et_terrae_sphaerica_scenographia_-_CBT_5870392.jpg',
+ story:`Here the sky and the Earth are drawn together, the starry dome above and the northern lands below, as if you could lift the sky like a lid. This is the heart of Earthstrology: the sky is not far away, it is the roof over our home.`,
+ ask:'Find your own part of the world. Which constellations pass overhead there?'},
+{n:26,cbt:'5870407',ch:'stars',sys:'stars',latin:'Haemisphaerium Stellatum Boreale cum Subiecto Haemisphaerio Terrestri',english:'The Northern Starry Hemisphere above the Earth',
+ file:'Haemisphaerium_stellatum_boreale_cum_subiecto_haemisphaerio_terrestri_-_CBT_5870407.jpg',
+ story:`The northern stars drawn above the Earth beneath them. Notice how the North Pole of the sky sits above the North Pole of Earth; the whole sky turns around that point every day. Stand outside facing north and you can feel this plate turning above you.`,
+ ask:'Which constellations never set where you live?'},
+{n:27,cbt:'5870414',ch:'stars',sys:'stars',latin:'Haemisphaerium Stellatum Australe Antiquum',english:'The Ancient Southern Starry Hemisphere',
+ file:'Haemisphaerium_stellatum_australe_antiquum_-_CBT_5870414.jpg',
+ story:`The southern sky as the ancients knew it, plus some newer figures added by the navigators who sailed below the equator. Here are the Scorpion, the Archer, the SeaGoat, and the great ship Argo. For our friends in the lands down under, this is your home sky.`,
+ ask:'Which zodiac constellations can you find on this southern map?'},
+{n:28,cbt:'5870431',ch:'earth',sys:'stars',latin:'Haemisphaerium Scenographicum Australe Coeli Stellati et Terrae',english:'The Southern Hemisphere of Sky and Earth',
+ file:'Haemisphaerium_scenographicum_australe_coeli_stellati_et_terrae_-_CBT_5870431.jpg',
+ story:`The southern sky lifted above the southern Earth. In 1660 much of the southern land was still a mystery to European mapmakers, so look for the guesses and the empty spaces. The sky was better known than the ground!`,
+ ask:'What lands look strange or missing on this plate compared with a modern map?'},
+{n:29,cbt:'5870443',ch:'stars',sys:'stars',latin:'Haemisphaerium Stellatum Australe Aequali Sphaerarum Proportione',english:'The Southern Starry Hemisphere in Equal Proportion',
+ file:'Haemisphaerium_stellatum_australe_aequali_sphaerarum_proportione_-_CBT_5870443.jpg',
+ story:`The final plate shows the southern stars over the Earth, drawn in equal proportion. From the first plate to the last, Cellarius has carried us from the center of the cosmos out to the farthest stars and back home to Earth. That is the whole journey of astrology: from where we stand, to the sky, and back to ourselves.`,
+ ask:'After walking through all 29 plates, which picture of the cosmos speaks to you most, and why?'}
+];
+P.forEach(p=>{p.src=COMMONS+p.file});
+const CHAPTERS=[
+ {id:'center',name:'The Earth at the Center',intro:`We begin where astrology began: with Earth at the center and the sky turning around us. This is not a mistake to be corrected; it is our point of view.`},
+ {id:'wheels',name:'Wheels Within Wheels',intro:`How did the ancients predict the planets? With circles riding on circles. These plates show the machinery behind the Retro Zones, the seasons, and the Sun's spiral.`},
+ {id:'moon',name:'Moon, Aspects, and Sizes',intro:`The Moon's phases, the aspects between planets, and the sizes of the heavenly bodies: astrology and the quadrivium meeting on the page.`},
+ {id:'three',name:'Three Ways to Arrange the Heavens',intro:`Aratus, Tycho Brahe, and Copernicus each arranged the cosmos differently, and all three explain the same sky. Compare them side by side.`},
+ {id:'earth',name:'Earth beneath the Sky',intro:`The great circles, the climes, and the sphere: how the sky is printed on Earth, and why your Ascendant depends on where you stand.`},
+ {id:'stars',name:'The Starry Sky, Old and New',intro:`The constellations as the Greeks drew them, and the Christian sky that tried to replace them. Same stars, different stories.`}
+];
+const TIMELINE=[
+ {y:-270,t:'Aratus writes the Phaenomena, a poem of the constellations',plate:8},
+ {y:150,t:'Ptolemy writes the Almagest and the Tetrabiblos',plate:1},
+ {y:1543,t:'Copernicus publishes the Sun-centered cosmos',plate:4},
+ {y:1588,t:'Tycho Brahe publishes his Earth-and-Sun system',plate:6},
+ {y:1610,t:'Galileo sees four moons of Jupiter',plate:4},
+ {y:1627,t:'Julius Schiller publishes the Christian starry sky',plate:22},
+ {y:1660,t:'Cellarius publishes Harmonia Macrocosmica in Amsterdam',plate:2}
+];
+const CREDIT={
+ work:'Andreas Cellarius, Harmonia Macrocosmica seu Atlas Universalis et Novus (Amsterdam: Johannes Janssonius, 1660)',
+ copy:'Biblioteca comunale di Trento',
+ license:'Public domain (work published 1660; scans marked public domain by the library on Wikimedia Commons)',
+ line:'Plates: Andreas Cellarius, Harmonia Macrocosmica (1660). Scans courtesy of the Biblioteca comunale di Trento, via Wikimedia Commons. Public domain.'
+};
+window.EA_HARMONIA={plates:P,chapters:CHAPTERS,timeline:TIMELINE,credit:CREDIT};
+})();
+</script>
+<script>/* ---------- Harmonia World (Cellarius): an illustrated history of astrology ----------
+   Gemini, Nov 16, 2026: use the public-domain plates of Andreas Cellarius's Harmonia Macrocosmica (1660) to teach an
+   illustrated history of astrology, in Gemini Brett's voice. A phone app first, and a menu in the Device.
+   One module serves both:
+   - Device: registers window.EA_WORLDS.harmonia; the core calls it with its API and gets back {box, act, open}.
+     The box is a small launcher; "Open Harmonia" mounts the full-window reader in its own root (#hm-app).
+   - Phone app (worlds/harmonia/app.html): calls window.EA_HARMONIA_APP.mount(element, {standalone:true}).
+   Data: window.EA_HARMONIA (plates.js). Every color, size and path is in HM_CFG so it can be edited later.
+   Upper right stays clear (teacher camera): the close and back buttons sit upper left. */
+(function(){'use strict';
+const HM_CFG={
+ base:'harmonia/',                                   /* folder that holds plates/ and thumbs/ (relative to the page) */
+ fallback:'https://gemb1123.github.io/GemBstar5813/harmonia/',  /* used when the local folder is missing */
+ plate:n=>'plates/'+String(n).padStart(2,'0')+'.jpg', /* about 2600 px wide, for deep zoom */
+ thumb:n=>'thumbs/'+String(n).padStart(2,'0')+'.jpg', /* about 480 px wide, for cards */
+ maxZoom:8,
+ theme:{bg:'#0b0d16',panel:'#141827',ink:'#efe6d2',soft:'#b9ad92',gold:'#d8b25a',line:'#2b3149',accent:'#7fb4e6',ok:'#7cc48a',no:'#e0806f'}
+};
+const SYS={ptolemy:'Ptolemy',aratus:'Aratus',tycho:'Tycho Brahe',copernicus:'Copernicus'};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const D=()=>window.EA_HARMONIA;
+
+function css(){const t=HM_CFG.theme;return `
+.hm{--bg:${t.bg};--pn:${t.panel};--ink:${t.ink};--soft:${t.soft};--gold:${t.gold};--ln:${t.line};--acc:${t.accent};--ok:${t.ok};--no:${t.no};
+ position:fixed;inset:0;z-index:900;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+.hm.std{position:fixed}
+.hm *{box-sizing:border-box}
+.hm button{font:inherit;color:inherit;cursor:pointer}
+.hm :focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hm-top{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--ln);min-height:52px;flex:none}
+.hm-top h1{font:600 17px/1.2 Georgia,"Times New Roman",serif;margin:0;letter-spacing:.02em;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hm-ib{background:none;border:1px solid var(--ln);border-radius:10px;min-width:44px;height:44px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.hm-ib:hover{border-color:var(--gold)}
+.hm-main{flex:1;overflow:auto;-webkit-overflow-scrolling:touch}
+.hm-wrap{max-width:980px;margin:0 auto;padding:16px}
+.hm-hero{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--ln);background:#000}
+.hm-hero img{display:block;width:100%;aspect-ratio:1.2;max-height:64vh;object-fit:cover;opacity:.85}
+.hm-hero div{position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(transparent,rgba(5,6,12,.95) 38%);padding-top:48px}
+.hm-hero h2{font:600 26px/1.15 Georgia,serif;margin:0 0 4px}
+.hm-hero p{margin:0 0 12px;color:var(--soft)}
+.hm .hm-cta{background:var(--gold);color:#1a1405;border:0;border-radius:12px;padding:12px 18px;font-weight:600;min-height:44px}
+.hm-sec{font:600 13px/1 system-ui;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);margin:24px 0 10px}
+.hm-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.hm-tile{background:var(--pn);border:1px solid var(--ln);border-radius:14px;padding:14px;text-align:left;min-height:84px}
+.hm-tile b{display:block;font:600 15px/1.25 Georgia,serif;margin-bottom:4px}
+.hm-tile span{color:var(--soft);font-size:13px}
+.hm-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.hm-card{background:var(--pn);border:1px solid var(--ln);border-radius:14px;overflow:hidden;padding:0;text-align:left;display:flex;flex-direction:column}
+.hm-card img{width:100%;aspect-ratio:1.2;object-fit:cover;display:block;background:#000}
+.hm-card div{padding:8px 10px 10px}
+.hm-card small{color:var(--gold);font-weight:600}
+.hm-card b{display:block;font:500 14px/1.3 Georgia,serif}
+.hm-intro{font:17px/1.6 Georgia,serif;color:var(--ink);margin:4px 0 8px}
+.hm-plate{display:flex;flex-direction:column;flex:1;min-height:0}
+.hm-view{position:relative;flex:1 1 55%;min-height:240px;overflow:hidden;background:#05060a;touch-action:none;cursor:grab}
+.hm-view.drag{cursor:grabbing}
+.hm-view img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;max-width:none}
+.hm-zc{position:absolute;left:12px;bottom:12px;display:flex;gap:6px}
+.hm-zc button{background:rgba(11,13,22,.85);border:1px solid var(--ln);border-radius:10px;min-width:44px;height:44px}
+.hm-cap{position:absolute;left:12px;right:12px;top:12px;max-width:520px;background:rgba(11,13,22,.9);border:1px solid var(--gold);border-radius:12px;padding:10px 12px;font:15px/1.45 Georgia,serif}.hm-cap[hidden]{display:none}
+.hm-cap b{display:block;color:var(--gold);font:600 12px/1.3 system-ui;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px}
+.hm-lbl{font:600 12px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);margin:0 0 6px}
+.hm select{background:var(--pn);color:var(--ink);border:1px solid var(--ln);border-radius:10px;min-height:44px;padding:0 10px;font:inherit;margin-left:6px}
+.hm-load{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--soft)}
+.hm-sheet{flex:1 1 45%;overflow:auto;border-top:1px solid var(--ln);background:var(--pn)}
+.hm-sheet .hm-wrap{padding-top:12px}
+.hm-num{color:var(--gold);font-weight:600;font-size:13px;letter-spacing:.06em}
+.hm-lat{font:italic 15px/1.3 Georgia,serif;color:var(--soft);margin:2px 0}
+.hm-eng{font:600 21px/1.25 Georgia,serif;margin:2px 0 10px}
+.hm-story{font:17px/1.65 Georgia,serif;margin:0 0 14px}
+.hm-ask{border-left:3px solid var(--gold);padding:8px 12px;background:rgba(216,178,90,.08);border-radius:0 10px 10px 0;margin:0 0 14px}
+.hm-ask b{display:block;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.hm-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.hm-chip{background:none;border:1px solid var(--ln);border-radius:999px;padding:8px 14px;min-height:44px}
+.hm-chip.on{border-color:var(--gold);background:rgba(216,178,90,.14)}
+.hm-nav{display:flex;justify-content:space-between;gap:8px;margin:8px 0 20px}
+.hm-cmp{position:relative;width:100%;aspect-ratio:1.2;overflow:hidden;border-radius:14px;border:1px solid var(--ln);background:#000;touch-action:none}
+.hm-cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.hm-cmp .b{clip-path:inset(0 0 0 var(--cut,50%))}
+.hm-cmp .bar{position:absolute;top:0;bottom:0;left:var(--cut,50%);width:2px;background:var(--gold);pointer-events:none}
+.hm-cmp .bar::after{content:"";position:absolute;top:50%;left:-13px;width:28px;height:28px;margin-top:-14px;border-radius:50%;background:var(--gold);box-shadow:0 0 0 4px rgba(0,0,0,.35)}
+.hm-cmp-l{display:flex;justify-content:space-between;color:var(--soft);font-size:13px;margin:6px 2px 0}
+.hm-range{width:100%;margin:10px 0;accent-color:var(--gold);min-height:44px}
+.hm-tl{list-style:none;margin:0;padding:0;border-left:2px solid var(--ln);margin-left:10px}
+.hm-tl li{position:relative;padding:0 0 18px 18px}
+.hm-tl li::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--gold)}
+.hm-tl b{color:var(--gold);display:block}
+.hm-tl button{background:none;border:0;padding:0;text-align:left;text-decoration:underline;text-decoration-color:var(--ln);text-underline-offset:3px;min-height:44px}
+.hm-quiz img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;border:1px solid var(--ln);background:#000;display:block}
+.hm-ans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.hm-ans button{background:var(--pn);border:1px solid var(--ln);border-radius:12px;min-height:52px;padding:8px}
+.hm-ans button.ok{border-color:var(--ok);background:rgba(124,196,138,.15)}
+.hm-ans button.no{border-color:var(--no);background:rgba(224,128,111,.12)}
+.hm-fb{font:16px/1.55 Georgia,serif;margin:0 0 12px}
+.hm-cred p{margin:0 0 10px}.hm-cred a{color:var(--acc)}
+.hm-cred table{width:100%;border-collapse:collapse;font-size:13px}.hm-cred td{border-top:1px solid var(--ln);padding:6px 4px;vertical-align:top}
+.hm-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+@media (min-width:900px){.hm-plate{flex-direction:row}.hm-view{flex:1 1 62%}.hm-sheet{flex:0 0 38%;border-top:0;border-left:1px solid var(--ln)}}
+@media (prefers-reduced-motion:reduce){.hm *{transition:none!important}}
+`}
+
+/* ------------- the reader (shared by the phone app and the Device) ------------- */
+function Reader(root,opt){
+ opt=opt||{};const ST={view:'home',ch:null,n:1,cmpA:1,cmpB:4,cut:50,quiz:null,score:[0,0],look:true};
+ let base=opt.base!=null?opt.base:HM_CFG.base,zoom=null;
+ const src=(n,big)=>base+(big?HM_CFG.plate(n):HM_CFG.thumb(n));
+ const plate=n=>D().plates.find(p=>p.n===+n);
+ root.className='hm'+(opt.standalone?' std':'');root.setAttribute('role','dialog');root.setAttribute('aria-label','Harmonia, an illustrated history of astrology');if(!opt.standalone)root.setAttribute('aria-modal','true');
+ if(!document.getElementById('hm-css')){const s=document.createElement('style');s.id='hm-css';s.textContent=css();document.head.appendChild(s)}
+ /* one quick probe: if the local plate folder is missing, use the published copy */
+ const probe=new Image();probe.onerror=()=>{if(base!==HM_CFG.fallback){base=HM_CFG.fallback;render()}};probe.src=src(1,false);
+
+ function top(title,back){return `<div class="hm-top">${back?`<button class="hm-ib" data-hm="back" aria-label="Back">‹ Back</button>`:''}${opt.onClose&&!back?`<button class="hm-ib" data-hm="close" aria-label="Close Harmonia">✕ Close</button>`:''}<h1>${esc(title)}</h1></div>`}
+ const card=p=>`<button class="hm-card" data-hm="plate" data-id="${p.n}"><img loading="lazy" src="${src(p.n)}" alt=""><div><small>Plate ${p.n}</small><b>${esc(p.english)}</b></div></button>`;
+
+ function home(){const H=D();return top('Harmonia')+`<div class="hm-main"><div class="hm-wrap">
+  <div class="hm-hero"><img src="${src(2,true)}" alt="Plate 2, the Ptolemaic world system, with the zodiac figures circling Earth"><div>
+   <h2>An Illustrated History of Astrology</h2><p>Walk through the 29 hand-colored plates of Andreas Cellarius's star atlas of 1660, with Gemini Brett.</p>
+   <button class="hm-cta" data-hm="plate" data-id="1">Begin the Journey</button></div></div>
+  <div class="hm-sec">Explore</div><div class="hm-tiles">
+   <button class="hm-tile" data-hm="go" data-id="compare"><b>Three Ways to See the Sky</b><span>Slide between Ptolemy, Tycho Brahe, and Copernicus</span></button>
+   <button class="hm-tile" data-hm="go" data-id="quiz"><b>Which World Is This?</b><span>A quick game: name the system</span></button>
+   <button class="hm-tile" data-hm="go" data-id="timeline"><b>Timeline</b><span>From Aratus to Cellarius</span></button>
+   <button class="hm-tile" data-hm="go" data-id="all"><b>All 29 Plates</b><span>The whole atlas</span></button></div>
+  <div class="hm-sec">Chapters</div><div class="hm-tiles">${H.chapters.map((c,i)=>`<button class="hm-tile" data-hm="ch" data-id="${c.id}"><b>${i+1}. ${esc(c.name)}</b><span>${H.plates.filter(p=>p.ch===c.id).length} plates</span></button>`).join('')}</div>
+  <div class="hm-sec">About</div><div class="hm-tiles"><button class="hm-tile" data-hm="go" data-id="credits"><b>Credits and Sources</b><span>Public-domain scans and where they came from</span></button></div>
+ </div></div>`}
+ function chapter(){const H=D(),c=H.chapters.find(x=>x.id===ST.ch);return top(c.name,1)+`<div class="hm-main"><div class="hm-wrap"><p class="hm-intro">${esc(c.intro)}</p>
+  <div class="hm-cards">${H.plates.filter(p=>p.ch===c.id).map(card).join('')}</div></div></div>`}
+ function all(){return top('All 29 Plates',1)+`<div class="hm-main"><div class="hm-wrap"><div class="hm-cards">${D().plates.map(card).join('')}</div></div></div>`}
+ function plateView(){const p=plate(ST.n),L=D().plates,i=L.indexOf(p),prev=L[i-1],next=L[i+1],looks=p.look||[];
+  return top('Plate '+p.n+' of 29',1)+`<div class="hm-plate">
+  <div class="hm-view" id="hm-view" tabindex="0" aria-label="Plate ${p.n}, ${esc(p.english)}. Drag or use arrow keys to move, plus and minus to zoom, 0 to fit.">
+   <div class="hm-load">Loading the engraving…</div>
+   <img id="hm-img" alt="Plate ${p.n}: ${esc(p.english)}" src="${src(p.n,true)}">
+   <div class="hm-cap" id="hm-cap" role="status" hidden></div>
+   <div class="hm-zc"><button data-hm="zin" aria-label="Zoom in">+</button><button data-hm="zout" aria-label="Zoom out">−</button><button data-hm="zfit" aria-label="Fit the whole plate">Fit</button></div>
+  </div>
+  <div class="hm-sheet"><div class="hm-wrap">
+   <div class="hm-num">PLATE ${p.n}${p.sys&&SYS[p.sys]?' · '+SYS[p.sys].toUpperCase():''}</div>
+   <div class="hm-lat" lang="la">${esc(p.latin)}</div><h2 class="hm-eng">${esc(p.english)}</h2>
+   <p class="hm-story">${esc(p.story)}</p>
+   ${looks.length?`<div class="hm-lbl">Look Closer</div><div class="hm-row" role="group" aria-label="Look Closer">${looks.map((l,k)=>`<button class="hm-chip" data-hm="look" data-id="${k}">${esc(l.t)}</button>`).join('')}</div>`:''}
+   <div class="hm-ask"><b>Ask Yourself</b>${esc(p.ask)}</div>
+   <div class="hm-row"><button class="hm-chip" data-hm="save" data-id="png">Save As PNG</button><button class="hm-chip" data-hm="save" data-id="jpeg">Save As JPEG</button><button class="hm-chip" data-hm="copy">Copy to Clipboard</button></div>
+   <div class="hm-nav">${prev?`<button class="hm-ib" data-hm="plate" data-id="${prev.n}">‹ Plate ${prev.n}</button>`:'<span></span>'}${next?`<button class="hm-ib" data-hm="plate" data-id="${next.n}">Plate ${next.n} ›</button>`:`<button class="hm-ib" data-hm="go" data-id="home">Finish</button>`}</div>
+   <p id="hm-note" class="hm-fb" aria-live="polite"></p>
+  </div></div></div>`}
+ const CMP=[[1,'Ptolemy, flat'],[2,'Ptolemy, in space'],[8,'Aratus'],[6,'Tycho Brahe, flat'],[7,'Tycho Brahe, in space'],[4,'Copernicus, flat'],[5,'Copernicus, in space']];
+ function compare(){const opts=sel=>CMP.map(([n,t])=>`<option value="${n}" ${n===sel?'selected':''}>${t}</option>`).join('');
+  return top('Three Ways to See the Sky',1)+`<div class="hm-main"><div class="hm-wrap">
+  <p class="hm-intro">Drag the gold line, or use the slider, to wipe from one picture of the cosmos to another. Notice what stays in the center, and what moves.</p>
+  <div class="hm-row"><label>Left <select id="hm-ca">${opts(ST.cmpA)}</select></label><label>Right <select id="hm-cb">${opts(ST.cmpB)}</select></label></div>
+  <div class="hm-cmp" id="hm-cmp" style="--cut:${ST.cut}%"><img src="${src(ST.cmpA,true)}" alt="Plate ${ST.cmpA}"><img class="b" src="${src(ST.cmpB,true)}" alt="Plate ${ST.cmpB}"><div class="bar"></div></div>
+  <div class="hm-cmp-l"><span>${esc(plate(ST.cmpA).english)}</span><span>${esc(plate(ST.cmpB).english)}</span></div>
+  <input class="hm-range" id="hm-cut" type="range" min="0" max="100" value="${ST.cut}" aria-label="Wipe between the two plates">
+  <div class="hm-ask"><b>Ask Yourself</b>Seen from Earth, Tycho Brahe's cosmos and Copernicus's cosmos make exactly the same sky. If the view from Earth is the same, what is really different?</div>
+ </div></div>`}
+ const QZ=[1,2,3,4,5,6,7,8,9,14];
+ const QSYS={1:'ptolemy',2:'ptolemy',3:'ptolemy',14:'ptolemy',4:'copernicus',5:'copernicus',6:'tycho',7:'tycho',9:'tycho',8:'aratus'};
+ const QWHY={ptolemy:'Earth sits in the center and every planet, the Sun included, circles Earth.',copernicus:'The Sun sits in the center, and Earth travels around the Sun with the Moon.',
+  tycho:'Earth sits in the center; the Moon and the Sun circle Earth, and the other five planets circle the Sun.',aratus:'Earth sits in the center, but Mercury and Venus circle the Sun.'};
+ function newQ(){const L=QZ.filter(n=>!ST.quiz||n!==ST.quiz.n);const n=L[Math.floor(Math.random()*L.length)];ST.quiz={n,pick:null}}
+ function quiz(){if(!ST.quiz)newQ();const q=ST.quiz,right=QSYS[q.n];
+  return top('Which World Is This?',1)+`<div class="hm-main"><div class="hm-wrap hm-quiz">
+  <p class="hm-intro">Look at the center of the plate. Who arranged the cosmos this way?</p>
+  <img src="${src(q.n,true)}" alt="A plate from the atlas; name its world system">
+  <div class="hm-ans" role="group" aria-label="Answers">${Object.keys(SYS).map(k=>`<button data-hm="ans" data-id="${k}" class="${q.pick?(k===right?'ok':k===q.pick?'no':''):''}" ${q.pick?'aria-disabled="true"':''}>${SYS[k]}</button>`).join('')}</div>
+  <p class="hm-fb" aria-live="polite">${q.pick?(q.pick===right?'Yes! ':'Not quite. This is '+SYS[right]+'\'s world. ')+QWHY[right]:''}</p>
+  ${q.pick?`<div class="hm-row"><button class="hm-cta" data-hm="qnext">Next Plate</button><button class="hm-chip" data-hm="plate" data-id="${q.n}">Read About Plate ${q.n}</button></div>`:''}
+  <p style="color:var(--soft)">Score ${ST.score[0]} of ${ST.score[1]}</p></div></div>`}
+ function timeline(){const yt=y=>y<0?(-y)+' BCE':'c. '+y+' CE';return top('Timeline',1)+`<div class="hm-main"><div class="hm-wrap"><ol class="hm-tl">${D().timeline.map(e=>`<li><b>${e.y<1000?yt(e.y):e.y}</b>${esc(e.t)}<br><button data-hm="plate" data-id="${e.plate}">See Plate ${e.plate}</button></li>`).join('')}</ol></div></div>`}
+ function credits(){const C=D().credit;return top('Credits and Sources',1)+`<div class="hm-main"><div class="hm-wrap hm-cred">
+  <p><b>The atlas.</b> ${esc(C.work)}. The engravings are in the public domain.</p>
+  <p><b>The scans.</b> ${esc(C.copy)}, shared on Wikimedia Commons and marked public domain by the library.</p>
+  <p><b>The words.</b> Lessons by Gemini Brett, Earthstrology.</p>
+  <table><tbody>${D().plates.map(p=>`<tr><td>${p.n}</td><td lang="la"><i>${esc(p.latin)}</i></td><td><a href="${esc(p.src)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table></div></div>`}
+
+ function render(){const v={home,chapter,all,plate:plateView,compare,quiz,timeline,credits}[ST.view]||home;root.innerHTML=v();
+  if(ST.view==='plate')zoom=Zoom(root.querySelector('#hm-view'),root.querySelector('#hm-img'));else zoom=null;
+  const f=root.querySelector('.hm-top button, .hm-top h1');if(f&&f.focus&&opt.focus!==false)f.focus({preventScroll:true})}
+ const hist=[];
+ function go(view,extra){hist.push({view:ST.view,ch:ST.ch,n:ST.n});ST.view=view;Object.assign(ST,extra||{});render();const m=root.querySelector('.hm-main');if(m)m.scrollTop=0}
+ function back(){const h=hist.pop();if(!h){ST.view='home';}else Object.assign(ST,h);render()}
+ function note(t){const el=root.querySelector('#hm-note');if(el)el.textContent=t}
+
+ /* image export, the shared rule: Save As PNG, Save As JPEG, Copy to Clipboard, with the credit line under the plate */
+ function blob(type){return new Promise((res,rej)=>{const img=root.querySelector('#hm-img');if(!img||!img.naturalWidth)return rej(new Error('not loaded'));
+  const W=img.naturalWidth,H=img.naturalHeight,band=Math.round(W*.035),c=document.createElement('canvas');c.width=W;c.height=H+band;const x=c.getContext('2d');
+  x.fillStyle='#0b0d16';x.fillRect(0,0,W,H+band);x.drawImage(img,0,0);x.fillStyle='#efe6d2';x.font=`${Math.round(band*.42)}px Georgia,serif`;x.textBaseline='middle';
+  x.fillText(D().credit.line,band*.4,H+band/2);try{c.toBlob(b=>b?res(b):rej(new Error('encode')),type==='jpeg'?'image/jpeg':'image/png',.92)}catch(e){rej(e)}})}
+ async function save(type){try{const b=await blob(type),name=`Cellarius-Plate-${String(ST.n).padStart(2,'0')}.${type==='jpeg'?'jpg':'png'}`;let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
+  if(dl){await dl.save({filename:name,data:b});note('Plate saved.');return}
+  const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;root.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);note('Plate saved to Downloads.')}
+  catch(e){note('Saving is not available here.')}}
+ async function copy(){try{const b=await blob('png');await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);note('Plate copied.')}catch(e){note('Copy is not available here. Use Save As PNG.')}}
+
+ root.addEventListener('click',e=>{const b=e.target.closest('[data-hm]');if(!b||!root.contains(b))return;const a=b.dataset.hm,id=b.dataset.id;
+  if(a==='close'){opt.onClose&&opt.onClose()}
+  else if(a==='back')back();
+  else if(a==='go'){if(id==='home'){hist.length=0;ST.view='home';render()}else go(id)}
+  else if(a==='ch')go('chapter',{ch:id});
+  else if(a==='plate'){if(ST.view==='plate'){ST.n=+id;render();const m=root.querySelector('.hm-sheet');if(m)m.scrollTop=0}else go('plate',{n:+id})}
+  else if(a==='zin')zoom&&zoom.by(1.6);else if(a==='zout')zoom&&zoom.by(1/1.6);else if(a==='zfit'){zoom&&zoom.fit();const c=root.querySelector('#hm-cap');if(c)c.hidden=true}
+  else if(a==='look'){const l=(plate(ST.n).look||[])[+id];if(l&&zoom){zoom.to(l.x,l.y,l.z||3);const c=root.querySelector('#hm-cap');if(c){c.innerHTML=`<b>${esc(l.t)}</b>${esc(l.d)}`;c.hidden=false}root.querySelectorAll('[data-hm=look]').forEach(x=>x.classList.toggle('on',x===b));const v=root.querySelector('#hm-view');if(v&&v.scrollIntoView)v.scrollIntoView({block:'nearest'})}}
+  else if(a==='save')save(id);else if(a==='copy')copy();
+  else if(a==='ans'&&!ST.quiz.pick){ST.quiz.pick=id;ST.score[1]++;if(id===QSYS[ST.quiz.n])ST.score[0]++;render();const f=root.querySelector('.hm-fb');if(f){f.setAttribute('tabindex','-1');f.focus()}}
+  else if(a==='qnext'){newQ();render()}});
+ root.addEventListener('change',e=>{const t=e.target;if(t.id==='hm-ca'){ST.cmpA=+t.value;render()}else if(t.id==='hm-cb'){ST.cmpB=+t.value;render()}});
+ root.addEventListener('input',e=>{const t=e.target;if(t.id==='hm-cut'){ST.cut=+t.value;const c=root.querySelector('#hm-cmp');c&&c.style.setProperty('--cut',ST.cut+'%')}});
+ /* drag the wipe line directly */
+ root.addEventListener('pointerdown',e=>{const c=e.target.closest('#hm-cmp');if(!c)return;const mv=ev=>{const r=c.getBoundingClientRect();ST.cut=Math.max(0,Math.min(100,(ev.clientX-r.left)/r.width*100));c.style.setProperty('--cut',ST.cut+'%');const s=root.querySelector('#hm-cut');if(s)s.value=Math.round(ST.cut)};
+  mv(e);c.setPointerCapture(e.pointerId);const up=()=>{c.removeEventListener('pointermove',mv);c.removeEventListener('pointerup',up)};c.addEventListener('pointermove',mv);c.addEventListener('pointerup',up)});
+ const onKey=e=>{if(!root.isConnected)return;if(e.key==='Tab'&&!opt.standalone){const F=[...root.querySelectorAll('button,select,input,[tabindex="0"]')].filter(x=>x.offsetParent);if(F.length){const i=F.indexOf(document.activeElement);if(e.shiftKey&&i<=0){F[F.length-1].focus();e.preventDefault()}else if(!e.shiftKey&&(i===F.length-1||i<0)){F[0].focus();e.preventDefault()}}return}if(e.key==='Escape'){if(ST.view!=='home'){back();e.preventDefault();e.stopPropagation()}else if(opt.onClose){opt.onClose();e.preventDefault();e.stopPropagation()}}};
+ document.addEventListener('keydown',onKey,true);
+ render();
+ return {open(o){if(o&&o.plate)go('plate',{n:+o.plate})},destroy(){document.removeEventListener('keydown',onKey,true);root.innerHTML=''},config:HM_CFG};
+}
+
+/* ------------- deep zoom: drag, pinch, wheel, double tap, keys ------------- */
+function Zoom(view,img){
+ let s=1,fitS=1,tx=0,ty=0;const pts=new Map();let last=null,tapT=0;
+ const apply=()=>{img.style.transform=`translate(${tx}px,${ty}px) scale(${s})`};
+ function clamp(){const W=view.clientWidth,H=view.clientHeight,iw=img.naturalWidth*s,ih=img.naturalHeight*s;
+  tx=iw<=W?(W-iw)/2:Math.min(0,Math.max(W-iw,tx));ty=ih<=H?(H-ih)/2:Math.min(0,Math.max(H-ih,ty))}
+ function fit(){if(!img.naturalWidth)return;fitS=Math.min(view.clientWidth/img.naturalWidth,view.clientHeight/img.naturalHeight);s=fitS;clamp();apply()}
+ function at(f,cx,cy){const ns=Math.max(fitS,Math.min(fitS*HM_CFG.maxZoom,s*f));tx=cx-(cx-tx)*ns/s;ty=cy-(cy-ty)*ns/s;s=ns;clamp();apply()}
+ const by=f=>at(f,view.clientWidth/2,view.clientHeight/2);
+ function to(fx,fy,z){s=Math.min(fitS*HM_CFG.maxZoom,fitS*z);tx=view.clientWidth/2-fx*img.naturalWidth*s;ty=view.clientHeight/2-fy*img.naturalHeight*s;clamp();apply()}
+ const ld=view.querySelector('.hm-load');
+ const ready=()=>{if(ld)ld.remove();fit()};if(img.complete&&img.naturalWidth)ready();else{img.onload=ready;img.onerror=()=>{if(ld)ld.textContent='This plate could not load. Check the connection and try again.'}}
+ const ro=window.ResizeObserver?new ResizeObserver(()=>{const was=s<=fitS*1.001;const o=fitS;fitS=Math.min(view.clientWidth/(img.naturalWidth||1),view.clientHeight/(img.naturalHeight||1));if(was)s=fitS;else s=Math.max(s,fitS);clamp();apply()}):null;if(ro)ro.observe(view);
+ view.addEventListener('wheel',e=>{e.preventDefault();const r=view.getBoundingClientRect();at(Math.exp(-e.deltaY*.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+ view.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;view.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});view.classList.add('drag');
+  if(pts.size===1){const now=Date.now();if(now-tapT<300){const r=view.getBoundingClientRect();if(s>fitS*1.05)fit();else at(2.5,e.clientX-r.left,e.clientY-r.top);tapT=0}else tapT=now}last=null});
+ view.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const p=pts.get(e.pointerId),dx=e.clientX-p.x,dy=e.clientY-p.y;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===1){tx+=dx;ty+=dy;clamp();apply()}
+  else if(pts.size===2){const [a,b]=[...pts.values()],d=Math.hypot(a.x-b.x,a.y-b.y),r=view.getBoundingClientRect(),cx=(a.x+b.x)/2-r.left,cy=(a.y+b.y)/2-r.top;if(last)at(d/last,cx,cy);last=d}});
+ const end=e=>{pts.delete(e.pointerId);if(pts.size<2)last=null;if(!pts.size)view.classList.remove('drag')};view.addEventListener('pointerup',end);view.addEventListener('pointercancel',end);
+ view.addEventListener('keydown',e=>{const k=e.key,st=60;if(k==='+'||k==='='){by(1.4)}else if(k==='-'||k==='_'){by(1/1.4)}else if(k==='0'){fit()}
+  else if(k==='ArrowLeft'){tx+=st;clamp();apply()}else if(k==='ArrowRight'){tx-=st;clamp();apply()}else if(k==='ArrowUp'){ty+=st;clamp();apply()}else if(k==='ArrowDown'){ty-=st;clamp();apply()}else return;e.preventDefault()});
+ return {fit,by,to}}
+
+window.EA_HARMONIA_APP={mount:(el,opt)=>Reader(el,opt),config:HM_CFG};
+
+/* ------------- Device World registration ------------- */
+window.EA_WORLDS=window.EA_WORLDS||{};
+window.EA_WORLDS.harmonia=function(A){
+ const {head}=A;let R=null,host=null;
+ function openReader(o){if(!host){host=document.createElement('div');host.id='hm-app';document.body.appendChild(host)}
+  if(!R)R=Reader(host,{onClose:close});if(o)R.open(o)}
+ function close(){if(R){R.destroy();R=null}if(host){host.remove();host=null}const b=document.querySelector('[data-act="hmopen"]');if(b)b.focus()}
+ function box(){const H=D();if(!H)return head('harmonia','Harmonia','not assigned')+'<p>The plates did not load.</p>';
+  return head('harmonia','Harmonia','not assigned')+`<p style="margin:6px 0 10px;line-height:1.5">An illustrated history of astrology, told through the 29 plates of Andreas Cellarius's <i>Harmonia Macrocosmica</i> (1660).</p>
+  <button class="hm-open" data-act="hmopen" data-id="">Open Harmonia</button>
+  <div style="margin:12px 0 4px;font-size:12px;letter-spacing:.08em;opacity:.75">CHAPTERS</div>
+  ${H.chapters.map(c=>{const f=H.plates.find(p=>p.ch===c.id);return `<button class="hm-chap" data-act="hmopen" data-id="${f.n}">${esc(c.name)}</button>`}).join('')}`}
+ function act(a,id){if(a==='hmopen')openReader(id?{plate:+id}:null)}
+ return {box,act,open:openReader,close,config:HM_CFG}};
+})();
+</script>
+<script>EA_HARMONIA_APP.mount(document.getElementById('app'),{standalone:true,base:''});</script>
+</body>
+</html>
