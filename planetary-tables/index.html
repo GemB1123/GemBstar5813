@@ -10259,6 +10259,15 @@ body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:13px}
 .vtm-v i:nth-child(2){text-align:center}.vtm-v i:nth-child(4){margin-left:-1px}
 .vtm button{grid-template-columns:54px 1fr auto 50px 12px}
 @media (min-width:1100px){.vtm button{grid-template-columns:54px 1fr auto 48px 34px}}
+/* Gemini, Nov 17: equal space between tab, date, name, longitude, phase angle, and arrow (colFit measures each column) */
+.vtm button,body.tc-blend .vtm button,body.tc-one .vtm button{grid-template-columns:var(--dw,54px) minmax(0,var(--nw,1fr)) auto var(--paw,50px) auto;justify-content:space-evenly;column-gap:6px;padding-left:0;padding-right:0}
+body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:4px}
+@media (min-width:1100px){.vtm button,body.tc-blend .vtm button,body.tc-one .vtm button{grid-template-columns:var(--dw,54px) minmax(0,var(--nw,1fr)) auto var(--paw,50px) auto}}
+.vtm-t{text-align:center;padding:0}
+#vt-list.norx .vtm-v{grid-template-columns:2.3ch 3.4ch 2.3ch}#vt-list.norx .vtm-v i:nth-child(4){display:none}
+.vtm-p{letter-spacing:0}
+.vtm button,body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:6px;padding-right:6px}
+body.tc-blend .vtm button,body.tc-one .vtm button{padding-left:10px}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -10391,6 +10400,12 @@ function sides(r,c){if(r.moo){const v={rows:r.rows,title:r.title};return {morn:v
 /* Gemini, Nov 17: table columns line up: dates zero-padded (01/03/27), positions split into degree, sign, minute, and Rx columns */
 const mdyP=ms=>{const d=new Date(ms);return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}/${String(d.getFullYear()).slice(-2)}`},
  posCols=t=>{const m=/^(\d+) (\S+) (\d+)( Rx)?$/.exec(String(t).trim());return m?`<i>${m[1]}</i><i>${m[2]}</i><i>${m[3]}</i><i>${m[4]?'Rx':''}</i>`:t};
+/* Gemini, Nov 17: the color tab, date, name, longitude, phase angle, and arrow are columns with equal space between them.
+   Each column is as wide as its widest entry in this table (measured), and the space left over is shared evenly */
+function colFit(){const L=document.getElementById('vt-list');if(!L||!L.querySelector('.vtm'))return;const r=document.createRange(),mw=sel=>{let w=0;L.querySelectorAll(sel).forEach(e=>{r.selectNodeContents(e);w=Math.max(w,r.getBoundingClientRect().width)});return Math.ceil(w)};
+ L.classList.toggle('norx',![...L.querySelectorAll('.vtm-v i:nth-child(4)')].some(i=>i.textContent));
+ L.style.setProperty('--dw',mw('.vtm-d')+'px');L.style.setProperty('--nw',mw('.vtm-n')+1+'px');L.style.setProperty('--paw',mw('.vtm-p')+'px')}
+{let q=0;const go=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;try{colFit()}catch(e){}})};const hook=()=>{const L=document.getElementById('vt-list');if(!L)return setTimeout(hook,400);new MutationObserver(go).observe(L,{childList:true});addEventListener('resize',go);go()};hook()}
 const mdy=ms=>{const d=new Date(ms);return `${d.getMonth()+1}/${d.getDate()}/${String(d.getFullYear()).slice(-2)}`};
 /* Gemini, Nov 4: short forms for the Morning and Evening lines (Venus Rx, Venus Set, Venus Cazimi, Venus Rise, Max Brightness,
    Venus Direct, Crown Gate, Third Eye Gate...); a tap opens the full card */
