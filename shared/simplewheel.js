@@ -8,7 +8,7 @@
    window.EAWheel.svg(chart, opts) returns an <svg> string.
      chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
      opts (all optional):
-       planets  list of bodies to draw (default Sun..Pluto; add Node, SNode, Fortune, Spirit to show them; AS and MC are drawn from the cusps)
+       planets  list of bodies to draw (default Sun..Pluto plus the true North and South Nodes; add Fortune, Spirit to show them; AS and MC are drawn from the cusps)
        chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
        glyph    k => inner SVG of a planet glyph in a -15..15 box, stroked with currentColor (Device: PLG)
        sign     (i,x,y,size,color) => SVG of sign glyph i (Device: agSvg, Ana's glyphs)
@@ -61,7 +61,7 @@ const BND={egyptian:BT.flatMap((s,i)=>s.map(([g,e],j)=>[g,i*30+(j?s[j-1][1]:0),i
  ptolemaic:PT.split('|').flatMap((x,i)=>{let a=i*30;return x.split(' ').map(t=>{const e=a+ +t.slice(2),r=[AB[t.slice(0,2)],a,e];a=e;return r})})};
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋',Fortune:'⊗',Spirit:'⊕'};
 /* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
-const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];   /* Gemini, Nov 18 (global): both TRUE Nodes on by default (apps pass true-node longitudes; hide via opts.planets); Fortune and Spirit stay off */
 const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
