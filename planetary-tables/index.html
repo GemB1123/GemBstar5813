@@ -934,7 +934,12 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const glyph=opts.glyph,sign=opts.sign,ink=T.ink;
  const sg=(i,x,y,sz,col)=>sign?sign(i,x,y,sz,col):`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${SGN[i]}︎</text>`;
  const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col.startsWith('url')?T.gold:col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
- const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
+ /* degree numbers (Gemini, Nov 18, global, from the Solar Return applet): sized to the sign glyphs beside them (opts.degScale, default .8 of the
+   old size) and one weight lighter; planet degrees (dg) are white on a dark wheel, not the cream of the angle lines, with a thin halo in the
+   wheel's background so a cusp or angle line under them never hides them (opts.degHalo:false turns the halo off) */
+const txd=(T,o,s,x,y,sz,col,w,dg)=>{const k=o.degScale==null?.8:o.degScale,c=dg&&col===T.ink&&o.theme==='dark'?'#ffffff':col;
+ const t=tx(s,x,y,f(sz*k),c,w?w-100:w);return dg&&o.degHalo!==false?t.replace('<text ',`<text stroke="${T.bg}" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke" `):t};
+const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
  /* the bezel's lightest side faces the Sun, so the day and night sides of the chart read at a glance (Gemini, Nov 13) */
@@ -966,7 +971,7 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
-   if(!NCB)h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
+   if(!NCB)h+=txd(T,opts,q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
   /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
   if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
@@ -989,6 +994,13 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  /* opts.glyphScale (Solar Return, Gemini Nov 18: "everything smaller for breathing room"; default .85 for every chart, global) shrinks glyphs, numbers and ticks;
+     opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
+     stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
+  const GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(nb>1?5:6.5)*GS;
+  if(GS!==1)for(const k of ['gs','ds','ss','ms'])if(R[k])R[k]*=GS;
+  if(GS!==1&&!R.gs)R.gs=17*GS;
+  if(inv)for(const k of ['g','d','s','m'])if(R[k])R[k]=tb+(t-R[k]);
   /* spacing (Gemini, Nov 16: as close as possible without overlap, so a conjunction still looks like one): the widest piece of the
      glyph stack, measured as an angle at its own radius, plus a hair; inner rings sit at a smaller radius so they get more */
   const GW=[[R.gs||17,R.g,1.05],[R.ds,R.d,1.6],[R.ss,R.s,1.05],[R.ms,R.m,1.7]].filter(a=>a[0]&&a[1]).map(([z,r,w])=>z*w/r*57.3),gap=mode==='big'?GAP.big:Math.max(...GW)+.6;
@@ -1007,15 +1019,15 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
     if(!moved)break}}
   const cf=main?col:()=>ci,sh=main&&shiny;
-  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
+  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
-   {const k0=xy(x.l,t),k1=xy(x.l,t-(nb>1?5:6.5)),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${nb>1?1.4:1.8}" stroke-linecap="round"/>`}
-   if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-   const g=xy(x.d,R.g),gs=R.gs||17;
+   {const k0=xy(x.l,tb),k1=xy(x.l,tb+sd*TL),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${f((nb>1?1.4:1.8)*(.4+.6*GS))}" stroke-linecap="${opts.ticksOnDivider!==false&&nb>1?'butt':'round'}"/>`}
+   if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   const g=xy(x.d,R.g),gs=R.gs||17*GS;
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false,i+1)});
