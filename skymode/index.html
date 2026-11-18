@@ -2551,7 +2551,9 @@ function swOpts(){const S=CHO.sw,col={};if(S.el.some(Boolean))col.el=S.el.slice(
  const sign=S.pc!=='one'?swSign:(i,x,y,sz)=>swSign(i,x,y,sz,S.sg);
  const asp=CHO.asp==='none'?false:(CHO.asp==='sym'||CHO.asp==='custom')?undefined:p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));const minor=CHO.asp==='minor';return chAspects(P).map(([a,b,s])=>({a:a.k,b:b.k,angle:s.A[1],color:s.A[2],minor:s.A[3]===2,name:s.A[0]}))};
  const pics=CHO.asp==='sym'?p=>{const P=Object.keys(p).filter(k=>k!=='SNode').map(k=>({k,lon:p[k]}));return chPictures(P).map(q=>({a:q.a.k,b:q.b.k,c:q.c.k,color:chFamCol(q.fn)}))}:null;
- if(S.pc==='one')col.gold=S.pg;const pcol=S.pc==='element'?'element':S.pc==='planet'?'planet':'gold',o={theme:CHO.theme,planetColors:pcol,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};o.ringStyle=CHO.rs;if(CHO.asp==='custom'){const T={};for(const A of (EAWheel.ASPECTS||[]))T[A.key]=chAtV(A);o.aspectTypes=T;delete o.aspects}if(!(CHR.rings&&CHR.rings.length)&&!CHR.mode){if(CHO.dec)o.decans=CHO.dec;if(CHO.bnd)o.bounds=CHO.bnd}if(pics)o.pictures=pics;return o}
+ if(S.pc==='one')col.gold=S.pg;const pcol=S.pc==='element'?'element':S.pc==='planet'?'planet':'gold',o={theme:CHO.theme,planetColors:pcol,colors:col,glyph:swGlyph,sign,aspects:asp,label:'Chart wheel'};o.ringStyle=CHO.rs;
+ /* the Lunar Nodes on Sky's charts (Gemini, Nov 18): the shared wheel draws them only when listed; Displayed Planets still hides either */
+ o.planets=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'].filter(k=>!CHO.hide.includes(k));if(CHO.asp==='custom'){const T={};for(const A of (EAWheel.ASPECTS||[]))T[A.key]=chAtV(A);o.aspectTypes=T;delete o.aspects}if(!(CHR.rings&&CHR.rings.length)&&!CHR.mode){if(CHO.dec)o.decans=CHO.dec;if(CHO.bnd)o.bounds=CHO.bnd}if(pics)o.pictures=pics;return o}
 /* pinch to zoom and drag to pan the wheel (Gemini: imperative on mobile); double tap goes back to fit */
 const CHZ={s:1,x:0,y:0};
 function chZoom(f,px,py){const s0=CHZ.s,s1=Math.max(1,Math.min(6,s0*f)),top=CHTOP(),bot=66,ox=W/2,oy=top+(H-top-bot)/2,k=s1/s0;
