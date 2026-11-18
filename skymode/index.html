@@ -2379,7 +2379,7 @@ const CHBM=new Map();function chBodies(jd){if(CHBM.has(jd))return CHBM.get(jd);c
  for(const k of ['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto']){let b=null;try{b=JPL&&JPL.body(k,jd)}catch(e){}
   if(b)out.push({k,lon:b.lon,lat:b.lat||0,spd:b.lonSpeed||0});else{const kb=K.bodies.find(x=>x.k===k);if(kb)out.push({k,lon:kb.lon,lat:0,spd:1})}}
  if(out.length>=9){CHBM.set(jd,out);if(CHBM.size>12)CHBM.delete(CHBM.keys().next().value)}return out}
-const chVis=jd=>chBodies(jd).filter(b=>!CHO.hide.includes(b.k)),chNodes=(pos,jd,z)=>{const Tc=(jd-2451545)/36525,nn=n360(125.04452-1934.136261*Tc);if(!CHO.hide.includes('Node'))pos.Node=n360(nn-z);if(!CHO.hide.includes('SNode'))pos.SNode=n360(nn+180-z)};
+const chVis=jd=>chBodies(jd).filter(b=>!CHO.hide.includes(b.k)),chNodes=(pos,jd,z)=>{const Tc=(jd-2451545)/36525,r=Math.PI/180,D=(297.8501921+445267.1114034*Tc)*r,Ms=(357.5291092+35999.0502909*Tc)*r,Mm=(134.9633964+477198.8675055*Tc)*r,F=(93.2720950+483202.0175233*Tc)*r,nn=n360(125.0445479-1934.1362891*Tc-1.4979*Math.sin(2*(D-F))-0.15*Math.sin(Ms)+0.1226*Math.sin(2*D)+0.1176*Math.sin(2*F)-0.0801*Math.sin(2*(Mm-F)));if(!CHO.hide.includes('Node'))pos.Node=n360(nn-z);if(!CHO.hide.includes('SNode'))pos.SNode=n360(nn+180-z)};
 let CHSTAR={pjd:null,list:null};
 function chStars(jd){if(CHSTAR.pjd===SKY.pjd&&CHSTAR.list)return CHSTAR.list;const e=obl(jd),L=[];
  SKY.st.forEach((s,i)=>{if(!s)return;const [l,b]=eqToEcl(s.ra,s.de,e);L[i]=[l,b,s.mag]});CHSTAR={pjd:SKY.pjd,list:L};return L}
