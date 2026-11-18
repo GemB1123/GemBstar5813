@@ -615,6 +615,9 @@ body.eawz #wheel{z-index:1000;overflow:visible}
 .lb .bbr{display:flex;gap:6px}
 #cbar{position:absolute;left:336px;top:850px;z-index:30;display:flex;gap:5px;pointer-events:auto;white-space:nowrap}.docked #cbar{top:782px}#cbar[hidden]{display:none}
 #cbar .ixb{display:flex;align-items:center;gap:5px}#cbar .ixb i{width:8px;height:8px;border-radius:50%;opacity:.35}#cbar .ixb.on{opacity:1;border-color:#d1ab74;color:#efe3c8}#cbar .ixb.on i{opacity:1}
+
+/* Aligned columns everywhere (Gemini, Nov 17, global): equal-width digits, numbers right-aligned and zero-padded. Combines PR 73 and PR 74. */
+body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
 </style>
 <div id="bg"></div>
 <div id="stage"><div id="wheel"></div><div id="scene"></div><div id="lUL" class="lb ul"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lUR" class="lb ur"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLR" class="lb lr"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLL" class="lb ll"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="dock" hidden></div><div id="dropzone" hidden>Drop Here To Dock Below The Chart</div><div id="box" hidden></div>
@@ -965,7 +968,9 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
    if(!NCB)h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
-  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
+  /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
+  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
+   h+=`<path d="M${f(tp[0])} ${f(tp[1])}L${f(bs[0]+nx)} ${f(bs[1]+ny)}L${f(bs[0]-nx)} ${f(bs[1]-ny)}Z" fill="${T.axis}"><title>${t}</title></path>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
  const pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
@@ -1066,6 +1071,193 @@ function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.lig
  const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
  return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
 window.EAWheel={svg,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+})();
+</script>
+<script>/* Chart Look (shared, Nov 18 2026): the chart look and table formatting Kepler built for Planetary Tables (Nov 15-17),
+   made global for every World and app (Gemini, Nov 18: "should be global").
+
+   window.EALook
+     STYLES, WHEEL, PLANETS, SIGNS, CUSTOM   the Wheel Display presets as data (Gemini, Nov 16):
+       Wheel Style  Metal (default), Silver Band, Houses Outside
+       Wheel Colors Navy (default), Midnight, Plum, Forest, Custom          (the wheel's background)
+       Planet Colors Gold (default), Planet Colors, Element Colors, Silver, White, Custom
+       Sign Colors  Element Colors (default), Jewel Tones, Soft Element, Slate   (the zodiac ring wedges)
+       Customize holds color pickers for now; a full customization space comes later (Gemini: "let's get back to that").
+     get() / set(patch)   the person's look {style, wheel, planets, signs, custom:{pl,bg,bz1,bz2,edge}}, kept in localStorage
+                          'ea-look-v1' so every app on the same site shares one choice; set() fires 'ealook' on window.
+     wheelOpts(look)      options to merge into EAWheel.svg(chart, opts) (cuspRing, ringStyle, planetColors, colors)
+     wheelBg(look)        the wheel background color
+     tableBase(look)      the color for table rows and open cards: tables match the chart wheel background (Gemini, Nov 17)
+     menu(look)           [{id, title, items:[{k, name, on}]}] for any app's Wheel Display menu
+     CHAKRA, blend(tone, base)   Table Colors "Wheel Blend" (default, Leo's palette, Nov 17): 28% of the tone lifted 8% over the base
+     moonTab(phaseAngle)  Moon tabs follow the Moon's light: black at New, white at Full, black again (Gemini, Nov 17)
+     date(ms)             zero-padded MM/DD/YY so dates line up (aligned columns rule, Nov 17)
+     lonCols(lon, rx)     '<i>DD</i><i>Sgn</i><i>MM</i><i>Rx</i>': degree, sign, minute, Rx right after the minutes (Gemini, Nov 17, V260)
+     phaseME(angle)       phase angle with no minus or plus: 28°47′ M (morning) or 30°00′ E (evening); no letter at 0° or 180° (Nov 17)
+     css()                the small stylesheet for lonCols / phaseME columns (inserted once by injectCss()) */
+(function(){
+const STYLES=[['metal','Metal'],['silver','Silver Band'],['houses','Houses Outside']],
+ WHEEL=[['navy','Navy','#0b0f26'],['midnight','Midnight','#04050a'],['plum','Plum','#1e0f2a'],['forest','Forest','#0a1a16'],['custom','Custom']],
+ PLANETS=[['gold','Gold'],['planet','Planet Colors'],['element','Element Colors'],['silver','Silver','#dfe4ea'],['white','White','#ffffff'],['custom','Custom']],
+ SIGNS=[['element','Element Colors'],['jewel','Jewel Tones',['#8e1b2c','#1f6b4a','#a8842a','#24317a']],['pastel','Soft Element',['#9a6a64','#6a8a7b','#a8956c','#6c7199']],['slate','Slate',['#353a4e','#353a4e','#353a4e','#353a4e']]],
+ CUSTOM=[['pl','Planets','#f5c35c'],['bg','Wheel Background','#0b0f26'],['bz1','Bezel Light','#eef1f4'],['bz2','Bezel Dark','#4b4a48'],['edge','Ring Edges','#c9b27a']],
+ DEF={style:'metal',wheel:'navy',planets:'gold',signs:'element'},KEY='ea-look-v1',TNAV='#151b3d';
+const BODIES=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode','Fortune','Spirit'];
+const hex=h=>{h=String(h||'').replace('#','');if(h.length===3)h=h.split('').map(c=>c+c).join('');return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)||0)},
+ mix=(a,b,t)=>{const A=hex(a),B=hex(b);return '#'+A.map((v,i)=>Math.round(v*(1-t)+B[i]*t).toString(16).padStart(2,'0')).join('')},
+ okHex=v=>/^#[0-9a-f]{6}$/i.test(v||''),pick=(v,L,d)=>L.some(x=>x[0]===v)?v:d;
+function clean(o){o=o||{};const c={};CUSTOM.forEach(([k,,d])=>{c[k]=okHex((o.custom||{})[k])?o.custom[k]:d});
+ return {style:pick(o.style,STYLES,DEF.style),wheel:pick(o.wheel,WHEEL,DEF.wheel),planets:pick(o.planets,PLANETS,DEF.planets),signs:pick(o.signs,SIGNS,DEF.signs),custom:c}}
+function get(){let o={};try{o=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){}return clean(o)}
+function set(p){const o=clean(Object.assign(get(),p||{},{custom:Object.assign(get().custom,(p||{}).custom||{})}));
+ try{localStorage.setItem(KEY,JSON.stringify(o))}catch(e){}try{window.dispatchEvent(new CustomEvent('ealook',{detail:o}))}catch(e){}return o}
+function wheelBg(L){L=clean(L||get());return L.wheel==='custom'?L.custom.bg:WHEEL.find(x=>x[0]===L.wheel)[2]}
+function wheelOpts(L){L=clean(L||get());const o={},C=L.custom;
+ if(L.style==='silver')o.cuspRing='silver';if(L.style==='houses')o.ringStyle='houses';
+ if(L.planets==='planet'||L.planets==='element')o.planetColors=L.planets;
+ else if(L.planets!=='gold'){const c=L.planets==='custom'?C.pl:PLANETS.find(x=>x[0]===L.planets)[2];o.planetColors=Object.fromEntries(BODIES.map(k=>[k,c]))}
+ const S=SIGNS.find(x=>x[0]===L.signs);if(S&&S[2])o.colors={ringFill:S[2].slice()};
+ if(L.wheel!=='navy'){const bg=wheelBg(L);o.colors=Object.assign(o.colors||{},{bg,house:mix(bg,'#ffffff',.04),aspBg:mix(bg,'#ffffff',.02)});
+  if(L.wheel==='custom')Object.assign(o.colors,{bezel:[C.bz1,mix(C.bz1,C.bz2,.35),mix(C.bz1,C.bz2,.7),C.bz2],ringEdge:C.edge,line:C.edge+'99',soft:C.edge})}
+ o.theme='dark';   /* every Wheel Colors preset is a dark wheel; Navy is the dark theme's own background */
+ return o}
+function tableBase(L){L=clean(L||get());if(L.wheel==='navy')return TNAV;const f=wheelBg(L);return okHex(f)?mix(f,'#ffffff',.05):TNAV}
+function menu(L){L=clean(L||get());const it=(id,list,v)=>list.map(([k,n])=>({k:id+':'+k,name:n,on:v===k}));
+ return [{id:'style',title:'Wheel Style',items:it('style',STYLES,L.style)},{id:'wheel',title:'Wheel Colors',items:it('wheel',WHEEL,L.wheel)},
+  {id:'planets',title:'Planet Colors',items:it('planets',PLANETS,L.planets)},{id:'signs',title:'Sign Colors',items:it('signs',SIGNS,L.signs)}]}
+/* Table Colors: Wheel Blend keeps each chakra gate's hue at the wheel's softness (Leo's palette, Nov 17) */
+const CHAKRA={root:'#c0675c',sacral:'#c98a5a',solar:'#c9a96e',heart:'#6f9a86',throat:'#6f97b8',third:'#7d86c2',crown:'#9b86c2'};
+const blend=(tone,base)=>mix(base||tableBase(),mix(tone,'#ffffff',.08),.28);
+const moonTab=a=>{a=Number(a)||0;const f=(1-Math.cos(a*Math.PI/180))/2,v=Math.round(255*f).toString(16).padStart(2,'0');return '#'+v+v+v};
+const z=n=>String(n).padStart(2,'0'),SG=['Ari','Tau','Gem','Can','Leo','Vir','Lib','Sco','Sag','Cap','Aqu','Pis'];
+const date=ms=>{const d=new Date(ms);return `${z(d.getMonth()+1)}/${z(d.getDate())}/${String(d.getFullYear()).slice(-2)}`};
+/* nearest arc minute (30 arc seconds or more rounds up) */
+function lonCols(lon,rx,signs){let m=Math.round((((+lon%360)+360)%360)*60)%21600;const s=Math.floor(m/1800),d=Math.floor(m%1800/60);m=m%60;
+ return `<i class="eal-d">${z(d)}</i><i class="eal-s">${(signs||SG)[s]}</i><i class="eal-m">${z(m)}</i><i class="eal-rx">${rx?'Rx':''}</i>`}
+function phaseME(a){a=Number(a)||0;const m=Math.floor(Math.abs(a)*60+.5),d=Math.floor(m/60),L=m===0||m===10800?'':a<0?'M':'E';
+ return `<span class="eal-pa">${z(d)}°${z(m%60)}′<i class="eal-me">${L}</i></span>`}
+const css=()=>`.eal-lon{display:inline-grid;grid-template-columns:auto auto auto 1.6em;column-gap:.3em;font-variant-numeric:tabular-nums;align-items:baseline}
+.eal-lon i{font-style:normal}.eal-d,.eal-m{text-align:right}.eal-s{text-align:center;min-width:2.1em}.eal-rx{color:#e0675c;font-size:.86em}
+.eal-pa{font-variant-numeric:tabular-nums;white-space:nowrap}.eal-me{font-style:normal;display:inline-block;width:1.1em;text-align:right;opacity:.85}`;
+function injectCss(){if(typeof document==='undefined'||document.getElementById('eal-css'))return;const s=document.createElement('style');s.id='eal-css';s.textContent=css();(document.head||document.documentElement).appendChild(s)}
+window.EALook={STYLES,WHEEL,PLANETS,SIGNS,CUSTOM,DEFAULTS:DEF,get,set,clean,wheelOpts,wheelBg,tableBase,menu,CHAKRA,blend,mix,moonTab,date,lonCols,phaseME,css,injectCss};
+})();
+</script>
+<script>/* Time Machine (shared, Nov 18 2026): the Time Machine Kepler built for Planetary Tables (Nov 15-16), made global for every
+   World and app (Gemini, Nov 18). The bar follows the layout Gemini helped design for Astro Gold:
+     Now · date · ◀ run back · |◀ step back · ■ stop · ▶| step forward · ▶ run forward · step size · Star Target
+   The Star Target (Gemini, Nov 16; the astrolabe is saved for a future Astrolabe app) opens Step Chart to Event.
+
+   window.EATime
+     UNITS            [[key, name, ms or 0 for calendar units]]: Second, Minute, Hour, Day, Week, Month, Year, Decade, Century
+     step(ms, n, unit) the moment n units later (months and up keep the calendar day and clock time)
+     unitName(n, unit) '1 Day', '3 Days'
+     speeds({crawl, slow, run})  [[name, seconds for one cycle, multiplier for a pattern of cycles]]: Crawl, Walk, Slow, Medium, Fast, Run.
+                      Defaults Crawl 120 s (very slow, for teaching), Slow 30 s, Run 6 s (Gemini, Nov 16); Walk sits evenly between Crawl
+                      and Slow, Medium and Fast between Slow and Run. Patterns (Mercury 3, Venus 5) take 3x at Crawl, 1.5x from Slow on.
+     STAR_TARGET      the Star Target icon (SVG string)
+     TABS, LUNATIONS, ASPECTS, KINDS_FROM, KINDS_TO   Step Chart to Event data
+     find(spec, ctx, t0, dir)  search engine. ctx = {lon(planet, jd) -> ecliptic longitude, moonLat(jd)? , natal:{jd, cusps}?}
+                      spec = {tab:'asp'|'rd'|'ing'|'pos'|'house'|'ret'|'lun', ...fields as in the panel}; returns {jd, label, ring} or {jd:null, msg}
+     events({anchor, ctx, getMs, go, natal, title})   opens the Step Chart to Event panel beside anchor. Prev and Next search from getMs();
+                      go(ms, label, ring) moves the app's chart (ring: 'tr' | 'pr' | 'sa', which wheel moved). X, Escape, or a click outside closes it.
+     close()          closes the panel */
+(function(){
+const UNITS=[['s','Second',1e3],['mi','Minute',6e4],['h','Hour',36e5],['d','Day',864e5],['w','Week',6048e5],['mo','Month',0],['y','Year',0],['de','Decade',0],['c','Century',0]];
+const MON={mo:1,y:12,de:120,c:1200};
+function step(ms,n,u){const U=UNITS.find(x=>x[0]===u||x[1]===u)||UNITS[3];if(U[2])return ms+n*U[2];const d=new Date(ms),day=d.getDate();
+ d.setDate(1);d.setMonth(d.getMonth()+Math.round(n*MON[U[0]]));const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.getTime()}
+const unitName=(n,u)=>{const U=UNITS.find(x=>x[0]===u||x[1]===u)||UNITS[3];return `${n} ${U[1]}${+n===1?'':U[1]==='Century'?'':'s'}`.replace(/Century$/,+n===1?'Century':'Centuries')};
+const SPN=['Crawl','Walk','Slow','Medium','Fast','Run'];
+function speeds(o){o=o||{};const a=Math.max(2,+o.crawl||120),b=Math.max(1,Math.min(a,+o.slow||30)),c=Math.max(.5,Math.min(b,+o.run||6));
+ return SPN.map((n,i)=>[n,i<=2?a*Math.pow(b/a,i/2):b*Math.pow(c/b,(i-2)/3),i<=2?3*Math.pow(.5,i/2):1.5])}
+const STAR_TARGET='<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="M12 8.2l1.1 2.5 2.7.3-2 1.8.6 2.7-2.4-1.4-2.4 1.4.6-2.7-2-1.8 2.7-.3z" fill="currentColor" stroke-width="1"/></svg>';
+const TABS=[['asp','Aspect'],['rd','R/D'],['ing','Ing'],['pos','Pos'],['house','House'],['ret','Return'],['lun','Lun/Ecl']];
+const LUNATIONS=[['new','New Moon'],['fq','First Quarter Moon'],['full','Full Moon'],['lq','Last Quarter Moon'],['eclipse','Any Eclipse'],['seclipse','Solar Eclipse'],['leclipse','Lunar Eclipse']];
+const ASPECTS=[['Conjunction',0],['Opposition',180],['Square',90],['Trine',120],['Sextile',60],['Quincunx',150],['Semisextile',30],['Semisquare',45],['Sesquiquadrate',135]];
+const KINDS_FROM=[['T','Transiting'],['P','Progressed'],['S','Solar Arc']],KINDS_TO=[['R','Natal'],['T','Transiting'],['P','Progressed'],['S','Solar Arc']],RING={T:'tr',P:'pr',S:'sa'};
+const PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'],SGN=['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces'];
+const SPD={Moon:.05,Sun:.5,Mercury:.5,Venus:.5,Mars:.5,Jupiter:1,Saturn:1,Uranus:2,Neptune:2,Pluto:2},Y=365.2422;
+const e180=x=>((x%360)+540)%360-180,e360=x=>((x%360)+360)%360;
+/* first sign change of f from t0 in direction dir, sampled every st days up to span days, then bisected */
+function seek(f,st,span,t0,dir,jump){let x0=t0+dir*1e-3,f0=f(x0);for(let n=1;n*st<=span;n++){const x1=t0+dir*n*st,f1=f(x1);
+ if((f0<=0)!==(f1<=0)&&Math.abs(f0-f1)<jump){let lo=x0,fl=f0,hi=x1;for(let i=0;i<50;i++){const m=(lo+hi)/2,fm=f(m);if((fm<=0)===(fl<=0)){lo=m;fl=fm}else hi=m}return {t:(lo+hi)/2,up:dir>0?f1>f0:f0>f1}}x0=x1;f0=f1}return null}
+function lunation(k,ctx,t0,dir){const L=ctx.lon,lat=ctx.moonLat||(t=>5.145*Math.sin((L('Moon',t)-L('Node',t))*Math.PI/180));
+ if(k==='eclipse'){const a=lunation('seclipse',ctx,t0,dir),b=lunation('leclipse',ctx,t0,dir),sol=b==null||(a!=null&&(dir>0?a<=b:a>=b));return sol?a:b}
+ const g=k==='new'||k==='seclipse'?0:k==='fq'?90:k==='lq'?270:180,f=t=>e180(L('Moon',t)-L('Sun',t)-g);
+ for(let i=0;i<300;i++){const r=seek(f,.25,40,t0,dir,90);if(!r)return null;if(!/eclipse/.test(k)||Math.abs(lat(r.t))<1.55)return r.t;t0=r.t}return null}
+function station(p,w,ctx,t0,dir){const L=ctx.lon,sp=t=>e180(L(p,t+.05)-L(p,t-.05));let x=t0;
+ for(let i=0;i<4;i++){const r=seek(sp,p==='Mercury'?.5:1,1200,x,dir,90);if(!r)return null;if((w==='d')===r.up)return r.t;x=r.t}return null}
+function find(s,ctx,t0,dir){s=s||{};const L=ctx.lon,tab=s.tab||'asp',N=ctx.natal||null,st=p=>SPD[p]||1,
+ near=a=>{a=a.filter(x=>x.jd!=null);a.sort((x,y)=>dir*(x.jd-y.jd));return a[0]||{jd:null}};
+ if(tab==='asp'){const ka=N?s.ka||'T':'T',kb=N?s.kb||'R':'T',A=s.a||'Saturn',B=s.b||'Sun',x=s.x||'Conjunction',ang=(ASPECTS.find(q=>q[0]===x)||ASPECTS[0])[1];
+  if(ka!=='T'&&!N)return {jd:null,msg:'Open a birth chart for progressed and solar arc aspects'};const bj=N?N.jd:t0,pg=t=>bj+(t-bj)/Y;
+  const fn=(k,p)=>k==='T'?t=>L(p,t):k==='P'?t=>L(p,pg(t)):k==='S'?t=>L(p,bj)+L('Sun',pg(t))-L('Sun',bj):()=>L(p,bj),fa=fn(ka,A),fb=fn(kb,B);
+  const sp=(k,p)=>k==='T'?st(p):k==='P'?st(p)*Y:k==='S'?SPD.Sun*Y:Infinity,stp=Math.min(sp(ka,A),sp(kb,B)),span=(ka==='T'||kb==='T'?200:120)*Y;
+  if(!isFinite(stp))return {jd:null,msg:'Both picks are natal, so nothing moves in time'};
+  const pre={T:'',P:'Progressed ',S:'Solar Arc ',R:'Natal '},lab=`${pre[ka]}${A} ${x} ${N?pre[kb]:''}${B}`;let best=null;
+  for(const g of (ang%180?[ang,-ang]:[ang])){const r=seek(t=>e180(fa(t)-fb(t)-g),stp,span,t0,dir,90);if(r&&(best==null||dir*(r.t-best)<0))best=r.t}
+  return best==null?{jd:null,msg:`No exact ${x.toLowerCase()} within ${Math.round(span/Y)} years`}:{jd:best,label:lab,ring:RING[ka]}}
+ if(tab==='lun'){const k=s.le||'new';let jd=lunation(k,ctx,t0,dir),lab=(LUNATIONS.find(q=>q[0]===k)||LUNATIONS[0])[1];
+  if(k==='eclipse'&&jd!=null)lab=Math.abs(e180(L('Moon',jd)-L('Sun',jd)))<90?'Solar Eclipse':'Lunar Eclipse';return {jd,label:lab}}
+ if(tab==='rd'){const p=s.rdp||'Mercury',w=s.rdw||'any';return near((w==='any'?['rx','d']:[w]).map(x=>({jd:station(p,x,ctx,t0,dir),label:`${p} Stations ${x==='rx'?'Retrograde':'Direct'}`})))}
+ if(tab==='ing'){const p=s.ip||'Sun',sg=s.is==null?-1:+s.is,w15=x=>((x+15)%30+30)%30-15;
+  const r=sg<0?seek(t=>w15(L(p,t)),st(p),200*Y,t0,dir,15):seek(t=>e180(L(p,t)-sg*30),st(p),400*Y,t0,dir,90);
+  if(!r)return {jd:null,msg:'None found within 200 years'};const into=Math.floor(e360(L(p,r.t+dir*.01))/30);return {jd:r.t,label:`${p} enters ${SGN[sg<0?into:sg]}`}}
+ if(tab==='pos'){const p=s.pp||'Sun',d=+(s.pd||0),sg=+(s.ps||0),r=seek(t=>e180(L(p,t)-(sg*30+d)),st(p),400*Y,t0,dir,90);return {jd:r?r.t:null,label:`${p} at ${d}° ${SGN[sg]}`}}
+ if(tab==='house'){const c=N&&N.cusps;if(!c)return {jd:null,msg:'House needs a birth chart with a birth time'};const p=s.hp||'Sun',h=+(s.hn||0);
+  return near((h?[h]:[1,2,3,4,5,6,7,8,9,10,11,12]).map(n=>{const r=seek(t=>e180(L(p,t)-c[n]),st(p),400*Y,t0,dir,90);return {jd:r?r.t:null,label:`${p} enters House ${n}`}}))}
+ if(tab==='ret'){if(!N)return {jd:null,msg:'Return needs a birth chart'};const p=s.rp||'Sun',g=L(p,N.jd),r=seek(t=>e180(L(p,t)-g),st(p),400*Y,t0,dir,90);return {jd:r?r.t:null,label:`${p} Return`}}
+ return {jd:null}}
+/* ---------- the Step Chart to Event panel ---------- */
+const ST={tab:'asp'};let P=null,O=null;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const sel=(k,lab,L,v)=>`<select data-eat="${k}" aria-label="${lab}">${L.map(([q,n])=>`<option value="${q}"${String(q)===String(v)?' selected':''}>${n}</option>`).join('')}</select>`;
+const col=(h,b)=>`<div class="eat-c"><span>${h}</span>${b}</div>`;
+const fmt=ms=>{const d=new Date(ms),z=n=>String(n).padStart(2,'0');let h=d.getHours();const ap=h<12?'am':'pm';h=h%12||12;return `${z(d.getMonth()+1)}/${z(d.getDate())}/${String(d.getFullYear()).slice(-2)} ${z(h)}:${z(d.getMinutes())}${ap}`};
+function body(){const n=!!(O&&O.natal),pl=PL.map(p=>[p,p]),sg=SGN.map((x,i)=>[i,x]),t=ST.tab;
+ if(t==='asp')return col(n?sel('ka','Moving',KINDS_FROM,ST.ka||'T'):'Transiting',sel('a','Planet',pl,ST.a||'Saturn'))+col('&nbsp;',sel('x','Aspect',ASPECTS.map(q=>[q[0],q[0]]),ST.x||'Conjunction'))+col(n?sel('kb','To',KINDS_TO,ST.kb||'R'):'Transiting',sel('b','Other planet',pl,ST.b||'Sun'));
+ if(t==='rd')return col('Transiting',sel('rdp','Planet',PL.slice(2).map(p=>[p,p]),ST.rdp||'Mercury'))+col('Station',sel('rdw','Station',[['any','Retrograde or Direct'],['rx','Retrograde'],['d','Direct']],ST.rdw||'any'));
+ if(t==='ing')return col('Transiting',sel('ip','Planet',pl,ST.ip||'Sun'))+col('Enters',sel('is','Sign',[[-1,'Any sign']].concat(sg),ST.is==null?-1:ST.is));
+ if(t==='pos')return col('Transiting',sel('pp','Planet',pl,ST.pp||'Sun'))+col('Degree',sel('pd','Degree',[...Array(30)].map((_,i)=>[i,i+'°']),ST.pd||0))+col('Sign',sel('ps','Sign',sg,ST.ps||0));
+ if(t==='house')return n&&O.ctx.natal&&O.ctx.natal.cusps?col('Transiting',sel('hp','Planet',pl,ST.hp||'Sun'))+col('Enters',sel('hn','House',[[0,'Any house']].concat([...Array(12)].map((_,i)=>[i+1,'House '+(i+1)])),ST.hn||0)):'<p class="eat-m">Open a birth chart with a birth time to step to house ingresses.</p>';
+ if(t==='ret')return n?col('Transiting',sel('rp','Planet',pl,ST.rp||'Sun'))+col('&nbsp;','<span class="eat-r">returns to its natal place</span>'):'<p class="eat-m">Open a birth chart to step to returns.</p>';
+ return col('Event',sel('le','Event',LUNATIONS,ST.le||'new'))}
+function draw(focus){if(!P||!O)return;const ms=O.getMs();
+ P.innerHTML=`<div class="eat-h"><b>${esc(O.title||'Step Chart to Event')}</b><button class="eat-x" data-eat-x aria-label="Close">&#10005;</button></div>`
+ +`<div class="eat-t" role="tablist" aria-label="Kind of event">${TABS.map(([k,n])=>`<button role="tab" data-eat-tab="${k}" aria-selected="${k===ST.tab}">${n}</button>`).join('')}</div>`
+ +`<div class="eat-b">${body()}</div>`
+ +`<div class="eat-f"><button data-eat-go="-1">Prev</button><div class="eat-s"><small>Search From</small><b>${esc((O.fmt||fmt)(ms))}</b></div><button data-eat-go="1">Next</button></div>`
+ +(ST.msg?`<div class="eat-l" role="status">${esc(ST.msg)}</div>`:'');
+ place();const q=focus&&P.querySelector(focus);if(q)q.focus()}
+function place(){if(!P||!O||!O.anchor||!O.anchor.isConnected)return;   /* the app redrew its bar: keep the panel where it is */const a=O.anchor.getBoundingClientRect(),w=P.offsetWidth,h=P.offsetHeight,vw=innerWidth,vh=innerHeight;
+ let x=Math.min(Math.max(8,a.left+a.width/2-w/2),vw-w-8),y=a.top-h-8;if(y<8)y=Math.min(vh-h-8,a.bottom+8);P.style.left=x+'px';P.style.top=Math.max(8,y)+'px'}
+function go(dir){let r;try{r=find(ST,O.ctx,O.getMs()/864e5+2440587.5,dir)}catch(e){r={jd:null,msg:'Search failed'}}
+ if(!r||r.jd==null){ST.msg=(r&&r.msg)||'None found within 200 years'}else{const ms=(r.jd-2440587.5)*864e5;ST.msg=`${r.label}: ${(O.fmt||fmt)(ms)}`;O.go(ms,r.label,r.ring||'tr')}
+ draw(`[data-eat-go="${dir}"]`)}
+function close(){if(!P)return;const a=O&&O.anchor;P.remove();P=null;O=null;document.removeEventListener('keydown',onKey,true);document.removeEventListener('pointerdown',onOut,true);removeEventListener('resize',place);if(a&&a.isConnected)a.focus()}
+const onKey=e=>{if(e.key==='Escape'&&P){e.stopPropagation();e.preventDefault();close()}};
+const onOut=e=>{if(P&&!P.contains(e.target)&&!(O.anchor&&O.anchor.contains(e.target)))close()};
+function events(o){if(P){const same=O&&O.anchor===o.anchor;close();if(same)return}O=o;injectCss();P=document.createElement('div');P.className='eat-p';P.setAttribute('role','dialog');P.setAttribute('aria-label',o.title||'Step Chart to Event');
+ document.body.appendChild(P);ST.msg='';
+ P.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-eat-x')){close();return}
+  if(b.dataset.eatTab){ST.tab=b.dataset.eatTab;ST.msg='';draw(`[data-eat-tab="${ST.tab}"]`);return}if(b.dataset.eatGo)go(+b.dataset.eatGo)});
+ P.addEventListener('change',e=>{const k=e.target.dataset.eat;if(!k)return;ST[k]=e.target.value;ST.msg='';draw(`[data-eat="${k}"]`)});
+ document.addEventListener('keydown',onKey,true);setTimeout(()=>document.addEventListener('pointerdown',onOut,true),0);addEventListener('resize',place);draw('[data-eat-x]')}
+function injectCss(){if(document.getElementById('eat-css'))return;const s=document.createElement('style');s.id='eat-css';s.textContent=`
+.eat-p{position:fixed;z-index:9000;width:min(420px,calc(100vw - 16px));background:#10142a;color:#f3e7c4;border:1px solid #c9b27a66;border-radius:12px;box-shadow:0 10px 30px #0009;font:14px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;padding:10px 12px 12px}
+.eat-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.eat-h b{font-size:15px}
+.eat-x{background:none;border:0;color:inherit;font-size:16px;width:32px;height:32px;border-radius:8px;cursor:pointer}.eat-x:hover,.eat-x:focus-visible{background:#ffffff1a}
+.eat-t{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}.eat-t button{flex:1 0 auto;min-height:32px;padding:0 8px;border-radius:8px;border:1px solid #c9b27a55;background:transparent;color:inherit;cursor:pointer;font:600 12.5px inherit}
+.eat-t button[aria-selected=true]{background:#c9b27a;color:#10142a;border-color:#c9b27a}
+.eat-b{display:flex;gap:8px;flex-wrap:wrap;min-height:58px}.eat-c{display:flex;flex-direction:column;gap:4px;flex:1 1 30%}.eat-c span{font-size:12px;opacity:.75}
+.eat-c select{min-height:34px;border-radius:8px;background:#1b2147;color:inherit;border:1px solid #c9b27a55;padding:0 6px;font:inherit}
+.eat-r,.eat-m{font-size:13px;opacity:.85;margin:0;align-self:center}
+.eat-f{display:flex;align-items:center;gap:8px;margin-top:10px}.eat-f button{min-height:36px;min-width:64px;border-radius:8px;border:1px solid #c9b27a;background:#c9b27a22;color:inherit;cursor:pointer;font:600 13px inherit}
+.eat-s{flex:1;text-align:center;display:flex;flex-direction:column}.eat-s small{opacity:.7;font-size:11.5px}
+.eat-l{margin-top:8px;font-size:13px;text-align:center;opacity:.9}
+.eat-p button:focus-visible,.eat-p select:focus-visible{outline:2px solid #f3e7c4;outline-offset:1px}`;(document.head||document.documentElement).appendChild(s)}
+window.EATime={UNITS,step,unitName,speeds,STAR_TARGET,TABS,LUNATIONS,ASPECTS,KINDS_FROM,KINDS_TO,find,events,close,isOpen:()=>!!P};
 })();
 </script>
 <script>/* ---------- AstroDice (Games World, round 1) ----------
@@ -2022,7 +2214,7 @@ const PLN_IC={
 const plnIc=(k,col,w)=>`<g fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${(PLN_IC[k]||'').replace(/@C@/g,col)}</g>`;
 for(const k of ['plines','pgrid','pobj','pcons','pland','pzod','qdrain','phouse','pbi'])window.APP_DATA.icons[k]=`<g fill="none" stroke="@C@" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${PLN_IC[k]}</g>`;
 /* zodiacs: Tropical, Sidereal (ayanamsa at J2000, carried by general precession) and the 13 IAU constellations.
-   Values at J2000 from the published tables; approximate until the Swiss Ephemeris arrives. */
+   Values at J2000 from the published tables; planet positions themselves come from NASA JPL DE441 (EA_JPL). */
 const PLN_AYAN=[['fagan','Fagan-Bradley',24.7403],['lahiri','Lahiri (Chitrapaksha)',23.8571],['krishna','Krishnamurti',23.7602],['raman','Raman',22.4108],['yukt','Sri Yukteshwar',22.4788],['bhasin','J.N. Bhasin',22.7621],['deluce','De Luce',27.8158],['djk','Djwhal Khul',28.3597],['sassan','Sassanian',19.9930],['ushas','Ushashashi',20.0575],['gc0sag','Galactic Center At 0 Sagittarius',26.8460],
  ['tchitra','True Chitrapaksha (Spica At 0 Libra)',23.8414],['trevati','True Revati (Zeta Piscium At 29°50\u2032 Pisces)',20.0443],['tpushya','True Pushya (Delta Cancri At 16 Cancer)',22.7219],['aldeb15','Aldebaran At 15 Taurus',24.7892]];   /* star-anchored: the star\'s J2000 longitude, proper motion left out */
 const plnAyan=(id,jd)=>{const a=(PLN_AYAN.find(x=>x[0]===id)||PLN_AYAN[0])[2],T=(jd-2451545)/36525;return a+(5028.796195*T+1.1054348*T*T)/3600};
@@ -3288,7 +3480,20 @@ function sgBuild(G,pl,ds){let body='';try{body={tonight:tonightHTML,moon:moonHTM
  return head('gaze','Stargazer','not assigned')+whereHTML(pl,ds)+`<div class="segs stgtabs" role="tablist">${SG_TABS.map(([k,t])=>`<button class="seg ${G.tab===k?'on':''}" role="tab" aria-selected="${G.tab===k}" data-act="stgtab" data-id="${k}">${t}</button>`).join('')}</div>`+body}
 
 /* ================= round two (Gemini, Nov 7): sky events, heliacal phases, occultations, eclipses ================= */
-const EPH=()=>window.EA_EPH;
+/* Sun and Moon readouts prefer the shared NASA JPL DE441 ephemeris (EA_JPL); when a century isn't loaded yet they fall back to sgeph's Meeus math.
+   Eclipse searches inside sgeph stay on its own fast series (checked against NASA to seconds) and only the readouts and rise/set use JPL. */
+const AU_KM=149597870.7;let sgEphW=null;
+const sgJ=(n,jd,o)=>{const J=window.EA_JPL;if(!J||!J.body)return null;try{return J.body(n,jd,Object.assign({speed:false},o||{}))}catch(e){return null}};
+const sgRD=(b,r)=>{const km=b.dist*AU_KM;return {ra:b.ra,dec:b.dec,dist:km,sd:Math.asin(r/km)*180/Math.PI}};
+const EPH=()=>{const B=window.EA_EPH;if(!B)return B;if(sgEphW&&sgEphW.__b===B)return sgEphW;
+ sgEphW=Object.assign(Object.create(B),{__b:B,
+  moon:jd=>{const b=sgJ('Moon',jd);return b?{lon:b.lon,lat:b.lat,dist:b.dist*AU_KM}:B.moon(jd)},
+  sun:jd=>{const b=sgJ('Sun',jd);return b?{lon:b.lon,lat:b.lat,dist:b.dist}:B.sun(jd)},
+  moonGeo:jd=>{const b=sgJ('Moon',jd);return b?sgRD(b,1737.4):B.moonGeo(jd)},
+  sunGeo:jd=>{const b=sgJ('Sun',jd);return b?sgRD(b,696000):B.sunGeo(jd)},
+  moonTopo:(jd,lat,lon)=>{const b=sgJ('Moon',jd,{topo:{lat,lon}});return b?sgRD(b,1737.4):B.moonTopo(jd,lat,lon)},
+  sunTopo:(jd,lat,lon)=>{const b=sgJ('Sun',jd,{topo:{lat,lon}});return b?sgRD(b,696000):B.sunTopo(jd,lat,lon)}});
+ return sgEphW};
 const PLN5=['Mercury','Venus','Mars','Jupiter','Saturn'],PLN_ALL=['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune'];
 const dateOfMs=(ms,pl)=>{const p=parts(ms,pl.tz);return p.y+'-'+p2(p.m)+'-'+p2(p.d)};
 const shortDate=(ms,pl)=>{const p=parts(ms,pl.tz);return MON[p.m-1].slice(0,3)+' '+p.d+(p.y!==+sgDate(pl).slice(0,4)?', '+p.y:'')};
@@ -3375,14 +3580,14 @@ function occHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),d
  return `<div class="segs">${[[30,'Next 30 Days'],[90,'Next 3 Months'],[365,'Next 12 Months']].map(([v,t])=>`<button class="seg ${days===v?'on':''}" data-act="stgoccdays" data-id="${v}">${t}</button>`).join('')}</div>${geoToggle()}
  <div class="cap">THE MOON IN FRONT OF PLANETS AND STARS, ${G.geo?'SEEN FROM THE EARTH’S CENTER (TIMES IN '+esc((pl.tz||'UTC').toUpperCase())+')':'SEEN FROM '+esc(pl.label.toUpperCase())}</div>${L.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Hidden</th><th scope="col">Disappears</th><th scope="col">Reappears</th><th scope="col">Moon Lit</th><th scope="col">Sky</th></tr></thead><tbody>${lr}</tbody></table></div>`:`<p>No lunar occultations of planets or stars brighter than magnitude 4 from here in this span.</p>`}
  <div class="cap">PLANETS IN FRONT OF STARS AND EACH OTHER, NEXT 12 MONTHS</div>${C.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Pair</th><th scope="col">Closest</th></tr></thead><tbody>${cr}</tbody></table></div>`:'<p>No planet comes within half a degree of a bright star or another planet in the next twelve months.</p>'}
- <small class="note">Lunar occultations use a precise Moon (the published ELP-2000/82 main terms) seen from this exact place, so times are good to about a minute. Topocentric is what you see from this place; Geocentric is the view from the Earth’s center, the reference astrologers and almanacs use, where the Moon sits up to a degree away from where you see it, so many occultations differ. Grey rows happen with the Moon below the horizon here. A planet passing in front of a star or another planet is very rare; closer than half a degree is listed.</small>`}
+ <small class="note">Lunar occultations use the Moon from NASA JPL’s DE441 ephemeris seen from this exact place, so times are good to about a minute. Topocentric is what you see from this place; Geocentric is the view from the Earth’s center, the reference astrologers and almanacs use, where the Moon sits up to a degree away from where you see it, so many occultations differ. Grey rows happen with the Moon below the horizon here. A planet passing in front of a star or another planet is very rare; closer than half a degree is listed.</small>`}
 /* ---- tab: Eclipses, with local animation ---- */
 function eclHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),L=eclList(t0,3*365.25,pl),fm=jd=>{const ms=msOfJd(jd);return shortDate(ms,pl)+' '+hm(ms,pl)};
  const rows=L.map((e,i)=>{let here;if(e.solar){const l=e.local;here=!l?'Not seen from here':l.below?'Below the horizon here':`<b>${ECL_NAME[l.kind]} here</b>, ${Math.round(l.obs*100)}% of the Sun covered at ${hm(msOfJd(l.max),pl)}${l.c2?`, ${Math.round((l.c3-l.c2)*1440*60/60)} min ${Math.round(((l.c3-l.c2)*86400)%60)} s of ${l.kind==='total'?'totality':'annularity'}`:''}${l.altMax<5?' (Sun low)':''}`}
   else here=!e.moonUp?'Moon below the horizon here':e.moonMax>0?`Seen from here, Moon ${Math.round(e.moonMax)}° up at greatest`:(e.moonEnd>0?'The Moon rises during the eclipse here; the later stages are seen':'The Moon sets during the eclipse here; the early stages are seen');
   return `<tr><td>${go(e.solar&&e.local&&e.local.max?msOfJd(e.local.max):msOfJd(e.jd),e.solar?'Sun':'Moon',0,fm(e.jd))}</td><th scope="row">${ECL_NAME[e.type]} ${e.solar?'Solar':'Lunar'}</th><td>${here}<div class="btns"><button data-act="stgeclw" data-id="${i}:here">Watch From Here</button><button data-act="stgeclw" data-id="${i}:best">Watch From Where It’s ${e.solar?(e.type==='partial'?'Greatest':'Most '+ECL_NAME[e.type]):'Highest'}</button></div></td></tr>`}).join('');
  sgEclCache={L,pl};return `${geoToggle()}<div id="stg-anim">${G.anim?animHTML():''}</div><div class="cap">ECLIPSES, NEXT 3 YEARS</div><div class="stgtbl"><table><thead><tr><th scope="col">Greatest</th><th scope="col">Eclipse</th><th scope="col">From ${esc(pl.label)}</th></tr></thead><tbody>${rows}</tbody></table></div>
- <small class="note">Computed from a precise Moon and Sun (Meeus, ELP-2000/82 terms) with the Earth’s shape, checked against NASA for the April 8, 2024 and August 2, 2027 eclipses (within seconds of their times). Topocentric and Geocentric change the animations of solar eclipses (from the Earth’s center the Moon often misses the Sun); a lunar eclipse looks the same from everywhere the Moon is up. The full Eclipse menu with maps, paths, Saros and Inex will be its own World.</small>`}
+ <small class="note">Eclipse times are found with a precise Moon and Sun series and the Earth’s shape, checked against NASA for the April 8, 2024 and August 2, 2027 eclipses (within seconds of their times). Local heights and animations use NASA JPL’s DE441 ephemeris. Topocentric and Geocentric change the animations of solar eclipses (from the Earth’s center the Moon often misses the Sun); a lunar eclipse looks the same from everywhere the Moon is up. The full Eclipse menu with maps, paths, Saros and Inex will be its own World.</small>`}
 let sgEclCache=null;
 /* the stars around an eclipse (Show Stars): stars to magnitude 5 and the Device's constellation figures, precessed once per eclipse */
 let sgAnimSky=null;
@@ -3530,7 +3735,7 @@ function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=E
  <div class="stgmoon">${moonFace(D.el,pl.lat<0)}<div><div class="stgmph">${ph.name}${ph.alt?` <small>(${ph.alt})</small>`:''}</div>
  <div>${Math.round(D.ill*100)}% lit · ${age.toFixed(1)} days old · ${SG_SIGNS[sg]} ${dms(inS)}</div>
  <div class="segs" role="group" aria-label="Phase system">${Object.keys(SG_MPH).map(k=>`<button class="seg ${(G.mph||'p12')===k?'on':''}" data-act="stgmph" data-id="${k}" aria-pressed="${(G.mph||'p12')===k}">${SG_MPH[k].t}</button>`).join('')}</div>
- <small class="note">${ph.name} runs from ${Math.round(ph.lo)}° to ${Math.round(ph.hi)}° of phase angle.${(G.mph||'p12')==='p12'?' Earthstrology Method names (Wild Meadow) in brackets.':(G.mph||'p12')==='p8'?' Rudhyar\u2019s names in brackets.':' Phased systems center each phase on its exact aspect.'}</small></div></div>
+ <small class="note">${ph.name} runs from ${Math.round(ph.lo)}° to ${Math.round(ph.hi)}° of phase angle.${(G.mph||'p12')==='p12'?' Earthstrology names (Wild Meadow) in brackets.':(G.mph||'p12')==='p8'?' Rudhyar\u2019s names in brackets.':' Phased systems center each phase on its exact aspect.'}</small></div></div>
  <div class="cap">PHASE AND LIGHT</div><div class="stgtbl"><table><tbody>
  ${row('Phase angle',dms(D.el),'the Moon\u2019s distance ahead of the Sun along the ecliptic, 0° new, 180° full')}
  ${row('Lit',Math.round(D.ill*1000)/10+'%')}${row('Age',age.toFixed(2)+' days','since the new Moon'+(tn?' of '+shortDate(tn,pl):''))}
@@ -3548,7 +3753,7 @@ function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=E
  ${row('Nakshatra',nak?(Math.floor(sid/(360/27))+1)+'. '+esc(nak)+', pada '+pada:'\u2014','27 equal nakshatras, sidereal (Lahiri)')}
  ${row('Chinese lunar lodge',xi?(xi.i+1)+'. '+SG_XIU[xi.i][0]+', '+SG_XIU[xi.i][1]+` <small>${dms(xi.into)} in</small>`:'\u2014','28 unequal lodges, each starting at its determinative star (right ascension)')}</tbody></table></div>
  <div class="cap">COMING UP</div><div class="stgtbl"><table><tbody>${next.map(e=>`<tr><td style="white-space:nowrap">${go(e.t,'Moon',/Quarter|Full|New/.test(e.w)?1:0,shortDate(e.t,pl)+' '+hm(e.t,pl))}</td><td>${e.w}</td></tr>`).join('')}</tbody></table></div>
- <small class="note">From a precise Moon (Meeus, ELP-2000/82 main terms). Size and distance compare with the average distance of 385,000 km. Out of bounds means a declination beyond the Sun\u2019s greatest, about 23°26′. The Moon picture is drawn as seen from ${esc(pl.label)}.</small>`}
+ <small class="note">Positions from NASA JPL’s DE441 ephemeris. Size and distance compare with the average distance of 385,000 km. Out of bounds means a declination beyond the Sun\u2019s greatest, about 23°26′. The Moon picture is drawn as seen from ${esc(pl.label)}.</small>`}
 
 /* ---- every event opens the Planetarium (Gemini, Nov 7): its date, time, and a view facing it ----
    target: a body or star name, 'az:<deg>' for a direction, or 'eq:<ra>:<dec>'; mode 0 exact, 1 nearest moment it is
@@ -4072,6 +4277,82 @@ const CREDIT={
 window.EA_HARMONIA={plates:P,chapters:CHAPTERS,timeline:TIMELINE,credit:CREDIT};
 })();
 </script>
+<script>/* ---------- Harmonia: images beyond Cellarius (round 2: Egypt, Babylonia, the harmony of the spheres) ----------
+   Each image carries its own credit {by, lic, url, line}. Lesson texts are DRAFTS in Gemini Brett's voice.
+   n = the image's word id (its file is plates/<n>.jpg and thumbs/<n>.jpg). */
+(function(){'use strict';
+const H=window.EA_HARMONIA;if(!H)return;
+const C='https://commons.wikimedia.org/wiki/File:';
+const M=[
+{n:'senenmut',ch:'egypt',short:'Senenmut\'s Ceiling',era:'c. 1470 BCE',place:'Thebes, Egypt',english:'The Star Ceiling of Senenmut\'s Tomb',
+ story:`Let's begin about 3,500 years ago, under the ceiling of a tomb near Thebes. Senenmut, the great architect of Queen Hatshepsut, had the night sky painted above his resting place, and it is the oldest Egyptian star map we know. The southern half lists the decans, the 36 star groups that rose one after another through the night and kept time like the hands of a clock. Sah, the figure we call Orion, and Sopdet, the star we call Sirius, sail across it in their boats. Planets ride boats too: Jupiter, Saturn, Mercury, and Venus. The northern half circles the pole with the Bull's Foreleg, the stars we call the Big Dipper, and the twelve months of the year as wheels. Before there was a zodiac, there was this: the sky as a calendar and a clock.`,
+ ask:'The decans rose one by one through the night. How might you tell the time tonight using only the stars rising in the east?',
+ look:[{t:'The Northern Circles',x:.5,y:.75,z:2.5,d:'The circles are the months of the year, gathered around the stars of the north that never set.'},
+       {t:'Boats of the Sky',x:.5,y:.25,z:2.5,d:'Stars and planets sail in boats across the sky river, just as the Sun sails through the day.'}],
+ credit:{by:'Facsimile painting by Charles K. Wilkinson, The Metropolitan Museum of Art',lic:'CC0 (Met Open Access)',url:C+'Astronomical_Ceiling,_Tomb_of_Senenmut_MET_DT207429.jpg',line:'The Metropolitan Museum of Art, CC0'}},
+{n:'dendera-nut',ch:'egypt',short:'Nut over Dendera',era:'c. 50 BCE',place:'Dendera, Egypt',english:'The Sky Goddess Nut on the Ceiling of Dendera',
+ story:`Here is Nut, the sky goddess, stretched across the porch ceiling of the Temple of Hathor at Dendera, drawn by the French scholars of the Description de l'Égypte. Her head is at the left and her arms reach down to the earth, and the long body arches over the whole band of sky. Every evening Nut swallows the Sun, and every morning Nut gives birth to the Sun again. The Sun travels through Nut's body all night long. This is the Egyptian way of telling the daily cycle we teach as Rise, Reach, Rest, and Root. Along Nut's body you can find the signs of the zodiac, which had just arrived in Egypt from Babylon by way of the Greeks.`,
+ ask:'Where on Nut\'s body would the Sun be at midnight?',
+ look:[{t:'Nut Swallows the Sun',x:.07,y:.2,z:3,d:'The Sun disc sits at Nut\'s mouth. Each evening Nut swallows the Sun, and each morning gives birth to the Sun again.'},
+       {t:'The Fishes',x:.285,y:.37,z:5,d:'Two fishes tied together: Pisces, one of the zodiac signs newly arrived from Babylon.'}],
+ credit:{by:'Description de l\'Égypte, Antiquités vol. IV (Imprimerie impériale, 1809 to 1828); scan The New York Public Library',lic:'Public domain',url:C+'Denderah_(Dandara)_(Tentyris)._Zodiaque_sculpt%C3%A9_au_plafond_du_portique_du_Grand_Temple._(Outline)_(NYPL_b14212718-1268113).jpg',line:'Description de l\'Égypte, NYPL, public domain'}},
+{n:'dendera',ch:'egypt',short:'The Dendera Zodiac',era:'c. 50 BCE',place:'Dendera, Egypt',english:'The Round Zodiac of Dendera',
+ story:`This is the round zodiac carved on a chapel ceiling at Dendera, drawn here by the French scholars who reached Egypt with Napoleon. It is a meeting of two worlds. Inside the circle are the zodiac signs that came from Babylon: the Ram, the Bull, the Twins, the Scorpion, and the rest. Around the edge march the 36 Egyptian decans. Many scholars read the planets on it as standing in their exaltations, the signs where each planet is honored. Four goddesses and eight falcon-headed spirits hold up the whole sky. This one ceiling is a map of how astrology was born: Babylonian signs, Egyptian time, and Greek ideas, all in one circle.`,
+ ask:'Find the Scorpion and the Lion. What is different about the way they are drawn here compared with Cellarius\'s plates?',
+ look:[{t:'The Twelve Signs',x:.4,y:.5,z:2.4,d:'The zodiac figures circle the center, close to the shapes we still use.'},
+       {t:'The Decans at the Edge',x:.4,y:.27,z:2.6,d:'The 36 decans walk around the outer ring, each one a ten-degree face of the sky.'},
+       {t:'Nut Stands Beside',x:.86,y:.5,z:2,d:'The engravers set Nut, the sky goddess, beside the circle with her arms raised to hold up the sky.'}],
+ credit:{by:'Description de l\'Égypte, 2nd edition (Panckoucke, 1822), vol. 4, plate 21; via the World Digital Library',lic:'Public domain',url:C+'Description_of_Egypt._2nd_edition._1822._Vol._4._Pl._21_(Dendera_Circular_Zodiac).jpg',line:'Description de l\'Égypte (1822), public domain'}},
+{n:'venus-tablet',ch:'babylon',short:'The Venus Tablet',era:'c. 1640 BCE, copied c. 650 BCE',place:'Babylon and Nineveh',english:'The Venus Tablet of Ammisaduqa',
+ story:`This clay tablet holds one of the oldest planet records in the world. In the reign of King Ammisaduqa of Babylon, more than 3,600 years ago, sky watchers wrote down every time Venus disappeared into the Sun's light and every time Venus reappeared, on the morning side or the evening side, for twenty-one years. Next to each sighting they wrote an omen: rain, a good harvest, or trouble in the land. A thousand years later a scribe copied the record onto this tablet for the great library at Nineveh. Here is the Venus cycle we still teach, the Underworld passages, the Morning Star and the Evening Star, watched and written down at the very dawn of astrology.`,
+ ask:'The Babylonians wrote down when Venus vanished and when Venus returned. Which moment in the Venus cycle would you choose to watch for, and why?',
+ look:[{t:'Holes in the Clay',x:.5,y:.45,z:2.4,d:'The little round holes were pressed in on purpose. Many scholars think they helped the thick clay dry without cracking.'}],
+ credit:{by:'Photograph by Fæ, The British Museum',lic:'CC BY-SA 3.0',url:C+'Venus_Tablet_of_Ammisaduqa.jpg',line:'Photo Fæ, CC BY-SA 3.0'}},
+{n:'kudurru',ch:'babylon',short:'A Babylonian Boundary Stone',era:'c. 1180 BCE',place:'Babylonia',english:'The Boundary Stone of King Melishipak',
+ story:`In Babylonia, a gift of land was sealed with a carved stone called a kudurru, and the gods were called to witness it. At the very top of this stone, made for King Melishipak, you can see three lights side by side: the crescent of Sin, the Moon; the disc of Shamash, the Sun; and the eight-pointed star of Ishtar, the planet Venus. The Babylonians watched these lights night after night and wrote down what they saw, and from their records came the first zodiac. Look at the animal symbols too. Some of them, like the scorpion and the goat with the tail of a fish, would one day become our Scorpio and Capricorn.`,
+ ask:'Why might the Moon, the Sun, and Venus be placed together at the top, above all the other gods?',
+ look:[{t:'Moon, Sun, and Venus',x:.5,y:.14,z:2.6,d:'The eight-pointed star of Venus, the crescent Moon, and the Sun disc: the three brightest lights.'}],
+ credit:{by:'Photograph by Jastrow (2005), Louvre Museum, Sb 23',lic:'Public domain (released by the photographer)',url:C+'Kudurru_Melishipak_Louvre_Sb23.jpg',line:'Photo Jastrow, Louvre, public domain'}},
+{n:'mul-apin',ch:'babylon',short:'The Star Book MUL.APIN',era:'first millennium BCE',place:'Babylonia',english:'MUL.APIN, the Babylonian Book of Stars',
+ story:`This little clay tablet is a star catalog. Its name, MUL.APIN, means "the Plough star," the first star on its list. Babylonian sky watchers pressed these wedge-shaped signs into wet clay to record which stars rise on which days, which stars stand on the path of the Moon, and how to keep the calendar in step with the Sun. In its list of the stars "in the path of the Moon" we find the ancestors of our zodiac constellations: the Bull of Heaven, the Great Twins, the Lion, the Scorpion, and the Goat-Fish. A few centuries later these became the twelve signs of thirty degrees each.`,
+ ask:'Why would the path of the Moon be the first road the Babylonians mapped, before the path of the Sun?',
+ look:[],
+ credit:{by:'Photograph by Bautsch, Vorderasiatisches Museum Berlin, VAT 9412',lic:'CC0',url:C+'MUP.APIN.VAT09412.P1078712.jpg',line:'Photo Bautsch, CC0'}},
+{n:'kepler-solids',ch:'harmony',short:'Kepler\'s Nested Solids',era:'1596',place:'Tübingen, Germany',english:'Kepler\'s Cosmic Cup of the Five Perfect Solids',lang:'la',latin:'Mysterium Cosmographicum',
+ story:`Now we leap forward to the young Johannes Kepler, who asked a question no one had asked before: why are there six planets, and why are they spaced the way they are? His answer was geometry. Nest the five perfect solids of Plato one inside another, cube, tetrahedron, dodecahedron, icosahedron, and octahedron, and the spheres between them fall almost exactly where the orbits of Saturn, Jupiter, Mars, Earth, Venus, and Mercury lie. Kepler was not quite right, but this dream of a cosmos built on geometry led him to his real discoveries. Here astrology, astronomy, and sacred geometry hold hands.`,
+ ask:'Which solid sits between Earth and Venus in Kepler\'s cup?',
+ look:[{t:'The Cube of Saturn',x:.5,y:.3,z:1.8,d:'The outer cube sits inside the sphere of Saturn and holds the sphere of Jupiter.'}],
+ credit:{by:'Johannes Kepler, Mysterium Cosmographicum (Tübingen, 1596), plate III',lic:'Public domain',url:C+'Kepler_Mysterium_Platonic_Solids.jpg',line:'Kepler, Mysterium Cosmographicum (1596), public domain'}},
+{n:'kepler-music',ch:'harmony',short:'The Harmony of the World',era:'1619',place:'Linz, Austria',english:'Kepler\'s Harmony of the World',lang:'la',latin:'Harmonices Mundi, Book V',
+ story:`This is the title page of Kepler's Harmony of the World, printed in Linz in 1619. Inside, twenty-three years after his nested solids, Kepler found a deeper music. He measured how fast each planet moves when closest to the Sun and when farthest away, and turned those speeds into musical notes. Saturn sings low and slow, Mercury runs high and wide, and Earth sings only two notes, mi and fa. Kepler joked that Earth sings "misery and famine." In this same book he gave us his third law, the true rule that links each planet's distance to the length of its year. The music of the spheres, an idea as old as Pythagoras, became real mathematics.`,
+ ask:'Earth swings between just two notes. What does that tell you about the shape of Earth\'s orbit?',
+ look:[{t:'Five Books',x:.45,y:.35,z:2,d:'The title lists five books: geometry, harmony, music, astrology, and finally the harmony of the planets themselves.'}],
+ credit:{by:'Johannes Kepler, Harmonices Mundi (Linz, 1619), title page; scan Carnegie Mellon University Libraries, Posner Collection',lic:'Public domain',url:C+'Harmonices_Mundi_0001-lg.jpg',line:'Kepler, Harmonices Mundi (1619), public domain'}},
+{n:'fludd',ch:'harmony',short:'Fludd\'s Monochord',era:'1617',place:'Oppenheim, Germany',english:'Robert Fludd\'s Divine Monochord',lang:'la',latin:'Utriusque Cosmi Historia',
+ story:`Robert Fludd, an English physician and mystic, pictured the whole cosmos as one string. A hand reaches out of the clouds to tune it. The string runs from Earth at the bottom, up through water, air, and fire, past the Moon, the Sun, and the planets, to the heavens of light at the top. Along the string are the musical ratios of Pythagoras: the octave, the fifth, and the fourth. As above, so below, in tune. Fludd and Kepler argued with each other in print about whose harmony was right, and both were reaching for the same mystery.`,
+ ask:'Where does the Sun sit on Fludd\'s string, and why might the middle be the right place for the Sun?',
+ look:[{t:'The Hand of the Tuner',x:.6,y:.06,z:3,d:'A hand reaches from the clouds to turn the tuning peg of the cosmos.'},
+       {t:'Terra at the Bottom',x:.5,y:.93,z:3,d:'Earth, Terra, is the lowest note, where the string is fixed.'}],
+ credit:{by:'Robert Fludd, Utriusque Cosmi Historia (Oppenheim, 1617); scan Deutsche Fotothek (df_tg_0006469)',lic:'Public domain',url:C+'Fotothek_df_tg_0006469_Theosophie_%5E_Philosophie_%5E_Sonifikation_%5E_Musik_%5E_Musikinstrument.jpg',line:'Fludd (1617), Deutsche Fotothek, public domain'}}
+];
+M.forEach(p=>H.plates.push(p));
+H.chapters.unshift(
+ {id:'egypt',name:'Egypt: Nut, the Decans, and the First Zodiac',intro:`Before the zodiac, Egypt read the sky as a clock and a calendar. Then the signs arrived from Babylon and met the Egyptian decans on the temple ceilings of Dendera.`},
+ {id:'babylon',name:'Babylonia: Where the Signs Were Born',intro:`The Babylonians watched the Moon, the Sun, and Venus for centuries and wrote down everything. From their records came the twelve signs of the zodiac.`});
+H.chapters.push({id:'harmony',name:'The Harmony of the Spheres',intro:`Pythagoras heard music in the planets. Two thousand years later Kepler and Fludd went looking for that music, one with geometry and one with a single string.`});
+H.timeline.push(
+ {y:-1470,t:'Senenmut\'s tomb ceiling: the oldest Egyptian star map',plate:'senenmut'},
+ {y:-1640,t:'Babylonian sky watchers record Venus for twenty-one years under King Ammisaduqa',plate:'venus-tablet'},
+ {y:-1180,t:'King Melishipak\'s boundary stone shows the Moon, Sun, and Venus',plate:'kudurru'},
+ {y:-686,t:'The oldest dated copy of MUL.APIN lists the stars in the path of the Moon',plate:'mul-apin'},
+ {y:-50,t:'The Dendera zodiac joins the Babylonian signs and the Egyptian decans',plate:'dendera'},
+ {y:1596,t:'Kepler nests the five perfect solids between the planets',plate:'kepler-solids'},
+ {y:1617,t:'Robert Fludd draws the divine monochord',plate:'fludd'},
+ {y:1619,t:'Kepler publishes the melodies of the planets',plate:'kepler-music'});
+H.timeline.sort((a,b)=>a.y-b.y);
+
+})();
+</script>
 <script>/* ---------- Harmonia World (Cellarius): an illustrated history of astrology ----------
    Gemini, Nov 16, 2026: use the public-domain plates of Andreas Cellarius's Harmonia Macrocosmica (1660) to teach an
    illustrated history of astrology, in Gemini Brett's voice. A phone app first, and a menu in the Device.
@@ -4085,14 +4366,18 @@ window.EA_HARMONIA={plates:P,chapters:CHAPTERS,timeline:TIMELINE,credit:CREDIT};
 const HM_CFG={
  base:'harmonia/',                                   /* folder that holds plates/ and thumbs/ (relative to the page) */
  fallback:'https://gemb1123.github.io/GemBstar5813/harmonia/',  /* used when the local folder is missing */
- plate:n=>'plates/'+String(n).padStart(2,'0')+'.jpg', /* about 2600 px wide, for deep zoom */
- thumb:n=>'thumbs/'+String(n).padStart(2,'0')+'.jpg', /* about 480 px wide, for cards */
+ plate:n=>'plates/'+(typeof n==='number'?String(n).padStart(2,'0'):n)+'.jpg', /* about 2600 px wide, for deep zoom */
+ thumb:n=>'thumbs/'+(typeof n==='number'?String(n).padStart(2,'0'):n)+'.jpg', /* about 480 px wide, for cards */
  maxZoom:8,
  theme:{bg:'#0b0d16',panel:'#141827',ink:'#efe6d2',soft:'#b9ad92',gold:'#d8b25a',line:'#2b3149',accent:'#7fb4e6',ok:'#7cc48a',no:'#e0806f'}
 };
 const SYS={ptolemy:'Ptolemy',aratus:'Aratus',tycho:'Tycho Brahe',copernicus:'Copernicus'};
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const D=()=>window.EA_HARMONIA;
+const key=id=>/^\d+$/.test(String(id))?+id:String(id);   /* Cellarius plates are numbers; other images have word ids */
+const isCel=p=>typeof p.n==='number';
+const lbl=p=>isCel(p)?'Plate '+p.n:p.short;
+const ORDER=()=>{const H=D();return H.chapters.flatMap(c=>H.plates.filter(p=>p.ch===c.id))};   /* the journey: chapter by chapter */
 
 function css(){const t=HM_CFG.theme;return `
 .hm{--bg:${t.bg};--pn:${t.panel};--ink:${t.ink};--soft:${t.soft};--gold:${t.gold};--ln:${t.line};--acc:${t.accent};--ok:${t.ok};--no:${t.no};
@@ -4178,46 +4463,46 @@ function Reader(root,opt){
  opt=opt||{};const ST={view:'home',ch:null,n:1,cmpA:1,cmpB:4,cut:50,quiz:null,score:[0,0],look:true};
  let base=opt.base!=null?opt.base:HM_CFG.base,zoom=null;
  const src=(n,big)=>base+(big?HM_CFG.plate(n):HM_CFG.thumb(n));
- const plate=n=>D().plates.find(p=>p.n===+n);
+ const plate=n=>D().plates.find(p=>String(p.n)===String(n));
  root.className='hm'+(opt.standalone?' std':'');root.setAttribute('role','dialog');root.setAttribute('aria-label','Harmonia, an illustrated history of astrology');if(!opt.standalone)root.setAttribute('aria-modal','true');
  if(!document.getElementById('hm-css')){const s=document.createElement('style');s.id='hm-css';s.textContent=css();document.head.appendChild(s)}
  /* one quick probe: if the local plate folder is missing, use the published copy */
  const probe=new Image();probe.onerror=()=>{if(base!==HM_CFG.fallback){base=HM_CFG.fallback;render()}};probe.src=src(1,false);
 
  function top(title,back){return `<div class="hm-top">${back?`<button class="hm-ib" data-hm="back" aria-label="Back">‹ Back</button>`:''}${opt.onClose&&!back?`<button class="hm-ib" data-hm="close" aria-label="Close Harmonia">✕ Close</button>`:''}<h1>${esc(title)}</h1></div>`}
- const card=p=>`<button class="hm-card" data-hm="plate" data-id="${p.n}"><img loading="lazy" src="${src(p.n)}" alt=""><div><small>Plate ${p.n}</small><b>${esc(p.english)}</b></div></button>`;
+ const card=p=>`<button class="hm-card" data-hm="plate" data-id="${p.n}"><img loading="lazy" src="${src(p.n)}" alt=""><div><small>${esc(isCel(p)?'Plate '+p.n:p.era)}</small><b>${esc(p.english)}</b></div></button>`;
 
  function home(){const H=D();return top('Harmonia')+`<div class="hm-main"><div class="hm-wrap">
   <div class="hm-hero"><img src="${src(2,true)}" alt="Plate 2, the Ptolemaic world system, with the zodiac figures circling Earth"><div>
-   <h2>An Illustrated History of Astrology</h2><p>Walk through the 29 hand-colored plates of Andreas Cellarius's star atlas of 1660, with Gemini Brett.</p>
-   <button class="hm-cta" data-hm="plate" data-id="1">Begin the Journey</button></div></div>
+   <h2>An Illustrated History of Astrology</h2><p>From the star ceilings of Egypt and the boundary stones of Babylon, through the hand-colored plates of Cellarius's atlas of 1660, to Kepler's music of the planets, with Gemini Brett.</p>
+   <button class="hm-cta" data-hm="plate" data-id="${ORDER()[0].n}">Begin the Journey</button></div></div>
   <div class="hm-sec">Explore</div><div class="hm-tiles">
    <button class="hm-tile" data-hm="go" data-id="compare"><b>Three Ways to See the Sky</b><span>Slide between Ptolemy, Tycho Brahe, and Copernicus</span></button>
    <button class="hm-tile" data-hm="go" data-id="quiz"><b>Which World Is This?</b><span>A quick game: name the system</span></button>
-   <button class="hm-tile" data-hm="go" data-id="timeline"><b>Timeline</b><span>From Aratus to Cellarius</span></button>
-   <button class="hm-tile" data-hm="go" data-id="all"><b>All 29 Plates</b><span>The whole atlas</span></button></div>
-  <div class="hm-sec">Chapters</div><div class="hm-tiles">${H.chapters.map((c,i)=>`<button class="hm-tile" data-hm="ch" data-id="${c.id}"><b>${i+1}. ${esc(c.name)}</b><span>${H.plates.filter(p=>p.ch===c.id).length} plates</span></button>`).join('')}</div>
+   <button class="hm-tile" data-hm="go" data-id="timeline"><b>Timeline</b><span>From Senenmut to Kepler</span></button>
+   <button class="hm-tile" data-hm="go" data-id="all"><b>All Images</b><span>Every picture, in journey order</span></button></div>
+  <div class="hm-sec">Chapters</div><div class="hm-tiles">${H.chapters.map((c,i)=>`<button class="hm-tile" data-hm="ch" data-id="${c.id}"><b>${i+1}. ${esc(c.name)}</b><span>${H.plates.filter(p=>p.ch===c.id).length} images</span></button>`).join('')}</div>
   <div class="hm-sec">About</div><div class="hm-tiles"><button class="hm-tile" data-hm="go" data-id="credits"><b>Credits and Sources</b><span>Public-domain scans and where they came from</span></button></div>
  </div></div>`}
  function chapter(){const H=D(),c=H.chapters.find(x=>x.id===ST.ch);return top(c.name,1)+`<div class="hm-main"><div class="hm-wrap"><p class="hm-intro">${esc(c.intro)}</p>
   <div class="hm-cards">${H.plates.filter(p=>p.ch===c.id).map(card).join('')}</div></div></div>`}
- function all(){return top('All 29 Plates',1)+`<div class="hm-main"><div class="hm-wrap"><div class="hm-cards">${D().plates.map(card).join('')}</div></div></div>`}
- function plateView(){const p=plate(ST.n),L=D().plates,i=L.indexOf(p),prev=L[i-1],next=L[i+1],looks=p.look||[];
-  return top('Plate '+p.n+' of 29',1)+`<div class="hm-plate">
-  <div class="hm-view" id="hm-view" tabindex="0" aria-label="Plate ${p.n}, ${esc(p.english)}. Drag or use arrow keys to move, plus and minus to zoom, 0 to fit.">
+ function all(){return top('All Images',1)+`<div class="hm-main"><div class="hm-wrap"><div class="hm-cards">${ORDER().map(card).join('')}</div></div></div>`}
+ function plateView(){const p=plate(ST.n),L=ORDER(),i=L.indexOf(p),prev=L[i-1],next=L[i+1],looks=p.look||[];
+  return top(isCel(p)?'Plate '+p.n+' of 29':p.short,1)+`<div class="hm-plate">
+  <div class="hm-view" id="hm-view" tabindex="0" aria-label="${esc(lbl(p))}, ${esc(p.english)}. Drag or use arrow keys to move, plus and minus to zoom, 0 to fit.">
    <div class="hm-load">Loading the engraving…</div>
-   <img id="hm-img" alt="Plate ${p.n}: ${esc(p.english)}" src="${src(p.n,true)}">
+   <img id="hm-img" alt="${esc(lbl(p))}: ${esc(p.english)}" src="${src(p.n,true)}">
    <div class="hm-cap" id="hm-cap" role="status" hidden></div>
    <div class="hm-zc"><button data-hm="zin" aria-label="Zoom in">+</button><button data-hm="zout" aria-label="Zoom out">−</button><button data-hm="zfit" aria-label="Fit the whole plate">Fit</button></div>
   </div>
   <div class="hm-sheet"><div class="hm-wrap">
-   <div class="hm-num">PLATE ${p.n}${p.sys&&SYS[p.sys]?' · '+SYS[p.sys].toUpperCase():''}</div>
-   <div class="hm-lat" lang="la">${esc(p.latin)}</div><h2 class="hm-eng">${esc(p.english)}</h2>
+   <div class="hm-num">${isCel(p)?'PLATE '+p.n+(p.sys&&SYS[p.sys]?' · '+SYS[p.sys].toUpperCase():''):esc((p.era+' · '+p.place).toUpperCase())}</div>
+   ${p.latin?`<div class="hm-lat" lang="${p.lang||'la'}">${esc(p.latin)}</div>`:''}<h2 class="hm-eng">${esc(p.english)}</h2>
    <p class="hm-story">${esc(p.story)}</p>
    ${looks.length?`<div class="hm-lbl">Look Closer</div><div class="hm-row" role="group" aria-label="Look Closer">${looks.map((l,k)=>`<button class="hm-chip" data-hm="look" data-id="${k}">${esc(l.t)}</button>`).join('')}</div>`:''}
    <div class="hm-ask"><b>Ask Yourself</b>${esc(p.ask)}</div>
    <div class="hm-row"><button class="hm-chip" data-hm="save" data-id="png">Save As PNG</button><button class="hm-chip" data-hm="save" data-id="jpeg">Save As JPEG</button><button class="hm-chip" data-hm="copy">Copy to Clipboard</button></div>
-   <div class="hm-nav">${prev?`<button class="hm-ib" data-hm="plate" data-id="${prev.n}">‹ Plate ${prev.n}</button>`:'<span></span>'}${next?`<button class="hm-ib" data-hm="plate" data-id="${next.n}">Plate ${next.n} ›</button>`:`<button class="hm-ib" data-hm="go" data-id="home">Finish</button>`}</div>
+   <div class="hm-nav">${prev?`<button class="hm-ib" data-hm="plate" data-id="${prev.n}">‹ ${esc(lbl(prev))}</button>`:'<span></span>'}${next?`<button class="hm-ib" data-hm="plate" data-id="${next.n}">${esc(lbl(next))} ›</button>`:`<button class="hm-ib" data-hm="go" data-id="home">Finish</button>`}</div>
    <p id="hm-note" class="hm-fb" aria-live="polite"></p>
   </div></div></div>`}
  const CMP=[[1,'Ptolemy, flat'],[2,'Ptolemy, in space'],[8,'Aratus'],[6,'Tycho Brahe, flat'],[7,'Tycho Brahe, in space'],[4,'Copernicus, flat'],[5,'Copernicus, in space']];
@@ -4244,11 +4529,12 @@ function Reader(root,opt){
   ${q.pick?`<div class="hm-row"><button class="hm-cta" data-hm="qnext">Next Plate</button><button class="hm-chip" data-hm="plate" data-id="${q.n}">Read About Plate ${q.n}</button></div>`:''}
   <p style="color:var(--soft)">Score ${ST.score[0]} of ${ST.score[1]}</p></div></div>`}
  function timeline(){const yt=y=>y<0?(-y)+' BCE':'c. '+y+' CE';return top('Timeline',1)+`<div class="hm-main"><div class="hm-wrap"><ol class="hm-tl">${D().timeline.map(e=>`<li><b>${e.y<1000?yt(e.y):e.y}</b>${esc(e.t)}<br><button data-hm="plate" data-id="${e.plate}">See Plate ${e.plate}</button></li>`).join('')}</ol></div></div>`}
- function credits(){const C=D().credit;return top('Credits and Sources',1)+`<div class="hm-main"><div class="hm-wrap hm-cred">
-  <p><b>The atlas.</b> ${esc(C.work)}. The engravings are in the public domain.</p>
-  <p><b>The scans.</b> ${esc(C.copy)}, shared on Wikimedia Commons and marked public domain by the library.</p>
+ function credits(){const C=D().credit,L=ORDER(),cel=L.filter(isCel),oth=L.filter(p=>!isCel(p));return top('Credits and Sources',1)+`<div class="hm-main"><div class="hm-wrap hm-cred">
   <p><b>The words.</b> Lessons by Gemini Brett, Earthstrology.</p>
-  <table><tbody>${D().plates.map(p=>`<tr><td>${p.n}</td><td lang="la"><i>${esc(p.latin)}</i></td><td><a href="${esc(p.src)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table></div></div>`}
+  <p><b>Cellarius's atlas.</b> ${esc(C.work)}. Scans: ${esc(C.copy)}, shared on Wikimedia Commons and marked public domain by the library.</p>
+  <table><tbody>${cel.map(p=>`<tr><td>${p.n}</td><td lang="la"><i>${esc(p.latin)}</i></td><td><a href="${esc(p.src)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table>
+  ${oth.length?`<p style="margin-top:16px"><b>The other images.</b></p>
+  <table><tbody>${oth.map(p=>`<tr><td>${esc(p.english)}</td><td>${esc(p.credit.by)}. ${esc(p.credit.lic)}.</td><td><a href="${esc(p.credit.url)}" target="_blank" rel="noopener">Source</a></td></tr>`).join('')}</tbody></table>`:''}</div></div>`}
 
  function render(){const v={home,chapter,all,plate:plateView,compare,quiz,timeline,credits}[ST.view]||home;root.innerHTML=v();
   if(ST.view==='plate')zoom=Zoom(root.querySelector('#hm-view'),root.querySelector('#hm-img'));else zoom=null;
@@ -4262,8 +4548,8 @@ function Reader(root,opt){
  function blob(type){return new Promise((res,rej)=>{const img=root.querySelector('#hm-img');if(!img||!img.naturalWidth)return rej(new Error('not loaded'));
   const W=img.naturalWidth,H=img.naturalHeight,band=Math.round(W*.035),c=document.createElement('canvas');c.width=W;c.height=H+band;const x=c.getContext('2d');
   x.fillStyle='#0b0d16';x.fillRect(0,0,W,H+band);x.drawImage(img,0,0);x.fillStyle='#efe6d2';x.font=`${Math.round(band*.42)}px Georgia,serif`;x.textBaseline='middle';
-  x.fillText(D().credit.line,band*.4,H+band/2);try{c.toBlob(b=>b?res(b):rej(new Error('encode')),type==='jpeg'?'image/jpeg':'image/png',.92)}catch(e){rej(e)}})}
- async function save(type){try{const b=await blob(type),name=`Cellarius-Plate-${String(ST.n).padStart(2,'0')}.${type==='jpeg'?'jpg':'png'}`;let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
+  x.fillText((plate(ST.n).credit&&plate(ST.n).credit.line)||D().credit.line,band*.4,H+band/2);try{c.toBlob(b=>b?res(b):rej(new Error('encode')),type==='jpeg'?'image/jpeg':'image/png',.92)}catch(e){rej(e)}})}
+ async function save(type){try{const b=await blob(type),name=`${typeof ST.n==='number'?'Cellarius-Plate-'+String(ST.n).padStart(2,'0'):'Harmonia-'+ST.n}.${type==='jpeg'?'jpg':'png'}`;let dl=null;try{dl=window.claude&&await window.claude.use('downloads')}catch(e){}
   if(dl){await dl.save({filename:name,data:b});note('Plate saved.');return}
   const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;root.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);note('Plate saved to Downloads.')}
   catch(e){note('Saving is not available here.')}}
@@ -4274,7 +4560,7 @@ function Reader(root,opt){
   else if(a==='back')back();
   else if(a==='go'){if(id==='home'){hist.length=0;ST.view='home';render()}else go(id)}
   else if(a==='ch')go('chapter',{ch:id});
-  else if(a==='plate'){if(ST.view==='plate'){ST.n=+id;render();const m=root.querySelector('.hm-sheet');if(m)m.scrollTop=0}else go('plate',{n:+id})}
+  else if(a==='plate'){if(ST.view==='plate'){ST.n=key(id);render();const m=root.querySelector('.hm-sheet');if(m)m.scrollTop=0}else go('plate',{n:key(id)})}
   else if(a==='zin')zoom&&zoom.by(1.6);else if(a==='zout')zoom&&zoom.by(1/1.6);else if(a==='zfit'){zoom&&zoom.fit();const c=root.querySelector('#hm-cap');if(c)c.hidden=true}
   else if(a==='look'){const l=(plate(ST.n).look||[])[+id];if(l&&zoom){zoom.to(l.x,l.y,l.z||3);const c=root.querySelector('#hm-cap');if(c){c.innerHTML=`<b>${esc(l.t)}</b>${esc(l.d)}`;c.hidden=false}root.querySelectorAll('[data-hm=look]').forEach(x=>x.classList.toggle('on',x===b));const v=root.querySelector('#hm-view');if(v&&v.scrollIntoView)v.scrollIntoView({block:'nearest'})}}
   else if(a==='save')save(id);else if(a==='copy')copy();
@@ -4288,7 +4574,7 @@ function Reader(root,opt){
  const onKey=e=>{if(!root.isConnected)return;if(e.key==='Tab'&&!opt.standalone){const F=[...root.querySelectorAll('button,select,input,[tabindex="0"]')].filter(x=>x.offsetParent);if(F.length){const i=F.indexOf(document.activeElement);if(e.shiftKey&&i<=0){F[F.length-1].focus();e.preventDefault()}else if(!e.shiftKey&&(i===F.length-1||i<0)){F[0].focus();e.preventDefault()}}return}if(e.key==='Escape'){if(ST.view!=='home'){back();e.preventDefault();e.stopPropagation()}else if(opt.onClose){opt.onClose();e.preventDefault();e.stopPropagation()}}};
  document.addEventListener('keydown',onKey,true);
  render();
- return {open(o){if(o&&o.plate)go('plate',{n:+o.plate})},destroy(){document.removeEventListener('keydown',onKey,true);root.innerHTML=''},config:HM_CFG};
+ return {open(o){if(o&&o.plate)go('plate',{n:key(o.plate)})},destroy(){document.removeEventListener('keydown',onKey,true);root.innerHTML=''},config:HM_CFG};
 }
 
 /* ------------- deep zoom: drag, pinch, wheel, double tap, keys ------------- */
@@ -4325,11 +4611,11 @@ window.EA_WORLDS.harmonia=function(A){
   if(!R)R=Reader(host,{onClose:close});if(o)R.open(o)}
  function close(){if(R){R.destroy();R=null}if(host){host.remove();host=null}const b=document.querySelector('[data-act="hmopen"]');if(b)b.focus()}
  function box(){const H=D();if(!H)return head('harmonia','Harmonia','not assigned')+'<p>The plates did not load.</p>';
-  return head('harmonia','Harmonia','not assigned')+`<p style="margin:6px 0 10px;line-height:1.5">An illustrated history of astrology, told through the 29 plates of Andreas Cellarius's <i>Harmonia Macrocosmica</i> (1660).</p>
+  return head('harmonia','Harmonia','not assigned')+`<p style="margin:6px 0 10px;line-height:1.5">An illustrated history of astrology, from Egypt and Babylon through the plates of Andreas Cellarius's <i>Harmonia Macrocosmica</i> (1660) to Kepler.</p>
   <button class="hm-open" data-act="hmopen" data-id="">Open Harmonia</button>
   <div style="margin:12px 0 4px;font-size:12px;letter-spacing:.08em;opacity:.75">CHAPTERS</div>
   ${H.chapters.map(c=>{const f=H.plates.find(p=>p.ch===c.id);return `<button class="hm-chap" data-act="hmopen" data-id="${f.n}">${esc(c.name)}</button>`}).join('')}`}
- function act(a,id){if(a==='hmopen')openReader(id?{plate:+id}:null)}
+ function act(a,id){if(a==='hmopen')openReader(id?{plate:id}:null)}
  return {box,act,open:openReader,close,config:HM_CFG}};
 })();
 </script>
@@ -5391,7 +5677,7 @@ window.AMP_STREETS={CFG,state:ST,init,paint,decode,status:()=>ST.status,busy:()=
 (function(){'use strict';
 window.EA_WORLDS=window.EA_WORLDS||{};
 window.EA_WORLDS.astromaps=function(A){
-const {S,head,esc,PGW,PGH,positions,detail,jdOf,nowMs,renderAll,toast,pickerHTML,cpRegister,buildChart,constellationHTML}=A;
+const {S,head,esc,PGW,PGH,positions:positions0,detail,jdOf,nowMs,renderAll,toast,pickerHTML,cpRegister,buildChart,constellationHTML}=A;
 const agSvg=A.agSvg,cuspsFor=A.cuspsFor,ASPG=A.ASPG||[],SFILL=A.SFILL||['#482027','#243c33','#5c4c37','#242c52'],saveS=A.save||(()=>{});
 
 const AMP_CFG={
@@ -5422,25 +5708,31 @@ const AMP_CFG={
  /* sky and sign layers (Gemini, Nov 11) */
  zod:{cuspWidth:.9,cuspOp:.75,goreOp:.42,bandOp:.34,parOrbs:[1,1.5,2],parColors:['#ffd166','#7dd3fc','#f9a8d4','#86efac','#fca5a5','#c4b5fd'],oobGlow:'#ffe08a'},
  par:{width:1.3,opacity:.85,dash:7,bandHours:12,bandOp:.16},   /* Moon bands: the hours either side of the chart's moment */
- mid:{width:1.2,opacity:.8,ab:{Sun:'Su',Moon:'Mo',Mercury:'Me',Venus:'Ve',Mars:'Ma',Jupiter:'Ju',Saturn:'Sa',Uranus:'Ur',Neptune:'Ne',Pluto:'Pl',Node:'No'}},
+ mid:{width:1.2,opacity:.8,ab:{Sun:'Su',Moon:'Mo',Mercury:'Me',Venus:'Ve',Mars:'Ma',Jupiter:'Ju',Saturn:'Sa',Uranus:'Ur',Neptune:'Ne',Pluto:'Pl',Node:'NN',SNode:'SN'}},
  aspStyle:{width:1.1,opacity:.72,dashAS:'',dashMC:''},
  labelLats:[46,38,54,30,60,22,14,64,6,-6,-14,-22,-30,-38,-46],   /* where an AS or DS glyph tries to sit, first free spot wins */
  /* planet colors (Gemini, Nov 11): Sun gold, Moon silver, Mercury light blue, Venus green, Mars bright red, Jupiter orange, Saturn grey, Uranus electric blue, Neptune aqua, Pluto dark grey */
- color:{Sun:'#e8b021',Moon:'#cdd2dc',Mercury:'#8fd3ff',Venus:'#43c46e',Mars:'#ff3b30',Jupiter:'#ff9326',Saturn:'#9ea3ab',Uranus:'#2f6bff',Neptune:'#2fe0cf',Pluto:'#6f737c',Node:'#c9a0ff'},
+ color:{Sun:'#e8b021',Moon:'#cdd2dc',Mercury:'#8fd3ff',Venus:'#43c46e',Mars:'#ff3b30',Jupiter:'#ff9326',Saturn:'#9ea3ab',Uranus:'#2f6bff',Neptune:'#2fe0cf',Pluto:'#6f737c',Node:'#c9a0ff',SNode:'#a98ad8'},
  themes:{
   night:{name:'Night',bg:'#0a0d17',ocean:[14,30,58],ocean2:[6,14,30],land:[58,54,44],land2:[86,78,60],coast:[176,154,110],border:'#ffffff26',landStroke:'#b09a6e',grat:'#ffffff1c',gratStrong:'#ffffff38',tropic:'#e0a52666',text:'#efe6d2',dim:'#a99b80',night:'#0b1446',nightOp:.5,place:'#ffd166',birth:'#ffd166',city:'#f3e7c4',geoOp:.42},
   antique:{name:'Antique',bg:'#efe6cf',ocean:[200,190,160],ocean2:[170,158,124],land:[240,228,196],land2:[226,208,166],coast:[120,92,56],border:'#7a5f3a55',landStroke:'#7a5f3a',grat:'#7a5f3a22',gratStrong:'#7a5f3a55',tropic:'#a86f0088',text:'#2b2116',dim:'#6b5a3a',night:'#2b2160',nightOp:.24,place:'#a8321e',birth:'#a86f00',city:'#3b2c18',geoOp:.22,
-   color:{Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'#d0201a',Jupiter:'#d96a00',Saturn:'#6f747c',Uranus:'#1f4fd8',Neptune:'#0d9488',Pluto:'#3f434a',Node:'#7b4fc4'}},
+   color:{Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'#d0201a',Jupiter:'#d96a00',Saturn:'#6f747c',Uranus:'#1f4fd8',Neptune:'#0d9488',Pluto:'#3f434a',Node:'#7b4fc4',SNode:'#5e3fa0'}},
   /* Light mode (Gemini, Nov 11): the Device's silver Earth (Wheel Display > Earth Look: Silver), land in silver white, seas in slate */
   light:{name:'Light',bg:'#eef0f4',ocean:[170,180,198],ocean2:[146,156,177],land:[244,246,249],land2:[220,224,232],coast:[88,96,116],border:'#4a526870',landStroke:'#7c8496',grat:'#2a304226',gratStrong:'#2a304266',tropic:'#a87a08a0',text:'#1b1f2b',dim:'#4f566a',night:'#1d2a6c',nightOp:.3,place:'#c0392b',birth:'#9a6b00',city:'#262b3a',geoOp:.24,
-   color:{Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'#d0201a',Jupiter:'#d96a00',Saturn:'#6f747c',Uranus:'#1f4fd8',Neptune:'#0d9488',Pluto:'#3f434a',Node:'#7b4fc4'}}},
+   color:{Sun:'#b07c00',Moon:'#6c7480',Mercury:'#2186cc',Venus:'#1f8f45',Mars:'#d0201a',Jupiter:'#d96a00',Saturn:'#6f747c',Uranus:'#1f4fd8',Neptune:'#0d9488',Pluto:'#3f434a',Node:'#7b4fc4',SNode:'#5e3fa0'}}},
  show:{labels:['Planet Glyphs On The Lines',true],daynight:['Day And Night',true],lights:['City Lights On The Night Side (Globe)',true],cities:['Cities And Towns',true],birth:['Birthplace',true],borders:['Country Borders',true],grat:['Grid',true],equator:['The Equator',true],tropics:['Tropics And Polar Circles',true],ecliptic:['The Ecliptic',true],cusps:['Sign Cusp Lines',true],gores:['Zodiac Gores (Color The Signs)',false],signDec:['Sign Declination Bands',false],localSpace:['Local Space Lines From The Chosen Place',false]},
- defaults:{view:'map',theme:'night',units:'mi',orb:700,on:['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'],ang:['AS','DS','MC','IC']}
+ defaults:{view:'map',theme:'night',units:'mi',orb:700,on:['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'],ang:['AS','DS','MC','IC']}
 };
-const BODIES=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node'];
-const PRESETS=[['all','All',BODIES.slice(0,10)],['inner','Sun To Mars',['Sun','Moon','Mercury','Venus','Mars']],['outer','Jupiter To Pluto',['Jupiter','Saturn','Uranus','Neptune','Pluto']]];
+const BODIES=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];
+/* the True Nodes (Gemini's global rule, Nov 18: every chart shows the True North Node and True South Node by default).
+   The Device's positions() gives the mean node; Meeus (Astronomical Algorithms, ch. 47) adds the five largest periodic terms. */
+function trueNode(jd){const T=(jd-2451545)/36525,D=(297.8501921+445267.1114034*T)*R,M=(357.5291092+35999.0502909*T)*R,Mp=(134.9633964+477198.8675055*T)*R,F=(93.2720950+483202.0175233*T)*R,O=125.0445479-1934.1362891*T;
+ return n360(O-1.4979*Math.sin(2*(D-F))-.15*Math.sin(M)-.1226*Math.sin(2*D)+.1176*Math.sin(2*F)+.0801*Math.sin(2*(Mp-F)))}
+const NODES=new Set(['Node','SNode']);
+function positions(jd){const P=Object.assign({},positions0(jd));P.Node=trueNode(jd);P.SNode=n360(P.Node+180);return P}
+const PRESETS=[['all','All',BODIES.slice()],['inner','Sun To Mars',['Sun','Moon','Mercury','Venus','Mars']],['outer','Jupiter To Pluto',['Jupiter','Saturn','Uranus','Neptune','Pluto']]];
 const VIEWS={h:84,stars:[['map','ampmap','World Map',24,40],['globe','ampglobe','Globe',76,40]],lines:[['map','globe']]};
-const nm=k=>k==='Node'?'North Node':k;
+const nm=k=>k==='Node'?'North Node':k==='SNode'?'South Node':k;
 const D=AMP_CFG.defaults;
 const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',pops:{gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
  show:Object.fromEntries(Object.entries(AMP_CFG.show).map(([k,v])=>[k,v[1]]))};
@@ -5472,8 +5764,8 @@ function toEq(lon,lat,eps){const l=lon*R,b=lat*R,e=eps*R;return [n360(Math.atan2
 function eqOf(k,jd){const E=window.EA_EPH,eps=obl(jd);
  if(ST.mode==='zodiaco'){const lon=E&&k==='Sun'?E.sun(jd).lon:E&&k==='Moon'?E.moon(jd).lon:positions(jd)[k],q=toEq(lon,0,eps);return {ra:q[0],dec:q[1],approx:false}}
  if(E&&(k==='Sun'||k==='Moon')&&!(window.EA_JPL&&EA_JPL.has(jd))){const p=k==='Sun'?E.sun(jd):E.moon(jd),q=toEq(p.lon,p.lat,eps);return {ra:q[0],dec:q[1],approx:false}}
- if(k!=='Node'){let d=null;try{d=detail(k,jd)}catch(e){}if(d&&d.ra!=null&&d.dec!=null)return {ra:d.ra,dec:d.dec,approx:false}}
- const q=toEq(positions(jd)[k],0,eps);return {ra:q[0],dec:q[1],approx:k!=='Node'}}   /* only while a far-off century of the NASA JPL ephemeris is still loading */
+ if(!NODES.has(k)){let d=null;try{d=detail(k,jd)}catch(e){}if(d&&d.ra!=null&&d.dec!=null)return {ra:d.ra,dec:d.dec,approx:false}}
+ const q=toEq(positions(jd)[k],0,eps);return {ra:q[0],dec:q[1],approx:!NODES.has(k)}}   /* only while a far-off century of the NASA JPL ephemeris is still loading */
 
 /* every line of the chart, as [lon, lat] runs. One run never crosses the 180th meridian on the map (split later). */
 let memo={k:'',L:null};
@@ -5505,7 +5797,7 @@ function lines(){const c=chart();if(!c||c.jd==null)return null;const RP=rplace()
   const roots=(qa,a1,qb,a2)=>{const f1=fa(qa,a1),f2=fa(qb,a2),f=la=>{const x=f1(la),y=f2(la);return x==null||y==null?null:w180(x-y)},out=[];
    let pl=-88,pd=f(pl);for(let la=-87.5;la<=88;la+=.5){const d=f(la);if(d!=null&&pd!=null&&Math.abs(d)<60&&Math.abs(pd)<60&&(d===0||Math.sign(d)!==Math.sign(pd))){let lo=pl,hi=la,dl=pd;for(let it=0;it<40;it++){const m=(lo+hi)/2,dm=f(m);if(dm==null)break;if(Math.sign(dm)===Math.sign(dl)){lo=m;dl=dm}else hi=m}out.push((lo+hi)/2)}pl=la;pd=d}return out};
   const angs=['AS','MC','DS','IC'].filter(a=>ST.ang.has(a)),pts=la=>{const p=[];for(let lo=-180;lo<=180;lo+=2)p.push([lo,la]);return p},PC=AMP_CFG.par,polar=90-23.44;
-  for(let i=0;i<on.length;i++)for(let j=i+1;j<on.length;j++){const a=on[i],b=on[j];if(ST.parWith&&a!==ST.parWith&&b!==ST.parWith)continue;
+  for(let i=0;i<on.length;i++)for(let j=i+1;j<on.length;j++){const a=on[i],b=on[j];if(NODES.has(a)&&NODES.has(b))continue;if(ST.parWith&&a!==ST.parWith&&b!==ST.parWith)continue;
    for(const a1 of angs)for(const a2 of angs){if((a1==='MC'||a1==='IC')&&(a2==='MC'||a2==='IC'))continue;
     for(const pla of roots(Q[a],a1,Q[b],a2)){if(ST.parPolar&&Math.abs(pla)>polar)continue;const l={k:a,k2:b,a:a1,a2,par:pla,pts:pts(pla)};
      /* Moon paran bands (Gemini, Nov 11): parans count within the day, and the Moon moves about 13 degrees in a day, so the latitude drifts.
@@ -5513,8 +5805,11 @@ function lines(){const c=chart();if(!c||c.jd==null)return null;const RP=rplace()
      if(ST.parBand&&(a==='Moon'||b==='Moon')){let lo=pla,hi=pla;for(let h=-PC.bandHours;h<=PC.bandHours;h+=1){if(!h)continue;const qm=eqOf('Moon',jd+h/24),r=a==='Moon'?roots(qm,a1,Q[b],a2):roots(Q[a],a1,qm,a2);let best=null;for(const x of r)if(best==null||Math.abs(x-pla)<Math.abs(best-pla))best=x;if(best!=null&&Math.abs(best-pla)<20){lo=Math.min(lo,best);hi=Math.max(hi,best)}}
       if(hi-lo>.05)l.band=[lo,hi]}
      L.push(l)}}}}
- if(ST.midOn&&ST.ang.size){const on=BODIES.filter(k=>ST.on.has(k));for(let i=0;i<on.length;i++)for(let j=i+1;j<on.length;j++){const a=on[i],b=on[j];if(ST.midWith&&a!==ST.midWith&&b!==ST.midWith)continue;
+ if(ST.midOn&&ST.ang.size){const on=BODIES.filter(k=>ST.on.has(k));for(let i=0;i<on.length;i++)for(let j=i+1;j<on.length;j++){const a=on[i],b=on[j];if(NODES.has(a)&&NODES.has(b))continue;if(ST.midWith&&a!==ST.midWith&&b!==ST.midWith)continue;
   const la=lamOf(a),lb=lamOf(b);if(la==null||lb==null)continue;const m=la+w180(lb-la)/2;pointLines(m,ST.ang,{k:a,k2:b,midpt:true})}}
+ /* the South Node's lines lie exactly on the North Node's opposite lines (Rise on Rest, Reach on Root): when both are shown,
+    the South Node's line is drawn once, under the North Node's, and keeps its own label */
+ {const OPP={AS:'DS',DS:'AS',MC:'IC',IC:'MC'};for(const l of L)if(l.k==='SNode'&&OPP[l.a]&&!l.asp&&!l.midpt&&l.par==null&&L.some(m=>m.k==='Node'&&m.a===OPP[l.a]&&!m.asp&&!m.midpt&&m.par==null))l.ghost=true}
  ST.oob=new Set(BODIES.filter(k=>ST.on.has(k)&&Math.abs(eqOf(k,jd).dec)>obl(jd)));for(const l of L)if(!l.asp&&!l.midpt&&l.par==null&&ST.oob.has(l.k))l.oob=true;
  const Lf=ST.off.size?L.filter(l=>l.asp||l.midpt||l.par!=null||!ST.off.has(l.k+'|'+l.a)):L;memo={k:key,L:Lf};return Lf}
 /* the point d degrees along a great circle from (lat, lon) at bearing az (radians, from north toward east) */
@@ -5780,7 +6075,7 @@ function skyLines(){const jd=mjd(),key=JSON.stringify([jd,SH('ecliptic'),SH('cus
  zmemo={k:key,v:out};return out}
 /* parallels (Gemini, Nov 11): planets within the orb of declination, on the same side of the equator. A group draws one line between
    each pair of neighbors (sorted by declination), at the middle of their declinations, all in the group's color */
-function parallels(){if(!ST.pll)return [];const jd=mjd(),eps=obl(jd),pos=positions(jd),C=AMP_CFG.zod,on=BODIES.filter(k=>ST.on.has(k)&&k!=='Node').map(k=>{const q=eqOf(k,jd);return {k,dec:q.dec,lam:pos[k]}}).sort((a,b)=>a.dec-b.dec),out=[];
+function parallels(){if(!ST.pll)return [];const jd=mjd(),eps=obl(jd),pos=positions(jd),C=AMP_CFG.zod,on=BODIES.filter(k=>ST.on.has(k)&&!NODES.has(k)).map(k=>{const q=eqOf(k,jd);return {k,dec:q.dec,lam:pos[k]}}).sort((a,b)=>a.dec-b.dec),out=[];
  /* tighter near the solstices: the orb shrinks with how slowly declination changes along the zodiac there, so it covers about the same span of zodiac (never below half a degree) */
  const orbOf=(a,b)=>{if(!ST.pllTight)return ST.pllOrb;const r=x=>Math.abs(Math.cos(x.lam*R))/Math.cos(x.dec*R);return Math.max(.5,ST.pllOrb*(r(a)+r(b))/2)};
  let g=-1,open=false;for(let i=0;i+1<on.length;i++){const a=on[i],b=on[i+1];if(Math.sign(a.dec)===Math.sign(b.dec)&&b.dec-a.dec<=orbOf(a,b)){if(!open){g++;open=true}out.push({a:a.k,b:b.k,lat:(a.dec+b.dec)/2,orb:b.dec-a.dec,g,col:C.parColors[g%C.parColors.length]})}else open=false}
@@ -5825,7 +6120,7 @@ function mapVec(c,L){const I=TH();let s='';
  if(ST.geo)s+=geoMap(I);
  if(stA()<.5||ST.mz<AMP_CFG.map.osmNames)s+=citiesMap(I);else CITY_SEEN=[];
  for(const l of L)if(l.band)s+=bandMap(l);
- for(const l of L)for(const run of runsMap(fine(l))){const d=dPath(run);s+=`<path d="${d}" ${lineStyle(l)}/>`;if(l.par!=null)s+=`<path d="${d}" ${lineStyle(l,1)}/>`}
+ for(const l of L)if(!l.ghost)for(const run of runsMap(fine(l))){const d=dPath(run);s+=`<path d="${d}" ${lineStyle(l)}/>`;if(l.par!=null)s+=`<path d="${d}" ${lineStyle(l,1)}/>`}
  return s}
 /* paran names inside the map's left edge, just above each line, never on top of each other */
 function parLabels(L,I){const M=MAPR(),ab=AMP_CFG.mid.ab,used=[];let s='';for(const l of L.filter(l=>l.par!=null).sort((a,b)=>b.par-a.par)){if(ST.focus&&ST.focus!==l.k&&ST.focus!==l.k2)continue;const y=mapXY(0,l.par)[1];if(y<M.y+12||y>M.y+M.h-4||used.some(u=>Math.abs(u-y)<12))continue;used.push(y);
@@ -5905,7 +6200,7 @@ function globeVector(V,c,L){const I=TH(),F=FR();let s='';
  s+=eclGlobe(V);s+=tideMarks(I,(lo,la)=>{const p=gProj(V,lo,la);return p&&p[2]>.1?p:null},pts=>runsGlobe(V,pts));
  if(ST.gz>1.2)s+=citiesLayer(I,(lo,la)=>gProj(V,lo,la),p=>p[2]>.12&&p[0]>8&&p[0]<F.w-8&&p[1]>74&&p[1]<F.h-40,ST.gz*1.8);
  for(const l of L)if(l.band)for(const la of l.band){const p=[];for(let lo=-180;lo<=180;lo+=2)p.push([lo,la]);for(const r of runsGlobe(V,p))s+=`<path d="${dPath(r)}" fill="none" stroke="${colOf(l.k==='Moon'?l.k2:l.k)}" stroke-width=".9" stroke-dasharray="2 4" opacity=".75"/>`}
- for(const l of L)for(const run of runsGlobe(V,l.pts)){const d=dPath(run);s+=`<path d="${d}" ${lineStyle(l)}/>`;if(l.par!=null)s+=`<path d="${d}" ${lineStyle(l,1)}/>`}
+ for(const l of L)if(!l.ghost)for(const run of runsGlobe(V,l.pts)){const d=dPath(run);s+=`<path d="${d}" ${lineStyle(l)}/>`;if(l.par!=null)s+=`<path d="${d}" ${lineStyle(l,1)}/>`}
  const vis=p=>p[2]>.25&&p[0]>12&&p[0]<F.w-12&&p[1]>80&&p[1]<F.h-12;
  if(SH('labels'))s+=labels(L,(lo,la)=>gProj(V,lo,la),vis);
  if(SH('birth')&&c.lat!=null){const p=gProj(V,c.lon,c.lat);if(p&&p[2]>.05)s+=birthMark(c,p[0],p[1],I)}
@@ -6107,7 +6402,7 @@ function zodiacHTML(){const ck=(on,act,id,lab,inner)=>`<button type="button" cla
  ${ST.oob.size?`<small class="amp-pn">Out of bounds (glowing): ${[...ST.oob].map(nm).join(', ')}.</small>`:''}`}
 function linesHTML(){const ck=(on,act,id,lab,inner)=>`<button type="button" class="amp-lc ${on?'on':''}" aria-pressed="${on}" data-act="${act}" data-id="${id}" aria-label="${lab}" title="${lab}">${inner}</button>`;
  const head=LCOL.map(([a,n])=>`<th scope="col">${ck(colOn(a),'amplines','c:'+a,`${n} lines for all planets`,a)}</th>`).join('');
- const rows=BODIES.map(k=>{const col=colOf(k),on=ST.on.has(k);return `<tr><th scope="row">${ck(on,'amplines','r:'+k,`All lines for ${nm(k)}`,`${PGH(k,15,col)}<span>${k==='Node'?'Node':k}</span>`)}</th>${LCOL.map(([a,n])=>`<td>${ck(cellOn(k,a),'amplines',k+':'+a,`${nm(k)} ${n}`,`<i style="--pc:${col}"></i>`)}</td>`).join('')}</tr>`}).join('');
+ const rows=BODIES.map(k=>{const col=colOf(k),on=ST.on.has(k);return `<tr><th scope="row">${ck(on,'amplines','r:'+k,`All lines for ${nm(k)}`,`${PGH(k,15,col)}<span>${k==='Node'?'N Node':k==='SNode'?'S Node':k}</span>`)}</th>${LCOL.map(([a,n])=>`<td>${ck(cellOn(k,a),'amplines',k+':'+a,`${nm(k)} ${n}`,`<i style="--pc:${col}"></i>`)}</td>`).join('')}</tr>`}).join('');
  return `<div class="amp-lwrap"><div><div class="amp-lgrid"><table><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div><small class="amp-pn">Tap a planet for all of its lines, a heading for that line on every planet, or one square for a single line. Local Space lines run out from the chosen place${ST.place?'':' (the birthplace until you relocate)'}; AS and MC lines pair well with them.</small></div><div class="amp-lside"><div class="btns"><button type="button" data-act="amplines" data-id="all">All Lines</button><button type="button" data-act="amplines" data-id="angles">Angles Only</button></div>
  <div class="amp-lcap">ASPECT LINES</div>${[1,2].map(g=>`<div class="amp-asps" role="group" aria-label="${g===1?'Major':'Minor'} aspect lines">${Object.entries(AMP_CFG.aspects).filter(([,v])=>v[3]===g).map(([k,v])=>ck(ST.aspOn.has(k),'ampasp',k,`${v[0]} lines`,`<b>${v[2]}</b> ${v[0]}`)).join('')}</div>`).join('')}
  <div class="amp-asps" role="group" aria-label="Aspect lines to">${ck(ST.aspTo.has('MC'),'ampasp','to:MC','Aspects to the MC','To MC')}${ck(ST.aspTo.has('AS'),'ampasp','to:AS','Aspects to the AS','To AS')}</div>
@@ -6135,7 +6430,7 @@ function readingHTML(){if(!ST.place)return `<small class="note">Tap a place on t
  <div class="btns">${ST.view==='globe'?'<button data-act="ampcenter" data-id="place">Turn Globe Here</button>':''}<button data-act="ampclr">Clear Place</button></div>`}
 function nearName(){if(ST.placeName)return ST.placeName;const G=window.GemBPlaces;if(!G||!G.nearest)return '';try{const r=G.nearest(ST.place[1],ST.place[0]);return r&&r.km<300?`Near ${r.label} (${distTxt(r.km)})`:''}catch(e){return ''}}
 function box(){const seg=(act,v,t,on)=>`<button class="seg ${on?'on':''}" aria-pressed="${on}" data-act="${act}" data-id="${v}">${t}</button>`,c=chart();
- const chips=BODIES.map(k=>{const on=ST.on.has(k),col=colOf(k);return `<button class="agr-chip ${on?'on':''}" aria-pressed="${on}" data-act="amppl" data-id="${k}" aria-label="${nm(k)}" title="${nm(k)}" style="--pc:${col}">${PGH(k,18,on?'#0a0a0a':col)}<span>${k==='Node'?'Node':k}</span></button>`}).join('');
+ const chips=BODIES.map(k=>{const on=ST.on.has(k),col=colOf(k);return `<button class="agr-chip ${on?'on':''}" aria-pressed="${on}" data-act="amppl" data-id="${k}" aria-label="${nm(k)}" title="${nm(k)}" style="--pc:${col}">${PGH(k,18,on?'#0a0a0a':col)}<span>${k==='Node'?'N Node':k==='SNode'?'S Node':k}</span></button>`}).join('');
  const angs=Object.entries(AMP_CFG.angles).map(([a,v])=>seg('ampang',a,`${v.name} <small>${a}</small>`,ST.ang.has(a))).join('');
  return head('astromaps','AstroMaps','not assigned')+constellationHTML(VIEWS,ST.view,'ampview')+
  `<div class="segs" role="group" aria-label="In Mundo or In Zodiaco">${Object.entries(AMP_CFG.modes).map(([k,t])=>seg('ampmode',k,t,ST.mode===k)).join('')}</div><small class="note">${ST.mode==='zodiaco'?"In Zodiaco: each planet drawn at its zodiac degree, as if it sat on the ecliptic.":"In Mundo: each planet drawn where it really is in the sky, its latitude included."}</small>
@@ -6162,7 +6457,7 @@ function act(a,id){
  else if(a==='amppl'){if(ST.on.has(id))ST.on.delete(id);else ST.on.add(id);for(const [c] of LCOL)ST.off.delete(id+'|'+c);if(ST.focus===id)ST.focus='';reading()}
  else if(a==='ampset'){const P=PRESETS.find(x=>x[0]===id);if(P){ST.on=new Set(P[2]);ST.focus='';reading()}}
  else if(a==='ampang'){if(ST.ang.has(id))ST.ang.delete(id);else ST.ang.add(id);for(const k of BODIES)ST.off.delete(k+'|'+id);reading()}
- else if(a==='amplines'){const [t,v]=String(id).split(':');if(id==='all'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=true;ST.off.clear();ST.on=new Set(BODIES.filter(k=>k!=='Node'||ST.on.has('Node')))}else if(id==='angles'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=false;ST.off.clear()}else if(t==='c')toggleCol(v);else if(t==='r')toggleRow(v);else toggleCell(t,v);reading()}
+ else if(a==='amplines'){const [t,v]=String(id).split(':');if(id==='all'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=true;ST.off.clear();ST.on=new Set(BODIES.filter(k=>!NODES.has(k)||ST.on.has(k)))}else if(id==='angles'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=false;ST.off.clear()}else if(t==='c')toggleCol(v);else if(t==='r')toggleRow(v);else toggleCell(t,v);reading()}
  else if(a==='ampasp'){const [t,v]=String(id).split(':');if(t==='to'){if(ST.aspTo.has(v))ST.aspTo.delete(v);else ST.aspTo.add(v)}else if(ST.aspOn.has(id))ST.aspOn.delete(id);else ST.aspOn.add(id);reading()}
  else if(a==='ampsky'){const v=String(id);if(v==='day')ST.show.daynight=!ST.show.daynight;else if(v==='tide')ST.tide=!ST.tide;else if(v==='tsun')ST.tideSun=!ST.tideSun;
   else if(v.startsWith('v:')){const k=v.slice(2);if(!k)ST.vis=[];else if(ST.vis.includes(k))ST.vis=ST.vis.filter(x=>x!==k);else{ST.vis.push(k);if(ST.vis.length>AMP_CFG.vis.max){const old=ST.vis.shift();toast(`Up to ${AMP_CFG.vis.max} at a time: ${nm(old)} is off now.`)}}}
@@ -6363,13 +6658,14 @@ function kepler(Md,e){const M=rad(Md);let E=M+e*Math.sin(M)*(1+e*Math.cos(M));fo
 function helio(nm,d){const a0=EL[nm];let N=a0[0]+a0[1]*d,i=a0[2]+a0[3]*d,w=a0[4]+a0[5]*d,a=a0[6]+a0[7]*d,e=a0[8]+a0[9]*d,M=n360(a0[10]+a0[11]*d);
  const E=kepler(M,e),xv=a*(Math.cos(E)-e),yv=a*Math.sqrt(1-e*e)*Math.sin(E),v=Math.atan2(yv,xv),r=Math.hypot(xv,yv),vw=v+rad(w),Nr=rad(N),ir=rad(i);
  return [r*(Math.cos(Nr)*Math.cos(vw)-Math.sin(Nr)*Math.sin(vw)*Math.cos(ir)),r*(Math.sin(Nr)*Math.cos(vw)+Math.cos(Nr)*Math.sin(vw)*Math.cos(ir)),r*Math.sin(vw)*Math.sin(ir)]}
-/* Gemini, Nov 18 (global): every chart shows the TRUE North and South Nodes by default. With NASA JPL loaded, the true (osculating) node
-   comes from the plane of the Moon's path at that instant; otherwise Meeus's true-node series (Astronomical Algorithms ch. 47) */
-function trueNode(jd){const E=window.EA_JPL;if(E&&E.body){try{const a=E.body('Moon',jd-.005,{speed:false}),b=E.body('Moon',jd+.005,{speed:false});
-  if(a&&b&&a.lat!=null){const v=o=>{const l=rad(o.lon),t=rad(o.lat);return [Math.cos(t)*Math.cos(l),Math.cos(t)*Math.sin(l),Math.sin(t)]},p=v(a),q=v(b),
-   hx=p[1]*q[2]-p[2]*q[1],hy=p[2]*q[0]-p[0]*q[2];return n360(deg(Math.atan2(hx,-hy)))}}catch(e){}}
- const T=(jd-2451545)/36525,S=x=>Math.sin(rad(x)),D=297.8501921+445267.1114034*T,M=357.5291092+35999.0502909*T,Mp=134.9633964+477198.8675055*T,F=93.2720950+483202.0175233*T;
- return n360(125.0445479-1934.1362891*T+0.0020754*T*T-1.4979*S(2*(D-F))-0.1500*S(M)-0.1226*S(2*D)+0.1176*S(2*F)-0.0801*S(2*(Mp-F)))}
+/* True Node (Gemini, Nov 18: every chart shows the True North and South Nodes). With the JPL ephemeris: the osculating node, from the
+   plane of the Moon's geocentric path over a quarter hour. Without it: the mean node plus Meeus's five largest true-node terms (ch. 47). */
+function meanNode(jd){return n360(125.04452-1934.136261*(jd-2451545)/36525)}
+function trueNodeMeeus(jd){const T=(jd-2451545)/36525,S=x=>Math.sin(rad(x)),D=297.8501921+445267.1114034*T,M=357.5291092+35999.0502909*T,Mp=134.9633964+477198.8675055*T,F=93.2720950+483202.0175233*T;
+ return n360(meanNode(jd)-1.4979*S(2*(D-F))-0.1500*S(M)-0.1226*S(2*D)+0.1176*S(2*F)-0.0801*S(2*(Mp-F)))}
+function trueNode(jd){const E=window.EA_JPL,h=0.005;try{const a=E&&E.body('Moon',jd-h),b=E&&E.body('Moon',jd+h);
+ if(a&&b&&a.lat!=null&&b.lat!=null){const u=o=>{const l=rad(o.lon),t=rad(o.lat);return [Math.cos(t)*Math.cos(l),Math.cos(t)*Math.sin(l),Math.sin(t)]},p=u(a),q=u(b);
+  const hx=p[1]*q[2]-p[2]*q[1],hy=p[2]*q[0]-p[0]*q[2];return n360(deg(Math.atan2(hx,-hy)))}}catch(e){}return trueNodeMeeus(jd)}
 function positions(jd){const J=window.EA_JPL&&EA_JPL.positions(jd);if(J){J.Node=trueNode(jd);J.SNode=n360(J.Node+180);return J}
  const d=jd-2451543.5,T=(jd-2451545)/36525,S=x=>Math.sin(rad(x));
  const ws=282.9404+4.70935e-5*d,es=0.016709-1.151e-9*d,Ms=n360(356.0470+0.9856002585*d),Es=kepler(Ms,es),xv=Math.cos(Es)-es,yv=Math.sqrt(1-es*es)*Math.sin(Es);
@@ -6391,7 +6687,7 @@ function positions(jd){const J=window.EA_JPL&&EA_JPL.positions(jd);if(J){J.Node=
  const lp=238.958116+144.96*T-19.799*sp(1)+19.848*cp(1)+0.897*sp(2)-4.956*cp(2)+0.610*sp(3)+1.211*cp(3)-0.341*sp(4)-0.190*cp(4)+0.128*sp(5)-0.034*cp(5)-0.038*sp(6)+0.031*cp(6)+0.020*Math.sin(rad(S_-P_))-0.010*Math.cos(rad(S_-P_));
  const rp=40.72+6.68*sp(1)+6.90*cp(1)-1.18*sp(2)-0.03*cp(2)+0.15*sp(3)-0.14*cp(3);
  P.Pluto=n360(deg(Math.atan2(rp*Math.sin(rad(lp))+ys,rp*Math.cos(rad(lp))+xs)));
- P.Node=trueNode(jd);P.SNode=n360(P.Node+180);return P}   /* South Node, opposite the North (Gemini, Oct 25) */
+ P.Node=trueNodeMeeus(jd);P.SNode=n360(P.Node+180);return P}   /* South Node, opposite the North (Gemini, Oct 25) */
 function retro(jd){const a=positions(jd),b=positions(jd+0.5),r={};for(const k of PLANETS){if(k==='Sun'||k==='Moon'||k==='Node'||k==='SNode')continue;r[k]=(((b[k]-a[k]+180)%360+360)%360-180)<0}return r}
 function cuspsFor(jd,lat,lon){const T=(jd-2451545)/36525,th=n360(280.46061837+360.98564736629*(jd-2451545)+lon),eps=rad(23.4392911-0.0130042*T),t=rad(th);
  const mc=n360(deg(Math.atan2(Math.sin(t),Math.cos(eps)*Math.cos(t))));
@@ -6405,13 +6701,13 @@ BIRTH.jd=jdOf(BIRTH.ms);BIRTH.pos=positions(BIRTH.jd);BIRTH.cusps=cuspsFor(BIRTH
 const HOME={place:'Oakland, CA',lat:37.8044,lon:-122.2712,tz:'America/Los_Angeles'};const HOME0=Object.assign({},HOME),HOME_DEF=Object.assign({},HOME);
 BIRTH.tz='America/New_York';
 function arcPos(ms){const jd=jdOf(ms),pj=BIRTH.jd+(jd-BIRTH.jd)/365.2422,arc=n360(positions(pj).Sun-BIRTH.pos.Sun),o={};for(const k of PLANETS)o[k]=n360(BIRTH.pos[k]+arc);o.arc=arc;return o}
-function fmtDM(x){const t=Math.floor(x*60+0.5);return Math.floor(t/60)+'°'+p2(t%60)+"'"}
+function fmtDM(x){const t=Math.floor(x*60+0.5);return p2(Math.floor(t/60))+'°'+p2(t%60)+"'"}
 /* ---------- state ---------- */
-const DEF={corner:'air',open:null,sub:'look',csub:'synodic',hsub:'hcharts',hv:'',hm:{wfoc:'',wh:0,mstart:'aries',morb:1.5,tfoc:'Sun',tdial:90,torb:1.5,tfit:95,cyspec:false,cyn:1,cyp:'with',see:false,cshow:'s3',cn:5,chz:500,smax:64,gn:1,gref:false,pair:'',n:5,orb:16,om:'16',tsbs:false,sbs:false,ring:true,poly:true,anc:'Sun',max:180,cell:'',noAng:false,cast:'eqas'},ctb:{tpl:'venus-gb',date:'',from:'2000-01-01',to:'2060-12-31'},pcy:{a:'Jupiter',b:'Saturn',c:'',f:'geo',from:'1900-01-01',to:'2100-12-31',orb:10,tri:false,dots:true,mo:'all',ps:'all',lay:'ring'},cph:{mode:'natal',fa:'Saturn',fb:'Saturn',qa:'Jupiter',qb:'Saturn',eight:false,date:''},cyc:{kind:'planet',sp:'Venus',rp:'Saturn',pa:'Venus',pb:'Sun',set:'hard',range:'around',n:5,from:'',to:''},look:'cornersg',layers:{nat:false,prog:false,arc:false,trn:true},dockTM:false,order:['nat','prog','arc','trn','x1','x2','x3','x4'],xchart:{x1:null,x2:null,x3:null,x4:null},charts:[],recents:[],favs:[],form:null,orient:'as',ws:'earth',start:'last',askQuit:true,wd:{lto:'mark',stars:'auto',con:'auto',ecl:'auto',lat:'auto',planets:true,houses:true,lines:true,lv:3,esz:'small',earth:true},info:false,tip:null,boxPos:{},
+const DEF={corner:'air',open:null,sub:'look',csub:'synodic',hsub:'hcharts',hv:'',hm:{wfoc:'',wh:0,mstart:'aries',morb:1.5,tfoc:'Sun',tdial:90,torb:1.5,tfit:95,cyspec:false,cyn:1,cyp:'with',see:false,cshow:'s3',cn:5,chz:500,smax:64,gn:1,gref:false,pair:'',n:5,orb:16,om:'16',tsbs:false,sbs:false,ring:true,poly:true,anc:'Sun',max:180,cell:'',noAng:false,cast:'eqas'},ctb:{tpl:'venus-gb',date:'',from:'2000-01-01',to:'2060-12-31'},pcy:{a:'Jupiter',b:'Saturn',c:'',f:'geo',from:'1900-01-01',to:'2100-12-31',orb:10,tri:false,dots:true,mo:'all',ps:'all',lay:'ring'},cph:{mode:'natal',fa:'Saturn',fb:'Saturn',qa:'Jupiter',qb:'Saturn',eight:false,date:''},cyc:{kind:'planet',sp:'Venus',rp:'Saturn',pa:'Venus',pb:'Sun',set:'hard',range:'around',n:5,from:'',to:''},look:'cornersg',layers:{nat:false,prog:false,arc:false,trn:true},dockTM:false,order:['nat','prog','arc','trn','x1','x2','x3','x4'],xchart:{x1:null,x2:null,x3:null,x4:null},charts:[],recents:[],favs:[],form:null,orient:'as',ws:'simple',start:'last',askQuit:true,wd:{lto:'mark',stars:'auto',con:'auto',ecl:'auto',lat:'auto',planets:true,houses:true,lines:true,lv:3,esz:'small',earth:true},info:false,tip:null,boxPos:{},
  tm:{active:false,time:Date.now(),playing:false,dir:1,step:'1 Hour',sq:1,su:'Hour',msg:''},snap:{t1:'Transit',p1:'Moon',asp:'Conjunct',t2:'Transit',p2:'Sun'},
  label:{date:'mdy',time:'12',weekday:true,wdv:1,dayGlyph:true,hourGlyph:true},show:{nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},asp:{},acc:{nat:true,trn:true,prog:false,arc:false}};
 let S=JSON.parse(JSON.stringify(DEF));S.syn={f:'helio',b1:'Earth',b2:'Venus',orb:'circ',step:2,start:'',end:'',rings:true,range:'current',around:'',mode:'result',astyle:'draw',si:3,win:1,as:0,zr:true,cm:'single',hue:'venus',hby:'phase',cj:'interior',star:false};S.synA={on:false,p:0,last:0,key:'',sig:''};S.synView=false;S.gpOpen=null;S.gv='';S.hov='';S.g={layout:'full',lines:true,par:1.5,a:'auto',b:'auto',set:'major',node:true,axes:true,showOrb:true,lum:2,orbs:{Conjunct:8,Sextile:6,Square:8,Trine:8,Opposite:8,Semisextile:2,Semisquare:2,Sesquiquadrate:2,Quincunx:3,Decile:1.5,Quintile:2,Biquintile:2,Septile:1.5,Biseptile:1.5,Triseptile:1.5,Novile:1.5,Binovile:1.5,Quadnovile:1.5,Undecile:1,Biundecile:1,Triundecile:1,Quadundecile:1,Quintundecile:1}};S.dl={m:90,dir:'ccw',a:'auto',b:'auto',ptr:0,porb:1,last:'Sun'};
-try{const sv=JSON.parse(localStorage.getItem('apparatus-test-v1')||'null');if(sv&&sv.aspSet)S.g.set=sv.aspSet;if(sv){if(sv.homeBase&&sv.homeBase.lat!==undefined){Object.assign(HOME0,sv.homeBase);Object.assign(HOME,sv.homeBase)}if(sv.home&&sv.home.lat!==undefined){Object.assign(HOME,sv.home);S.homeReloc=true}S.look=sv.look||S.look;if(sv.dice)S.gmLook=sv.dice;if(sv.diceOn)S.gmOn=sv.diceOn;if(sv.diceLevel)S.gmLevel=sv.diceLevel;if(sv.diceTrad)S.gmTrad=sv.diceTrad;if(sv.diceSkip)S.gmSkip=true;if(sv.diceSkin)S.gmSkin=sv.diceSkin;if(sv.diceTable)S.gmTable=sv.diceTable;if(sv.paint){S.paint=sv.paint;if(!sv.paint.cv){S.paint.con='blue';S.paint.cv=1}}if(sv.wsv===2){S.ws=sv.ws||S.ws;if(sv.wd)S.wd=Object.assign(S.wd,sv.wd);if(sv.wd&&(sv.wd.lv||0)<3){S.wd.lines=true;S.wd.esz='small';S.wd.lv=3}   /* Small Earth with aspect lines is the default (Gemini, Nov 10) */}S.start=sv.start||S.start;if(Array.isArray(sv.gn)&&sv.gn.length===12)window.__gnSaved=sv.gn;if(sv.askQuit!==undefined)S.askQuit=!!sv.askQuit;S.label=Object.assign(S.label,sv.label||{});if(!S.label.wdv){S.label.weekday=true;S.label.wdv=1}S.show=Object.assign({nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},sv.show||{});S.dockTM=!!sv.dockTM;if(sv.asp&&typeof sv.asp==='object')S.asp=sv.asp;S.info=!!sv.info;if(Array.isArray(sv.order)&&sv.order.length===8&&['nat','prog','arc','trn','x1','x2','x3','x4'].every(k=>sv.order.includes(k)))S.order=sv.order}}catch(e){}
+try{const sv=JSON.parse(localStorage.getItem('apparatus-test-v1')||'null');if(sv&&sv.aspSet)S.g.set=sv.aspSet;if(sv){if(sv.homeBase&&sv.homeBase.lat!==undefined){Object.assign(HOME0,sv.homeBase);Object.assign(HOME,sv.homeBase)}if(sv.home&&sv.home.lat!==undefined){Object.assign(HOME,sv.home);S.homeReloc=true}S.look=sv.look||S.look;if(sv.dice)S.gmLook=sv.dice;if(sv.diceOn)S.gmOn=sv.diceOn;if(sv.diceLevel)S.gmLevel=sv.diceLevel;if(sv.diceTrad)S.gmTrad=sv.diceTrad;if(sv.diceSkip)S.gmSkip=true;if(sv.diceSkin)S.gmSkin=sv.diceSkin;if(sv.diceTable)S.gmTable=sv.diceTable;if(sv.paint){S.paint=sv.paint;if(!sv.paint.cv){S.paint.con='blue';S.paint.cv=1}}if(sv.wsv===2||sv.wsv===3){S.ws=sv.wsv===3?(sv.ws||S.ws):'simple';   /* Gemini, Nov 18: the shared chart look (Kepler's Planetary Tables wheel) is the Device default; Standard and Earth Center stay as Wheel Styles */if(sv.wd)S.wd=Object.assign(S.wd,sv.wd);if(sv.wd&&(sv.wd.lv||0)<3){S.wd.lines=true;S.wd.esz='small';S.wd.lv=3}   /* Small Earth with aspect lines is the default (Gemini, Nov 10) */}S.start=sv.start||S.start;if(Array.isArray(sv.gn)&&sv.gn.length===12)window.__gnSaved=sv.gn;if(sv.askQuit!==undefined)S.askQuit=!!sv.askQuit;S.label=Object.assign(S.label,sv.label||{});if(!S.label.wdv){S.label.weekday=true;S.label.wdv=1}S.show=Object.assign({nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},sv.show||{});S.dockTM=!!sv.dockTM;if(sv.asp&&typeof sv.asp==='object')S.asp=sv.asp;S.info=!!sv.info;if(Array.isArray(sv.order)&&sv.order.length===8&&['nat','prog','arc','trn','x1','x2','x3','x4'].every(k=>sv.order.includes(k)))S.order=sv.order}}catch(e){}
 
 /* ---------- charts: build, save, place ---------- */
 const CC=new Map();
@@ -6534,9 +6830,10 @@ function quitAsk(done){done=done||(()=>toast('In the desktop app, the Device wou
  o.innerHTML=`<div class="qa"><b>Clear Recents And Chart Before Quitting?</b><p>Recents holds ${S.recents.length} chart name${S.recents.length===1?'':'s'}. Clearing keeps the next client from seeing them, and the Device opens on current Transits for home. Favorites and saved charts stay.</p><div class="btns"><button class="solid" data-q="clear">Clear And Quit</button><button data-q="keep">Keep Recents And Quit</button><button data-q="cancel">Cancel</button></div><label class="qn"><input type="checkbox" id="qa-never"> Don't Ask Again (turn it back on in Settings, Startup And Shutdown)</label></div>`;
  o.className='on';o.onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q!=='cancel'&&document.getElementById('qa-never').checked){S.askQuit=false;save()}o.className='';if(q==='clear')clearAll();if(q!=='cancel')done()}}
 const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-/* Gemini, Nov 18 (global, replaces Nov 16 "Nodes off"): North and South Nodes show by default on every chart; turned back on once, then a person's later choice is kept */
+/* True North and South Nodes show on every chart by default (Gemini, Nov 18, every app; replaces the Nov 16 "Nodes off" default).
+   Each can still be hidden in Displayed Planets, and a person's later choice is kept. */
 try{if(!localStorage.getItem('ea-pldef2')){['nat','prog','arc','trn','x1','x2','x3','x4'].forEach(l=>{S.show[l]=S.show[l]||{};S.show[l].Node=true;S.show[l].SNode=true});localStorage.setItem('ea-pldef2','1')}}catch(e){}
-function save(){try{localStorage.setItem('apparatus-test-v1',JSON.stringify({wsv:2,ws:S.ws,wd:S.wd,start:S.start,askQuit:S.askQuit,look:S.look,paint:S.paint,label:S.label,show:S.show,dockTM:S.dockTM,info:S.info,asp:S.asp,order:S.order,gn:GLYPH_NUDGE,home:S.homeReloc?((S.tm.auto&&S.tm.auto.home)||HOME):null,homeBase:HOME0.place===HOME_DEF.place&&HOME0.lat===HOME_DEF.lat?null:HOME0,dice:S.gmLook||null,diceOn:S.gmOn||null,diceLevel:S.gmLevel||null,diceTrad:S.gmTrad||null,diceSkip:S.gmSkip||null,diceSkin:S.gmSkin||null,diceTable:S.gmTable||null,aspSet:S.g.set||'major'}))}catch(e){}}
+function save(){try{localStorage.setItem('apparatus-test-v1',JSON.stringify({wsv:3,ws:S.ws,wd:S.wd,start:S.start,askQuit:S.askQuit,look:S.look,paint:S.paint,label:S.label,show:S.show,dockTM:S.dockTM,info:S.info,asp:S.asp,order:S.order,gn:GLYPH_NUDGE,home:S.homeReloc?((S.tm.auto&&S.tm.auto.home)||HOME):null,homeBase:HOME0.place===HOME_DEF.place&&HOME0.lat===HOME_DEF.lat?null:HOME0,dice:S.gmLook||null,diceOn:S.gmOn||null,diceLevel:S.gmLevel||null,diceTrad:S.gmTrad||null,diceSkip:S.gmSkip||null,diceSkin:S.gmSkin||null,diceTable:S.gmTable||null,aspSet:S.g.set||'major'}))}catch(e){}}
 
 const isShown=(layer,n)=>(S.show[layer]||{})[n]!==false;
 /* aspects to and from each displayed object, per chart; all on by default (Gemini, Oct 25) */
@@ -6700,7 +6997,8 @@ function wheelSVG(layers,houses){const cx=400,cy=400;paintFix();
  /* the zodiac ring goes on top of the sky so the inner silver ring and its ticks match the outer ring (Painter) */
  g+=zodRing(VIEW.asc,VIEW.mode!=='as',(layers.find(L=>L&&L.pos&&L.pos.Sun!=null)||{pos:{}}).pos.Sun);g+=innerFill(bot);if(tlw)g+=tl().ring();   /* Time Lords: terms and decans rings inside the zodiac ring */
  for(let i=1;i<(E?n:n+1);i++)g+=`<circle cx="400" cy="400" r="${top-i*th}" fill="none" stroke="#6b7399" stroke-width="1"/>`;
- g+=(E?earthTicks(layers)+(earthShown()?earthDisc(layers):earthRing()+(earthSize()==='small'?earthDisc(layers,EARTH_SMALL):''))+WLINES:`<defs>${metalDefs('mcr',400,400-bot,400,400+bot)}</defs><circle cx="400" cy="400" r="${(58+bot)/2}" fill="none" stroke="url(#mcr)" stroke-width="${bot-58}"/><circle cx="400" cy="400" r="58" fill="#080b16" stroke="#8a7a4a" stroke-width="1.4"/>`+WLINES+`<circle cx="400" cy="400" r="${bot}" fill="none" stroke="#6b7399"/>`);
+ /* Gemini, Nov 18 (global): the Earth sits in front of the aspect lines */
+ g+=(E?earthTicks(layers)+(earthShown()?WLINES+earthDisc(layers):earthRing()+WLINES+(earthSize()==='small'?earthDisc(layers,EARTH_SMALL):'')):`<defs>${metalDefs('mcr',400,400-bot,400,400+bot)}</defs><circle cx="400" cy="400" r="${(58+bot)/2}" fill="none" stroke="url(#mcr)" stroke-width="${bot-58}"/><circle cx="400" cy="400" r="58" fill="#080b16" stroke="#8a7a4a" stroke-width="1.4"/>`+WLINES+`<circle cx="400" cy="400" r="${bot}" fill="none" stroke="#6b7399"/>`);
  for(let h=1;houses&&wdOn('houses')&&h<=12;h++){const l=houses[h],maj=!houses.even&&(houses.thick||[1,4,7,10]).includes(h),a=pt(cx,cy,E?bot:58,l),b=pt(cx,cy,CUSP_END,l);g+=`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${SILVER.col}" stroke-width="${houses.even?SILVER.w:maj?CUSP_W.ang:CUSP_W.other}" opacity="${houses.even?1:maj?.95:.75}"/>`;
   const nx=houses[h%12+1],mid=l+(((nx-l)%360+360)%360)/2,p=pt(cx,cy,76,mid);if(!E)g+=`<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="${p[1]>404?'#ffffff':'#14161b'}">${h}</text>`}
  const nL=layers.find(x=>x.id==='nat');
@@ -6730,13 +7028,16 @@ function wheelSVG(layers,houses){const cx=400,cy=400;paintFix();
 /* ---------- planet info ---------- */
 const DIAM={Sun:1392700,Moon:3474.8,Mercury:4879,Venus:12104,Mars:6779,Jupiter:139822,Saturn:116464,Uranus:50724,Neptune:49244};
 const AU=149597870.7;
+/* apparent magnitude from distances and phase angle (Astronomical Almanac style); shared by the JPL and fallback paths */
+function magOf(k,R,hd,dist,el,known){const L5=v=>5*Math.log10(v);if(k==='Sun')return -26.74+L5(R);if(k==='Moon')return el===null?null:(i=>-12.73+0.026*i+4e-9*Math.pow(i,4))(180-el);
+ if(known===false||!hd||!dist)return null;const i=deg(Math.acos(Math.max(-1,Math.min(1,(hd*hd+dist*dist-R*R)/(2*hd*dist))))),m={Mercury:-0.42+0.038*i-0.000273*i*i+0.000002*i*i*i,Venus:-4.40+0.0009*i+0.000239*i*i-0.00000065*i*i*i,Mars:-1.52+0.016*i,Jupiter:-9.40+0.005*i,Saturn:-8.88+0.044*i,Uranus:-7.19,Neptune:-6.87}[k];return m===undefined?null:m+L5(hd*dist)}
 function detailJPL(k,jd){const E=window.EA_JPL;if(!E||k==='Node')return null;const b=E.body(k,jd);if(!b)return null;
  const s=k==='Sun'?b:E.body('Sun',jd,{speed:false}),f=E.frame(jd),R=s.dist,hd=k==='Sun'?null:k==='Moon'?null:(E.helio(k,jd)||{}).r||null;
  let el=null,side='',ill=null;
  if(k!=='Sun'){const c=(b.x*s.x+b.y*s.y+b.z*s.z)/Math.hypot(b.x,b.y,b.z)/Math.hypot(s.x,s.y,s.z);el=deg(Math.acos(Math.max(-1,Math.min(1,c))));side=n360(b.lon-s.lon)<180?'E':'W';
   const h=k==='Moon'?Math.hypot(b.x-s.x,b.y-s.y,b.z-s.z)/AU:hd,ci=(h*h+b.dist*b.dist-R*R)/(2*h*b.dist);ill=(1+ci)/2*100}
  const km=k==='Moon'?b.dist*AU:null,dk=k==='Moon'?km:b.dist*AU,dia=DIAM[k]?2*Math.atan(DIAM[k]/2/dk)*206264.806:null;
- return {lon:b.lon,lat:b.lat,ra:b.ra,dec:b.dec,el,side,dist:b.dist,hd,km,ill,sp:b.lonSpeed,dia,oob:Math.abs(b.dec)>deg(f?f.eps:rad(23.44)),known:true,node:false,jpl:true}}
+ return {mag:magOf(k,R,hd,b.dist,el,true),lon:b.lon,lat:b.lat,ra:b.ra,dec:b.dec,el,side,dist:b.dist,hd,km,ill,sp:b.lonSpeed,dia,oob:Math.abs(b.dec)>deg(f?f.eps:rad(23.44)),known:true,node:false,jpl:true}}
 function detail(k,jd){const J=detailJPL(k,jd);if(J)return J;const d=jd-2451543.5,ecl=rad(23.4393-3.563e-7*d),P=positions(jd),lon=P[k];
  const ws=282.9404+4.70935e-5*d,es=0.016709-1.151e-9*d,Ms=n360(356.0470+0.9856002585*d),Es=kepler(Ms,es),xv=Math.cos(Es)-es,yv=Math.sqrt(1-es*es)*Math.sin(Es),sl=n360(deg(Math.atan2(yv,xv))+ws),R=Math.hypot(xv,yv),xs=R*Math.cos(rad(sl)),ys=R*Math.sin(rad(sl));
  let lat=0,dist=null,hd=null,km=null,known=true;
@@ -6752,13 +7053,11 @@ function detail(k,jd){const J=detailJPL(k,jd);if(J)return J;const d=jd-2451543.5
  if(k!=='Sun'&&k!=='Node'&&k!=='SNode'){const dl=n360(lon-sl);el=deg(Math.acos(Math.max(-1,Math.min(1,Math.cos(br)*Math.cos(rad(dl))))));side=dl<180?'E':'W';
   if(k==='Moon')ill=(1-Math.cos(rad(el)))/2*100;else if(known&&hd){const ci=(hd*hd+dist*dist-R*R)/(2*hd*dist);ill=(1+ci)/2*100}}
  const sp=(()=>{const a=positions(jd-0.5)[k],b=positions(jd+0.5)[k];return ((b-a+540)%360)-180})();
- let mag=null;{const L5=v=>5*Math.log10(v);if(k==='Sun')mag=-26.74+L5(R);else if(k==='Moon'&&el!==null){const i=180-el;mag=-12.73+0.026*i+4e-9*Math.pow(i,4)}
-  else if(known&&hd&&dist){const i=deg(Math.acos(Math.max(-1,Math.min(1,(hd*hd+dist*dist-R*R)/(2*hd*dist))))),b=L5(hd*dist);
-   mag={Mercury:-0.42+0.038*i-0.000273*i*i+0.000002*i*i*i,Venus:-4.40+0.0009*i+0.000239*i*i-0.00000065*i*i*i,Mars:-1.52+0.016*i,Jupiter:-9.40+0.005*i,Saturn:-8.88+0.044*i,Uranus:-7.19,Neptune:-6.87}[k];mag=mag===undefined?null:mag+b}}
+ const mag=magOf(k,R,hd,dist,el,known);
  let dia=null;if(DIAM[k]&&dist!==null){const dk=k==='Moon'?km:dist*AU;dia=2*Math.atan(DIAM[k]/2/dk)*206264.806}
  return {mag,lon,lat:known&&k!=='Node'&&k!=='SNode'?lat:null,ra,dec,el,side,dist,hd,km,ill,sp,dia,oob:dec!==null&&Math.abs(dec)>deg(ecl),known,node:k==='Node'||k==='SNode'}}
-function fSD(x,u){if(x===null||x===undefined)return '&mdash;';const t=Math.floor(Math.abs(x)*60+0.5);return (x<0?'&minus;':'+')+Math.floor(t/60)+'°'+p2(t%60)+"'"}
-function fRA(x){if(x===null)return '&mdash;';const h=x/15,hh=Math.floor(h),m=(h-hh)*60,mm=Math.floor(m),ss=Math.floor((m-mm)*60+0.5);return hh+'h '+p2(mm)+'m '+p2(ss)+'s'}
+function fSD(x,u){if(x===null||x===undefined)return '&mdash;';const t=Math.floor(Math.abs(x)*60+0.5);return (x<0?'&minus;':'+')+p2(Math.floor(t/60))+'°'+p2(t%60)+"'"}
+function fRA(x){if(x===null)return '&mdash;';const h=x/15,hh=Math.floor(h),m=(h-hh)*60,mm=Math.floor(m),ss=Math.floor((m-mm)*60+0.5);return p2(hh)+'h '+p2(mm)+'m '+p2(ss)+'s'}
 function fLon(l){const t=Math.floor(l*60+0.5)%21600,sg=Math.floor(t/1800),r=t%1800;return p2(Math.floor(r/60))+'°'+p2(r%60)+"' "+agHtml(sg)}
 function layerJd(ly){const ms=nowMs();if(ly==='nat')return BIRTH.jd;if(ly&&ly[0]==='x'&&S.xchart[ly])return xc(ly).jd;if(ly==='prog')return BIRTH.jd+(jdOf(ms)-BIRTH.jd)/365.2422;return jdOf(ms)}
 function layerLbl(ly){return ly==='nat'?(BIRTH.name||'Birth'):ly&&ly[0]==='x'&&S.xchart[ly]?xc(ly).name:ly==='prog'?'Progressions':ly==='arc'?'Transits (Solar Arc uses the same sky)':'Transits'}
@@ -6773,12 +7072,12 @@ function piAsp(k,ly){const ids=shownIds(),me=layerPos(ly)[k],A=window.EAWheel?EA
  const out=[];ids.forEach(id=>{const P=layerPos(id);PLANETS.forEach(o=>{if((id===ly&&o===k)||P[o]==null||!isShown(id,o))return;const sep=Math.abs(((P[o]-me+540)%360)-180);
   A.forEach(a=>{const orb=Math.abs(sep-a.angle);if(orb<=(a.orb||1)&&(a.on!==false||S.g.set==='minor'||S.g.set==='harm'))out.push({id,o,a,orb})})})});
  out.sort((x,y)=>x.orb-y.orb);if(!out.length)return '<small class="note">No aspects within orb.</small>';
- return `<div class="pirows">${out.map(x=>`<div><span>${x.a.name} ${PGH(x.o,14)} ${x.o==='Node'?'North Node':x.o==='SNode'?'South Node':x.o}${ids.length>1?' <small style="opacity:.7">'+esc(layerLbl(x.id).split(' (')[0])+'</small>':''}</span><b>${Math.floor(x.orb)}°${p2(Math.floor(x.orb%1*60))}'</b></div>`).join('')}</div>`}
+ return `<div class="pirows">${out.map(x=>`<div><span>${x.a.name} ${PGH(x.o,14)} ${x.o==='Node'?'North Node':x.o==='SNode'?'South Node':x.o}${ids.length>1?' <small style="opacity:.7">'+esc(layerLbl(x.id).split(' (')[0])+'</small>':''}</span><b>${p2(Math.floor(x.orb))}°${p2(Math.floor(x.orb%1*60))}'</b></div>`).join('')}</div>`}
 function pinfoData(){const k=S.pi,ly=S.piLy,jd=layerJd(ly);if(!k)return '<p>Click a planet on the chart, or choose one above.</p>';const x=detail(k,jd),A=x.node?null:piAvg(k),cu=piCusps(ly,jd),lon=layerPos(ly)[k]??x.lon,
   ph=piHouse(cu,lon),wsh=cu?(Math.floor(n360(lon)/30)-Math.floor(n360(cu[1])/30)+12)%12+1:null,mg=v=>(v<0?'&minus;':'')+Math.abs(v).toFixed(2),au=v=>v<10?v.toFixed(2):v.toFixed(1),
   dist=x.dist===null?'&mdash;':x.km?Math.round(x.km).toLocaleString()+(A&&A.d?' / '+Math.round(A.d).toLocaleString():'')+' km':au(x.dist)+(A&&A.d?' / '+au(A.d):'')+' AU',
   rows=[['Longitude',fLon(lon)],['House / Sign',ph===null?'&mdash;':ph+' / '+wsh+' <small style="opacity:.7">Placidus / Whole Sign</small>'],['Ecliptic Latitude',x.lat===null?'&mdash;':fSD(x.lat)],['Right Ascension',fRA(x.ra)],['Declination',fSD(x.dec)+(x.oob?' <b style="color:#ff9a8a">Out Of Bounds</b>':'')],
-  ['Elongation From Sun',x.el===null?'&mdash;':x.el.toFixed(1)+'° '+(x.side==='W'?'morning':'evening')],[A&&A.d?'Dist / Avg':'Distance From Earth',dist],[A&&A.mag!=null?'Mag / Avg':'Magnitude',x.mag===null?'&mdash;':mg(x.mag)+(A&&A.mag!=null?' / '+mg(A.mag):'')],['Distance From Sun',x.hd?x.hd.toFixed(3)+' AU':'&mdash;'],['Daily Motion',(x.sp<0?'&minus;':'')+fmtDM(Math.abs(x.sp))+(x.sp<0?' Retrograde':'')],['Illuminated',x.ill===null?'&mdash;':x.ill.toFixed(0)+'%'],['Apparent Diameter',x.dia===null?'&mdash;':x.dia>=120?(x.dia/60).toFixed(1)+"'":x.dia.toFixed(1)+'"']];
+  ['Elongation From Sun',x.el===null?'&mdash;':x.el.toFixed(1).padStart(4,'0')+'° '+(x.side==='W'?'morning':'evening')],[A&&A.d?'Dist / Avg':'Distance From Earth',dist],[A&&A.mag!=null?'Mag / Avg':'Magnitude',x.mag===null?'&mdash;':mg(x.mag)+(A&&A.mag!=null?' / '+mg(A.mag):'')],['Distance From Sun',x.hd?x.hd.toFixed(3)+' AU':'&mdash;'],['Daily Motion',(x.sp<0?'&minus;':'')+fmtDM(Math.abs(x.sp))+(x.sp<0?' Retrograde':'')],['Illuminated',x.ill===null?'&mdash;':x.ill.toFixed(0)+'%'],['Apparent Diameter',x.dia===null?'&mdash;':x.dia>=120?(x.dia/60).toFixed(1)+"'":x.dia.toFixed(1)+'"']];
  return `<div class="pirows">${rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`+`<div class="btns pib" style="margin-top:8px"><button data-act="piasp" class="${S.piAsp?'solid':''}" aria-expanded="${!!S.piAsp}">Aspects</button></div>`+(S.piAsp?piAsp(k,ly):'')
   +(x.known?'':'<small class="note">Pluto latitude and declination appear once the NASA JPL ephemeris for this century loads.</small>')+(x.node?'<small class="note">The Node is a point, so distance, size and phase do not apply.</small>':'')}
 function pinfoBox(){const shown=shownIds(),k=S.pi;if(!S.piLy)S.piLy=shown[0]||'trn';
@@ -6802,7 +7101,7 @@ function synDurTxt(d){const yr=d/365.25;if(d<730)return Math.round(d).toLocaleSt
 function synCycleDays(b1,b2){const P1=SYNB[b1].P,P2=SYNB[b2].P,Sy=1/Math.abs(1/P1-1/P2);for(let k=1;k<=90;k++){const T=k*Sy,e1=Math.abs(T/P1-Math.round(T/P1)),e2=Math.abs(T/P2-Math.round(T/P2));if(e1<.03&&e2<.03)return T}return 20*365.25}
 let synMemo={k:'',v:null};
 const SYN_SPD=[120,82,56,38,26,18,12],SYN_SPDN=['Slowest','Slower','Slow','Medium','Fast','Faster','Fastest'];
-function jdTxt(jd){return new Date((jd-2440587.5)*86400000).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric',timeZone:'UTC'})}
+function jdTxt(jd){return new Date((jd-2440587.5)*86400000).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'2-digit',timeZone:'UTC'})}
 function isoJd(v){const [a,b,c]=v.split('-').map(Number);return Date.UTC(a,b-1,c)/86400000+2440587.5}
 function synLastConj(b1,b2,real,f,jd0){const dif=jd=>{const a=synFrame(b1,jd,real,f),b=synFrame(b2,jd,real,f);return ((Math.atan2(b[1],b[0])-Math.atan2(a[1],a[0])+3*Math.PI)%(2*Math.PI))-Math.PI};
  const Sy=1/Math.abs(1/SYNB[b1].P-1/SYNB[b2].P);let prev=dif(jd0);for(let t=1;t<=Sy*1.2+2;t++){const cur=dif(jd0-t);if(Math.abs(cur)<1.2&&Math.abs(prev)<1.2&&cur<0&&prev>=0||Math.abs(cur)<1.2&&Math.abs(prev)<1.2&&cur>0&&prev<=0){let lo=jd0-t,hi=jd0-t+1,dl=dif(lo);for(let i=0;i<40;i++){const m=(lo+hi)/2,dm=dif(m);if((dm<0)===(dl<0)){lo=m;dl=dm}else hi=m}return (lo+hi)/2}prev=cur}return jd0}
@@ -7071,12 +7370,12 @@ function cycArc(v){const m=Math.round(Math.abs(v)*60);return `${Math.floor(m/60)
 function cycAngTxt(a,b,ang){const sep=wrapS(ang);
  return `${a} ${cycArc(sep)} ${b==='Sun'?`${sep>=0?'evening':'morning'} side of the Sun`:`${sep>=0?'ahead of':'behind'} ${b} in the zodiac`}, phase angle ${cycArc(ang)}, ${CYCLE.phaseName(ang)} phase`}
 function cycTitle(r){return r.syn?`${r.a} Synodic Returns`:r.ph?`Phase Angle Returns: ${r.a} and ${r.b}`:`${r.a} Returns`+(S.cyc.set==='ret'?'':`, ${CYCLE.SETS[S.cyc.set].name.replace('Returns, ','')}`)}
-function cycRows(r){return r.ev.map((e,i)=>{const p=parts(e.ms);return {i,ms:e.ms,date:dateStr(p).replace(/<[^>]+>/g,''),time:timeStr(p).replace(/<[^>]+>/g,''),what:r.syn?String(e.age):r.ph?e.dir:(e.ang===0?'Return':e.name),off:r.syn?`${cycArc(e.off)} ${e.off>=0?'past':'short'}`:'',ret:r.syn?(e.pr?`${dateStr(parts(e.pr.ms)).replace(/<[^>]+>/g,'')}, ${cycDays(e.days)}${e.pr.of>1?` (pass ${e.pr.pass} of ${e.pr.of})`:''}`:'None near'):'',note:r.syn?'':r.ph?'':(e.of>1?`Pass ${e.pass} of ${e.of}${e.rx?' (Rx)':''}`:''),past:r.nBefore!=null&&i<r.nBefore}})}
+function cycRows(r){return r.ev.map((e,i)=>{const p=parts(e.ms);return {i,ms:e.ms,date:dateStr(p).replace(/<[^>]+>/g,''),time:timeStr(p).replace(/<[^>]+>/g,''),dateH:dateStr(p),timeH:timeStr(p),what:r.syn?String(e.age):r.ph?e.dir:(e.ang===0?'Return':e.name),off:r.syn?`${cycArc(e.off)} ${e.off>=0?'past':'short'}`:'',ret:r.syn?(e.pr?`${dateStr(parts(e.pr.ms)).replace(/<[^>]+>/g,'')}, ${cycDays(e.days)}${e.pr.of>1?` (pass ${e.pr.pass} of ${e.pr.of})`:''}`:'None near'):'',note:r.syn?'':r.ph?'':(e.of>1?`Pass ${e.pass} of ${e.of}${e.rx?' (Rx)':''}`:''),past:r.nBefore!=null&&i<r.nBefore}})}
 function cycReturnsHTML(){const c=S.cyc,ph=c.kind!=='planet',r=cycReturns(),lab=(t,i)=>`<label class="fl"><span>${t}</span>${i}</label>`;
  let h=`<div class="btns"><button data-act="cyckind" data-id="planet" class="${ph?'':'solid'}">Planet Return</button><button data-act="cyckind" data-id="phase" class="${c.kind==='phase'?'solid':''}">Phase Angle Return</button><button data-act="cyckind" data-id="syn" class="${c.kind==='syn'?'solid':''}">Synodic Return</button></div>`;
  if(c.kind==='syn'){const ages=CYC_SYN_AGES[c.sp];h+=`<p>At these ages the Sun and ${esc(c.sp)} both come back close to where they were at birth, so the whole pattern repeats. Each row is that year's Solar Return.</p>${lab('Planet',gpick('cyc:sp',Object.keys(CYC_SYN_AGES),c.sp))}<small class="note">Birth: ${esc(c.sp)} ${cycDeg(BIRTH.pos[c.sp])}, ${cycAngTxt(c.sp,'Sun',r.ang)}. Ages: ${ages.join(', ')}. ${esc(c.sp)} At Solar Return: how far ${esc(c.sp)} is from its Birth degree. ${esc(c.sp)} Return: the date ${esc(c.sp)} is exactly back on its Birth degree, and how many days that is before or after the Solar Return. Times are for ${esc(HOME.place)}. Click a row to see the Solar Return around the Birth chart.</small>`;
   if(!r.ev.length)return h+`<div class="msg">None found.</div>`;
-  return h+`<table class="kt cyc syn"><tr><th>Age</th><th>Solar Return</th><th>${esc(c.sp)} At Solar Return</th><th>${esc(c.sp)} Return</th></tr>`+cycRows(r).map(x=>`<tr data-act="cycgo" data-id="${Math.round(x.ms)}" tabindex="0" class="${x.ms<Date.now()?'past':''}"><td>${x.what}</td><td>${x.date} ${x.time}</td><td>${x.off}</td><td>${x.ret}</td></tr>`).join('')+`</table><div class="btns"><button data-act="cycprint">Print Table</button><button data-act="cyccopy">Copy Table</button></div>`}
+  return h+`<table class="kt cyc syn"><tr><th>Age</th><th>Solar Return</th><th>${esc(c.sp)} At Solar Return</th><th>${esc(c.sp)} Return</th></tr>`+cycRows(r).map(x=>`<tr data-act="cycgo" data-id="${Math.round(x.ms)}" tabindex="0" class="${x.ms<Date.now()?'past':''}"><td>${x.what}</td><td>${x.dateH||x.date} ${x.timeH||x.time}</td><td>${x.off}</td><td>${x.ret}</td></tr>`).join('')+`</table><div class="btns"><button data-act="cycprint">Print Table</button><button data-act="cyccopy">Copy Table</button></div>`}
  h+=ph?`<p>When two planets come back to the same angle they made in ${esc(BIRTH.name)}'s ${esc(BIRTH.type)} chart.</p><div class="two">${lab('Planet',gpick('cyc:pa',CYC_RET_BODIES,c.pa))}${lab('Measured From',gpick('cyc:pb',CYC_RET_BODIES,c.pb))}</div>`
   :`<p>When a planet comes back to the degree it held in ${esc(BIRTH.name)}'s ${esc(BIRTH.type)} chart. Squares and oppositions mark the quarter points of the same cycle.</p><div class="two">${lab('Planet',gpick('cyc:rp',CYC_RET_BODIES,c.rp))}${lab('Alignments',`<select data-act="cycset">${opt(Object.keys(CYCLE.SETS).map(k=>[k,CYCLE.SETS[k].name]),c.set)}</select>`)}</div>`;
  h+=lab('Range',`<select data-act="cycrg">${opt([['around','Before And After A Date'],['between','Between Two Dates']],c.range)}</select>`);
@@ -7085,7 +7384,7 @@ function cycReturnsHTML(){const c=S.cyc,ph=c.kind!=='planet',r=cycReturns(),lab=
  h+=`<small class="note">Birth: ${ph?cycAngTxt(c.pa,c.pb,r.ang):`${esc(c.rp)} ${cycDeg(BIRTH.pos[c.rp])}`}. Times are for ${esc(HOME.place)}. Click a row to see that moment around the Birth chart.</small>`;
  if(r.err)return h+`<div class="msg">${r.err}</div>`;
  if(!r.ev.length)return h+`<div class="msg">None found in this range.</div>`;
- const rows=cycRows(r);h+=`<table class="kt cyc"><tr><th>Date</th><th>Time</th><th>${ph?'Direction':'Alignment'}</th><th></th></tr>`+rows.map((x,i)=>(r.nBefore===i&&i>0?`<tr class="now"><td colspan="4">${r.nBefore===rows.length?'':'Date chosen'}</td></tr>`:'')+`<tr data-act="cycgo" data-id="${Math.round(x.ms)}" tabindex="0" class="${x.past?'past':''}"><td>${x.date}</td><td>${x.time}</td><td>${x.what}</td><td>${x.note}</td></tr>`).join('')+`</table>`;
+ const rows=cycRows(r);h+=`<table class="kt cyc"><tr><th>Date</th><th>Time</th><th>${ph?'Direction':'Alignment'}</th><th></th></tr>`+rows.map((x,i)=>(r.nBefore===i&&i>0?`<tr class="now"><td colspan="4">${r.nBefore===rows.length?'':'Date chosen'}</td></tr>`:'')+`<tr data-act="cycgo" data-id="${Math.round(x.ms)}" tabindex="0" class="${x.past?'past':''}"><td>${x.dateH||x.date}</td><td>${x.timeH||x.time}</td><td>${x.what}</td><td>${x.note}</td></tr>`).join('')+`</table>`;
  if(r.ev.length>=CYC_MAXROWS)h+=`<small class="note">Showing the first ${CYC_MAXROWS}. Choose a shorter range to see the rest.</small>`;
  h+=`<div class="btns"><button data-act="cycprint">Print Table</button><button data-act="cyccopy">Copy Table</button></div>`;
  return h}
@@ -7319,11 +7618,13 @@ function ctbCalc(){const jd=ctbJd(),m=ctbMemo.r;if(m&&!m.err&&ctbMemo.t===S.ctb.
 function ctbPos(l,rx){const m=Math.floor(n360(l)*60+1e-6)%21600,d=Math.floor(m/60);return `${p2(d%30)} ${CTB_SG[Math.floor(d/30)]} ${p2(m%60)}${rx?' Rx':''}`}
 function ctbPA(a){const m=Math.floor(Math.abs(a)*60+.5),d=Math.floor(m/60);return m===0?'0 Deg 00 Min':`${a>0?'+':'-'}${d} Deg ${p2(m%60)} Min`}
 function ctbDate(ms){const p=parts(ms);return `${MONTHS[p.m-1]} ${p.d}, ${p.y}`}
+/* Table cells: fixed-width month and day so date columns line up (Gemini, Nov 17). */
+function ctbDateCell(ms){const p=parts(ms);return `${cell(MONTHS[p.m-1],'5.4em','left')}${cell(p.d+',','1.7em')} ${p.y}`}
 function ctbTitle(r){return `${r.ic} ★ ${r.ec} Venus Synodic Cycle ${r.y0}-${r.y1}`}
 /* the table itself; print=true gives the stand-alone page used by Print */
 function ctbTable(r,print,cur){let hi=-1;if(cur!=null)r.rows.forEach((x,i)=>{if(x.ms<=cur)hi=i});const HL='#ffcc33';const cell='padding:1px 5px;border:1px solid #666;text-align:center;white-space:nowrap;color:#141414;font:500 13px/1.3 Inter,system-ui,sans-serif';
  const rows=r.rows.map((x,ri)=>{const c=CTB_COL[x.k],bg=x.k in CTB_COL&&!['plain','conj','hel'].includes(x.k)?`linear-gradient(180deg,${c},#ffffffcc 50%,${c})`:c;
-  return `<tr ${print?'':`data-act="ctbgo" data-id="${Math.round(x.ms)}" tabindex="0" title="See this moment on the chart wheel"`}${ri===hi?' class="ctbnow" aria-current="date"':''} style="background:${bg}">${[ctbDate(x.ms),x.name,ctbPos(x.v,x.rx),ctbPos(x.s,false),ctbPA(x.pa)].map((v,ci,a)=>`<td style="${cell}${x.b?';font-weight:700':''}${ri===hi?`;box-shadow:inset 0 3px 0 ${HL},inset 0 -3px 0 ${HL}${ci===0?`,inset 3px 0 0 ${HL}`:''}${ci===a.length-1?`,inset -3px 0 0 ${HL}`:''}`:''}">${v}</td>`).join('')}</tr>`}).join('');
+  return `<tr ${print?'':`data-act="ctbgo" data-id="${Math.round(x.ms)}" tabindex="0" title="See this moment on the chart wheel"`}${ri===hi?' class="ctbnow" aria-current="date"':''} style="background:${bg}">${[ctbDateCell(x.ms),x.name,ctbPos(x.v,x.rx),ctbPos(x.s,false),ctbPA(x.pa)].map((v,ci,a)=>`<td style="${cell}${x.b?';font-weight:700':''}${ri===hi?`;box-shadow:inset 0 3px 0 ${HL},inset 0 -3px 0 ${HL}${ci===0?`,inset 3px 0 0 ${HL}`:''}${ci===a.length-1?`,inset -3px 0 0 ${HL}`:''}`:''}">${v}</td>`).join('')}</tr>`}).join('');
  return `<div class="ctb" style="display:inline-block;background:linear-gradient(135deg,#1a12c9 0%,#4a1a8a 50%,#9a1414 100%);padding:12px 18px 16px;border-radius:6px;color:#141414;font:500 11px/1.25 Inter,system-ui,sans-serif;text-align:left"><style>.ctb sup{font-size:.7em;line-height:0;vertical-align:.5em}</style>`
  +`<div style="text-align:center;color:#f2f2f2;font:700 21px/1.2 Inter,system-ui,sans-serif;letter-spacing:.01em;text-shadow:0 1px 2px #0007;margin:0 0 10px">${ctbTitle(r)}</div>`
  +`<table style="border-collapse:collapse;width:100%;box-shadow:0 3px 10px #0008"><tr style="background:#a8a8a8">${['Date','Chapter of the Venus Cycle','Venus','Sun','Phase Angle'].map(h=>`<th style="${cell};font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 5px">${h}</th>`).join('')}</tr>${rows}</table>`
@@ -7340,9 +7641,9 @@ function ctbRet(){const k=JSON.stringify([BIRTH.jd,BIRTH.pos.Sun]);if(ctbRetMemo
  for(const age of CYC_SYN_AGES.Venus){const t=BIRTH.jd+age*365.2422,sr=CYCLE.find('Sun',{fixed:BIRTH.pos.Sun},'ret',t-40,t+40).sort((p,q)=>Math.abs(p.jd-t)-Math.abs(q.jd-t))[0];rows.push(one(sr?sr.jd:t,age,!!sr))}
  const R=rows.filter(Boolean);if(!R.length||R[0].age!==0){ctbRetMemo={k,r:{err:'Could not find the Venus cycle at birth.'}};return ctbRetMemo.r}
  R.forEach((x,i)=>{x.star=i>0&&x.cyc!==R[i-1].cyc});   /* Gemini, Nov 3: * only on the first row of each new cycle (Scorpio / Leo to Libra / Leo, later Libra / Cancer); no stage asterisk */ctbRetMemo={k,r:{rows:R,birthCyc:R[0].cyc}};return ctbRetMemo.r}
-const ctbMDY=ms=>{const p=parts(ms);return `${p.m}/${p.d}/${String(p.y).slice(-2)}`};
+const ctbMDY=ms=>{const p=parts(ms);return `${p2(p.m)}/${p2(p.d)}/${String(p.y).slice(-2)}`};
 const ctbRetPA=x=>{const m=Math.floor(Math.abs(x.el)*60+.5);return `${Math.floor(m/60)}°${p2(m%60)}′ ${x.el>=0?'Eve':'Morn'} ${x.rx?'Rx':'D'}`};
-const ctbRetDate=x=>x.age?`${ctbDate(x.ms)}<small> · ${x.sr?'Solar Return ':''}${x.age}</small>`:`${ctbDate(x.ms)}<small> · Birth</small>`;
+const ctbRetDate=x=>x.age?`${ctbDateCell(x.ms)}<small> · ${x.sr?'Solar Return ':''}${x.age}</small>`:`${ctbDateCell(x.ms)}<small> · Birth</small>`;
 function ctbRetTitle(){return `Venus Synodic Returns In The Moon Gates · ${BIRTH.name}`}
 function ctbRetTable(R,print,cur){let hi=-1;if(cur!=null)R.rows.forEach((x,i)=>{if(x.ms<=cur)hi=i});const HL='#ffcc33',open=print?-1:(S.ctbX==null?-1:S.ctbX);
  const cell='padding:2px 7px;border:1px solid #666;text-align:center;white-space:nowrap;color:#141414;font:500 13px/1.35 Inter,system-ui,sans-serif';
@@ -8814,14 +9115,14 @@ function mainWheelSVG(loc,plain){if(plain){/* the Planetarium's floating wheel (
 const SW_KEYS=[['bg','Background'],['ringA','Zodiac Ring 1'],['ringB','Zodiac Ring 2'],['gold','Gold Glyphs'],['rf0','Ring Fire'],['rf1','Ring Earth'],['rf2','Ring Air'],['rf3','Ring Water'],['rinkA','Ring Glyphs 1'],['rinkB','Ring Glyphs 2'],['ringEdge','Ring Edge'],['house','House Ring'],['aspBg','Aspect Circle'],['line','House Lines'],['axis','AS And MC'],['ink','Degrees'],['soft','Minutes And Numbers'],['ret','Retrograde'],['el0','Fire'],['el1','Earth'],['el2','Air'],['el3','Water']];
 function swCol(k){const W=(S.paint&&S.paint.sw)||{},th=W.theme||'light',T=EAWheel.themes[th],C=(W.colors||{})[th]||{};let v=k.slice(0,2)==='rf'?((C.ringFill||[])[+k[2]]||(T.ringFill||[])[+k[2]]||'#808080'):k.slice(0,2)==='el'?((C.el||[])[+k[2]]||T.el[+k[2]]):(C[k]||T[k]);if(v==='el')v=T.el[k==='rinkB'?1:0];return String(v).slice(0,7)}
 function swBtns(a,L,v){return L.map(([k,n])=>`<button data-act="${a}" data-id="${k}" class="${v===k?'solid':''}">${n}</button>`).join('')}
-function swPicker(){if(!window.EAWheel)return '';const W=(S.paint&&S.paint.sw)||{},th=((S.paint&&S.paint.sw)||{}).theme||'light';return `<div class="cap">SIMPLE WHEEL</div><div class="btns"><button data-act="sweth" data-id="light" class="${th==='light'?'solid':''}">Light</button><button data-act="sweth" data-id="dark" class="${th==='dark'?'solid':''}">Dark</button><button data-act="swreset">Reset ${th==='light'?'Light':'Dark'} Colors</button></div><div class="cap">EARTH (double tap the center)</div><div class="btns">${swBtns('swez',SW_EARTH,W.earth||'small')}</div><div class="cap">ASPECT CIRCLE</div><div class="btns">${swBtns('swbig',[['','Normal'],['big','Large']],W.big?'big':'')}</div><div class="cap">RING STYLE</div><div class="btns">${swBtns('swrs',[['signs','Signs And Houses'],['houses','Houses Only']],W.rs||'signs')}</div><div class="cap">DECANS</div><div class="btns">${swBtns('swdec',[['','Off'],['chaldean','Traditional'],['element','Traditional By Element'],['modern','Modern']],W.dec||'')}</div><div class="cap">BOUNDS</div><div class="btns">${swBtns('swbnd',[['','Off'],['egyptian','Egyptian'],['ptolemaic','Ptolemaic']],W.bnd||'')}</div><small class="note">Decans and Bounds rings show each part's guide, on a single wheel only.</small><div class="cap">PLANET COLORS</div><div class="btns">${[['gold','Shiny Gold'],['planet','Each Planet'],['element','By Element']].map(([k,n])=>`<button data-act="swpc" data-id="${k}" class="${((((S.paint&&S.paint.sw)||{}).pc||{})[th]||'gold')===k?'solid':''}">${n}</button>`).join('')}</div><div class="pcols">${SW_KEYS.map(([k,n])=>`<label class="pcol"><input type="color" data-act="ptsw" data-id="${k}" value="${swCol(k)}"><span>${n}</span></label>`).join('')}</div><small class="note">A clean, easy-to-read wheel for phones and printing: a metal bezel, the zodiac ring, house cusp degrees just inside it, each planet's glyph, degree, sign and minutes in large type, and a small aspect circle in the center. Tap the aspect circle for Major, Minor and Symmetry; double tap it to make it large. Planet glyphs start in shiny gold (Gold Glyphs sets the color); sign glyphs keep their own element colors. Your colors are kept separately for Light and Dark.</small>`}
+function swPicker(){if(!window.EAWheel)return '';const W=(S.paint&&S.paint.sw)||{},th=((S.paint&&S.paint.sw)||{}).theme||(window.EALook?'dark':'light');return (window.EALook?EALook.menu().map(g=>`<div class="cap">${g.title.toUpperCase()}</div><div class="btns">${g.items.map(x=>`<button data-act="ealook" data-id="${x.k}" class="${x.on?'solid':''}">${x.name}</button>`).join('')}</div>`).join('')+`<small class="note">The shared chart look, the same in every app (Planetary Tables, Sky, Solar Return and the Device): Navy, Gold and Element Colors are the defaults. Tables take the wheel's background color.</small>`:'')+`<div class="cap">SIMPLE WHEEL</div><div class="btns"><button data-act="sweth" data-id="light" class="${th==='light'?'solid':''}">Light</button><button data-act="sweth" data-id="dark" class="${th==='dark'?'solid':''}">Dark</button><button data-act="swreset">Reset ${th==='light'?'Light':'Dark'} Colors</button></div><div class="cap">EARTH (double tap the center)</div><div class="btns">${swBtns('swez',SW_EARTH,W.earth||'small')}</div><div class="cap">ASPECT CIRCLE</div><div class="btns">${swBtns('swbig',[['','Normal'],['big','Large']],W.big?'big':'')}</div><div class="cap">RING STYLE</div><div class="btns">${swBtns('swrs',[['signs','Signs And Houses'],['houses','Houses Only']],W.rs||'signs')}</div><div class="cap">DECANS</div><div class="btns">${swBtns('swdec',[['','Off'],['chaldean','Traditional'],['element','Traditional By Element'],['modern','Modern']],W.dec||'')}</div><div class="cap">BOUNDS</div><div class="btns">${swBtns('swbnd',[['','Off'],['egyptian','Egyptian'],['ptolemaic','Ptolemaic']],W.bnd||'')}</div><small class="note">Decans and Bounds rings show each part's guide, on a single wheel only.</small><div class="cap">PLANET COLORS</div><div class="btns">${[['gold','Shiny Gold'],['planet','Each Planet'],['element','By Element']].map(([k,n])=>`<button data-act="swpc" data-id="${k}" class="${((((S.paint&&S.paint.sw)||{}).pc||{})[th]||'gold')===k?'solid':''}">${n}</button>`).join('')}</div><div class="pcols">${SW_KEYS.map(([k,n])=>`<label class="pcol"><input type="color" data-act="ptsw" data-id="${k}" value="${swCol(k)}"><span>${n}</span></label>`).join('')}</div><small class="note">A clean, easy-to-read wheel for phones and printing: a metal bezel, the zodiac ring, house cusp degrees just inside it, each planet's glyph, degree, sign and minutes in large type, and a small aspect circle in the center. Tap the aspect circle for Major, Minor and Symmetry; double tap it to make it large. Planet glyphs start in shiny gold (Gold Glyphs sets the color); sign glyphs keep their own element colors. Your colors are kept separately for Light and Dark.</small>`}
 const SW_SETN={major:'Major',minor:'Minor',sym:'Symmetry',harmo:'Harmonic',harm:'Harmonic +'},SW_CYC=['major','minor','sym'];
 /* tap the aspect circle: Major > Minor > Symmetry; double tap: large aspect circle (Gemini, Nov 13) */
 function swTap(){const i=SW_CYC.indexOf(S.g.set||'major');S.g.set=SW_CYC[(i+1)%SW_CYC.length];save();renderAll()}
 /* double tap on the center cycles the Earth: Small > Large > None (Gemini, Nov 13); the large aspect circle moved to the menu */
 const SW_EARTH=[['small','Small'],['large','Large'],['none','None']];
 function swDbl(){paintFix();const W=S.paint.sw=S.paint.sw||{},L=SW_EARTH.map(x=>x[0]);W.earth=L[(L.indexOf(W.earth||'small')+1)%L.length];save();renderAll()}
-function eawOpts(label){const set=S.g.set||'major',W=(S.paint&&S.paint.sw)||{};const ez=W.earth||'small',ly=shownIds()[0]||'trn';return {planets:PLANETS.filter(n=>isShown(ly,n)),cuspRing:W.cr||'metal',theme:W.theme||'light',big:!!W.big,earth:ez==='none'?false:ez,ringStyle:W.rs||'signs',decans:W.dec||false,bounds:W.bnd||false,planetColors:(W.pc||{})[W.theme||'light']||'gold',setLabel:SW_SETN[set]||'',colors:(W.colors||{})[W.theme||'light']||{},label:'Chart wheel, '+label,glyph:k=>PLG[PLK(k)],sign:agSvg,aspects:S.wd.lines===false?false:p=>(set==='sym'?[]:aspLinesFor(p)).map(A=>Object.assign(A,{minor:![60,90,120,180].includes(A.angle),color:A.angle===60||A.angle===120?'#2f55c4':A.angle===90||A.angle===180?'#c0392b':A.color})),pictures:set==='sym'&&S.wd.lines!==false?symPicturesFor:null}}
+function eawOpts(label){const set=S.g.set||'major',W=(S.paint&&S.paint.sw)||{},LK=window.EALook?EALook.wheelOpts():{},th=W.theme||LK.theme||'light';const ez=W.earth||'small',ly=shownIds()[0]||'trn';return {planets:PLANETS.filter(n=>isShown(ly,n)),cuspRing:W.cr||LK.cuspRing||'metal',theme:th,big:!!W.big,earth:ez==='none'?false:ez,ringStyle:W.rs||LK.ringStyle||'signs',decans:W.dec||false,bounds:W.bnd||false,planetColors:(W.pc||{})[th]||LK.planetColors||'gold',setLabel:SW_SETN[set]||'',colors:Object.assign({},th==='dark'?LK.colors||{}:{},(W.colors||{})[th]||{}),label:'Chart wheel, '+label,glyph:k=>PLG[PLK(k)],sign:agSvg,aspects:S.wd.lines===false?false:p=>(set==='sym'?[]:aspLinesFor(p)).map(A=>Object.assign(A,{minor:![60,90,120,180].includes(A.angle),color:A.angle===60||A.angle===120?'#2f55c4':A.angle===90||A.angle===180?'#c0392b':A.color})),pictures:set==='sym'&&S.wd.lines!==false?symPicturesFor:null}}
 /* ---------- boxes ---------- */
 const HX=200;
 function head(kind,name,key){return `<div class="bh"><svg viewBox="0 0 100 100"><g>${IC[kind].replace(/@C@/g,elCol())}</g></svg><div><div class="bn">${name}</div><div class="bk">SHORTCUT  ${key}</div></div><button class="x" data-act="close" aria-label="Close">&times;</button></div>`}
@@ -8901,7 +9202,7 @@ function timingsBox(){const L=S.layers,ms=nowMs(),pj=BIRTH.jd+(jdOf(ms)-BIRTH.jd
  return head('clock','Timings','Ct')+`<p>Choose which time layers wrap the chart. Drag a row or use its arrows to reorder: the top row is the innermost wheel.</p>`+`<div id="drows">`+rowIds().map((k,i,ar)=>`<div class="row drow ${L[k]?'on':''}" data-act="layer" data-id="${k}" data-k="${k}"><span class="ck">${L[k]?'&#10003;':''}</span><span><b>${tnT(k)}</b><small>${tnS(k,L)}</small></span>${mvBtns(k,i,ar.length)}<span class="grip" title="Drag to reorder">&#8942;&#8942;</span></div>`).join('')+`</div>`+`<div class="pbox"><b>PROGRESSED TO</b><div>${dateStr(p)} &middot; ${timeStr(p,true)}</div><b>PROGRESSED CHART DATE</b><div>${p2(pp.m)}/${p2(pp.d)}/${pp.y} &middot; ${timeStr(pp,false)}</div><small>Age ${((jdOf(ms)-BIRTH.jd)/365.2422).toFixed(2)}. Day-for-a-year method.</small></div>`
  +`<div class="btns"><button data-act="preset" data-id="clock">Clock</button><button data-act="preset" data-id="three">Three Wheels</button><button data-act="preset" data-id="four">Four Wheels</button></div><div class="cap">LATER</div><div class="chips2">${['Returns','Primary Directions'].map(c=>`<span>${c}</span>`).join('')}</div>`}
 const STEPS=[['1 Minute',60e3],['1 Hour',3600e3],['1 Day',864e5],['1 Week',6048e5],['1 Month',2629800e3],['1 Year',31556926e3]];
-const SQ=[1,2,3,4,5,6,7,8,9,10,12,15,20,25,30,45,60,90,100],SU=[['Second',1e3],['Minute',60e3],['Hour',3600e3],['Day',864e5],['Week',6048e5],['Month',2629800e3],['Year',31556926e3],['Decade',315569260e3]];
+const SQ=[1,2,3,4,5,6,7,8,9,10,12,15,20,25,30,45,60,90,100],SU=[['Second',1e3],['Minute',60e3],['Hour',3600e3],['Day',864e5],['Week',6048e5],['Month',2629800e3],['Year',31556926e3],['Decade',315569260e3],['Century',3155692600e3]];
 const stepMs=()=>(+S.tm.sq||1)*(SU.find(u=>u[0]===S.tm.su)||SU[2])[1];
 /* Time Machine target (Gemini, Oct 25): steps under a day move the chart on the wheel (Birth or the first extra chart),
    shown as "9:39pm +2hr"; steps of a day or more move Transits, adding them for the chart's place when they are not shown.
@@ -8916,13 +9217,18 @@ function tmTransits(){if(S.layers.trn)return;let r=null;for(const k of shownIds(
 function tmAdvance(d){const k=tmTarget();if(k==='trn'){tmTransits();if(!S.tm.active){S.tm.active=true;S.tm.time=Date.now()}S.tm.time+=d;S.tm.spin=(S.tm.spin||0)+Math.sign(d)*earthSpinStep(Math.abs(d));return}
  S.tm.off=S.tm.off||{};S.tm.off[k]=(S.tm.off[k]||0)+d;if(k==='nat')natApply()}
 function stepPick(){const op=S.gpOpen==='tstep',q=+S.tm.sq||1,pl=q===1?'':'s';return `<div class="gp up tp stp"><button type="button" class="gpb" data-act="gpopen" data-id="tstep" title="Time Step: Quantity And Increment">${q} ${S.tm.su}${pl} <small>${op?'&#9650;':'&#9660;'}</small></button>${op?`<div class="gpl two"><div class="col qc"><input type="number" id="sqin" min="0.01" step="any" value="${q}" title="Type A Quantity" aria-label="Step Quantity"></div><div class="col">${SU.map(u=>`<button type="button" data-act="suset" data-id="${u[0]}" class="${u[0]===S.tm.su?'on':''}">${u[0]}${pl}</button>`).join('')}</div></div>`:''}</div>`}
-function trHTML(){return `<div class="tr"><button class="qmg" type="button" title="Chart menu (or right-click the chart)" aria-haspopup="menu" aria-label="Chart menu">&#9881;</button>${[['back','&#10074;&#9664;','Step Back'],['pback','&#9664;','Play Backward'],['stop','&#9632;','Stop'],['pfwd','&#9654;','Play Forward'],['fwd','&#9654;&#10074;','Step Forward']].map(b=>`<button class="${(b[0]==='pback'&&S.tm.playing&&S.tm.dir<0)||(b[0]==='pfwd'&&S.tm.playing&&S.tm.dir>=0)||(b[0]==='stop'&&!S.tm.playing)?'solid':''}" data-act="tr" data-id="${b[0]}" title="${b[2]}">${b[1]}</button>`).join('')}${stepPick()}</div>`}
+function trHTML(){return `<div class="tr"><button class="qmg" type="button" title="Chart menu (or right-click the chart)" aria-haspopup="menu" aria-label="Chart menu">&#9881;</button>${[['pback','&#9664;','Run Backward'],['back','&#10074;&#9664;','Step Back'],['stop','&#9632;','Stop'],['fwd','&#9654;&#10074;','Step Forward'],['pfwd','&#9654;','Run Forward']].map(b=>`<button class="${(b[0]==='pback'&&S.tm.playing&&S.tm.dir<0)||(b[0]==='pfwd'&&S.tm.playing&&S.tm.dir>=0)||(b[0]==='stop'&&!S.tm.playing)?'solid':''}" data-act="tr" data-id="${b[0]}" title="${b[2]}" aria-label="${b[2]}">${b[1]}</button>`).join('')}${stepPick()}${window.EATime?`<button class="tmev" type="button" data-act="tmev" title="Step Chart To Event" aria-label="Step Chart To Event" aria-haspopup="dialog">${EATime.STAR_TARGET}</button>`:''}</div>`}
+/* Gemini, Nov 18: Kepler's Time Machine is global. The bar follows the Astro Gold layout (Now, run back, step back, stop, step forward,
+   run forward, step size) and the Star Target opens Step Chart to Event (Aspect, R/D, Ing, Pos, House, Return, Lun/Ecl) from the shared EATime */
+function tmEvents(btn){if(!window.EATime)return;const nat=shownIds().includes('nat')&&!!BIRTH.jd,mem={};
+ EATime.events({key:'device',anchor:btn,natal:nat,fmt:ms=>{const p=parts(ms);return `${dateStr(p)} ${timeStr(p,true)}`.replace(/<[^>]+>/g,'')},getMs:()=>S.tm.active?S.tm.time:Date.now(),ctx:{lon:(p,jd)=>{if(mem.k!==jd){mem.k=jd;mem.p=positions(jd)}return mem.p[p]},natal:nat?{jd:BIRTH.jd,cusps:BIRTH.unknown?null:BIRTH.cusps}:null},
+  go:(ms,label,ring)=>{setPlay(false);const L={tr:'trn',pr:'prog',sa:'arc'}[ring]||'trn';if(!S.layers[L]){S.layers[L]=true;enforceMax(L)}S.tm.active=true;S.tm.time=ms;const p=parts(ms);S.tm.msg=`${label}: ${dateStr(p).replace(/<[^>]+>/g,'')} ${timeStr(p,true).replace(/<[^>]+>/g,'')}`;renderAll()}})}
 function tpick(id,list,val,btn){const op=S.gpOpen===id,f=list.find(x=>x[0]===val);return `<div class="gp up tp"><button type="button" class="gpb" data-act="gpopen" data-id="${id}" title="${f?f[1].replace(/<[^>]+>/g,''):''}">${btn} <small>${op?'&#9650;':'&#9660;'}</small></button>${op?`<div class="gpl one">${list.map(x=>`<button type="button" data-act="gpsel" data-id="${id}|${x[0]}" class="${x[0]===val?'on':''}">${x[1]}</button>`).join('')}</div>`:''}</div>`}
 function snapHTML(cp){const a=S.snap,planets=PLANETS.filter(n=>n!=='Node'&&n!=='SNode').map(n=>[n,n]),aspOpts=Object.keys(ASPECTS).map(k=>[k,ASPECTS[k][1]+'\ufe0e'+(cp?'':' '+k)]),tOpts=cp?[['Transit','T'],['Progressed','P'],['Solar Arc','S'],['Birth','R']]:[['Transit','Transit'],['Progressed','Progressed'],['Solar Arc','Solar Arc'],['Birth',BIRTH.type]];
  const TL={Transit:'T',Progressed:'P','Solar Arc':'S',Birth:'R'},tFull=[['Transit','Transit'],['Progressed','Progressed'],['Solar Arc','Solar Arc'],['Birth',BIRTH.type+' (Radix)']],aFull=Object.keys(ASPECTS).map(k=>[k,ASPECTS[k][1]+'\ufe0e '+k]);
  if(cp)return `<div class="snap">${tpick('snap:t1',tFull,a.t1,TL[a.t1])}${gpick('snap:p1',planets.map(x=>x[0]),a.p1,true,true)}${tpick('snap:asp',aFull,a.asp,ASPECTS[a.asp][1]+'\ufe0e')}${tpick('snap:t2',tFull,a.t2,TL[a.t2])}${gpick('snap:p2',planets.map(x=>x[0]),a.p2,true,true)}</div>`;
  return `<div class="snap"><select data-act="snap" data-k="t1">${opt(tOpts,a.t1)}</select>${gpick('snap:p1',planets.map(x=>x[0]),a.p1,true,cp)}<select data-act="snap" data-k="asp">${opt(aspOpts,a.asp)}</select><select data-act="snap" data-k="t2">${opt(tOpts,a.t2)}</select>${gpick('snap:p2',planets.map(x=>x[0]),a.p2,true,cp)}</div>`}
-function dockHTML(){if(plnOn())return pln().dock(trHTML());if(ctbOn())return ctbDock();return `<button class="und" data-act="undock" title="Undock Time Machine">&#8613;</button>${trHTML()}<button class="nowb" data-act="now">Now</button><span class="sep"></span>${snapHTML(true)}<button class="sb" data-act="snapgo" data-id="back" title="Snap Back To The Previous Aspect">&#9664; Prev</button><button class="sb solid" data-act="snapgo" data-id="fwd" title="Snap Forward To The Next Aspect">Next &#9654;</button><div class="dmsg">${S.tm.msg||''}</div>`}
+function dockHTML(){if(plnOn())return pln().dock(trHTML());if(ctbOn())return ctbDock();return `<button class="und" data-act="undock" title="Undock Time Machine">&#8613;</button><button class="nowb" data-act="now">Now</button>${trHTML()}${window.EATime?'':`<span class="sep"></span>${snapHTML(true)}<button class="sb" data-act="snapgo" data-id="back" title="Snap Back To The Previous Aspect">&#9664; Prev</button><button class="sb solid" data-act="snapgo" data-id="fwd" title="Snap Forward To The Next Aspect">Next &#9654;</button>`}<div class="dmsg">${S.tm.msg||''}</div>`}
 const plnOn=()=>S.gv==='sky'&&!S.synView&&!S.game;   /* Gemini, Oct 30: the Planetarium always docks the Time Machine */
 const tmDocked=()=>!!S.dockTM||plnOn()||(ctbOn()&&!PT_FRAME);   /* Gemini, Nov 3: Cycles Tables always docks it too */
 function renderDock(){const d=$('#dock'),on=tmDocked()&&!S.game;stage.classList.toggle('plndock',on&&plnOn());stage.classList.toggle('ctbdock',on&&ctbOn());stage.classList.toggle('plnfull',on&&plnOn()&&stage.classList.contains('nomenu'));stage.classList.toggle('ampdock',on&&S.gv==='amap'&&!plnOn());stage.classList.toggle('ampfull',S.gv==='amap'&&!plnOn()&&stage.classList.contains('nomenu')&&!window.EA_PHONE);   /* AstroMaps: the Time Machine docks inside its window; Hide Menus fills the stage */d.hidden=!on;stage.classList.toggle('docked',on);if(on)d.innerHTML=dockHTML();const bx=$('#box');if(bx&&!bx.hidden&&S.open)fitBox(bx)}   /* the dock moves Hide Menus up: refit an open box to its new place */   /* Gemini, Oct 29: no time machine bar in Games */
@@ -9228,6 +9534,8 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(a==='layer'){S.layers[id]=!S.layers[id];if(!shownIds().length)S.layers.trn=true;enforceMax(id)}
   else if(a==='preset'){S.layers=id==='clock'?{nat:false,prog:false,arc:false,trn:true}:id==='three'?{nat:true,prog:true,arc:false,trn:true}:{nat:true,prog:true,arc:true,trn:true}}
   else if(a==='chartPick'){S.layers=id==='clock'?{nat:false,prog:false,arc:false,trn:true}:{nat:true,prog:false,arc:false,trn:true}}
+  else if(a==='ealook'&&window.EALook){const [k,v]=id.split(':');EALook.set({[k]:v});const W=S.paint&&S.paint.sw;if(W){W.theme='dark';if(W.pc)delete W.pc.dark;if(W.colors)delete W.colors.dark;delete W.cr;delete W.rs}save()}   /* a preset replaces older per-color picks */
+  else if(a==='tmev'){tmEvents(act);return}
   else if(a==='tr'){const st=stepMs();
    if(id==='play'){setPlay(!S.tm.playing)}else if(id==='pfwd'){setPlay(true,1)}else if(id==='pback'){setPlay(true,-1)}else if(id==='stop'){setPlay(false)}else{setPlay(false);const m={back:-1,fwd:1,back10:-10,fwd10:10}[id];tmAdvance(m*st)}}
   else if(a==='dock'){S.dockTM=true;S.open=null;save()}
@@ -9332,7 +9640,7 @@ document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='sqin'&&(e.ke
  document.addEventListener('dragover',e=>{const li=dragHs&&e.target.closest&&e.target.closest('li[data-hs]');if(!li)return;e.preventDefault();document.querySelectorAll('li[data-hs].over').forEach(x=>x.classList.remove('over'));li.classList.add('over')});
  document.addEventListener('drop',e=>{const li=dragHs&&e.target.closest&&e.target.closest('li[data-hs]');if(!li)return;e.preventDefault();const L=hsysList().map(x=>x[0]),to=L.indexOf(li.dataset.hs),from=L.indexOf(dragHs);if(to>=0&&from>=0&&to!==from)hsysMove(dragHs,to);dragHs=null;renderAll()});
  document.addEventListener('dragend',()=>{dragHs=null;document.querySelectorAll('li[data-hs]').forEach(x=>x.classList.remove('drag','over'))})}
-document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('.stp')){S.gpOpen=null;renderAll()}});setInterval(()=>{if(S.dockTM&&!S.tm.active){}},5000);if(window.EAWheel&&EAWheel.attach)EAWheel.attach(document,{tap:swTap,dbl:swDbl});if(window.EA_JPL)EA_JPL.onLoad(()=>{clearTimeout(window.__jplT);window.__jplT=setTimeout(()=>{try{renderAll()}catch(e){}},60)});window.__app={S,positions,aspSet:{links:ASP_LINKS,open:(k,f)=>{openHarm(k,f);renderAll()},list:ASP_SETS,get:()=>S.g.set||'major',set:v=>{S.g.set=v;save();renderAll()},lines:aspLinesFor,pictures:symPicturesFor},BIRTH,snap,renderAll,buildChart,riseMs,cycle:CYCLE,synFrame,openGaze:o=>{stg().open(o);S.open='stargaze';renderAll()},ctb:t=>ctbVenusCalc(t),
+document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('.stp')){S.gpOpen=null;renderAll()}});setInterval(()=>{if(S.dockTM&&!S.tm.active){}},5000);if(window.EAWheel&&EAWheel.attach)EAWheel.attach(document,{tap:swTap,dbl:swDbl});if(window.EA_JPL)EA_JPL.onLoad(()=>{clearTimeout(window.__jplT);window.__jplT=setTimeout(()=>{try{renderAll()}catch(e){}},60)});window.__app={S,positions,nodes:{trueNode,trueNodeMeeus,meanNode},aspSet:{links:ASP_LINKS,open:(k,f)=>{openHarm(k,f);renderAll()},list:ASP_SETS,get:()=>S.g.set||'major',set:v=>{S.g.set=v;save();renderAll()},lines:aspLinesFor,pictures:symPicturesFor},BIRTH,snap,renderAll,buildChart,riseMs,cycle:CYCLE,synFrame,openGaze:o=>{stg().open(o);S.open='stargaze';renderAll()},ctb:t=>ctbVenusCalc(t),
  /* the Venus Tables phone app (worlds/cycles/phone) uses these; names only in every list (privacy rule) */
  tbl:{calc:ctbVenusCalc,pos:ctbPos,pa:ctbPA,date:ctbDate,title:ctbTitle,col:CTB_COL,notes:CTB_NOTES,text:ctbText,hel:CTB_HEL,
   chart:()=>({name:BIRTH.name,ms:(BIRTH.jd-2440587.5)*864e5,unknown:!!BIRTH.unknown,cusps:BIRTH.unknown?null:BIRTH.cusps}),
