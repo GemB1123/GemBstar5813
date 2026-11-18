@@ -823,7 +823,7 @@ window.APP_GLYB=[[[-30.5,29.5,-37.5,38.5],[-30.5,30.3,-37.9,38.4],[-30.5,31.1,-3
    window.EAWheel.svg(chart, opts) returns an <svg> string.
      chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
      opts (all optional):
-       planets  list of bodies to draw (default Sun..Pluto; add Node, SNode, Fortune, Spirit to show them; AS and MC are drawn from the cusps)
+       planets  list of bodies to draw (default Sun..Pluto plus the true North and South Nodes; add Fortune, Spirit to show them; AS and MC are drawn from the cusps)
        chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
        glyph    k => inner SVG of a planet glyph in a -15..15 box, stroked with currentColor (Device: PLG)
        sign     (i,x,y,size,color) => SVG of sign glyph i (Device: agSvg, Ana's glyphs)
@@ -876,7 +876,7 @@ const BND={egyptian:BT.flatMap((s,i)=>s.map(([g,e],j)=>[g,i*30+(j?s[j-1][1]:0),i
  ptolemaic:PT.split('|').flatMap((x,i)=>{let a=i*30;return x.split(' ').map(t=>{const e=a+ +t.slice(2),r=[AB[t.slice(0,2)],a,e];a=e;return r})})};
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋',Fortune:'⊗',Spirit:'⊕'};
 /* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
-const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];   /* Gemini, Nov 18 (global): both TRUE Nodes on by default (apps pass true-node longitudes; hide via opts.planets); Fortune and Spirit stay off */
 const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
@@ -6363,7 +6363,14 @@ function kepler(Md,e){const M=rad(Md);let E=M+e*Math.sin(M)*(1+e*Math.cos(M));fo
 function helio(nm,d){const a0=EL[nm];let N=a0[0]+a0[1]*d,i=a0[2]+a0[3]*d,w=a0[4]+a0[5]*d,a=a0[6]+a0[7]*d,e=a0[8]+a0[9]*d,M=n360(a0[10]+a0[11]*d);
  const E=kepler(M,e),xv=a*(Math.cos(E)-e),yv=a*Math.sqrt(1-e*e)*Math.sin(E),v=Math.atan2(yv,xv),r=Math.hypot(xv,yv),vw=v+rad(w),Nr=rad(N),ir=rad(i);
  return [r*(Math.cos(Nr)*Math.cos(vw)-Math.sin(Nr)*Math.sin(vw)*Math.cos(ir)),r*(Math.sin(Nr)*Math.cos(vw)+Math.cos(Nr)*Math.sin(vw)*Math.cos(ir)),r*Math.sin(vw)*Math.sin(ir)]}
-function positions(jd){const J=window.EA_JPL&&EA_JPL.positions(jd);if(J){J.Node=n360(125.04452-1934.136261*(jd-2451545)/36525);return J}
+/* Gemini, Nov 18 (global): every chart shows the TRUE North and South Nodes by default. With NASA JPL loaded, the true (osculating) node
+   comes from the plane of the Moon's path at that instant; otherwise Meeus's true-node series (Astronomical Algorithms ch. 47) */
+function trueNode(jd){const E=window.EA_JPL;if(E&&E.body){try{const a=E.body('Moon',jd-.005,{speed:false}),b=E.body('Moon',jd+.005,{speed:false});
+  if(a&&b&&a.lat!=null){const v=o=>{const l=rad(o.lon),t=rad(o.lat);return [Math.cos(t)*Math.cos(l),Math.cos(t)*Math.sin(l),Math.sin(t)]},p=v(a),q=v(b),
+   hx=p[1]*q[2]-p[2]*q[1],hy=p[2]*q[0]-p[0]*q[2];return n360(deg(Math.atan2(hx,-hy)))}}catch(e){}}
+ const T=(jd-2451545)/36525,S=x=>Math.sin(rad(x)),D=297.8501921+445267.1114034*T,M=357.5291092+35999.0502909*T,Mp=134.9633964+477198.8675055*T,F=93.2720950+483202.0175233*T;
+ return n360(125.0445479-1934.1362891*T+0.0020754*T*T-1.4979*S(2*(D-F))-0.1500*S(M)-0.1226*S(2*D)+0.1176*S(2*F)-0.0801*S(2*(Mp-F)))}
+function positions(jd){const J=window.EA_JPL&&EA_JPL.positions(jd);if(J){J.Node=trueNode(jd);J.SNode=n360(J.Node+180);return J}
  const d=jd-2451543.5,T=(jd-2451545)/36525,S=x=>Math.sin(rad(x));
  const ws=282.9404+4.70935e-5*d,es=0.016709-1.151e-9*d,Ms=n360(356.0470+0.9856002585*d),Es=kepler(Ms,es),xv=Math.cos(Es)-es,yv=Math.sqrt(1-es*es)*Math.sin(Es);
  const sl=n360(deg(Math.atan2(yv,xv))+ws),sr=Math.hypot(xv,yv),xs=sr*Math.cos(rad(sl)),ys=sr*Math.sin(rad(sl));
@@ -6384,7 +6391,7 @@ function positions(jd){const J=window.EA_JPL&&EA_JPL.positions(jd);if(J){J.Node=
  const lp=238.958116+144.96*T-19.799*sp(1)+19.848*cp(1)+0.897*sp(2)-4.956*cp(2)+0.610*sp(3)+1.211*cp(3)-0.341*sp(4)-0.190*cp(4)+0.128*sp(5)-0.034*cp(5)-0.038*sp(6)+0.031*cp(6)+0.020*Math.sin(rad(S_-P_))-0.010*Math.cos(rad(S_-P_));
  const rp=40.72+6.68*sp(1)+6.90*cp(1)-1.18*sp(2)-0.03*cp(2)+0.15*sp(3)-0.14*cp(3);
  P.Pluto=n360(deg(Math.atan2(rp*Math.sin(rad(lp))+ys,rp*Math.cos(rad(lp))+xs)));
- P.Node=n360(125.04452-1934.136261*T);P.SNode=n360(P.Node+180);return P}   /* South Node, opposite the North (Gemini, Oct 25) */
+ P.Node=trueNode(jd);P.SNode=n360(P.Node+180);return P}   /* South Node, opposite the North (Gemini, Oct 25) */
 function retro(jd){const a=positions(jd),b=positions(jd+0.5),r={};for(const k of PLANETS){if(k==='Sun'||k==='Moon'||k==='Node'||k==='SNode')continue;r[k]=(((b[k]-a[k]+180)%360+360)%360-180)<0}return r}
 function cuspsFor(jd,lat,lon){const T=(jd-2451545)/36525,th=n360(280.46061837+360.98564736629*(jd-2451545)+lon),eps=rad(23.4392911-0.0130042*T),t=rad(th);
  const mc=n360(deg(Math.atan2(Math.sin(t),Math.cos(eps)*Math.cos(t))));
@@ -6527,8 +6534,8 @@ function quitAsk(done){done=done||(()=>toast('In the desktop app, the Device wou
  o.innerHTML=`<div class="qa"><b>Clear Recents And Chart Before Quitting?</b><p>Recents holds ${S.recents.length} chart name${S.recents.length===1?'':'s'}. Clearing keeps the next client from seeing them, and the Device opens on current Transits for home. Favorites and saved charts stay.</p><div class="btns"><button class="solid" data-q="clear">Clear And Quit</button><button data-q="keep">Keep Recents And Quit</button><button data-q="cancel">Cancel</button></div><label class="qn"><input type="checkbox" id="qa-never"> Don't Ask Again (turn it back on in Settings, Startup And Shutdown)</label></div>`;
  o.className='on';o.onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q;if(q!=='cancel'&&document.getElementById('qa-never').checked){S.askQuit=false;save()}o.className='';if(q==='clear')clearAll();if(q!=='cancel')done()}}
 const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-/* Nodes start off on every chart (Gemini, Nov 16: a rule for every app); a person's later choice is kept */
-try{if(!localStorage.getItem('ea-pldef')){['nat','prog','arc','trn','x1','x2','x3','x4'].forEach(l=>{S.show[l]=S.show[l]||{};S.show[l].Node=false;S.show[l].SNode=false});localStorage.setItem('ea-pldef','1')}}catch(e){}
+/* Gemini, Nov 18 (global, replaces Nov 16 "Nodes off"): North and South Nodes show by default on every chart; turned back on once, then a person's later choice is kept */
+try{if(!localStorage.getItem('ea-pldef2')){['nat','prog','arc','trn','x1','x2','x3','x4'].forEach(l=>{S.show[l]=S.show[l]||{};S.show[l].Node=true;S.show[l].SNode=true});localStorage.setItem('ea-pldef2','1')}}catch(e){}
 function save(){try{localStorage.setItem('apparatus-test-v1',JSON.stringify({wsv:2,ws:S.ws,wd:S.wd,start:S.start,askQuit:S.askQuit,look:S.look,paint:S.paint,label:S.label,show:S.show,dockTM:S.dockTM,info:S.info,asp:S.asp,order:S.order,gn:GLYPH_NUDGE,home:S.homeReloc?((S.tm.auto&&S.tm.auto.home)||HOME):null,homeBase:HOME0.place===HOME_DEF.place&&HOME0.lat===HOME_DEF.lat?null:HOME0,dice:S.gmLook||null,diceOn:S.gmOn||null,diceLevel:S.gmLevel||null,diceTrad:S.gmTrad||null,diceSkip:S.gmSkip||null,diceSkin:S.gmSkin||null,diceTable:S.gmTable||null,aspSet:S.g.set||'major'}))}catch(e){}}
 
 const isShown=(layer,n)=>(S.show[layer]||{})[n]!==false;
@@ -11177,11 +11184,13 @@ const ZOD=()=>{const v=pref('vt-zod');return AYA0[v]!=null?v:'trop'},ayan=jd=>{c
 const zP=(p,jd)=>{const a=ayan(jd);if(!a)return p;const o=Object.assign({},p);Object.keys(o).forEach(k=>{if(typeof o[k]==='number')o[k]=((o[k]-a)%360+360)%360});return o};
 const zCu=(c,jd)=>{const a=ayan(jd);if(!a||!c)return c;const o=c.map(v=>typeof v==='number'?((v-a)%360+360)%360:v);['realAS','realMC'].forEach(k=>{if(c[k]!=null)o[k]=((c[k]-a)%360+360)%360});['noAngles','even'].forEach(k=>{if(k in c)o[k]=c[k]});return o};
 const CWHIDE=()=>{try{return JSON.parse(localStorage.getItem('vt-cwhide'))||[]}catch(e){return []}};
-/* Gemini, Nov 16: the Nodes and two Lots join Displayed Planets, off by default (a rule for every app). The Lots are cast from the
+/* Gemini, Nov 16: the Nodes and two Lots join Displayed Planets (Nov 18: the Nodes now ON by default, the Lots off). The Lots are cast from the
    Ascendant: by day Fortune = AS + Moon - Sun and Spirit = AS + Sun - Moon, reversed by night (the Sun below the horizon). */
 const PLX=['Node','SNode','Fortune','Spirit'],ALLB=PLN.concat(PLX),PXN={Node:'North Node',SNode:'South Node',Fortune:'Part of Fortune',Spirit:'Part of Spirit'},bName=k=>PXN[k]||k,
  LOTG={Fortune:'<circle r="10"/><path d="M-7.1 -7.1L7.1 7.1M7.1 -7.1L-7.1 7.1"/>',Spirit:'<circle r="10"/><path d="M0 -10V10M-4.5 -4Q0 -9 4.5 -4"/>'},glyphOf=k=>LOTG[k]||T.plg(k);
-const CWSHOW=()=>{try{const v=JSON.parse(localStorage.getItem('vt-cwshow'));if(Array.isArray(v))return v.filter(k=>ALLB.includes(k))}catch(e){}const h=CWHIDE();return PLN.filter(k=>!h.includes(k))},
+/* Gemini, Nov 18 (global): the True North and South Nodes show by default on every chart (each can be hidden); the Lots stay off.
+   A list saved before this rule gets the Nodes added once (vt-nodes1), and after that the user's choice stands */
+const CWSHOW=()=>{try{const v=JSON.parse(localStorage.getItem('vt-cwshow'));if(Array.isArray(v)){let L=v.filter(k=>ALLB.includes(k));if(!localStorage.getItem('vt-nodes1')){localStorage.setItem('vt-nodes1','1');if(!L.includes('Node')&&!L.includes('SNode')){L=L.concat(['Node','SNode']);CWSAVE(L)}}return L}}catch(e){}const h=CWHIDE();return PLN.filter(k=>!h.includes(k)).concat(['Node','SNode'])},
  CWPL=()=>{const v=CWSHOW();return ALLB.filter(k=>v.includes(k))},CWSAVE=L=>{try{localStorage.setItem('vt-cwshow',JSON.stringify(ALLB.filter(k=>L.includes(k))))}catch(e){}};
 function withLots(pos,as){const o=Object.assign({},pos);if(as==null||!isFinite(as)||o.Sun==null||o.Moon==null)return o;const day=((o.Sun-as)%360+360)%360>180,n=v=>((v%360)+360)%360;
  o.Fortune=n(day?as+o.Moon-o.Sun:as+o.Sun-o.Moon);o.Spirit=n(day?as+o.Sun-o.Moon:as+o.Moon-o.Sun);return o}
