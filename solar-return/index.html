@@ -407,7 +407,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
-   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp=hs?4.2:4.4,q=dms(cu[i]),pd=xy(cu[i]-sp,rc),
+   /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
+       bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
+   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp0=hs?4.2:4.4,q=dms(cu[i]),e0=xy(cu[i]-sp0,rc),e1=xy(cu[i]+sp0,rc),dx=e1[0]-e0[0],dy=e1[1]-e0[1],sp=(Math.abs(dx)>=Math.abs(dy)?dx<0:dy<0)?-sp0:sp0,pd=xy(cu[i]-sp,rc),
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
@@ -916,17 +918,20 @@ const angTxt=t=>`<text x="0" y="1" text-anchor="middle" dominant-baseline="centr
 const GRID_ASP=[[0,'Conjunction','#e3b546'],[60,'Sextile','#6f9bff'],[90,'Square','#ff5a4e'],[120,'Trine','#6f9bff'],[180,'Opposition','#ff5a4e']];
 const ASP_GLY={0:'<circle cx="-2" cy="2.5" r="4.2"/><path d="M1 -0.6L6.5 -7"/>',60:'<path d="M0 -7V7M-6.1 -3.5L6.1 3.5M-6.1 3.5L6.1 -3.5"/>',
  90:'<rect x="-5.5" y="-5.5" width="11" height="11"/>',120:'<path d="M0 -6.5L6.5 5H-6.5Z"/>',180:'<circle cx="-4" cy="4" r="2.8"/><circle cx="4" cy="-4" r="2.8"/><path d="M-2 2L2 -2"/>'};
-function gridSVG(C){const L=CFG.planets.filter(k=>k!=='SNode'&&!(k==='Node'&&C.noNN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),n=L.length,s=44,W=(n+1)*s,dark=C.theme==='dark',
+function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),
+  RA=!C.unknownTime&&C.cusps,srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),
+  RL=L.concat(RA?['AS','MC']:[]),n=L.length,m=RL.length,s=44,W=(n+1)*s,H=(m+1)*s,dark=C.theme==='dark',
   ink=dark?'#ffffff':'#1d2027',line=dark?'#2a3350':'#d9dce3',hb=dark?'#1b2340':'#eef0f4',cb=dark?'#10162b':'#ffffff',gold=dark?'#f5c35c':'#8a6418',silver=dark?'#d9dde6':'#4b5563',
-  G=window.SR_PLG||{},pg=(k,x,y,col)=>{const g=G[k==='Node'?'NNode':k];return g?`<g transform="translate(${x} ${y}) scale(.6)" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="14" fill="${col}">${k}</text>`},
-  nm=k=>k==='Node'?'North Node':k,dg=v=>{const t=dms(v);return `${t.d}° ${SIGNS[t.s].slice(0,3)}`};
- let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${W+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: return planets across, birth planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
- h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.68}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text><text x="${s*.34}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text>`;
- L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h" data-c="${j}"><title>Return ${nm(k)} ${dms(C.sr.pos[k]).txt}</title><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,gold)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.sr.pos[k])}</text></g>`});
- L.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h" data-r="${i}"><title>Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}</title><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,silver)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`;
-  L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(C.sr.pos[t]-C.birth.pos[k]+180)-180);let A=null,o=99;
+  G=window.SR_PLG||{},pg=(k,x,y,col)=>{if(k==='AS'||k==='MC')return `<g transform="translate(${x} ${y}) scale(.6)" color="${col}">${angTxt(k)}</g>`;const g=G[k==='Node'?'NNode':k];return g?`<g transform="translate(${x} ${y}) scale(.6)" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="14" fill="${col}">${k}</text>`},
+  nm=k=>({Node:'North Node',SNode:'South Node',AS:'Ascendant',MC:'Midheaven'})[k]||k,dg=v=>{const t=dms(v);return `${t.d}° ${SIGNS[t.s].slice(0,3)}`};
+ /* Gemini, Nov 18 (her reference grid): birth planets across the top, Solar Return planets with its AS and MC down the side */
+ let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: birth planets across, Solar Return planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
+ h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.66}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text><text x="${s*.36}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text>`;
+ L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h" data-c="${j}"><title>Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}</title><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,silver)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`});
+ RL.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h" data-r="${i}"><title>Return ${nm(k)} ${dms(srP[k]).txt}</title><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,gold)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`;
+  L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
    for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e}}
-   h+=`<g class="srg-c" data-r="${i}" data-c="${j}">`+(A?`<title>Return ${nm(t)} ${A[1]} Birth ${nm(k)} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
+   h+=`<g class="srg-c" data-r="${i}" data-c="${j}">`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
     +`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${A?A[2]:cb}" fill-opacity="${A?.17:.6}" stroke="${line}"/>`
     +(A?`<g transform="translate(${x+s/2} ${y+s*.4}) scale(.95)" fill="none" stroke="${A[2]}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">${ASP_GLY[A[0]]}</g><text x="${x+s/2}" y="${y+s*.83}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".85">${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</text>`:'')+'</g>'})});
  return h+'<g class="srg-hl" pointer-events="none"></g></svg>'}
