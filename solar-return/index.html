@@ -1310,7 +1310,9 @@ async function download(type,layout){layout=layout||viewLayout();const u=await i
 function showImage(u,fn){let d=$('#sr-img');if(!d){d=document.createElement('div');d.id='sr-img';d.className='sr-img';d.setAttribute('role','dialog');d.setAttribute('aria-label','Saved image');document.body.appendChild(d)}
  d.innerHTML=`<div class="sr-imgbox"><button type="button" class="sr-x" aria-label="Close">×</button><p>${esc(fn)}. If it did not download, right-click the image (or press and hold on a phone) and choose Save Image.</p><img src="${u}" alt="Solar Return ${LAST.year} chart image"></div>`;
  const back=document.activeElement;d.hidden=false;const x=d.querySelector('.sr-x');x.onclick=()=>{d.hidden=true;back&&back.focus&&back.focus()};x.focus()}
-async function copyImage(){const u=await imageURL('png',viewLayout()),b=await (await fetch(u)).blob();await navigator.clipboard.write([new ClipboardItem({'image/png':b})])}
+/* the clipboard item is handed a promise right away, inside the click, so Safari and embedded pages (iframe with allow="clipboard-write") accept it */
+async function copyImage(){const b=(async()=>{const u=await imageURL('png',viewLayout());return (await fetch(u)).blob()})();
+ try{await navigator.clipboard.write([new ClipboardItem({'image/png':b})])}catch(e){await navigator.clipboard.write([new ClipboardItem({'image/png':await b})])}}
 
 /* ---------- the form ---------- */
 function placeField(id){const inp=$('#'+id),box=$('#'+id+'-list');let pick=null;
