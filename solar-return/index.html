@@ -1092,7 +1092,7 @@ function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.
   const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.indexOf(t),tier=self?0:oi>=0&&ii>=0?1:2;
   A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,tier===1?oi:0,tier===1?ii:0,best.o]})}
  A.sort((x,y)=>{for(let i=0;i<5;i++)if(x.key[i]!==y.key[i])return x.key[i]-y.key[i];return 0});
- P.add('Sun|Sun');const top=A.slice(0,CFG.autoPins==null?3:CFG.autoPins);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
+ P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
 /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
 const hlLine=(a,b,col)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffe9a8" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/>`
   +[a,b].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}" stroke="#ffe9a8" stroke-width="1"/>`).join('');
@@ -1160,7 +1160,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,them
  C.view=VIEW;C.strong=!!o.strong&&C.natal;C.pins=C.strong?autoPins(C):new Set();LAST=C;piClose();render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
  return {name:C.name,year:C.year,age:C.age,returnUTC:new Date(C.srms).toISOString(),returnLocal:C.when.date+', '+C.when.time,place:C.at.label,
-  sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,strongTransits:C.natal?autoPins(C).list:[],houses:HS_NAMES[C.houseSys],zodiac:zodName(C.zodiac),profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
+  sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,strongTransits:C.natal&&C.strong?autoPins(C).list:[],houses:HS_NAMES[C.houseSys],zodiac:zodName(C.zodiac),profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
 
 /* ---------- the card (what Savannah sends): title, return moment, wheel, footer ---------- */
 /* Gemini, Nov 18: the return is listed top center as "Solar Return 11 · 2026" (which return, then the year), with no name,
