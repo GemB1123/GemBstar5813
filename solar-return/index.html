@@ -1316,8 +1316,8 @@ function wheelSVG(C,theme){usedCols=new Set();
  {const lord=tlLord(C);if(lord){let hit=false;s=s.replace(new RegExp(`(<g class="eawp" data-pl="${lord}" data-ring="\\d"><title>[^<]*</title>)((?:<g filter="url\\(#eawglow\\)">)?<g transform="translate\\(([-\\d.]+) ([-\\d.]+)\\) scale\\(([\\d.]+)\\))`,'g'),(m,a,b,x,y,sc)=>{hit=true;const r=(+sc)*30*.66;
    return a+`<g class="sr-tlglow" pointer-events="none"><circle cx="${x}" cy="${y}" r="${(r*1.25).toFixed(1)}" fill="url(#srtlg)"/><circle cx="${x}" cy="${y}" r="${(r*.86).toFixed(1)}" fill="none" stroke="#ffd36e" stroke-width="1.5" stroke-opacity=".95"/></g>`+b});
   if(hit)s=s.replace(/(<svg[^>]*>)/,'$1<defs><radialGradient id="srtlg"><stop offset="0" stop-color="#ffe9a8" stop-opacity=".7"/><stop offset=".5" stop-color="#ffd36e" stop-opacity=".38"/><stop offset="1" stop-color="#ffd36e" stop-opacity="0"/></radialGradient></defs>')}}
- /* gold outer bezel (Gemini, Nov 19, trial): the rim around the zodiac turns gold, lightest toward the Sun; the house cusp ring stays silver */
- s=s.replace(/(<linearGradient id="eawbz[^"]*"[^>]*>)(.*?)(<\/linearGradient>)/,(m,a,b,c)=>a+['#fff3c8','#e9c66c','#b4862a','#5a4012'].map((col,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${col}"/>`).join('')+c);
+ /* gold outer bezel (Gemini, Nov 19, trial): the rim around the zodiac turns gold, bright gold toward the Sun fading to dark gray on the deepest night side; the house cusp ring stays silver */
+ s=s.replace(/(<linearGradient id="eawbz[^"]*"[^>]*>)(.*?)(<\/linearGradient>)/,(m,a,b,c)=>a+['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'].map((col,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${col}"/>`).join('')+c);
  /* retrograde degree numbers a deeper, brighter red so they carry the same weight as the white ones (Gemini, Nov 18) */
  if(theme==='dark')s=s.replace(/fill="#ff9a8a"([^>]*>\d+°<)/gi,'fill="#ff6e5e"$1');
  if(sky)s=s.replace(/(<\/defs><circle r="[\d.]+" fill="[^"]*"\/>)/,'$1'+sky);   /* just above the wheel's background disc */
