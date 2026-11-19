@@ -107,8 +107,9 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
     <div class="sr-row3"><label>Latitude<input id="sr-a-lat" inputmode="decimal"></label><label>Longitude<input id="sr-a-lon" inputmode="decimal"></label><label>Time Zone<input id="sr-a-tz"></label></div>
    </details>
   </div>
+  <label>House System<select name="houses"><option value="placidus">Placidus</option></select></label>
+  <label>Zodiac<select name="zodiac"><option value="trop">Tropical</option></select></label>
   <div class="sr-row">
-   <label>Houses<select name="houses"><option value="placidus">Placidus</option><option value="whole">Whole Sign</option></select></label>
    <label>Look<select name="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
   </div>
   <label class="sr-tick"><input name="natal" type="checkbox" checked> Birth Chart Biwheel</label>
@@ -119,7 +120,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
  </form>
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
-  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><button type="button" id="sr-grid" aria-pressed="false">Aspect Grid</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
+  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><button type="button" id="sr-grid" aria-pressed="false">Aspect Grid</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
 <script>/* ---------- EA_JPL: the shared NASA JPL ephemeris (DE441) for every World and every app ----------
@@ -480,7 +481,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
-  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
+  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${f((A.width!=null?A.width:A.minor?.6:1.1)*(big?1.4:1))}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
@@ -723,6 +724,36 @@ Pluto: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><path d="M1
 NNode: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><path fill="currentColor" fill-rule="evenodd" stroke-width=".6" d="M17.04 25.80C16.19 26.81 15.31 28.02 14.65 29.17C14.00 30.32 13.48 31.44 13.11 32.68C12.73 33.92 12.48 35.25 12.41 36.60C12.34 37.96 12.45 39.50 12.69 40.81C12.92 42.12 13.23 43.15 13.81 44.46C14.39 45.77 15.42 47.50 16.19 48.67C16.97 49.84 17.08 50.05 18.44 51.47C19.79 52.90 24.28 56.08 24.33 57.22C24.38 58.37 20.12 58.00 18.72 58.35C17.32 58.70 16.76 58.98 15.91 59.33C15.07 59.68 14.53 59.91 13.67 60.45C12.80 60.99 11.45 61.97 10.72 62.55C10.00 63.14 9.93 63.14 9.32 63.96C8.71 64.78 7.59 66.39 7.08 67.46C6.56 68.54 6.38 69.40 6.24 70.41C6.09 71.41 6.12 72.56 6.24 73.50C6.35 74.43 6.54 75.11 6.94 76.02C7.33 76.93 7.75 77.91 8.62 78.97C9.48 80.02 10.91 81.42 12.13 82.33C13.34 83.24 14.65 83.88 15.91 84.44C17.18 85.00 18.37 85.37 19.70 85.70C21.03 86.03 22.23 86.31 23.91 86.40C25.59 86.49 28.23 86.40 29.80 86.26C31.37 86.12 31.90 86.00 33.31 85.56C34.71 85.11 36.91 84.25 38.22 83.60C39.53 82.94 40.27 82.36 41.16 81.63C42.05 80.91 42.99 79.88 43.55 79.25C44.11 78.62 44.16 78.55 44.53 77.84C44.90 77.14 45.51 76.07 45.79 75.04C46.07 74.01 46.24 72.82 46.21 71.67C46.19 70.53 45.98 69.33 45.65 68.17C45.32 67.00 45.00 65.99 44.25 64.66C43.50 63.33 42.33 61.57 41.16 60.17C39.99 58.77 39.25 58.04 37.24 56.24C35.22 54.44 30.95 51.03 29.10 49.37C27.25 47.71 26.95 47.24 26.15 46.28C25.36 45.32 24.82 44.48 24.33 43.62C23.84 42.75 23.47 41.79 23.21 41.09C22.95 40.39 22.88 40.11 22.79 39.41C22.69 38.71 22.55 37.82 22.65 36.88C22.74 35.95 22.93 34.85 23.35 33.80C23.77 32.75 24.49 31.51 25.17 30.57C25.85 29.64 26.50 28.98 27.42 28.19C28.33 27.39 29.52 26.50 30.64 25.80C31.76 25.10 33.00 24.49 34.15 23.98C35.29 23.47 36.21 23.11 37.52 22.72C38.82 22.32 40.51 21.88 42.00 21.59C43.50 21.31 44.51 21.13 46.49 21.03C48.48 20.94 52.29 20.99 53.93 21.03C55.56 21.08 55.12 21.10 56.31 21.31C57.50 21.52 59.54 21.88 61.08 22.30C62.62 22.72 63.98 23.11 65.57 23.84C67.16 24.56 69.17 25.64 70.62 26.64C72.07 27.65 73.31 28.80 74.27 29.87C75.23 30.95 75.88 32.09 76.37 33.10C76.86 34.10 77.07 34.87 77.21 35.90C77.35 36.93 77.26 38.47 77.21 39.27C77.17 40.06 77.17 39.99 76.93 40.67C76.70 41.35 76.25 42.50 75.81 43.34C75.37 44.18 75.09 44.72 74.27 45.72C73.45 46.73 72.77 47.66 70.90 49.37C69.03 51.08 64.85 54.40 63.05 55.96C61.25 57.53 61.06 57.74 60.10 58.77C59.14 59.80 58.04 61.10 57.29 62.13C56.55 63.16 56.15 63.72 55.61 64.94C55.07 66.15 54.35 67.95 54.07 69.43C53.79 70.90 53.83 72.65 53.93 73.78C54.02 74.90 54.18 75.23 54.63 76.16C55.07 77.10 55.70 78.33 56.59 79.39C57.48 80.44 58.63 81.56 59.96 82.47C61.29 83.38 62.91 84.23 64.59 84.86C66.27 85.49 68.19 86.00 70.06 86.26C71.93 86.52 74.20 86.47 75.81 86.40C77.42 86.33 78.36 86.17 79.74 85.84C81.12 85.51 82.64 85.09 84.09 84.44C85.54 83.78 87.17 82.89 88.43 81.91C89.70 80.93 90.89 79.53 91.66 78.55C92.43 77.56 92.71 76.93 93.06 76.02C93.41 75.11 93.69 74.24 93.76 73.07C93.84 71.91 93.83 70.32 93.48 69.01C93.13 67.70 92.34 66.27 91.66 65.22C90.98 64.17 90.35 63.51 89.42 62.69C88.48 61.88 87.41 61.03 86.05 60.31C84.69 59.59 83.01 58.86 81.28 58.35C79.55 57.83 75.65 58.35 75.67 57.22C75.69 56.10 80.02 53.11 81.42 51.61C82.82 50.12 83.31 49.39 84.09 48.25C84.86 47.10 85.49 46.10 86.05 44.74C86.61 43.38 87.24 41.86 87.45 40.11C87.66 38.36 87.43 35.53 87.31 34.22C87.20 32.91 87.06 33.05 86.75 32.26C86.45 31.46 86.12 30.53 85.49 29.45C84.86 28.37 83.83 26.86 82.96 25.80C82.10 24.75 81.16 23.91 80.30 23.14C79.43 22.37 79.20 22.06 77.77 21.17C76.35 20.29 74.13 18.84 71.74 17.81C69.36 16.78 65.69 15.63 63.47 15.00C61.25 14.37 59.89 14.25 58.42 14.02C56.94 13.79 56.80 13.67 54.63 13.60C52.45 13.53 47.55 13.53 45.37 13.60C43.20 13.67 43.06 13.79 41.58 14.02C40.11 14.25 37.96 14.67 36.53 15.00C35.11 15.33 34.36 15.54 33.03 15.98C31.69 16.43 29.89 17.08 28.54 17.67C27.18 18.25 25.94 18.91 24.89 19.49C23.84 20.08 23.09 20.57 22.23 21.17C21.36 21.78 20.57 22.37 19.70 23.14C18.84 23.91 17.88 24.80 17.04 25.80ZM64.45 69.85C64.64 69.15 64.78 69.05 65.15 68.59C65.52 68.12 65.99 67.56 66.69 67.04C67.39 66.53 68.45 65.87 69.36 65.50C70.27 65.13 71.16 64.92 72.16 64.80C73.17 64.68 74.38 64.68 75.39 64.80C76.39 64.92 77.40 65.22 78.19 65.50C78.99 65.78 79.62 66.15 80.16 66.48C80.70 66.81 81.00 67.07 81.42 67.46C81.84 67.86 82.38 68.45 82.68 68.87C82.99 69.29 83.10 69.33 83.24 69.99C83.38 70.64 83.55 72.09 83.53 72.79C83.50 73.50 83.34 73.73 83.10 74.20C82.87 74.66 82.71 75.04 82.12 75.60C81.54 76.16 80.30 77.10 79.60 77.56C78.90 78.03 78.45 78.19 77.91 78.41C77.38 78.62 77.35 78.73 76.37 78.83C75.39 78.92 73.19 79.06 72.02 78.97C70.85 78.87 70.08 78.52 69.36 78.26C68.63 78.01 68.38 77.94 67.67 77.42C66.97 76.91 65.76 75.95 65.15 75.18C64.54 74.41 64.14 73.68 64.03 72.79C63.91 71.91 64.26 70.55 64.45 69.85ZM17.32 68.87C17.81 68.17 18.53 67.37 19.42 66.76C20.31 66.15 21.78 65.55 22.65 65.22C23.51 64.89 23.77 64.87 24.61 64.80C25.45 64.73 26.93 64.75 27.70 64.80C28.47 64.85 28.47 64.82 29.24 65.08C30.01 65.34 31.39 65.76 32.33 66.34C33.26 66.93 34.27 67.86 34.85 68.59C35.44 69.31 35.67 69.92 35.83 70.69C36.00 71.46 36.00 72.47 35.83 73.22C35.67 73.96 35.27 74.59 34.85 75.18C34.43 75.76 34.01 76.21 33.31 76.72C32.61 77.24 31.55 77.89 30.64 78.26C29.73 78.64 28.84 78.85 27.84 78.97C26.83 79.08 25.43 79.01 24.61 78.97C23.79 78.92 23.75 78.99 22.93 78.69C22.11 78.38 20.45 77.56 19.70 77.14C18.95 76.72 18.88 76.60 18.44 76.16C17.99 75.72 17.36 75.02 17.04 74.48C16.71 73.94 16.57 73.52 16.47 72.93C16.38 72.35 16.33 71.65 16.47 70.97C16.62 70.29 16.83 69.57 17.32 68.87Z"/></g>',
 SNode: '<g transform="scale(.3) translate(-50 -50)" stroke-width="6"><path fill="currentColor" fill-rule="evenodd" stroke-width=".6" d="M8.62 20.99C7.76 22.04 7.34 23.02 6.94 23.94C6.54 24.85 6.35 25.53 6.24 26.47C6.12 27.40 6.16 28.74 6.24 29.56C6.31 30.38 6.31 30.52 6.66 31.38C7.01 32.25 7.66 33.75 8.34 34.76C9.02 35.76 9.84 36.63 10.73 37.43C11.62 38.22 12.51 38.88 13.68 39.53C14.85 40.19 15.98 40.82 17.76 41.36C19.54 41.90 24.29 41.52 24.36 42.76C24.43 44.01 19.68 47.17 18.18 48.81C16.68 50.44 16.14 51.36 15.37 52.60C14.59 53.84 13.96 55.27 13.54 56.25C13.12 57.24 13.03 57.66 12.84 58.50C12.65 59.34 12.49 60.47 12.42 61.31C12.35 62.15 12.35 62.71 12.42 63.56C12.49 64.40 12.63 65.48 12.84 66.37C13.05 67.26 13.35 68.10 13.68 68.90C14.01 69.69 14.27 70.28 14.81 71.14C15.34 72.01 16.05 73.09 16.91 74.10C17.78 75.10 18.72 76.13 20.00 77.19C21.29 78.24 23.17 79.53 24.64 80.42C26.12 81.31 27.38 81.89 28.86 82.53C30.33 83.16 32.11 83.77 33.49 84.21C34.87 84.66 35.18 84.82 37.14 85.19C39.11 85.57 42.11 86.27 45.29 86.46C48.48 86.65 53.04 86.60 56.25 86.32C59.46 86.04 62.01 85.43 64.54 84.77C67.07 84.12 69.67 83.09 71.43 82.38C73.18 81.68 73.77 81.33 75.08 80.56C76.39 79.79 77.96 78.83 79.29 77.75C80.63 76.67 82.29 74.91 83.09 74.10C83.88 73.28 83.53 73.70 84.07 72.83C84.61 71.96 85.78 70.07 86.32 68.90C86.86 67.73 87.11 67.33 87.30 65.81C87.49 64.28 87.47 61.01 87.44 59.76C87.42 58.52 87.37 59.06 87.16 58.36C86.95 57.66 86.74 56.72 86.18 55.55C85.62 54.38 84.54 52.48 83.79 51.33C83.04 50.19 83.04 50.09 81.68 48.67C80.32 47.24 75.71 43.94 75.64 42.76C75.57 41.59 79.48 42.18 81.26 41.64C83.04 41.10 85.12 40.12 86.32 39.53C87.51 38.95 87.70 38.71 88.43 38.13C89.15 37.54 89.92 36.96 90.67 36.02C91.42 35.08 92.41 33.61 92.92 32.51C93.44 31.41 93.62 30.38 93.76 29.42C93.91 28.46 93.84 27.54 93.76 26.75C93.69 25.95 93.74 25.60 93.34 24.64C92.95 23.68 92.29 22.16 91.38 20.99C90.46 19.82 89.08 18.53 87.86 17.62C86.65 16.70 85.43 16.09 84.07 15.51C82.71 14.92 81.10 14.43 79.72 14.10C78.33 13.78 77.37 13.61 75.78 13.54C74.19 13.47 71.82 13.49 70.16 13.68C68.50 13.87 67.28 14.17 65.81 14.67C64.33 15.16 62.53 15.98 61.31 16.63C60.09 17.29 59.25 17.99 58.50 18.60C57.75 19.21 57.33 19.68 56.81 20.28C56.30 20.89 55.88 21.34 55.41 22.25C54.94 23.17 54.26 24.62 54.00 25.76C53.75 26.91 53.79 28.08 53.86 29.14C53.93 30.19 54.10 31.03 54.43 32.09C54.75 33.14 55.03 34.10 55.83 35.46C56.63 36.82 57.89 38.71 59.20 40.24C60.51 41.76 61.85 42.95 63.70 44.59C65.55 46.23 68.59 48.52 70.30 50.07C72.01 51.62 73.09 52.86 73.95 53.86C74.82 54.87 75.08 55.41 75.50 56.11C75.92 56.81 76.20 57.33 76.48 58.08C76.76 58.83 77.05 59.79 77.19 60.61C77.33 61.43 77.40 62.11 77.33 63.00C77.26 63.89 77.02 65.10 76.76 65.95C76.51 66.79 76.18 67.37 75.78 68.05C75.38 68.73 75.27 69.11 74.38 70.02C73.49 70.93 71.80 72.55 70.44 73.53C69.08 74.52 67.54 75.29 66.23 75.92C64.92 76.55 63.82 76.93 62.57 77.33C61.33 77.72 60.23 78.03 58.78 78.31C57.33 78.59 55.92 78.90 53.86 79.01C51.80 79.13 48.13 79.06 46.42 79.01C44.71 78.97 45.01 78.99 43.61 78.73C42.20 78.47 39.67 77.96 37.99 77.47C36.30 76.98 34.97 76.48 33.49 75.78C32.02 75.08 30.45 74.21 29.14 73.25C27.82 72.29 26.44 70.89 25.62 70.02C24.80 69.15 24.69 68.99 24.22 68.05C23.75 67.12 23.07 65.48 22.81 64.40C22.56 63.32 22.63 62.43 22.67 61.59C22.72 60.75 22.79 60.26 23.09 59.34C23.40 58.43 24.08 56.93 24.50 56.11C24.92 55.29 24.78 55.41 25.62 54.43C26.47 53.44 27.75 51.87 29.56 50.21C31.36 48.55 34.57 46.11 36.44 44.45C38.32 42.79 39.77 41.31 40.80 40.24C41.83 39.16 41.97 38.97 42.62 37.99C43.28 37.00 44.17 35.62 44.73 34.33C45.29 33.05 45.76 31.57 46.00 30.26C46.23 28.95 46.23 27.52 46.14 26.47C46.04 25.41 45.71 24.69 45.43 23.94C45.15 23.19 44.80 22.56 44.45 21.97C44.10 21.39 44.03 21.15 43.33 20.43C42.62 19.70 41.55 18.51 40.24 17.62C38.92 16.73 37.19 15.74 35.46 15.09C33.73 14.43 31.78 13.94 29.84 13.68C27.90 13.42 25.48 13.45 23.80 13.54C22.11 13.63 20.99 13.94 19.72 14.24C18.46 14.55 17.47 14.81 16.21 15.37C14.95 15.93 13.40 16.68 12.14 17.62C10.87 18.55 9.49 19.93 8.62 20.99ZM64.26 26.33C64.45 25.62 64.85 25.16 65.24 24.64C65.64 24.13 66.02 23.70 66.65 23.24C67.28 22.77 68.15 22.21 69.04 21.83C69.93 21.46 70.93 21.13 71.99 20.99C73.04 20.85 74.26 20.85 75.36 20.99C76.46 21.13 77.58 21.39 78.59 21.83C79.60 22.28 80.77 23.19 81.40 23.66C82.03 24.13 82.08 24.24 82.38 24.64C82.69 25.04 83.04 25.62 83.23 26.05C83.41 26.47 83.46 26.68 83.51 27.17C83.56 27.66 83.58 28.46 83.51 29.00C83.44 29.53 83.30 29.96 83.09 30.40C82.88 30.85 82.85 31.08 82.24 31.67C81.64 32.25 80.44 33.35 79.43 33.91C78.43 34.48 77.40 34.83 76.20 35.04C75.01 35.25 73.28 35.22 72.27 35.18C71.26 35.13 70.89 34.99 70.16 34.76C69.44 34.52 68.73 34.31 67.91 33.77C67.09 33.23 65.81 32.09 65.24 31.52C64.68 30.96 64.73 30.85 64.54 30.40C64.35 29.96 64.17 29.53 64.12 28.86C64.07 28.18 64.07 27.03 64.26 26.33ZM17.19 25.20C17.66 24.55 18.55 23.68 19.30 23.09C20.05 22.51 20.80 22.04 21.69 21.69C22.58 21.34 23.47 21.08 24.64 20.99C25.81 20.89 27.47 20.89 28.71 21.13C29.96 21.36 31.10 21.83 32.09 22.39C33.07 22.95 33.98 23.75 34.62 24.50C35.25 25.25 35.67 26.14 35.88 26.89C36.09 27.64 36.07 28.22 35.88 29.00C35.69 29.77 35.39 30.73 34.76 31.52C34.12 32.32 32.84 33.26 32.09 33.77C31.34 34.29 30.99 34.38 30.26 34.62C29.53 34.85 28.81 35.11 27.73 35.18C26.65 35.25 25.04 35.27 23.80 35.04C22.56 34.80 21.32 34.36 20.28 33.77C19.25 33.19 18.25 32.30 17.62 31.52C16.98 30.75 16.68 29.89 16.49 29.14C16.30 28.39 16.37 27.68 16.49 27.03C16.61 26.37 16.73 25.86 17.19 25.20Z"/></g>'
 };</script>
+<script>window.SR_HS=(function(){const n360=x=>((x%360)+360)%360;const HOUSE_SYS=[['placidus','Placidus'],['whole','Whole Sign'],['equal','Equal'],['natural','Natural Zodiac'],['regio','Regiomontanus'],['alcabitius','Alcabitius'],['campanus','Campanus'],['koch','Koch'],['morinus','Morinus'],['sun1','Sun on 1st'],['sun10','Sun on 10th'],['sun7','Sun on 7th'],['sun4','Sun on 4th'],['moonph','Moon Phase'],['solarsign','Solar Sign'],['porphyry','Porphyry']];
+function sunHouses(h,sys,sun,moon){const off={sun1:0,sun10:90,sun7:180,sun4:270};let a=off[sys];
+ if(sys==='moonph')a=((moon-sun)%360+360)%360<180?180:0;
+ const n=new Array(13).fill(0);if(sys==='solarsign'){for(let i=1;i<=12;i++)n[i]=n360(Math.floor(sun/30)*30+30*(i-1));n.noAngles=true;n.even=true;return n}
+ /* no AS or MC; the Sun's axis is thick: horizontal (1st/7th) for Sun on 1st and 7th, vertical (4th/10th) for Sun on 10th and 4th */
+ for(let i=1;i<=12;i++)n[i]=n360(sun+a+30*(i-1));n.noAngles=true;n.thick=a%180?[4,10]:[1,7];return n}
+function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.noAngles=true;n.even=true;return n}
+function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==='natural')return naturalHouses(h);
+ if(/^sun|^moonph|^solarsign/.test(sys))return sun==null?h:sunHouses(h,sys,sun,moon);
+ const R=Math.PI/180,eps=23.4393*R,asc=h[1],mc=h[10],n=new Array(13).fill(0),lab=sys==='equal'||sys==='whole'||sys==='morinus';
+ const t=n360(Math.atan2(Math.sin(mc*R)*Math.cos(eps),Math.cos(mc*R))/R),tr=t*R,ta=Math.tan(asc*R);
+ let tphi=Math.abs(ta)<1e-9?0:(-Math.cos(tr)/ta-Math.sin(tr)*Math.cos(eps))/Math.sin(eps);const phi=Math.atan(tphi);
+ const lam=(Rdeg,P)=>n360(Math.atan2(Math.sin(Rdeg*R),Math.cos(Rdeg*R)*Math.cos(eps)-Math.tan(P)*Math.sin(eps))/R);
+ const ascAt=ra=>lam(ra+90,phi);
+ if(sys==='equal')for(let i=1;i<=12;i++)n[i]=n360(asc+30*(i-1));
+ else if(sys==='whole')for(let i=1;i<=12;i++)n[i]=n360(Math.floor(asc/30)*30+30*(i-1));
+ /* Morinus: the equator in 30 degree steps from the RAMC, carried to the ecliptic along circles through the ecliptic poles */
+ else if(sys==='morinus')for(let i=1;i<=12;i++){const H=(t+90+30*(i-1))*R;n[i]=n360(Math.atan2(Math.sin(H)*Math.cos(eps),Math.cos(H))/R)}
+ else{n[1]=asc;n[10]=mc;
+  if(sys==='porphyry'){const q1=((asc-mc)%360+360)%360,q2=180-q1;n[11]=n360(mc+q1/3);n[12]=n360(mc+2*q1/3);n[2]=n360(asc+q2/3);n[3]=n360(asc+2*q2/3)}
+  else if(sys==='regio'||sys==='campanus'){const c=F=>{const Fr=F*R;if(sys==='regio')return lam(t+F,Math.atan(Math.tan(phi)*Math.sin(Fr)));let dR=Math.atan2(Math.sin(Fr)*Math.cos(phi),Math.cos(Fr))/R;return lam(t+dR,Math.asin(Math.sin(phi)*Math.sin(Fr)))};
+   n[11]=c(30);n[12]=c(60);n[2]=c(120);n[3]=c(150)}
+  /* Alcabitius: the Ascendant degree's semi-arcs split in three along the equator, carried to the ecliptic along hour circles */
+  else if(sys==='alcabitius'){const ra=x=>n360(Math.atan2(Math.sin(x*R)*Math.cos(eps),Math.cos(x*R))/R),toL=r=>lam(r,0),d=((ra(asc)-t)%360+360)%360,nn=180-d,ra1=ra(asc);
+   n[11]=toL(t+d/3);n[12]=toL(t+2*d/3);n[2]=toL(ra1+nn/3);n[3]=toL(ra1+2*nn/3)}
+  else if(sys==='koch'){const dec=Math.asin(Math.sin(eps)*Math.sin(mc*R)),x=Math.max(-1,Math.min(1,Math.tan(phi)*Math.tan(dec))),dsa=90+Math.asin(x)/R;
+   n[11]=ascAt(t-2*dsa/3);n[12]=ascAt(t-dsa/3);n[2]=ascAt(t+dsa/3);n[3]=ascAt(t+2*dsa/3)}
+  n[4]=n360(n[10]+180);n[7]=n360(n[1]+180);n[5]=n360(n[11]+180);n[6]=n360(n[12]+180);n[8]=n360(n[2]+180);n[9]=n360(n[3]+180)}
+ if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc}if(sys==='whole')n.even=true;return n}
+return {list:HOUSE_SYS,sys:houseSystem}})();</script>
 <script>window.SR_EMASK='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';</script>
 <script>window.GemBPlaces = (function () {
   var T = [], R = [], RG = {}, byFirst = {}, DN = null;
@@ -788,15 +819,16 @@ GemBPlaces.load("Africa/Abidjan,Africa/Accra,Africa/Addis_Ababa,Africa/Algiers,A
    Script interface (for Claude, Savannah's tools, or a headless browser):
      window.SolarReturn.cast({name, date:'1980-03-05', time:'14:20', unknownTime:false,
         place:'Oakland, CA' | {lat, lon, tz}, year:2026, at:'Boston, MA' | {lat, lon, tz} (optional, default the birthplace),
-        houses:'placidus'|'whole', theme:'light'|'dark', natal:true (Birth Chart Biwheel)})   -> Promise<result>
-     window.SolarReturn.imageURL('png'|'jpeg')  -> Promise<data URL> of the card for the last cast
+        houses:'placidus'|'whole'|'equal'|'koch'|... (the Device's House System list), zodiac:'trop'|'lahiri'|'fagan'|..., theme:'light'|'dark', natal:true (Birth Chart Biwheel)})   -> Promise<result>
+     window.SolarReturn.imageURL('png'|'jpeg', 'tall'|'wide')  -> Promise<data URL> of the card for the last cast (wide: 1920 x 1080, wheel left, Aspect Grid right)
      window.SolarReturn.ready                    -> Promise that resolves once the page is set up
    URL fragment: #name=Jane&date=1980-03-05&time=14:20&place=Oakland,CA&year=2026&at=Boston&houses=placidus&theme=dark&natal=1
      (lat/lon/tz pairs: blat, blon, btz for the birth, alat, alon, atz for the return place; card=1 shows only the card)
    worlds/solar-return/sr-png.js drives this page in headless Chromium and writes the PNG file. */
 (function(){'use strict';
 const CFG=window.SR_CONFIG=Object.assign({
- theme:'dark', houses:'placidus', natal:true, sky:'stars',   /* Gemini, Nov 18: stars and Milky Way behind the chart by default, constellations optional */
+ theme:'dark', houses:'placidus', zodiac:'trop', natal:true,   /* Gemini, Nov 18: Placidus and Tropical by default, Savannah's cards too */
+ sky:'stars',   /* Gemini, Nov 18: stars and Milky Way behind the chart by default, constellations optional */
  ringColor:'#d9dde6',   /* Gemini, Nov 18: birth planets silver, return planets gold */
    /* Gemini, Nov 18: Birth Chart Biwheel on by default */   /* Gemini, Nov 18: the Planetary Tables chart look (black page, navy wheel, Earth in the center) */
  cardWidth:1600,                                    /* the saved image, in pixels */
@@ -852,9 +884,28 @@ function placidus(jd,lat,lon){const th=n360(EA_JPL.gast(jd)+lon),f=EA_JPL.frame(
   const dsa=Math.acos(x)/R,nsa=180-dsa,ra=th+(below?dsa+nsa*frac:dsa*frac);lam=n360(Math.atan2(Math.sin(ra*R),Math.cos(ra*R)*Math.cos(eps))/R)}return lam};
  const c=new Array(13).fill(0);c[1]=asc;c[10]=mc;c[11]=cusp(1/3,false);c[12]=cusp(2/3,false);c[2]=cusp(1/3,true);c[3]=cusp(2/3,true);
  c[4]=n360(mc+180);c[7]=n360(asc+180);c[5]=n360(c[11]+180);c[6]=n360(c[12]+180);c[8]=n360(c[2]+180);c[9]=n360(c[3]+180);return c}
-function houses(jd,lat,lon,sys){if(Math.abs(lat)>=66)sys='whole';   /* Placidus has no answer near the poles */
- const p=placidus(jd,lat,lon);if(sys!=='whole')return p;
- const c=new Array(13).fill(0);for(let i=1;i<=12;i++)c[i]=n360(Math.floor(p[1]/30)*30+30*(i-1));c.even=true;c.noAngles=true;c.asc=p[1];c.mc=p[10];return c}
+/* House System (Gemini, Nov 18): every system the Device has (window.SR_HS, Painter's houseSystem read out of src/app.js), worked out
+   from the Placidus AS and MC. a is the zodiac's ayanamsha: sign-based and Sun-based systems are built on the sidereal degrees,
+   the quadrant systems on the tropical ones and then moved. Near the poles the quadrant systems fall back to Whole Sign. */
+const HS_NAMES=Object.fromEntries((window.SR_HS?SR_HS.list:[['placidus','Placidus'],['whole','Whole Sign']]));
+function houses(jd,lat,lon,sys,a,sun,moon){a=a||0;sys=HS_NAMES[sys]?sys:'placidus';const p=placidus(jd,lat,lon),quad=/^(placidus|regio|alcabitius|campanus|koch|porphyry)$/.test(sys);let polar=false;
+ if(Math.abs(lat)>=66&&quad){sys='whole';polar=true}   /* Placidus has no answer near the poles */
+ const sh=c=>{const o=c.map(v=>n360(v-a));for(const k of ['noAngles','even','thick'])if(k in c)o[k]=c[k];return o},HS=(c,su,mo)=>window.SR_HS?SR_HS.sys(c,sys,su,mo):c;
+ let c;if(sys==='placidus')c=sh(p);else if(quad||sys==='morinus')c=sh(HS(p,sun,moon));else c=HS(sh(p),sun==null?null:n360(sun-a),moon==null?null:n360(moon-a));
+ c=Array.from(c,(v,i)=>i?n360(v||0):0);
+ c.asc=n360(p[1]-a);c.mc=n360(p[10]-a);
+ /* the AS and MC are drawn as axes only where they are the 1st and 10th cusps */
+ if(Math.abs(wrap(c[1]-c.asc))>1e-6||Math.abs(wrap(c[10]-c.mc))>1e-6)c.noAngles=true;
+ if(sys==='whole'||sys==='natural'||sys==='solarsign')c.even=true;c.sys=sys;c.polar=polar;return c}
+/* Zodiac (Gemini, Nov 18): Tropical by default; the sidereal zodiacs are the Planetary Tables list (ayanamsha at J2000, as Swiss
+   Ephemeris lists them, growing 50.29" a year). A sidereal return is the Sun back at its sidereal birth degree. */
+const ZODS=[['trop','Tropical'],['lahiri','Sidereal · Lahiri'],['fagan','Sidereal · Fagan-Bradley'],['raman','Sidereal · Raman'],['kp','Sidereal · Krishnamurti (KP)'],['yukteshwar','Sidereal · Sri Yukteshwar'],
+ ['bhasin','Sidereal · J.N. Bhasin'],['deluce','Sidereal · De Luce'],['djwhal','Sidereal · Djwhal Khul'],['galcent','Sidereal · Galactic Center 0° Sagittarius'],['aldebaran','Sidereal · Aldebaran 15° Taurus'],
+ ['huber','Sidereal · Babylonian (Huber)'],['kugler','Sidereal · Babylonian (Kugler)'],['hipparchos','Sidereal · Hipparchos'],['sassanian','Sidereal · Sassanian'],['ushashashi','Sidereal · Ushashashi']],
+ AYA0={lahiri:23.853,fagan:24.740,raman:22.411,kp:23.757,yukteshwar:22.479,bhasin:22.762,deluce:27.816,djwhal:28.360,galcent:26.846,aldebaran:24.759,huber:24.734,kugler:23.533,hipparchos:20.247,sassanian:19.993,ushashashi:20.057};
+const ayan=(z,jd)=>AYA0[z]==null?0:AYA0[z]+(jd-2451545)/365.25*50.29/3600;
+const zodName=z=>{const r=ZODS.find(x=>x[0]===z);return r?r[1].replace('Sidereal · ','Sidereal, '):'Tropical'};
+const shiftPos=(P,a)=>{if(!a)return P;const o={};for(const k of Object.keys(P))o[k]=typeof P[k]==='number'&&k!=='lat'?n360(P[k]-a):P[k];return o};
 /* nearest arc minute (30 arc seconds or more rounds up) */
 function dms(lon){let m=Math.round(n360(lon)*60);if(m>=21600)m-=21600;const s=Math.floor(m/1800),d=Math.floor((m%1800)/60),mi=m%60;
  return {s,d,mi,txt:`${String(d).padStart(2,'0')}°${String(mi).padStart(2,'0')}′ ${SIGNS[s]}`}}
@@ -881,7 +932,7 @@ function earthImage(F,gm,sunL,sx,sy){const tex=earthTex(),TW=720,TH=360,n=300,C=
 function earthProj(F,lat,lon,Rd,any){const la=lat*R,dl=(lon-F.lon0)*R,cl=Math.cos(la),sa=Math.sin(la),c1=cl*Math.cos(dl),c2=cl*Math.sin(dl);
  const x=c1*F.ux+c2*F.ex+sa*F.ax,y=c1*F.uy+c2*F.ey+sa*F.ay,z=c1*F.uz+c2*F.ez+sa*F.az;const hid=F.south?z>=1e-3:z<=-1e-3;if(hid&&!any)return null;return [x*Rd,y*Rd,!hid]}
 let EU=0;
-function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=C.sr.pos.Sun,rot=C.unknownTime?0:(wcu(C).asc!=null?wcu(C).asc:wcu(C)[1]),
+function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=n360(C.sr.pos.Sun+(C.ayS||0)),rot=(C.unknownTime?0:(wcu(C).asc!=null?wcu(C).asc:wcu(C)[1]))+(C.natal&&C.natalCusps?C.ayB:C.ayS||0),
   a=(270-(sunL-rot))*R,sx=Math.sin(a),sy=-Math.cos(a),F=earthFrame(rot,gm,C.at.lat<0),k=r/66,sz=2*r/.98;
  const dot=(q,col,core,rr,gl,id)=>q?`<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".9"/><stop offset=".35" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(gl*k).toFixed(2)}" fill="url(#${id})"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(rr*k).toFixed(2)}" fill="${core}"/>`:'';
  /* the Sun: on the subsolar point, or its glow at the rim when that point is behind the Earth */
@@ -904,18 +955,29 @@ function signSvg(i,x,y,sz,col){const G=window.APP_GLYK||window.APP_GLY||[];if(!G
 /* on the biwheel the aspect lines run from each return planet to the birth chart planet it aspects (Gemini, Nov 18), not
    between return planets; both ends sit on the aspect circle at the true degrees. South Nodes are left out (they mirror the North). */
 const XORB={conjunction:5,opposition:5,trine:5,square:5,sextile:3};
+/* aspect colors from the wheel's own sign colors (Gemini, Nov 18): trines and sextiles the water signs' blue, squares and oppositions
+   the fire signs' red (the dark wheel's #363a7d and #77322d, lifted to read on the navy aspect circle), conjunctions gold */
+const ASPC={dark:{0:'#e3b546',60:'#6f78d6',120:'#6f78d6',90:'#cc5a4e',180:'#cc5a4e'},light:{0:'#8a6418',60:'#33408f',120:'#33408f',90:'#a8382f',180:'#a8382f'}};
+/* line weight by orb (Gemini, Nov 18): the tighter the orb the thicker the line, and an aspect between the right signs (a trine
+   from Pisces to Scorpio) is drawn heavier than one across the sign line (late Aquarius to early Scorpio) */
+const inSign=(a,b,ang)=>{const d=((Math.floor(n360(a)/30)-Math.floor(n360(b)/30))%12+12)%12,k=Math.round(ang/30)%12;return d===k||d===(12-k)%12};
+function styleAsp(C,L,pos,orbOf){const pal=ASPC[C.theme==='dark'?'dark':'light'];
+ return L.filter(A=>pal[A.angle]!=null).map(A=>{const mx=orbOf(A),t=Math.max(0,1-A.orb/mx),ins=inSign(pos[A.a],pos[A.b],A.angle);
+  return Object.assign(A,{color:pal[A.angle],width:(.45+1.75*t)*(ins?1:.55),inSign:ins})})}
 function crossAspects(C,pp){const sk=CFG.planets.filter(k=>k!=='SNode'&&!(k==='Node'&&C.noNN)),nm=k=>k==='Node'?'North Node':k,both={};
  /* the birth chart is the inner wheel (its planets are pp's own keys); the return rides outside as 'Return ...' */
  for(const k of sk){if(C.birth.pos[k]!=null)both[k]=C.birth.pos[k];if(C.sr.pos[k]!=null)both['Return '+nm(k)]=pp['Return '+nm(k)]=C.sr.pos[k]}
  const R_=k=>k.startsWith('Return ');
- return EAWheel.findAspects(both,XORB,false).filter(A=>R_(A.a)!==R_(A.b)).map(A=>R_(A.a)?A:Object.assign(A,{a:A.b,b:A.a}))}
+ return styleAsp(C,EAWheel.findAspects(both,XORB,false).filter(A=>R_(A.a)!==R_(A.b)).map(A=>R_(A.a)?A:Object.assign(A,{a:A.b,b:A.a})),both,A=>A.angle===60?XORB.sextile:5)}
+/* the return alone: the Device's major aspects and orbs, weighted and colored the same way */
+const soloAspects=(C,pp)=>styleAsp(C,EAWheel.findAspects(pp,undefined,false),pp,A=>(EAWheel.ASPECTS.find(x=>x.angle===A.angle)||{orb:8}).orb);
 /* the biwheel sits in the BIRTH chart's houses and angles (Gemini, Nov 18: "I always use natal angles for solar return charts
    unless I am considering the return chart alone"); the return's Ascendant and Midheaven ride in the inner ring like planets */
 const wcu=C=>C.natal&&C.natalCusps?C.natalCusps:C.cusps;
 const angTxt=t=>`<text x="0" y="1" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="currentColor" stroke="none" font-family="Inter,system-ui,sans-serif">${t}</text>`;
 /* Aspect Grid (Gemini, Nov 18, after the Device's main grid): birth planets down the left, return planets across the top,
    major aspects only; hovering a cell lights its row and column back to both planets */
-const GRID_ASP=[[0,'Conjunction','#e3b546'],[60,'Sextile','#6f9bff'],[90,'Square','#ff5a4e'],[120,'Trine','#6f9bff'],[180,'Opposition','#ff5a4e']];
+const GRID_ASP=[[0,'Conjunction'],[60,'Sextile'],[90,'Square'],[120,'Trine'],[180,'Opposition']];
 const ASP_GLY={0:'<circle cx="-2" cy="2.5" r="4.2"/><path d="M1 -0.6L6.5 -7"/>',60:'<path d="M0 -7V7M-6.1 -3.5L6.1 3.5M-6.1 3.5L6.1 -3.5"/>',
  90:'<rect x="-5.5" y="-5.5" width="11" height="11"/>',120:'<path d="M0 -6.5L6.5 5H-6.5Z"/>',180:'<circle cx="-4" cy="4" r="2.8"/><circle cx="4" cy="-4" r="2.8"/><path d="M-2 2L2 -2"/>'};
 function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),
@@ -930,10 +992,11 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
  L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h" data-c="${j}"><title>Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}</title><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,silver)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`});
  RL.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h" data-r="${i}"><title>Return ${nm(k)} ${dms(srP[k]).txt}</title><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,gold)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`;
   L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
-   for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e}}
-   h+=`<g class="srg-c" data-r="${i}" data-c="${j}">`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
-    +`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${A?A[2]:cb}" fill-opacity="${A?.17:.6}" stroke="${line}"/>`
-    +(A?`<g transform="translate(${x+s/2} ${y+s*.4}) scale(.95)" fill="none" stroke="${A[2]}" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">${ASP_GLY[A[0]]}</g><text x="${x+s/2}" y="${y+s*.83}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".85">${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</text>`:'')+'</g>'})});
+   let mx=5;for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e;mx=orb}}
+   const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],C.birth.pos[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
+   h+=`<g class="srg-c" data-r="${i}" data-c="${j}">`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)}${ins?'':' (out of sign)'} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
+    +`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${A?ac:cb}" fill-opacity="${A?(.08+.16*(1-o/mx))*(ins?1:.6):.6}" stroke="${line}"/>`
+    +(A?`<g transform="translate(${x+s/2} ${y+s*.4}) scale(.95)" fill="none" stroke="${ac}" stroke-width="${aw.toFixed(2)}" stroke-linejoin="round" stroke-linecap="round">${ASP_GLY[A[0]]}</g><text x="${x+s/2}" y="${y+s*.83}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".85">${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</text>`:'')+'</g>'})});
  return h+'<g class="srg-hl" pointer-events="none"></g></svg>'}
 function gridHover(svg,e){const hl=svg.querySelector('.srg-hl');if(!hl)return;const c=e.target.closest&&e.target.closest('.srg-c');if(!c){hl.innerHTML='';return}
  const s=44,r=+c.dataset.r,k=+c.dataset.c,x=(k+1)*s,y=(r+1)*s,a='fill="#ffd98a" fill-opacity=".1" stroke="#ffd98a" stroke-opacity=".55"';
@@ -945,7 +1008,7 @@ function wheelSVG(C,theme){usedCols=new Set();
   silver=theme==='dark'?CFG.ringColor:'#4b5563',gold=theme==='dark'?'#f5c35c':'#8a6418';
  let s=EAWheel.svg(C.natal?{pos:C.birth.pos,ret:C.birth.ret,cusps:C.unknownTime?null:wcu(C),label:'Birth',rings:[{pos:srOut,ret:C.sr.ret,label:'Solar Return '+C.year,color:gold}]}
    :{pos:C.sr.pos,ret:C.sr.ret,cusps:C.unknownTime?null:wcu(C),label:'Solar Return '+C.year},
-  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp),planetColors:Object.fromEntries(CFG.planets.map(k=>[k,silver])),shiny:false}:{}),earthSVG:r=>earthSVG(C,r),glyph:k=>k==='Return AS'?angTxt('AS'):k==='Return MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
+  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp),planetColors:Object.fromEntries(CFG.planets.map(k=>[k,silver])),shiny:false}:{aspects:pp=>soloAspects(C,pp)}),earthSVG:r=>earthSVG(C,r),glyph:k=>k==='Return AS'?angTxt('AS'):k==='Return MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
    label:`Solar Return ${C.year}${C.name?' for '+C.name:''}`}));   /* dark: the shared Chart Look (Wheel Style, Wheel, Planet and Sign Colors) on top */
  const defs='<defs>'+[...usedCols].map(c=>`<filter id="${fid(c)}" color-interpolation-filters="sRGB"><feFlood flood-color="${c}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`).join('')+'</defs>';
  if(C.prof){const rot=wcu(C)?wcu(C)[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},a0=C.prof.sign*30,a1=a0+30,r0=167,r1=191,P=[xy(a0,r1),xy(a1,r1),xy(a1,r0),xy(a0,r0)].map(p=>p.map(v=>v.toFixed(2)));
@@ -955,7 +1018,7 @@ function wheelSVG(C,theme){usedCols=new Set();
  /* the sky behind the chart (Gemini, Nov 18, trial): the Device's star field, Milky Way and zodiac constellations (window.APP_SKY,
     an ecliptic-pole map 914 px wide, centered 452,450, the ecliptic at r 279) turned with the zodiac and kept faint under the planets */
  let sky='';const K=window.APP_SKY;
- if(K&&C.sky&&theme==='dark'){const rot=wcu(C)?wcu(C)[1]:0,k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
+ if(K&&C.sky&&theme==='dark'){const rot=(wcu(C)?wcu(C)[1]:0)+(C.natal&&C.natalCusps?C.ayB:C.ayS||0),k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
   sky=`<g class="sr-sky" pointer-events="none"><defs><clipPath id="srsk"><circle r="${SKY.clip}"/></clipPath></defs><g clip-path="url(#srsk)"><g transform="rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
    +(co?`<g opacity="${SKY.con}">${K.LINES}</g>`:'')+'</g></g></g>'}
@@ -967,23 +1030,25 @@ const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
 
 /* ---------- casting ---------- */
 let LAST=null;
-async function cast(o){o=Object.assign({houses:CFG.houses,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
+async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
  const [y,mo,d]=String(o.date||'').split('-').map(Number);if(!y||!mo||!d)throw new Error('Birth date is needed (year-month-day).');
  const unknown=!!o.unknownTime||!o.time,[h,mi]=unknown?[12,0]:String(o.time).split(':').map(Number);
  const bp=await findPlace(o.place);const at=o.at?await findPlace(o.at):bp;
  const bms=localToMs(y,mo,d,h,mi||0,bp.tz,bp.utc),bjd=jdOf(bms);
- const birth=await positions(bjd);const year=+o.year||new Date().getFullYear();
- const srjd=await solarReturn(birth.pos.Sun,bjd+(year-y)*365.2422);const sr=await positions(srjd);
- const C={name:(o.name||'').trim(),year,age:year-y,unknownTime:unknown,birth,sr,birthPlace:bp,at,natal:!!o.natal,sky:o.sky==='off'?'':(o.sky||''),noNN:o.northNode===false,noSN:o.southNode===false,theme:o.theme==='dark'?'dark':'light',houseSys:o.houses==='whole'?'whole':'placidus',
+ const zod=AYA0[o.zodiac]!=null?o.zodiac:'trop',ayB=ayan(zod,bjd);
+ const bT=await positions(bjd);const year=+o.year||new Date().getFullYear(),jd0=bjd+(year-y)*365.2422;
+ const srjd=await solarReturn(n360(bT.pos.Sun+ayan(zod,jd0)-ayB),jd0);const sT=await positions(srjd),ayS=ayan(zod,srjd);
+ const birth={pos:shiftPos(bT.pos,ayB),ret:bT.ret},sr={pos:shiftPos(sT.pos,ayS),ret:sT.ret};
+ const C={name:(o.name||'').trim(),year,age:year-y,unknownTime:unknown,birth,sr,birthPlace:bp,at,natal:!!o.natal,sky:o.sky==='off'?'':(o.sky||''),noNN:o.northNode===false,noSN:o.southNode===false,theme:o.theme==='dark'?'dark':'light',houseSys:HS_NAMES[o.houses]?o.houses:'placidus',zodiac:zod,ayB,ayS,opts:o,
   bms,srms:msOf(srjd),sunTxt:dms(birth.pos.Sun).txt};
- C.cusps=houses(srjd,at.lat,at.lon,C.houseSys);if(C.cusps.even&&C.houseSys!=='whole')C.polar=true;
+ C.cusps=houses(srjd,at.lat,at.lon,C.houseSys,ayS,sT.pos.Sun,sT.pos.Moon);C.polar=C.cusps.polar;
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
- if(!unknown&&window.EA_TL){const ncu=placidus(bjd,bp.lat,bp.lon),nasc=ncu[1];C.natalAsc=nasc;C.natalMC=ncu[10];C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys);C.prof=EA_TL.profYear(nasc,C.age)}
+ if(!unknown&&window.EA_TL){C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys,ayB,bT.pos.Sun,bT.pos.Moon);const nasc=C.natalCusps.asc;C.natalAsc=nasc;C.natalMC=C.natalCusps.mc;C.prof=EA_TL.profYear(nasc,C.age)}
  C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bp.utc);
  LAST=C;render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
  return {name:C.name,year:C.year,age:C.age,returnUTC:new Date(C.srms).toISOString(),returnLocal:C.when.date+', '+C.when.time,place:C.at.label,
-  sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,houses:C.houseSys,profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
+  sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,houses:HS_NAMES[C.houseSys],zodiac:zodName(C.zodiac),profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
 
 /* ---------- the card (what Savannah sends): title, return moment, wheel, footer ---------- */
 function cardLines(C){const L=[];
@@ -997,7 +1062,7 @@ function cardLines(C){const L=[];
 /* biwheel: the outer wheel (birth chart) is listed upper right, opposite the inner listing, no color legend (Gemini, Nov 16) */
 const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'line'}]:[]);
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
-const sysLines=C=>[C.unknownTime?'No Houses':(C.houseSys==='whole'||C.polar?'Whole Sign':'Placidus'),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),'Tropical','Geocentric'];
+const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;
  st.innerHTML=`<div class="sr-card"><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
   +`<div class="sr-wheel${C.view==='grid'&&C.natal?' sr-gridv':''}">${C.view==='grid'&&C.natal?gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
@@ -1005,7 +1070,26 @@ function render(C){const st=$('#sr-stage');if(!st)return;document.documentElemen
  const gb=$('#sr-grid');if(gb){gb.hidden=!C.natal;gb.textContent=C.view==='grid'?'Wheel':'Aspect Grid';gb.setAttribute('aria-pressed',C.view==='grid'?'true':'false')}
  const ex=$('#sr-export');if(ex)ex.hidden=false;const sm=$('#sr-sum');if(sm)sm.textContent=`Solar Return ${C.year}: ${C.when.date}, ${C.when.time}, ${C.at.label}.`}
 function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
-async function imageURL(type){const C=LAST;if(!C)throw new Error('Cast a Solar Return first.');
+async function svgImg(svg,w,h){svg=svg.replace(/^<svg/,`<svg width="${w}" height="${h}"`).replace('width="100%" height="100%"','');
+ if(!/^<svg[^>]*xmlns=/.test(svg))svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"');
+ return loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg))}
+/* the wide card (Gemini, Nov 18, for Savannah): one 1920 x 1080 rectangle, the wheel on the left and the Aspect Grid on the right */
+async function wideURL(type){const C=LAST,W=1920,H=1080,col=CFG.card[C.theme],F=(w,px)=>`${w} ${px}px Inter, 'Helvetica Neue', Arial, sans-serif`;
+ const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.fillStyle=col.bg;g.fillRect(0,0,W,H);g.textBaseline='top';
+ const WS=1010,wx=30,wy=35;g.drawImage(await svgImg(wheelSVG(C,C.theme),WS,WS),wx,wy,WS,WS);
+ g.font=F(500,18);g.fillStyle=col.soft;sysLines(C).forEach((t,i,a)=>g.fillText(t,wx+16,wy+WS-(a.length-i)*24));
+ const x0=1090,x1=W-60;let y=60;
+ const put=(t,w,px,c,gap)=>{g.font=F(w,px);g.fillStyle=c;g.fillText(t,x0,y);y+=px+gap};
+ for(const l of cardLines(C)){if(l.k==='title')put(l.t,700,44,C.theme==='dark'?col.ink:col.accent,12);else if(l.k==='name')put(l.t,600,30,col.ink,12);
+  else put(l.t,l.k==='prof'?700:500,21,l.k==='prof'?col.accent:l.k==='when'?col.soft:col.ink,7)}
+ if(C.natal){y+=10;for(const l of outerLines(C))put(l.t,l.k==='name'?600:500,l.k==='name'?21:18,l.k==='name'?col.ink:col.soft,6)}
+ const fy=H-70;
+ if(C.natal){const gs=gridSVG(C),vb=gs.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number),top=y+22,aw=x1-x0,ah=fy-24-top,k=Math.min(aw/vb[2],ah/vb[3]),gw=vb[2]*k,gh=vb[3]*k;
+  g.drawImage(await svgImg(gs,Math.round(gw),Math.round(gh)),x0+(aw-gw)/2,top,gw,gh)}
+ g.strokeStyle=col.rule;g.lineWidth=2;g.beginPath();g.moveTo(x0,fy);g.lineTo(x1,fy);g.stroke();
+ g.font=F(500,16);g.fillStyle=col.soft;g.textBaseline='middle';g.fillText(CFG.footer,x0,fy+35);g.textAlign='right';g.fillText(CFG.credit,x1,fy+35);
+ return cv.toDataURL(type==='jpeg'?'image/jpeg':'image/png',.93)}
+async function imageURL(type,layout){const C=LAST;if(!C)throw new Error('Cast a Solar Return first.');if(layout==='wide')return wideURL(type);
  const W=CFG.cardWidth,pad=Math.round(W*.05),col=CFG.card[C.theme],lines=cardLines(C);
  const sz={title:W*.042,name:W*.03,when:W*.022,line:W*.022,prof:W*.022,soft:W*.018},gap={title:W*.012,name:W*.012,when:W*.008,line:W*.008,prof:W*.008,soft:W*.008};
  let hh=pad;for(const l of lines)hh+=sz[l.k]+gap[l.k];hh+=pad*.4;
@@ -1029,7 +1113,7 @@ function fileName(C,ext){return `solar-return-${C.year}${C.name?'-'+C.name.toLow
 /* Save: a normal download, and the finished image shown in a panel too, because some hosts (sandboxed frames, in-app
    browsers) block downloads; there the image can be saved with right-click or press-and-hold */
 let DL=null;if(window.claude&&window.claude.use)window.claude.use('downloads').then(d=>{DL=d}).catch(()=>{});   /* Claude artifact viewer: saves go through its downloads capability */
-async function download(type){const u=await imageURL(type),fn=fileName(LAST,type==='jpeg'?'jpg':'png');
+async function download(type,layout){const u=await imageURL(type,layout),fn=fileName(LAST,(layout==='wide'?'wide.':'')+(type==='jpeg'?'jpg':'png'));
  if(DL){try{await DL.save({filename:fn,data:await (await fetch(u)).blob()});return}catch(e){if(e&&e.code==='declined')return}}
  const a=document.createElement('a');a.href=u;a.download=fn;document.body.appendChild(a);a.click();a.remove();showImage(u,fn)}
 function showImage(u,fn){let d=$('#sr-img');if(!d){d=document.createElement('div');d.id='sr-img';d.className='sr-img';d.setAttribute('role','dialog');d.setAttribute('aria-label','Saved image');document.body.appendChild(d)}
@@ -1050,22 +1134,27 @@ function coords(pre){const la=$('#'+pre+'-lat'),lo=$('#'+pre+'-lon'),tz=$('#'+pr
 function prefs(){try{return JSON.parse(localStorage.getItem('sr-look-v1'))||{}}catch(e){return {}}}
 function savePrefs(o){try{localStorage.setItem('sr-look-v1',JSON.stringify(o))}catch(e){}}
 function setup(){const f=$('#sr-form');if(!f)return;
- const P=prefs();if(P.theme){f.theme.value=P.theme;document.documentElement.dataset.look=P.theme}if(P.houses)f.houses.value=P.houses;if(P.natal===false)f.natal.checked=false;
+ f.houses.innerHTML=Object.entries(HS_NAMES).map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
+ f.zodiac.innerHTML=ZODS.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
+ const P=prefs();if(P.zodiac&&AYA0[P.zodiac]!=null)f.zodiac.value=P.zodiac;if(P.theme){f.theme.value=P.theme;document.documentElement.dataset.look=P.theme}if(P.houses&&HS_NAMES[P.houses])f.houses.value=P.houses;if(P.natal===false)f.natal.checked=false;
  f.year.value=new Date().getFullYear();
  const bGet=placeField('sr-bplace'),aGet=placeField('sr-aplace');
  /* typing A or P for AM/PM finishes the Birth Time and moves straight on to the Birthplace (Gemini, Nov 18) */
  f.time.addEventListener('keyup',e=>{if(/^[ap]$/i.test(e.key)&&f.time.value){const b=$('#sr-bplace');b.focus();b.select()}});
  f.same.onchange=()=>{$('#sr-at').hidden=f.same.checked};f.unknown.onchange=()=>{f.time.disabled=f.unknown.checked};
  f.onsubmit=async e=>{e.preventDefault();const msg=$('#sr-msg');msg.textContent='Casting…';
-  savePrefs({theme:f.theme.value,houses:f.houses.value,natal:f.natal.checked});
+  savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});
   try{await cast({name:f.name.value,date:f.date.value,time:f.time.value,unknownTime:f.unknown.checked,place:coords('sr-b')||bGet(),
-    at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value});msg.textContent='';
+    at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value});msg.textContent='';
     document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)sg.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
   catch(err){msg.textContent=err.message||String(err)}};
- ['theme','houses','natal','sky'].forEach(k=>f[k].addEventListener('change',()=>{document.documentElement.dataset.look=f.theme.value;if(LAST){LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value==='off'?'':f.sky.value;
-  if(LAST.houseSys!==f.houses.value){LAST.houseSys=f.houses.value;LAST.cusps=houses(jdOf(LAST.srms),LAST.at.lat,LAST.at.lon,LAST.houseSys);if(LAST.bjd)LAST.natalCusps=houses(LAST.bjd,LAST.birthPlace.lat,LAST.birthPlace.lon,LAST.houseSys)}render(LAST)}
-  savePrefs({theme:f.theme.value,houses:f.houses.value,natal:f.natal.checked})}));
+ ['theme','houses','zodiac','natal','sky'].forEach(k=>f[k].addEventListener('change',async()=>{document.documentElement.dataset.look=f.theme.value;
+  savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});if(!LAST)return;
+  /* a new house system or zodiac casts the same chart again (the return moment moves in a sidereal zodiac) */
+  if(LAST.houseSys!==f.houses.value||LAST.zodiac!==f.zodiac.value){const v=LAST.view;try{await cast(Object.assign({},LAST.opts,{houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value}));LAST.view=v;render(LAST)}catch(e){$('#sr-msg').textContent=e.message}return}
+  LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value==='off'?'':f.sky.value;render(LAST)}));
  $('#sr-png').onclick=()=>download('png').catch(e=>$('#sr-msg').textContent=e.message);
+ $('#sr-wide').onclick=()=>download('png','wide').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-jpg').onclick=()=>download('jpeg').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-copy').onclick=()=>copyImage().then(()=>$('#sr-msg').textContent='Copied.').catch(()=>$('#sr-msg').textContent='This browser blocked Copy; use Save As PNG.');
  $('#sr-grid').onclick=()=>{if(!LAST)return;LAST.view=LAST.view==='grid'?'wheel':'grid';render(LAST)};
@@ -1078,10 +1167,10 @@ async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/
  const pt=(a,b,c,name)=>q.get(a)?{lat:+q.get(a),lon:+q.get(b),tz:q.get(c)||'UTC'}:q.get(name);
  if(q.get('card')==='1')document.body.classList.add('sr-cardonly');
  const f=$('#sr-form');if(f){f.name.value=q.get('name')||'';f.date.value=q.get('date')||'';f.time.value=q.get('time')||'';if(q.get('year'))f.year.value=q.get('year');
-  if(q.get('theme'))f.theme.value=q.get('theme')==='dark'?'dark':'light';if(q.get('houses'))f.houses.value=q.get('houses')==='whole'?'whole':'placidus';f.natal.checked=q.get('natal')!=='0';
+  if(q.get('theme'))f.theme.value=q.get('theme')==='dark'?'dark':'light';if(HS_NAMES[q.get('houses')])f.houses.value=q.get('houses');if(AYA0[q.get('zodiac')]!=null)f.zodiac.value=q.get('zodiac');f.natal.checked=q.get('natal')!=='0';
   if(q.get('place'))$('#sr-bplace').value=q.get('place');if(q.get('at')){f.same.checked=false;$('#sr-at').hidden=false;$('#sr-aplace').value=q.get('at')}}
  try{await cast({name:q.get('name')||'',date:q.get('date'),time:q.get('time')||'',unknownTime:q.get('unknown')==='1',place:pt('blat','blon','btz','place'),at:pt('alat','alon','atz','at'),
-  year:q.get('year'),houses:q.get('houses')||undefined,theme:q.get('theme')||undefined,natal:q.get('natal')!=='0',sky:q.get('sky')||undefined,northNode:q.get('nn')!=='0',southNode:q.get('sn')!=='0'});document.body.classList.add('sr-cast','sr-closed')}
+  year:q.get('year'),houses:q.get('houses')||undefined,zodiac:q.get('zodiac')||undefined,theme:q.get('theme')||undefined,natal:q.get('natal')!=='0',sky:q.get('sky')||undefined,northNode:q.get('nn')!=='0',southNode:q.get('sn')!=='0'});document.body.classList.add('sr-cast','sr-closed')}
  catch(e){const m=$('#sr-msg');if(m)m.textContent=e.message;window.SolarReturn.error=e.message}}
 window.SolarReturn={cast,imageURL,download,summary:()=>LAST&&summary(LAST),config:CFG};
 window.SolarReturn.ready=new Promise(ok=>{const go=()=>{setup();fromHash().then(ok,ok)};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',go):go()});
