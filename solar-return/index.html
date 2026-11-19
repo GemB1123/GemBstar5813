@@ -73,6 +73,7 @@ html:not([data-look=dark]) .sr-title{color:var(--accent)}
 .sr-bar{justify-content:center;margin:0;padding:8px 12px 12px}
 .sr-bar .sr-go{flex:0 1 auto}
 #sr-again{display:none}
+#sr-yours{display:none}
 .sr-closed .sr-panel{display:none}
 .sr-closed #sr-again{display:inline-block}
 .sr-cardonly .sr-bar{display:none}
@@ -167,6 +168,8 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  .sr-bar>button,.sr-bar>.sr-seg,.sr-bar>.sr-strongwrap{flex:1 1 calc(50% - 8px);justify-content:center}
  .sr-bar>.sr-seg button{flex:1}
  .sr-bar>.sr-strongwrap #sr-strong{flex:1}
+ .sr-bar>.sr-strongwrap{flex:0 1 calc(50% - 4px)}
+ #sr-yours{display:inline-flex;align-items:center;flex:0 1 calc(50% - 4px)}
  .sr-bar button{min-height:48px;font-size:15px}
  .sr-yearnav{margin:6px auto 4px}
 }
@@ -211,7 +214,7 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
   <div id="sr-yearnav" class="sr-yearnav" role="group" aria-label="Solar Return year" hidden><button type="button" id="sr-yprev" aria-label="Previous Solar Return">&#8249;</button><input id="sr-yval" type="number" min="1300" max="2500" inputmode="numeric" aria-label="Solar Return year"><button type="button" id="sr-ynext" aria-label="Next Solar Return">&#8250;</button></div>
-  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">ReTurn Angles</button><span class="sr-strongwrap"><select id="sr-strongn" aria-label="How many strong transits" title="How many strong transits to light, besides the Solar Return"><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the strongest aspects">Strong Transits</button></span><span class="sr-rowbreak" aria-hidden="true"></span><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
+  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">ReTurn Angles</button><span class="sr-strongwrap"><select id="sr-strongn" aria-label="How many strong transits" title="How many strong transits to light, besides the Solar Return"><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the strongest aspects">Strong Transits</button></span><button type="button" id="sr-yours" title="Enter your own birth data">Cast Yours</button><span class="sr-rowbreak" aria-hidden="true"></span><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
 <script>/* ---------- EA_JPL: the shared NASA JPL ephemeris (DE441) for every World and every app ----------
@@ -1233,6 +1236,10 @@ const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.3,conW:.5};   /* constellati
 /* ---------- casting ---------- */
 /* PHONES (Gemini, Nov 19): the wheel alone, with Strong Transits lit on it, a Wheel | Aspect Grid switch, and the data entry beneath */
 const PHONE=()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width:640px)').matches;
+const smooth=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+function toChart(){const a=document.activeElement;if(a&&a.blur&&a!==document.body&&a.id!=='sr-stage')a.blur();
+ const go=()=>{const t=$('.sr-right').getBoundingClientRect().top+scrollY;scrollTo({top:Math.max(0,t),behavior:smooth()})};
+ requestAnimationFrame(()=>requestAnimationFrame(go));setTimeout(go,400);try{if(parent!==window)parent.postMessage('sr-top','*')}catch(e){}}
 let LAST=null,VIEW=PHONE()?'wheel':'both';   /* Wheel And Grid by default (Gemini, Nov 18) */
 async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
  const [y,mo,d]=String(o.date||'').split('-').map(Number);if(!y||!mo||!d)throw new Error('Birth date is needed (year-month-day).');
@@ -1374,7 +1381,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});
   try{await cast({name:f.name.value,date:f.date.value,time:f.time.value,unknownTime:f.unknown.checked,place:coords('sr-b')||bGet(),
     at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value,strong:!prefs().strongOff});msg.textContent='';
-    document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)sg.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
+    document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)toChart()}
   catch(err){msg.textContent=err.message||String(err)}};
  ['theme','houses','zodiac','natal','sky'].forEach(k=>f[k].addEventListener('change',async()=>{document.documentElement.dataset.look=f.theme.value;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});if(!LAST)return;
@@ -1404,6 +1411,9 @@ function setup(){const f=$('#sr-form');if(!f)return;
    if(was){was.forEach(k=>LAST.pins.delete(k));autoPins(LAST).forEach(k=>LAST.pins.add(k));LAST.pop=true;render(LAST)}}}}
  document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs(PHONE()?{viewPhone:VIEW}:{view2:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
  if(PHONE()){if(['wheel','grid'].includes(P.viewPhone))VIEW=P.viewPhone}else if(['wheel','grid','both'].includes(P.view2))VIEW=P.view2;
+ /* PHONES (Gemini, Nov 19): Cast Yours goes down to the data entry; casting comes back up to the chart. In an embed, the host page
+    is asked to bring the frame into view too (the embed snippet listens for 'sr-top') */
+ $('#sr-yours').onclick=()=>{$('#sr-form').scrollIntoView({behavior:smooth(),block:'start'});setTimeout(()=>{f.name.focus({preventScroll:true});f.name.select()},smooth()==='smooth'?450:0)};
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
  $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;$('#sr-yearnav').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
  document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
