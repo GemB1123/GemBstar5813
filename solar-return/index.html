@@ -121,6 +121,11 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
 /* Safari's AutoFill button (the gray "•••" box) inside the date and time boxes: hidden and out of the Tab order, so Tab goes from the year to the hour (Gemini, Nov 18) */
 .sr-panel input::-webkit-contacts-auto-fill-button,.sr-panel input::-webkit-credentials-auto-fill-button,.sr-panel input::-webkit-caps-lock-indicator{visibility:hidden;display:none!important;pointer-events:none;position:absolute;right:0;width:0;height:0}
+.sr-yearnav{display:flex;justify-content:center;align-items:center;gap:8px;margin:4px auto 10px}
+.sr-yearnav[hidden],.sr-cardonly .sr-yearnav{display:none}
+.sr-yearnav button{width:44px;height:40px;font-size:24px;line-height:1;padding:0}
+.sr-yearnav input{width:92px;height:40px;text-align:center;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.sr-yearnav input::-webkit-inner-spin-button,.sr-yearnav input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 </style>
 </head><body>
 <main class="sr-app">
@@ -154,13 +159,14 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
    <label>Look<select name="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
   </div>
   <label class="sr-tick"><input name="natal" type="checkbox" checked> Birth Chart Biwheel</label>
-  <label>Sky Behind The Chart <small>(Dark look)</small><select name="sky"><option value="off">Off</option><option value="stars" selected>Stars And Milky Way</option><option value="con">Constellations</option><option value="both">Stars, Milky Way, And Constellations</option></select></label>
+  <label>Sky Behind The Chart <small>(Dark look)</small><select name="sky"><option value="off">Off</option><option value="stars">Stars And Milky Way</option><option value="con">Constellations</option><option value="both" selected>Stars, Milky Way, And Constellations</option></select></label>
   <div class="sr-btns"><button type="submit" class="sr-go">Cast Solar Return</button><button type="button" id="sr-new">Clear</button></div>
   <p id="sr-msg" class="sr-msg" role="status" aria-live="polite"></p>
   <p id="sr-sum" class="sr-vh" aria-live="polite"></p>
  </form>
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
+  <div id="sr-yearnav" class="sr-yearnav" role="group" aria-label="Solar Return year" hidden><button type="button" id="sr-yprev" aria-label="Previous Solar Return">&#8249;</button><input id="sr-yval" type="number" min="1300" max="2500" inputmode="numeric" aria-label="Solar Return year"><button type="button" id="sr-ynext" aria-label="Next Solar Return">&#8250;</button></div>
   <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">ReTurn Angles</button><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the three strongest aspects">Strong Transits</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
@@ -917,7 +923,7 @@ GemBPlaces.load("Africa/Abidjan,Africa/Accra,Africa/Addis_Ababa,Africa/Algiers,A
 (function(){'use strict';
 const CFG=window.SR_CONFIG=Object.assign({
  theme:'dark', houses:'placidus', zodiac:'trop', natal:true,   /* Gemini, Nov 18: Placidus and Tropical by default, Savannah's cards too */
- sky:'stars',   /* Gemini, Nov 18: stars and Milky Way behind the chart by default, constellations optional */
+ sky:'both',   /* Gemini, Nov 18: stars, Milky Way, and constellations (half thickness, half brightness) behind the chart by default */
  ringColor:'#d9dde6',   /* Gemini, Nov 18: birth planets silver, return planets gold */
    /* Gemini, Nov 18: Birth Chart Biwheel on by default */   /* Gemini, Nov 18: the Planetary Tables chart look (black page, navy wheel, Earth in the center) */
  cardWidth:1600,                                    /* the saved image, in pixels */
@@ -1073,7 +1079,7 @@ const ASP_GLY={0:'<circle cx="-2" cy="2.5" r="4.2"/><path d="M1 -0.6L6.5 -7"/>',
  90:'<rect x="-5.5" y="-5.5" width="11" height="11"/>',120:'<path d="M0 -6.5L6.5 5H-6.5Z"/>',180:'<circle cx="-4" cy="4" r="2.8"/><circle cx="4" cy="-4" r="2.8"/><path d="M-2 2L2 -2"/>'};
 function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),
   RA=!C.unknownTime&&C.cusps,srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),
-  RL=L.concat(RA?['AS','MC']:[]),n=L.length,m=RL.length,s=44,W=(m+1)*s,H=(n+1)*s,dark=C.theme==='dark',
+  RL=L.concat(RA?['AS','MC']:[]),BL=L.concat(hasBA(C)?['AS','MC']:[]),bP=bPos(C),n=BL.length,m=RL.length,s=44,W=(m+1)*s,H=(n+1)*s,dark=C.theme==='dark',
   ink=dark?'#ffffff':'#1d2027',line=dark?'#2a3350':'#d9dce3',hb=dark?'#1b2340':'#eef0f4',cb=dark?'#10162b':'#ffffff',gold=dark?'#f5c35c':'#8a6418',silver=dark?'#d9dde6':'#4b5563',
   G=window.SR_PLG||{},pg=(k,x,y,col)=>{if(k==='AS'||k==='MC')return `<g transform="translate(${x} ${y}) scale(.6)" color="${col}">${angTxt(k)}</g>`;const g=G[k==='Node'?'NNode':k];return g?`<g transform="translate(${x} ${y}) scale(.6)" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="14" fill="${col}">${k}</text>`},
   nm=k=>({Node:'North Node',SNode:'South Node',AS:'Ascendant',MC:'Midheaven'})[k]||k,dg=v=>{const t=dms(v);return `${t.d}° ${SIGNS[t.s].slice(0,3)}`};
@@ -1082,12 +1088,12 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
  let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: Solar Return planets across, birth planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
  h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.62}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text><text x="${s*.36}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text>`;
  RL.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h eawp" data-c="${j}" data-pl="${k==='AS'||k==='MC'?'Return '+k:k}" data-ring="1" tabindex="0" role="button" aria-label="Return ${nm(k)} ${dms(srP[k]).txt}, open info"><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,gold)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`});
- L.forEach((t,i)=>{const y=(i+1)*s;h+=`<g class="srg-h eawp" data-r="${i}" data-pl="${t}" data-ring="0" tabindex="0" role="button" aria-label="Birth ${nm(t)} ${dms(C.birth.pos[t]).txt}, open info"><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(t,s/2,y+s*.4,silver)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[t])}</text></g>`;
-  RL.forEach((k,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
+ BL.forEach((t,i)=>{const y=(i+1)*s,ang=t==='AS'||t==='MC';h+=(ang?`<g class="srg-h" data-r="${i}" aria-label="Birth ${nm(t)} ${dms(bP[t]).txt}"><title>Birth ${nm(t)}</title>`:`<g class="srg-h eawp" data-r="${i}" data-pl="${t}" data-ring="0" tabindex="0" role="button" aria-label="Birth ${nm(t)} ${dms(bP[t]).txt}, open info">`)+`<rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(t,s/2,y+s*.4,silver)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(bP[t])}</text></g>`;
+  RL.forEach((k,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-bP[t]+180)-180);let A=null,o=99;
    let mx=5;for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e;mx=orb}}
-   const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],C.birth.pos[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
+   const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],bP[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
    const pk=k+'|'+t,pin=A&&C.pins&&C.pins.has(pk);
-   h+=`<g class="srg-c${pin?' srg-pin':''}" data-r="${i}" data-c="${j}"${A?` data-pk="${pk}" data-la="${srP[k].toFixed(4)}" data-lb="${C.birth.pos[t].toFixed(4)}" data-col="${ac}" style="cursor:pointer"`:''}>`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)}${ins?'':' (out of sign)'} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
+   h+=`<g class="srg-c${pin?' srg-pin':''}" data-r="${i}" data-c="${j}"${A?` data-pk="${pk}" data-la="${srP[k].toFixed(4)}" data-lb="${bP[t].toFixed(4)}" data-col="${ac}" style="cursor:pointer"`:''}>`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)}${ins?'':' (out of sign)'} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
     +`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${A?ac:cb}" fill-opacity="${A?(.08+.16*(1-o/mx))*(ins?1:.6):.6}" stroke="${line}"/>`
     +(A?`<g transform="translate(${x+s/2} ${y+s*.4}) scale(.95)" fill="none" stroke="${ac}" stroke-width="${aw.toFixed(2)}" stroke-linejoin="round" stroke-linecap="round">${ASP_GLY[A[0]]}</g><text x="${x+s/2}" y="${y+s*.83}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".85">${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</text>`:'')
     +(pin?`<rect x="${x+1.3}" y="${y+1.3}" width="${s-2.6}" height="${s-2.6}" fill="#ffd98a" fill-opacity=".14" stroke="#ffd98a" stroke-width="2.6" pointer-events="none"/>`:'')+'</g>'})});
@@ -1097,7 +1103,10 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
    return-to-birth aspects, which do not count the Solar Return: Her hierarchy, strongest first:
    1. a planet back on itself (a synodic return: Nodes, Moon every 19 years, Mercury 7, 6, 7, 6, 7, Venus 8, Mars 15 and 17, the Goal Years);
    2. an outer planet square or opposite itself;
-   3. outers to inners: return Pluto, Neptune, Uranus, Saturn, Jupiter to birth Sun, Moon, Mercury, Venus, Mars (the Sun no more than the others);
+   3. outers to inners: return Pluto, Neptune, Uranus, Saturn, Jupiter to birth Sun, Moon, Mercury, Venus, Mars (the Sun no more than the others),
+      and, just as strong, the outers to the birth Ascendant and Midheaven (Gemini, Nov 18);
+   An Earth Return (return Ascendant on the birth Ascendant, about ages 33 and 62 or 66; the Midheaven on the Midheaven likewise) counts as a
+   planet back on itself, tier 1.
    4. everything else.
    Within each: conjunctions, squares, and oppositions before trines and sextiles; then an outer planet that will still perfect the aspect
    during the return year before one that won't (Jupiter applying at 4° beats Saturn separating at 3° after its three squares); then the
@@ -1106,26 +1115,29 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
 function perfects(C,k,lb,a){if(!C.fut||!OUTER.includes(k))return true;const T=a===0?[0]:a===180?[180]:[a,-a],g=(s,t)=>((s-t+540)%360)-180;
  for(const t of T){let prev=null;for(const r of C.fut){if(r[k]==null)return true;const v=g(((r[k]-lb+540)%360)-180,t);if(Math.abs(v)<.05)return true;if(prev!=null&&prev*v<=0&&Math.abs(prev)<20&&Math.abs(v)<20)return true;prev=v}}return false}
 const OUTER=['Pluto','Neptune','Uranus','Saturn','Jupiter'],INNER=['Sun','Moon','Mercury','Venus','Mars'];
+/* the birth chart's places plus its Ascendant and Midheaven (Gemini, Nov 18: birth angles in the grid) */
+const hasBA=C=>!!(C.natal&&C.natalCusps&&!C.unknownTime),
+ bPos=C=>hasBA(C)?Object.assign({},C.birth.pos,{AS:C.natalCusps.asc!=null?C.natalCusps.asc:C.natalCusps[1],MC:C.natalCusps.mc!=null?C.natalCusps.mc:C.natalCusps[10]}):C.birth.pos;
 function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),RA=!C.unknownTime&&C.cusps,
-  srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),A=[];
- for(const k of L.concat(RA?['AS','MC']:[]))for(const t of L){const d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let best=null;
+  srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),bP=bPos(C),A=[];
+ for(const k of L.concat(RA?['AS','MC']:[]))for(const t of L.concat(hasBA(C)?['AS','MC']:[])){if(bP[t]==null)continue;const d=Math.abs(n360(srP[k]-bP[t]+180)-180);let best=null;
   for(const a of GRID_ASP){const e=Math.abs(d-a[0]);if(e<=(a[0]===60?XORB.sextile:5)&&(!best||e<best.o))best={a:a[0],o:e}}
   if(!best||(k==='Sun'&&t==='Sun'))continue;if(k==='SNode'&&t==='SNode'&&L.includes('Node'))continue;   /* the Nodes return together: count it once */
-  const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.indexOf(t),tier=self?0:k===t&&oi>=0&&(best.a===90||best.a===180)?1:oi>=0&&ii>=0?2:3,pf=perfects(C,k,C.birth.pos[t],best.a);
-  A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,pf?0:1,tier===1||tier===2?oi:0,best.o]})}
+  const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.concat(['AS','MC']).indexOf(t),tier=self?0:k===t&&oi>=0&&(best.a===90||best.a===180)?1:oi>=0&&ii>=0?2:3,pf=perfects(C,k,bP[t],best.a);
+  A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,pf?0:1,tier===1||tier===2?oi:0,best.o]})}
  A.sort((x,y)=>{for(let i=0;i<5;i++)if(x.key[i]!==y.key[i])return x.key[i]-y.key[i];return 0});
  P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
 function toggleAngles(){const C=LAST;if(!C||!C.natal||!C.natalCusps||C.unknownTime)return;const rot0=wcu(C)[1]+wca(C);C.srAng=!C.srAng;const rot1=wcu(C)[1]+wca(C);render(C);
  /* spin from the old Ascendant to the new one */
  const sv=document.querySelector('#sr-stage .sr-wheel svg');if(!sv||matchMedia('(prefers-reduced-motion:reduce)').matches||!sv.animate)return;const dlt=((rot1-rot0)%360+360)%360;   /* always clockwise, the primary (diurnal) direction, even the long way round (Gemini, Nov 18) */
- sv.style.transformOrigin='50% 50%';sv.animate([{transform:`rotate(${-dlt}deg)`},{transform:'rotate(0deg)'}],{duration:900+dlt*2.5,easing:'cubic-bezier(.45,0,.2,1)'})}
+ sv.style.transformOrigin='50% 50%';sv.animate([{transform:`rotate(${-dlt}deg)`},{transform:'rotate(0deg)'}],{duration:dlt<=180?2000:3330,easing:'cubic-bezier(.45,0,.2,1)'})}
 /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
 const hlLine=(a,b,col)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffe9a8" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/>`
   +[a,b].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}" stroke="#ffe9a8" stroke-width="1"/>`).join('');
 const ringXY=(C,RI)=>{const cu=C.unknownTime?null:wcu(C),rot=cu?cu[1]:0;return l=>{const t=(180+l-rot)*R;return [(RI*Math.cos(t)).toFixed(2),(-RI*Math.sin(t)).toFixed(2)]}};
 /* pinned aspects (Gemini, Nov 18): click a grid cell to keep its aspect lit on the wheel, as many as wanted, click again to let go;
    saved and copied images carry them. Each pin is "return key|birth key", worked out again from the chart. */
-function pinData(C,pk){const [k,t]=pk.split('|'),la=k==='AS'?(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]):k==='MC'?(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]):C.sr.pos[k],lb=C.birth.pos[t];
+function pinData(C,pk){const [k,t]=pk.split('|'),la=k==='AS'?(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]):k==='MC'?(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]):C.sr.pos[k],lb=bPos(C)[t];
  if(la==null||lb==null)return null;const d=Math.abs(n360(la-lb+180)-180);for(const a of GRID_ASP){if(Math.abs(d-a[0])<=(a[0]===60?XORB.sextile:5))return {la,lb,col:ASPC[C.theme==='dark'?'dark':'light'][a[0]]}}return null}
 /* Wheel And Grid (Gemini, Nov 18): the aspect under the pointer in the grid lights up on the wheel too, the other lines fade */
 function wheelHL(c){const w=document.querySelector('.sr-both');if(!w)return;const on=!!(c&&c.dataset.la);w.classList.toggle('sr-hlon',on);
@@ -1220,7 +1232,7 @@ function render(C){const st=$('#sr-stage');if(!st)return;document.documentElemen
  const sb=$('#sr-strong');if(sb){sb.hidden=!C.natal;sb.setAttribute('aria-pressed',C.strong?'true':'false')}
  if(C.pop){C.pop=false;const cd=st.querySelector('.sr-card');if(cd){cd.classList.add('sr-pop');setTimeout(()=>cd.classList.remove('sr-pop'),1600)}}
  const gv=$('#sr-views');if(gv){gv.hidden=!C.natal;gv.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===V?'true':'false'))}
- const ex=$('#sr-export');if(ex)ex.hidden=false;const sm=$('#sr-sum');if(sm)sm.textContent=`Solar Return ${C.year}: ${C.when.date}, ${C.when.time}, ${C.at.label}.`}
+ const ex=$('#sr-export');if(ex)ex.hidden=false;const yn=$('#sr-yearnav'),yv=$('#sr-yval');if(yn){yn.hidden=false;if(yv&&document.activeElement!==yv)yv.value=C.year}const sm=$('#sr-sum');if(sm)sm.textContent=`Solar Return ${C.year}: ${C.when.date}, ${C.when.time}, ${C.at.label}.`}
 function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
 async function svgImg(svg,w,h){svg=svg.replace(/^<svg/,`<svg width="${w}" height="${h}"`).replace('width="100%" height="100%"','');
  if(!/^<svg[^>]*xmlns=/.test(svg))svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"');
@@ -1322,10 +1334,16 @@ function setup(){const f=$('#sr-form');if(!f)return;
   if(LAST.strong){S.forEach(k=>LAST.pins.delete(k));LAST.strong=false}
   else{S.forEach(k=>LAST.pins.add(k));LAST.strong=true;LAST.pop=true;if(LAST.view!=='grid'&&LAST.view!=='both'){VIEW='both';LAST.view='both';savePrefs({view:VIEW})}}
   render(LAST)}}
+ /* flip through the Solar Returns (Gemini, Nov 18): back and forward buttons beneath the chart, with the year typed in between;
+    the view, Strong Transits, and ReTurn Angles carry over. Not on Savannah's images. */
+ {const go=async y=>{if(!LAST||!y||isNaN(y))return;y=Math.max(1300,Math.min(2500,Math.round(y)));const v=LAST.view,sg=LAST.strong,sa=LAST.srAng,msg=$('#sr-msg');
+   try{await cast(Object.assign({},LAST.opts,{year:y,strong:sg}));LAST.view=v;LAST.srAng=sa&&LAST.natal&&LAST.natalCusps&&!LAST.unknownTime;render(LAST);f.year.value=y;if(msg)msg.textContent=''}catch(e){if(msg)msg.textContent=e.message||String(e)}};
+  const yv=$('#sr-yval');$('#sr-yprev').onclick=()=>go(+LAST.year-1);$('#sr-ynext').onclick=()=>go(+LAST.year+1);
+  yv.addEventListener('change',()=>go(+yv.value));yv.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go(+yv.value)}})}
  document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs({view:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
  if(['wheel','grid','both'].includes(P.view))VIEW=P.view;
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
- $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
+ $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;$('#sr-yearnav').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
  document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
 /* with no data the page opens on a clearly marked example, so the first view shows what the applet makes */
 const EXAMPLE={name:'Example Chart',date:'2000-01-01',time:'12:00',place:{label:'Oakland, CA, USA',lat:37.8044,lon:-122.2712,tz:'America/Los_Angeles'}};
