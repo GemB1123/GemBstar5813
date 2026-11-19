@@ -173,6 +173,21 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  .sr-bar button{min-height:48px;font-size:15px}
  .sr-yearnav{margin:6px auto 4px}
 }
+/* DESKTOP (Gemini, Nov 19): the listing, the wheel, the year and the buttons sit together as one block in the middle of the window,
+   with room above and below, instead of the listing at the very top and the buttons at the very bottom */
+@media (min-width:800px){
+ .sr-panel{padding-top:32px}
+ .sr-right{justify-content:center;padding:24px 0 20px;overflow:auto}
+ .sr-stage{flex:0 1 auto;min-height:0;overflow:visible;padding:0 12px}
+ .sr-card{height:auto}
+ .sr-head{margin:0 0 10px}
+ .sr-wheel{flex:none}
+ .sr-wheel svg,.sr-wheel .sr-grid{height:max(420px,calc(100vh - 420px));width:auto}
+ .sr-wheel.sr-both>svg:first-child{width:min(56%,max(420px,calc(100vh - 420px)));height:auto;max-height:none}
+ .sr-wheel.sr-both>.sr-grid{width:38%;height:auto;max-height:none}
+ .sr-yearnav{margin:16px auto 10px}
+ .sr-bar{padding:4px 12px 8px}
+}
 </style>
 </head><body>
 <main class="sr-app">
@@ -869,7 +884,7 @@ function sunHouses(h,sys,sun,moon){const off={sun1:0,sun10:90,sun7:180,sun4:270}
  const n=new Array(13).fill(0);if(sys==='solarsign'){for(let i=1;i<=12;i++)n[i]=n360(Math.floor(sun/30)*30+30*(i-1));n.noAngles=true;n.even=true;return n}
  /* no AS or MC; the Sun's axis is thick: horizontal (1st/7th) for Sun on 1st and 7th, vertical (4th/10th) for Sun on 10th and 4th */
  for(let i=1;i<=12;i++)n[i]=n360(sun+a+30*(i-1));n.noAngles=true;n.thick=a%180?[4,10]:[1,7];return n}
-function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.noAngles=true;n.even=true;return n}
+function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.noAngles=true;n.even=true;if(h&&h[1]!=null){n.asc=h[1];n.mc=h[10]}return n}
 function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==='natural')return naturalHouses(h);
  if(/^sun|^moonph|^solarsign/.test(sys))return sun==null?h:sunHouses(h,sys,sun,moon);
  const R=Math.PI/180,eps=23.4393*R,asc=h[1],mc=h[10],n=new Array(13).fill(0),lab=sys==='equal'||sys==='whole'||sys==='morinus';
@@ -891,7 +906,7 @@ function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==
   else if(sys==='koch'){const dec=Math.asin(Math.sin(eps)*Math.sin(mc*R)),x=Math.max(-1,Math.min(1,Math.tan(phi)*Math.tan(dec))),dsa=90+Math.asin(x)/R;
    n[11]=ascAt(t-2*dsa/3);n[12]=ascAt(t-dsa/3);n[2]=ascAt(t+dsa/3);n[3]=ascAt(t+2*dsa/3)}
   n[4]=n360(n[10]+180);n[7]=n360(n[1]+180);n[5]=n360(n[11]+180);n[6]=n360(n[12]+180);n[8]=n360(n[2]+180);n[9]=n360(n[3]+180)}
- if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc}if(sys==='whole')n.even=true;return n}
+ if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc;n.asc=asc;n.mc=mc}if(sys==='whole')n.even=true;return n}  /* .asc/.mc: the shared wheel draws the AS and MC axes in Whole Sign and Equal (Gemini, Nov 19, global) */
 return {list:HOUSE_SYS,sys:houseSystem}})();</script>
 <script>window.SR_DET=(function(){const rad=x=>x*Math.PI/180,deg=x=>x*180/Math.PI,n360=x=>((x%360)+360)%360,AU=149597870.7,DIAM={Sun:1392700,Moon:3474.8,Mercury:4879,Venus:12104,Mars:6779,Jupiter:139822,Saturn:116464,Uranus:50724,Neptune:49244};
 function magOf(k,R,hd,dist,el,known){const L5=v=>5*Math.log10(v);if(k==='Sun')return -26.74+L5(R);if(k==='Moon')return el===null?null:(i=>-12.73+0.026*i+4e-9*Math.pow(i,4))(180-el);
@@ -1274,17 +1289,20 @@ function cardLines(C){const L=[];
  if(C.prof)L.push({t:`${ord(C.prof.house)} House Annual Profection`,k:'prof'},{t:`${SIGNS[C.prof.sign]} · Guide ${C.prof.guide}`,k:'prof'});
  return L}
 /* the birth chart block, just upper left of the chart: name, birth date and time, birthplace, Ascendant */
-const natalLines=C=>(C.name?[{t:C.name,k:'name'}]:[]).concat(C.natal?[{t:`Birth Chart · ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}]/* no Ascendant line: it is on the chart (Gemini, Nov 18) */
+const natalLines=C=>(C.name?[{t:C.name,k:'name'}]:[]).concat(C.natal?[/* no "Birth Chart", and the time on its own line, so the block is narrow and sits close to the wheel (Gemini, Nov 19) */{t:C.birthWhen.date.replace(/^\w+, /,''),k:'when'},{t:C.unknownTime?'Birth time unknown':C.birthWhen.time,k:'when'},{t:C.birthPlace.label,k:'line'}]/* no Ascendant line: it is on the chart (Gemini, Nov 18) */
   :[{t:`Born ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}]);
 /* the birth chart block ends just inside the wheel's left edge, level with the return listing; stack it under the listing when they would touch */
 function placeNatal(){const st=$('#sr-stage'),n=st&&st.querySelector('.sr-natal'),cd=st&&st.querySelector('.sr-card'),h=st&&st.querySelector('.sr-head');if(!n||!cd||!h)return;
- n.classList.remove('sr-stack');n.style.left='0px';const sv=st.querySelector('.sr-wheel svg');const cr=cd.getBoundingClientRect();
- if(sv&&!st.querySelector('.sr-both')){const r=sv.getBoundingClientRect(),nw=n.getBoundingClientRect().width;n.style.left=Math.max(0,r.left-cr.left-nw+r.width*.08)+'px'}
+ n.classList.remove('sr-stack');n.style.left='0px';n.style.top='';const sv=st.querySelector('.sr-wheel svg:not(.sr-grid)');const cr=cd.getBoundingClientRect();
+ /* tucked into the wheel's upper left corner (Gemini, Nov 19), in every view, wheel alone or beside the grid */
+ if(sv){const r=sv.getBoundingClientRect(),nw=n.getBoundingClientRect().width;n.style.left=Math.max(0,r.left-cr.left-nw+r.width*.08)+'px';if(!PHONE())n.style.top=Math.max(0,r.top-cr.top)+'px'}
  /* measured against a fixed width for the centered listing, not its width this year, so flipping years never moves the birth block */
- const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect(),hl=Math.min(hr.left,hr.left+hr.width/2-250);if(nr.right+16>hl||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
+ {const sy=st.querySelector('.sr-sys');if(sy){sy.style.left='';if(sv&&!PHONE()&&!matchMedia('(max-width:799px)').matches){const r=sv.getBoundingClientRect(),sw=sy.getBoundingClientRect().width;sy.style.left=Math.max(4,r.left-cr.left-sw+r.width*.1)+'px';sy.style.bottom=Math.max(4,cr.bottom-r.bottom)+'px'}else sy.style.bottom=''}}
+ const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect(),hl=Math.min(hr.left,hr.left+hr.width/2-250);if((nr.right+16>hl&&nr.top<hr.bottom+8)||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
 let wasPhone=PHONE();addEventListener('resize',()=>{if(!LAST)return;const ph=PHONE();if(ph!==wasPhone){wasPhone=ph;render(LAST)}else placeNatal()});
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
-const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
+/* order (Gemini, Nov 19): house system, zodiac, Geocentric, then whose houses */
+const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),zodName(C.zodiac),'Geocentric',...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Natal Houses']:[])];
 /* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||(C.view==='both'&&!PHONE()))?C.view:'wheel';
  st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
