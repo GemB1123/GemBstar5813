@@ -238,6 +238,10 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  .sr-wheel.sr-both{gap:190px;--wz:min(50%,max(420px,calc(100vh - 290px)))}
  .sr-wheel.sr-both>.sr-grid{width:min(36%,calc(var(--wz) * .93))}
 }
+/* touch (Gemini, Nov 19): one finger on the wheel scrolls the page; two fingers zoom the wheel (shared EAWheel zoom); once zoomed, one finger moves it */
+.sr-wheel svg.eaw{touch-action:pan-y!important}
+body.eawz .sr-wheel svg.eaw{touch-action:none!important}
+body.eawz .sr-stage,body.eawz .sr-right,body.eawz .sr-card,body.eawz .sr-wheel{overflow:visible}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1541,6 +1545,9 @@ function setup(){const f=$('#sr-form');if(!f)return;
  /* Time Lords (Gemini, Nov 19): one pill like Strong Transits; it reads the lord shown (Profection, Return AS, or the day), the arrow picks */
  {if(typeof P.tlOn==='boolean')TL.on=P.tlOn;if(['prof','ras','day'].includes(P.tlMode))TL.mode=P.tlMode;const tb=$('#sr-tl'),tm=$('#sr-tlmode');
   if(tb)tb.onclick=()=>setTL(!TL.on);if(tm){tm.value=TL.mode;tm.onchange=()=>setTL(true,tm.value)}}
+ /* pinch to zoom on phones (Gemini, Nov 15 global rule, asked again for the Solar Return Nov 19): the shared wheel zoom; one finger
+    still scrolls the page until the wheel is zoomed (sr.css) */
+ if(window.EAWheel&&EAWheel.attach)EAWheel.attach($('#sr-stage'),{});
  document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs(PHONE()?{viewPhone:VIEW}:{view2:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
  if(PHONE()){if(['wheel','grid'].includes(P.viewPhone))VIEW=P.viewPhone}else if(['wheel','grid','both'].includes(P.view2))VIEW=P.view2;
  /* PHONES (Gemini, Nov 19): Cast Yours goes down to the data entry; casting comes back up to the chart. In an embed, the host page
