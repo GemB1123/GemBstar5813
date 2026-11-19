@@ -1217,16 +1217,18 @@ function cardLines(C){const L=[];
  L.push({t:`The Sun's return to ${C.sunTxt}`,k:'line'});
  L.push({t:`${C.when.date} · ${C.when.time}`,k:'when'});
  L.push({t:C.at.label,k:'line'});
- if(C.prof)L.push({t:`${ord(C.prof.house)} House Annual Profection · ${SIGNS[C.prof.sign]} · Guide ${C.prof.guide}`,k:'prof'});
+ /* two lines, so the listing keeps one width from year to year (Gemini, Nov 18) */
+ if(C.prof)L.push({t:`${ord(C.prof.house)} House Annual Profection`,k:'prof'},{t:`${SIGNS[C.prof.sign]} · Guide ${C.prof.guide}`,k:'prof'});
  return L}
 /* the birth chart block, just upper left of the chart: name, birth date and time, birthplace, Ascendant */
-const natalLines=C=>(C.name?[{t:C.name,k:'name'}]:[]).concat(C.natal?[{t:`Birth Chart · ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'when'}]:[])
+const natalLines=C=>(C.name?[{t:C.name,k:'name'}]:[]).concat(C.natal?[{t:`Birth Chart · ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}]/* no Ascendant line: it is on the chart (Gemini, Nov 18) */
   :[{t:`Born ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}]);
 /* the birth chart block ends just inside the wheel's left edge, level with the return listing; stack it under the listing when they would touch */
 function placeNatal(){const st=$('#sr-stage'),n=st&&st.querySelector('.sr-natal'),cd=st&&st.querySelector('.sr-card'),h=st&&st.querySelector('.sr-head');if(!n||!cd||!h)return;
  n.classList.remove('sr-stack');n.style.left='0px';const sv=st.querySelector('.sr-wheel svg');const cr=cd.getBoundingClientRect();
  if(sv&&!st.querySelector('.sr-both')){const r=sv.getBoundingClientRect(),nw=n.getBoundingClientRect().width;n.style.left=Math.max(0,r.left-cr.left-nw+r.width*.08)+'px'}
- const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect();if(nr.right+16>hr.left||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
+ /* measured against a fixed width for the centered listing, not its width this year, so flipping years never moves the birth block */
+ const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect(),hl=Math.min(hr.left,hr.left+hr.width/2-250);if(nr.right+16>hl||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
 addEventListener('resize',()=>{if(LAST)placeNatal()});
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
 const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
