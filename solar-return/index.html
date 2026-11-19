@@ -264,6 +264,14 @@ html{max-width:100%;overflow-x:hidden}body{max-width:100%;overflow-x:clip}   /* 
  .sr-topyours.sr-invite{animation:srInvite 3.2s ease-in-out 5}
  .sr-bar>#sr-yours{display:none}
 }
+
+/* desktop opening (Gemini, Nov 19): nothing gold at first, then each button lights in turn and what it shows fades in */
+body.sr-intro:not(.sr-i1) #sr-views button[aria-pressed=true]{background:transparent;color:inherit;border-color:var(--line)}
+.sr-lightup{animation:srLightUp 1s ease-out}
+@keyframes srLightUp{from{filter:saturate(0) brightness(.3)}to{filter:none}}
+body.sr-ifs .sr-pins,body.sr-ifs .srg-pin>rect:last-of-type,body.sr-ift .sr-prof,body.sr-ift .sr-tlglow,body.sr-ift .sr-tl button.on{animation:srFadeIn 1.4s ease-out}
+@keyframes srFadeIn{from{opacity:0}to{opacity:1}}
+body.sr-intro:not(.sr-ifs):not(.sr-ift) .sr-wheel svg:not(.sr-grid) .eawa{visibility:hidden}   /* the wheel starts with no aspect lines; the strong ones fade in */
 </style>
 </head><body>
 <main class="sr-app">
@@ -1605,7 +1613,28 @@ function setup(){const f=$('#sr-form');if(!f)return;
    (birth certificate, Rodden AA, Astro-Databank: 38n53, 90w11, CST; the Gauquelin/Muller file has May 25). Alton kept standard time in 1926, so the birth
    is fixed at UTC-6 rather than Chicago's daylight time; his returns use US Central clock time */
 const EXAMPLE={name:'Miles Davis',date:'1926-05-26',time:'05:00',place:{label:'Alton, IL, USA',lat:38+53/60,lon:-(90+11/60),tz:'America/Chicago',birthUtc:-6,birthZone:'CST'}};
-async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/.test(h)){try{await cast(Object.assign({},EXAMPLE,{strong:!prefs().strongOff,year:new Date().getFullYear(),theme:$('#sr-form')?$('#sr-form').theme.value:CFG.theme}))}catch(e){document.body.classList.add('sr-formopen')}return}const q=new URLSearchParams(h);
+/* the opening on desktop (Gemini, Nov 19): nothing gold at first so Cast Yours, glowing the whole time, stands out; then, one by one,
+   Wheel And Grid lights, Strong Transits lights and its aspects fade in on the wheel and grid, then the time lord pill lights and the
+   lit sign and the lord's glow fade in. Any button (Cast Yours too) cuts it short, for people who have seen it before. */
+let INTRO=null;
+function srIntro(){if(!WIDE()||matchMedia('(prefers-reduced-motion: reduce)').matches||!LAST||!LAST.natal)return;
+ const C=LAST,wantStrong=C.strong,wantTL=C.tlOn,B=document.body,T=[],at=(ms,fn)=>T.push(setTimeout(fn,ms));
+ const light=sel=>{const e=$(sel);if(!e)return;e.classList.remove('sr-lightup');void e.offsetWidth;e.classList.add('sr-lightup')};
+ if(C.strong){autoPins(C).forEach(k=>C.pins.delete(k));C.strong=false}C.tlOn=false;
+ B.classList.add('sr-intro');render(C);
+ const end=()=>{if(!INTRO)return;T.forEach(clearTimeout);document.removeEventListener('pointerdown',skip,true);document.removeEventListener('keydown',skip,true);INTRO=null;
+  B.classList.remove('sr-intro','sr-i1','sr-ifs','sr-ift');document.querySelectorAll('.sr-lightup').forEach(e=>e.classList.remove('sr-lightup'));
+  if(LAST===C){if(wantStrong&&!C.strong){C.strong=true;autoPins(C).forEach(k=>C.pins.add(k))}C.tlOn=wantTL;render(C)}};
+ const skip=e=>{if(!e.target.closest||!e.target.closest('button,select,input,a,.sr-topyours'))return;const y=$('#sr-yours');if(y)y.classList.remove('sr-invite');end()};
+ INTRO={end};document.addEventListener('pointerdown',skip,true);document.addEventListener('keydown',skip,true);
+ at(1200,()=>{B.classList.add('sr-i1');light('#sr-views button[aria-pressed=true]')});
+ let t=1200;
+ if(wantStrong){at(t+=1600,()=>{const b=$('#sr-strong');if(b)b.setAttribute('aria-pressed','true');light('.sr-strongwrap:not(.sr-tlwrap)')});
+  at(t+=1100,()=>{B.classList.add('sr-ifs');C.strong=true;autoPins(C).forEach(k=>C.pins.add(k));render(C)})}
+ if(wantTL){at(t+=2000,()=>{const b=$('#sr-tl');if(b)b.setAttribute('aria-pressed','true');light('.sr-tlwrap')});
+  at(t+=1100,()=>{B.classList.remove('sr-ifs');B.classList.add('sr-ift');C.tlOn=true;render(C)})}
+ at(t+2200,end)}
+async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/.test(h)){try{await cast(Object.assign({},EXAMPLE,{strong:!prefs().strongOff,year:new Date().getFullYear(),theme:$('#sr-form')?$('#sr-form').theme.value:CFG.theme}));srIntro()}catch(e){document.body.classList.add('sr-formopen')}return}const q=new URLSearchParams(h);
  const pt=(a,b,c,name)=>q.get(a)?{lat:+q.get(a),lon:+q.get(b),tz:q.get(c)||'UTC'}:q.get(name);
  if(q.get('card')==='1')document.body.classList.add('sr-cardonly');
  const f=$('#sr-form');if(f){f.name.value=q.get('name')||'';f.date.value=q.get('date')||'';f.time.value=q.get('time')||'';if(q.get('year'))f.year.value=q.get('year');
