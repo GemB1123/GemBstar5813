@@ -182,9 +182,14 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  .sr-card{height:auto}
  .sr-head{margin:0 0 10px}
  .sr-wheel{flex:none}
- .sr-wheel svg,.sr-wheel .sr-grid{height:max(420px,calc(100vh - 420px));width:auto}
- .sr-wheel.sr-both>svg:first-child{width:min(56%,max(420px,calc(100vh - 420px)));height:auto;max-height:none}
- .sr-wheel.sr-both>.sr-grid{width:38%;height:auto;max-height:none}
+ /* the wheel fills the height left after the year and the buttons; the grid alone also leaves room for the listing on top */
+ .sr-wheel svg{height:max(420px,calc(100vh - 290px));width:auto}
+ .sr-wheel.sr-gridv .sr-grid{height:max(420px,calc(100vh - 420px));width:auto}
+ /* Wheel And Grid (Gemini, Nov 19, Ana's laptop): the grid is sized from the wheel, two thirds of it, so on a short screen they shrink
+    together and the return listing and the time lords keep clear room above and below the grid */
+ .sr-wheel.sr-both{--wz:min(56%,max(420px,calc(100vh - 290px)))}
+ .sr-wheel.sr-both>svg:first-child{width:var(--wz);height:auto;max-height:none}
+ .sr-wheel.sr-both>.sr-grid{width:min(38%,calc(var(--wz) * .66));height:auto;max-height:none}
  .sr-yearnav{margin:16px auto 10px}
  .sr-bar{padding:4px 12px 8px}
  .sr-natal .sr-name{font-size:24px;font-weight:700}   /* the chart's name as large as the Solar Return title (Gemini, Nov 19) */
@@ -199,7 +204,7 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
 .sr-btns .sr-tlwrap #sr-tl{min-width:7.5em}
 .sr-ret{position:absolute;top:0;left:0;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
 .sr-ret .sr-title{font-size:24px}
-.sr-pl{display:flex;gap:6px;margin-top:6px}
+.sr-pl{display:flex;gap:10px;margin-top:6px;justify-content:center}   /* centered under the birth listing (Gemini, Nov 19) */
 .sr-pl span{display:inline-flex}
 .sr-tl{display:grid;grid-template-columns:auto auto;gap:2px 0;font-size:14px;z-index:1}
 .sr-tl.sr-tlc{position:absolute;white-space:nowrap}
@@ -218,10 +223,26 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  .sr-bar>.sr-tlwrap{flex:0 1 calc(50% - 4px)}
  .sr-bar>.sr-tlwrap #sr-tl{flex:1}
 }
+/* DESKTOP, no sidebar (Gemini, Nov 19): the chart has the whole window; the birth data is a popup (Cast Yours / Cast Another) */
+.sr-formx{display:none}
+@media (min-width:800px){
+ .sr-panel,.sr-closed .sr-panel{display:none;position:fixed;z-index:60;top:50%;left:50%;transform:translate(-50%,-50%);width:380px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);
+  border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 60px rgba(0,0,0,.6);padding:26px 22px 22px}
+ body.sr-formopen .sr-panel{display:block}
+ body.sr-formopen::before{content:'';position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:59}
+ .sr-formx{display:flex;position:absolute;top:10px;right:10px;width:36px;height:36px;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:22px;line-height:1;cursor:pointer}
+ #sr-again,.sr-closed #sr-again{display:none}
+ #sr-yours{display:inline-flex;align-items:center;order:-1}
+ /* Wheel And Grid: room between them for the return listing and the time lords at the wheel's right corners */
+ .sr-stage{padding:0 32px}
+ .sr-wheel.sr-both{gap:190px;--wz:min(50%,max(420px,calc(100vh - 290px)))}
+ .sr-wheel.sr-both>.sr-grid{width:min(36%,calc(var(--wz) * .93))}
+}
 </style>
 </head><body>
 <main class="sr-app">
  <form id="sr-form" class="sr-panel" autocomplete="off" aria-label="Solar Return birth data">
+  <button type="button" class="sr-formx" id="sr-formx" aria-label="Close">&#215;</button>
   <h1>Solar Return</h1>
   <p class="sr-note">Birth data stays in this browser. Nothing is sent anywhere.</p>
   <label>Name <small>(optional)</small><input name="name" maxlength="60"></label>
@@ -1489,7 +1510,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});
   try{await cast({name:f.name.value,date:f.date.value,time:f.time.value,unknownTime:f.unknown.checked,place:coords('sr-b')||bGet(),
     at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value,strong:!prefs().strongOff});msg.textContent='';
-    document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)toChart()}
+    document.body.classList.add('sr-cast','sr-closed','sr-mine');document.body.classList.remove('sr-formopen');{const y=$('#sr-yours');if(y)y.textContent='Cast Another'}const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)toChart()}
   catch(err){msg.textContent=err.message||String(err)}};
  ['theme','houses','zodiac','natal','sky'].forEach(k=>f[k].addEventListener('change',async()=>{document.documentElement.dataset.look=f.theme.value;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});if(!LAST)return;
@@ -1524,16 +1545,21 @@ function setup(){const f=$('#sr-form');if(!f)return;
  if(PHONE()){if(['wheel','grid'].includes(P.viewPhone))VIEW=P.viewPhone}else if(['wheel','grid','both'].includes(P.view2))VIEW=P.view2;
  /* PHONES (Gemini, Nov 19): Cast Yours goes down to the data entry; casting comes back up to the chart. In an embed, the host page
     is asked to bring the frame into view too (the embed snippet listens for 'sr-top') */
- $('#sr-yours').onclick=()=>{$('#sr-form').scrollIntoView({behavior:smooth(),block:'start'});setTimeout(()=>{f.name.focus({preventScroll:true});f.name.select()},smooth()==='smooth'?450:0)};
+ /* DESKTOP (Gemini, Nov 19): no sidebar; the birth data opens as a popup from Cast Yours / Cast Another, and closes with X,
+    Escape, a click outside, or a cast */
+ const formOpen=on=>{document.body.classList.toggle('sr-formopen',on);if(on){f.name.focus();f.name.select()}else{const y=$('#sr-yours');if(y)y.focus({preventScroll:true})}};
+ $('#sr-formx').onclick=()=>formOpen(false);
+ document.addEventListener('mousedown',e=>{if(document.body.classList.contains('sr-formopen')&&WIDE()&&!e.target.closest('#sr-form')&&!e.target.closest('#sr-yours')&&!e.target.closest('.sr-plist,[id$=-list]'))formOpen(false)});
+ $('#sr-yours').onclick=()=>{if(WIDE()){formOpen(!document.body.classList.contains('sr-formopen'));return}$('#sr-form').scrollIntoView({behavior:smooth(),block:'start'});setTimeout(()=>{f.name.focus({preventScroll:true});f.name.select()},smooth()==='smooth'?450:0)};
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
  $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;$('#sr-yearnav').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
- document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
+ document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-formopen')){formOpen(false);return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
 /* with no data the page opens on a clearly marked example, so the first view shows what the applet makes */
 /* the opening chart (Gemini, Nov 18): Miles Davis, born May 26, 1926, 5:00 AM Central Standard Time, Alton, Illinois
    (birth certificate, Rodden AA, Astro-Databank: 38n53, 90w11, CST; the Gauquelin/Muller file has May 25). Alton kept standard time in 1926, so the birth
    is fixed at UTC-6 rather than Chicago's daylight time; his returns use US Central clock time */
 const EXAMPLE={name:'Miles Davis',date:'1926-05-26',time:'05:00',place:{label:'Alton, IL, USA',lat:38+53/60,lon:-(90+11/60),tz:'America/Chicago',birthUtc:-6,birthZone:'CST'}};
-async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/.test(h)){try{await cast(Object.assign({},EXAMPLE,{strong:!prefs().strongOff,year:new Date().getFullYear(),theme:$('#sr-form')?$('#sr-form').theme.value:CFG.theme}))}catch(e){}return}const q=new URLSearchParams(h);
+async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/.test(h)){try{await cast(Object.assign({},EXAMPLE,{strong:!prefs().strongOff,year:new Date().getFullYear(),theme:$('#sr-form')?$('#sr-form').theme.value:CFG.theme}))}catch(e){document.body.classList.add('sr-formopen')}return}const q=new URLSearchParams(h);
  const pt=(a,b,c,name)=>q.get(a)?{lat:+q.get(a),lon:+q.get(b),tz:q.get(c)||'UTC'}:q.get(name);
  if(q.get('card')==='1')document.body.classList.add('sr-cardonly');
  const f=$('#sr-form');if(f){f.name.value=q.get('name')||'';f.date.value=q.get('date')||'';f.time.value=q.get('time')||'';if(q.get('year'))f.year.value=q.get('year');
