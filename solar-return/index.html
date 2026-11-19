@@ -80,6 +80,18 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 .sr-wheel.sr-gridv{align-items:center}
 .sr-wheel .sr-grid{width:auto;height:100%;max-width:100%;aspect-ratio:1}
 .srg-c{cursor:default}
+
+/* View: Wheel, Aspect Grid, Wheel And Grid (Gemini, Nov 18) */
+.sr-seg{display:inline-flex}
+.sr-seg button{border-radius:0;margin:0}
+.sr-seg button:first-child{border-radius:8px 0 0 8px}
+.sr-seg button:last-child{border-radius:0 8px 8px 0}
+.sr-seg button+button{border-left-width:0}
+.sr-seg button[aria-pressed=true]{background:var(--accent,#f5c35c);color:var(--bg);border-color:var(--accent,#f5c35c)}
+.sr-seg[hidden]{display:none}
+.sr-wheel.sr-both{align-items:center;gap:2.5%}
+.sr-wheel.sr-both>svg:first-child{height:auto;max-height:100%;width:56%;max-width:56%}
+.sr-wheel.sr-both>.sr-grid{height:auto;max-height:100%;width:38%;max-width:38%;aspect-ratio:auto}
 </style>
 </head><body>
 <main class="sr-app">
@@ -120,7 +132,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
  </form>
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
-  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><button type="button" id="sr-grid" aria-pressed="false">Aspect Grid</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
+  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
 <script>/* ---------- EA_JPL: the shared NASA JPL ephemeris (DE441) for every World and every app ----------
@@ -1029,7 +1041,7 @@ function wheelSVG(C,theme){usedCols=new Set();
 const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
 
 /* ---------- casting ---------- */
-let LAST=null;
+let LAST=null,VIEW='wheel';
 async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
  const [y,mo,d]=String(o.date||'').split('-').map(Number);if(!y||!mo||!d)throw new Error('Birth date is needed (year-month-day).');
  const unknown=!!o.unknownTime||!o.time,[h,mi]=unknown?[12,0]:String(o.time).split(':').map(Number);
@@ -1045,7 +1057,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,them
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
  if(!unknown&&window.EA_TL){C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys,ayB,bT.pos.Sun,bT.pos.Moon);const nasc=C.natalCusps.asc;C.natalAsc=nasc;C.natalMC=C.natalCusps.mc;C.prof=EA_TL.profYear(nasc,C.age)}
  C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bp.utc);
- LAST=C;render(C);return summary(C)}
+ C.view=VIEW;LAST=C;render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
  return {name:C.name,year:C.year,age:C.age,returnUTC:new Date(C.srms).toISOString(),returnLocal:C.when.date+', '+C.when.time,place:C.at.label,
   sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,houses:HS_NAMES[C.houseSys],zodiac:zodName(C.zodiac),profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
@@ -1063,11 +1075,12 @@ function cardLines(C){const L=[];
 const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'line'}]:[]);
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
 const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
-function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;
+/* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
+function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||C.view==='both')?C.view:'wheel';
  st.innerHTML=`<div class="sr-card"><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
-  +`<div class="sr-wheel${C.view==='grid'&&C.natal?' sr-gridv':''}">${C.view==='grid'&&C.natal?gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
+  +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
  const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML=''})}
- const gb=$('#sr-grid');if(gb){gb.hidden=!C.natal;gb.textContent=C.view==='grid'?'Wheel':'Aspect Grid';gb.setAttribute('aria-pressed',C.view==='grid'?'true':'false')}
+ const gv=$('#sr-views');if(gv){gv.hidden=!C.natal;gv.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===V?'true':'false'))}
  const ex=$('#sr-export');if(ex)ex.hidden=false;const sm=$('#sr-sum');if(sm)sm.textContent=`Solar Return ${C.year}: ${C.when.date}, ${C.when.time}, ${C.at.label}.`}
 function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
 async function svgImg(svg,w,h){svg=svg.replace(/^<svg/,`<svg width="${w}" height="${h}"`).replace('width="100%" height="100%"','');
@@ -1136,7 +1149,7 @@ function placeField(id){const inp=$('#'+id),box=$('#'+id+'-list');let pick=null;
 function coords(pre){const la=$('#'+pre+'-lat'),lo=$('#'+pre+'-lon'),tz=$('#'+pre+'-tz');
  return la&&la.value!==''&&lo.value!==''?{lat:+la.value,lon:+lo.value,tz:tz.value.trim()||'UTC',utc:/^[-+]?\d+(\.\d+)?$/.test(tz.value.trim())?+tz.value.trim():undefined}:null}
 function prefs(){try{return JSON.parse(localStorage.getItem('sr-look-v1'))||{}}catch(e){return {}}}
-function savePrefs(o){try{localStorage.setItem('sr-look-v1',JSON.stringify(o))}catch(e){}}
+function savePrefs(o){try{localStorage.setItem('sr-look-v1',JSON.stringify(Object.assign(prefs(),o)))}catch(e){}}
 function setup(){const f=$('#sr-form');if(!f)return;
  f.houses.innerHTML=Object.entries(HS_NAMES).map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
  f.zodiac.innerHTML=ZODS.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
@@ -1161,7 +1174,8 @@ function setup(){const f=$('#sr-form');if(!f)return;
  $('#sr-wide').onclick=()=>download('png','wide').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-jpg').onclick=()=>download('jpeg').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-copy').onclick=()=>copyImage().then(()=>$('#sr-msg').textContent='Copied.').catch(()=>$('#sr-msg').textContent='This browser blocked Copy; use Save As PNG.');
- $('#sr-grid').onclick=()=>{if(!LAST)return;LAST.view=LAST.view==='grid'?'wheel':'grid';render(LAST)};
+ document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs({view:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
+ if(['wheel','grid','both'].includes(P.view))VIEW=P.view;
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
  $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
  document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
