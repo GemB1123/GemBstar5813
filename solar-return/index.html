@@ -501,9 +501,13 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    /* STELLIUM (Gemini, Nov 18, GLOBAL): a house too full to hold its planets (Venus at 4° Leo crowded against the 2nd cusp) grows into
       the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
       true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
-   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}return O.length?O:null};
+   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}
+    /* also too full when the glyphs only fit by sitting back on a cusp line (the last relax pass pushed one there; Leo, Nov 18) */
+    list.forEach(x=>{if(C.some(c=>Math.abs(dd(x.d,c))<m-.3))O.push(x)});return O.length?O:null};
    /* each try is scored by how much glyphs still overlap; the best try is the one drawn */
-   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));return t};let best=null;
+   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));list.forEach(x=>C.forEach(c=>{t+=Math.max(0,m-Math.abs(dd(x.d,c)))}));
+    /* and as few glyphs as possible moved out of their own house */
+    const hs=l=>{let b=-1,bd=361;C.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};list.forEach(x=>{if(hs(x.d)!==hs(x.l))t+=1});return t};let best=null;
    for(let tries=0;tries<=n;tries++){
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
@@ -514,12 +518,17 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     if(!moved)break}
    {const v=sc();if(!best||v<best.v-1e-6)best={v,ds:list.map(x=>x.d)}}
    const o=C.length&&n*gp<330&&opts.stellium!==false?over():null;if(!o)break;let flip=null;
-   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(Math.abs(dd(x.d,+c))-m)<.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
+   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(dd(x.d,+c))<m+.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
    if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}
-   if(best)list.forEach((x,i)=>{x.d=best.ds[i]})}
-  if(cu&&opts.stellium!==false&&list.length>2){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
+   if(best)list.forEach((x,i)=>{x.d=best.ds[i]});
+   /* a cusp push can jump a glyph past its neighbor; hand the drawn places back out in true zodiac order so glyphs never swap (Leo, Nov 18) */
+   if(best&&n>1){const cut=a=>{const B=a.slice().sort((p,q)=>p-q);let w=-1,wi=0;for(let i=0;i<B.length;i++){const g=n360(B[(i+1)%B.length]-B[i]);if(g>w){w=g;wi=(i+1)%B.length}}return B.slice(wi).concat(B.slice(0,wi))};
+    const L=list.slice().sort((p,q)=>p.l-q.l);let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(L[(i+1)%n].l-L[i].l);if(g>w){w=g;wi=(i+1)%n}}
+    const LO=L.slice(wi).concat(L.slice(0,wi)),D=cut(list.map(x=>n360(x.d)));let k0=0,bd=1e9;for(let k=0;k<n;k++){let t=0;LO.forEach((x,i)=>{t+=Math.abs(((D[(i+k)%n]-x.l+540)%360)-180)});if(t<bd){bd=t;k0=k}}
+    LO.forEach((x,i)=>{x.d=D[(i+k0)%n]})}}
+  if(cu&&opts.stellium!==false&&list.length>2){const mm={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
    const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
-   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){if(n360(S[i].d-S[i-1].d)<gap*1.35)G[G.length-1].push(S[i]);else G.push([S[i]])}
+   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){const sp=n360(S[i].d-S[i-1].d),cx=CS.some(c=>n360(c-S[i-1].d)<sp);if(sp<gap*1.35||(cx&&sp<gap+2*mm+.5))G[G.length-1].push(S[i]);else G.push([S[i]])}
    const rr=[[R.g,R.gs||17*GS],[R.d,R.ds],[R.s,R.ss],[R.m,R.ms]].filter(a=>a[0]&&a[1]),ro=Math.max(...rr.map(a=>a[0]+a[1]*.62)),ri0=Math.min(...rr.map(a=>a[0]-a[1]*.62));
    for(const g of G){if(g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
