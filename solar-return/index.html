@@ -204,7 +204,7 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
 .sr-btns .sr-tlwrap #sr-tl{min-width:7.5em}
 .sr-ret{position:absolute;top:0;left:0;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
 .sr-ret .sr-title{font-size:24px}
-.sr-pl{display:flex;gap:10px;margin-top:6px;justify-content:center}   /* centered under the birth listing (Gemini, Nov 19) */
+.sr-pl{display:flex;gap:10px;margin-top:6px;justify-content:flex-start}   /* left with the birth listing so they stay off the wheel (Gemini, Nov 19); centered on phones */
 .sr-pl span{display:inline-flex}
 .sr-tl{display:grid;grid-template-columns:auto auto;gap:2px 0;font-size:14px;z-index:1}
 .sr-tl.sr-tlc{position:absolute;white-space:nowrap}
@@ -1416,7 +1416,8 @@ let wasPhone=PHONE()+'|'+WIDE();addEventListener('resize',()=>{if(!LAST)return;c
 const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),zodName(C.zodiac),'Geocentric',...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Natal Houses']:[])];
 /* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
 /* the return listing at the wheel's upper right (Gemini, Nov 19): which return, then its date, time, and place, one to a line */
-const retLines=C=>[{t:`Solar Return${C.age>0?' '+C.age:''}`,k:'title'},{t:C.when.date,k:'when'},{t:C.when.time,k:'when'},{t:C.at.label,k:'line'}];
+/* no weekday in the return listing: it lives in the time lords at the lower right (Gemini, Nov 19) */
+const retLines=C=>[{t:`Solar Return${C.age>0?' '+C.age:''}`,k:'title'},{t:C.when.date.replace(/^[A-Za-z]+,\s*/,''),k:'when'},{t:C.when.time,k:'when'},{t:C.at.label,k:'line'}];
 const miniSign=(i,col,z)=>`<svg viewBox="0 0 ${z} ${z}" width="${z}" height="${z}" aria-hidden="true"><defs><filter id="srmf${fid(col)}" color-interpolation-filters="sRGB"><feFlood flood-color="${col}"/><feComposite in2="SourceAlpha" operator="in"/></filter></defs>${signSvg(i,z/2,z/2,z*.92,col).replace(/filter="url\(#[^)]*\)"/,`filter="url(#srmf${fid(col)})"`)}</svg>`;
 /* planetary day and hour lords as glyphs, as on the Device's chart listing */
 const dayRow=(pd,who,col)=>pd?`<div class="sr-pl">${[['day',pd.dayLord],['hour',pd.hourLord]].filter(x=>x[1]).map(([w,k])=>`<span title="${who} planetary ${w}: ${k}">${piGlyph(k,col,22)}</span>`).join('')}</div>`:'';
