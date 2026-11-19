@@ -41,6 +41,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1
 html:not([data-look=dark]) .sr-title{color:var(--accent)}
 .sr-when{font-size:16px;color:var(--soft);font-weight:500}
 .sr-sys{position:absolute;left:4px;bottom:4px;font-size:13px;line-height:1.5;color:var(--soft)}
+.sr-sys span{display:block}
 .sr-name{font-size:19px}
 .sr-line{font-size:15px}
 .sr-soft{font-size:13px;color:var(--soft)}
@@ -137,6 +138,38 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
 .sr-strongwrap:has(#sr-strong[aria-pressed=true]) select{border-right-color:rgba(0,0,0,.25);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23333' stroke-width='1.6'/%3E%3C/svg%3E")}
 .sr-strongwrap:focus-within{outline:2px solid var(--btn);outline-offset:2px}
 .sr-rowbreak{flex-basis:100%;height:0}
+/* PHONES (Gemini, Nov 19): the chart first and the data entry beneath; the return listing smaller on top, the birth chart block and
+   the house system lines under the wheel instead of over it; Wheel | Aspect Grid only; bigger buttons that wrap evenly */
+@media (max-width:640px){
+ .sr-app{flex-direction:column;height:auto}
+ .sr-right{order:1;flex:none}
+ .sr-panel{order:2;flex:none;border-right:0;border-bottom:0;border-top:1px solid var(--line)}
+ .sr-closed .sr-panel{display:block}
+ .sr-closed #sr-again,#sr-again{display:none}
+ .sr-stage{min-height:0;padding:12px 12px 4px;overflow:visible}
+ .sr-card{height:auto}
+ .sr-title{font-size:21px}
+ .sr-when{font-size:14px}
+ .sr-line,.sr-prof{font-size:13.5px}
+ .sr-head{margin:0 0 6px}
+ .sr-wheel{flex:none;order:2}
+ .sr-wheel svg,.sr-wheel .sr-grid{width:100%;height:auto;max-width:100%}
+ .sr-natal,.sr-natal.sr-stack{position:static;order:3;align-self:center;text-align:center;margin:10px 0 0}
+ .sr-natal .sr-name{font-size:16px}
+ .sr-natal .sr-when{font-size:13.5px}
+ .sr-natal.sr-stack~.sr-wheel{order:2}
+ .sr-sys,.sr-natal.sr-stack~.sr-sys{position:static;order:4;align-self:center;margin:4px 0 0;font-size:12px;line-height:1.4;text-align:center}
+ .sr-sys{display:flex;flex-wrap:wrap;justify-content:center;gap:0 10px}
+ .sr-sys span{display:inline}
+ #sr-views button[data-v=both]{display:none}
+ #sr-views button[data-v=grid]{border-radius:0 8px 8px 0}
+ .sr-bar{gap:8px;padding:8px 12px 14px}
+ .sr-bar>button,.sr-bar>.sr-seg,.sr-bar>.sr-strongwrap{flex:1 1 calc(50% - 8px);justify-content:center}
+ .sr-bar>.sr-seg button{flex:1}
+ .sr-bar>.sr-strongwrap #sr-strong{flex:1}
+ .sr-bar button{min-height:48px;font-size:15px}
+ .sr-yearnav{margin:6px auto 4px}
+}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1198,7 +1231,9 @@ function wheelSVG(C,theme){usedCols=new Set();
 const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.3,conW:.5};   /* constellations at half thickness and half brightness (Gemini, Nov 18) */
 
 /* ---------- casting ---------- */
-let LAST=null,VIEW='both';   /* Wheel And Grid by default (Gemini, Nov 18) */
+/* PHONES (Gemini, Nov 19): the wheel alone, with Strong Transits lit on it, a Wheel | Aspect Grid switch, and the data entry beneath */
+const PHONE=()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width:640px)').matches;
+let LAST=null,VIEW=PHONE()?'wheel':'both';   /* Wheel And Grid by default (Gemini, Nov 18) */
 async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
  const [y,mo,d]=String(o.date||'').split('-').map(Number);if(!y||!mo||!d)throw new Error('Birth date is needed (year-month-day).');
  const unknown=!!o.unknownTime||!o.time,[h,mi]=unknown?[12,0]:String(o.time).split(':').map(Number);
@@ -1240,13 +1275,13 @@ function placeNatal(){const st=$('#sr-stage'),n=st&&st.querySelector('.sr-natal'
  if(sv&&!st.querySelector('.sr-both')){const r=sv.getBoundingClientRect(),nw=n.getBoundingClientRect().width;n.style.left=Math.max(0,r.left-cr.left-nw+r.width*.08)+'px'}
  /* measured against a fixed width for the centered listing, not its width this year, so flipping years never moves the birth block */
  const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect(),hl=Math.min(hr.left,hr.left+hr.width/2-250);if(nr.right+16>hl||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
-addEventListener('resize',()=>{if(LAST)placeNatal()});
+let wasPhone=PHONE();addEventListener('resize',()=>{if(!LAST)return;const ph=PHONE();if(ph!==wasPhone){wasPhone=ph;render(LAST)}else placeNatal()});
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
 const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
 /* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
-function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||C.view==='both')?C.view:'wheel';
+function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||(C.view==='both'&&!PHONE()))?C.view:'wheel';
  st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
-  +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div></div>`;placeNatal();
+  +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`;placeNatal();
  const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('.srg-c[data-pk]');if(!c||!LAST)return;const k=c.dataset.pk;LAST.pins.has(k)?LAST.pins.delete(k):LAST.pins.add(k);render(LAST)});
   gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML='';wheelHL(null)})}
  const ab=$('#sr-angles');if(ab){ab.hidden=!(C.natal&&C.natalCusps&&!C.unknownTime);ab.setAttribute('aria-pressed',C.srAng?'true':'false')}
@@ -1355,7 +1390,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
     strongest; off lets them go (pins of your own stay) */
  {const sb=$('#sr-strong');if(sb)sb.onclick=()=>{if(!LAST||!LAST.natal)return;const S=autoPins(LAST);
   if(LAST.strong){S.forEach(k=>LAST.pins.delete(k));LAST.strong=false;savePrefs({strongOff:true})}
-  else{S.forEach(k=>LAST.pins.add(k));LAST.strong=true;LAST.pop=true;savePrefs({strongOff:false});if(LAST.view!=='grid'&&LAST.view!=='both'){VIEW='both';LAST.view='both';savePrefs({view2:VIEW})}}
+  else{S.forEach(k=>LAST.pins.add(k));LAST.strong=true;LAST.pop=true;savePrefs({strongOff:false});if(!PHONE()&&LAST.view!=='grid'&&LAST.view!=='both'){VIEW='both';LAST.view='both';savePrefs(PHONE()?{viewPhone:VIEW}:{view2:VIEW})}}
   render(LAST)}}
  /* flip through the Solar Returns (Gemini, Nov 18): back and forward buttons beneath the chart, with the year typed in between;
     the view, Strong Transits, and ReTurn Angles carry over. Not on Savannah's images. */
@@ -1367,8 +1402,8 @@ function setup(){const f=$('#sr-form');if(!f)return;
  {const sn=$('#sr-strongn'),P0=prefs();if(sn){if([3,4,5,6].includes(+P0.strongN))sn.value=String(P0.strongN);
   sn.onchange=()=>{savePrefs({strongN:+sn.value});if(!LAST)return;const was=LAST.strong?autoPins(LAST):null;LAST.opts=Object.assign({},LAST.opts,{strongCount:+sn.value});
    if(was){was.forEach(k=>LAST.pins.delete(k));autoPins(LAST).forEach(k=>LAST.pins.add(k));LAST.pop=true;render(LAST)}}}}
- document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs({view2:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
- if(['wheel','grid','both'].includes(P.view2))VIEW=P.view2;
+ document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs(PHONE()?{viewPhone:VIEW}:{view2:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
+ if(PHONE()){if(['wheel','grid'].includes(P.viewPhone))VIEW=P.viewPhone}else if(['wheel','grid','both'].includes(P.view2))VIEW=P.view2;
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
  $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;$('#sr-yearnav').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
  document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
