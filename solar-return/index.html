@@ -92,6 +92,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 .sr-wheel.sr-both{align-items:center;gap:2.5%}
 .sr-wheel.sr-both>svg:first-child{height:auto;max-height:100%;width:56%;max-width:56%}
 .sr-wheel.sr-both>.sr-grid{height:auto;max-height:100%;width:38%;max-width:38%;aspect-ratio:auto}
+.sr-hlon .eawa{opacity:.12;transition:opacity .12s}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1006,11 +1007,20 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
   L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
    let mx=5;for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e;mx=orb}}
    const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],C.birth.pos[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
-   h+=`<g class="srg-c" data-r="${i}" data-c="${j}">`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)}${ins?'':' (out of sign)'} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
+   h+=`<g class="srg-c" data-r="${i}" data-c="${j}"${A?` data-la="${srP[k].toFixed(4)}" data-lb="${C.birth.pos[t].toFixed(4)}" data-col="${ac}"`:''}>`+(A?`<title>Return ${nm(k)} ${A[1]} Birth ${nm(t)}${ins?'':' (out of sign)'} · orb ${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</title>`:'')
     +`<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${A?ac:cb}" fill-opacity="${A?(.08+.16*(1-o/mx))*(ins?1:.6):.6}" stroke="${line}"/>`
     +(A?`<g transform="translate(${x+s/2} ${y+s*.4}) scale(.95)" fill="none" stroke="${ac}" stroke-width="${aw.toFixed(2)}" stroke-linejoin="round" stroke-linecap="round">${ASP_GLY[A[0]]}</g><text x="${x+s/2}" y="${y+s*.83}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".85">${Math.floor(o)}°${String(Math.floor(o%1*60)).padStart(2,'0')}′</text>`:'')+'</g>'})});
  return h+'<g class="srg-hl" pointer-events="none"></g></svg>'}
-function gridHover(svg,e){const hl=svg.querySelector('.srg-hl');if(!hl)return;const c=e.target.closest&&e.target.closest('.srg-c');if(!c){hl.innerHTML='';return}
+/* Wheel And Grid (Gemini, Nov 18): the aspect under the pointer in the grid lights up on the wheel too, the other lines fade */
+function wheelHL(c){const w=document.querySelector('.sr-both');if(!w)return;const on=!!(c&&c.dataset.la);w.classList.toggle('sr-hlon',on);
+ const old=w.querySelector('.sr-hlov');if(old)old.remove();if(!on||!LAST)return;
+ const g=w.querySelector('g[data-eaw="asp"]'),ci=g&&g.querySelector('circle');if(!ci)return;
+ const RI=+ci.getAttribute('r')-2,cu=LAST.unknownTime?null:wcu(LAST),rot=cu?cu[1]:0,xy=l=>{const t=(180+l-rot)*R;return [(RI*Math.cos(t)).toFixed(2),(-RI*Math.sin(t)).toFixed(2)]};
+ const a=xy(+c.dataset.la),b=xy(+c.dataset.lb),col=c.dataset.col;
+ /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
+ g.insertAdjacentHTML('beforeend',`<g class="sr-hlov" pointer-events="none"><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffe9a8" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/>`
+  +[a,b].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}" stroke="#ffe9a8" stroke-width="1"/>`).join('')+'</g>')}
+function gridHover(svg,e){const hl=svg.querySelector('.srg-hl');if(!hl)return;const c=e.target.closest&&e.target.closest('.srg-c');wheelHL(c);if(!c){hl.innerHTML='';return}
  const s=44,r=+c.dataset.r,k=+c.dataset.c,x=(k+1)*s,y=(r+1)*s,a='fill="#ffd98a" fill-opacity=".1" stroke="#ffd98a" stroke-opacity=".55"';
  hl.innerHTML=`<rect x="${x}" y="0" width="${s}" height="${y+s}" ${a}/><rect x="0" y="${y}" width="${x+s}" height="${s}" ${a}/><rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#ffd98a" fill-opacity=".22" stroke="#ffd98a" stroke-width="2.4"/>`}
 function wheelSVG(C,theme){usedCols=new Set();
@@ -1079,7 +1089,7 @@ const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||C.view==='both')?C.view:'wheel';
  st.innerHTML=`<div class="sr-card"><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
   +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
- const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML=''})}
+ const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML='';wheelHL(null)})}
  const gv=$('#sr-views');if(gv){gv.hidden=!C.natal;gv.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===V?'true':'false'))}
  const ex=$('#sr-export');if(ex)ex.hidden=false;const sm=$('#sr-sum');if(sm)sm.textContent=`Solar Return ${C.year}: ${C.when.date}, ${C.when.time}, ${C.at.label}.`}
 function loadImg(src){return new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=no;i.src=src})}
