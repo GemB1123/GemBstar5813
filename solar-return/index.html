@@ -119,6 +119,8 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 #sr-angles[aria-pressed=true]{background:var(--btn);color:var(--btnInk);border-color:var(--btn)}
 /* no calendar button in the date box, so Tab goes from the year straight to the hour (Gemini, Nov 18) */
 input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
+/* Safari's AutoFill button (the gray "•••" box) inside the date and time boxes: hidden and out of the Tab order, so Tab goes from the year to the hour (Gemini, Nov 18) */
+.sr-panel input::-webkit-contacts-auto-fill-button,.sr-panel input::-webkit-credentials-auto-fill-button,.sr-panel input::-webkit-caps-lock-indicator{visibility:hidden;display:none!important;pointer-events:none;position:absolute;right:0;width:0;height:0}
 </style>
 </head><body>
 <main class="sr-app">
@@ -127,8 +129,8 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
   <p class="sr-note">Birth data stays in this browser. Nothing is sent anywhere.</p>
   <label>Name <small>(optional)</small><input name="name" maxlength="60"></label>
   <div class="sr-row">
-   <label>Birth Date<input name="date" type="date" required min="1300-01-01" max="2500-12-31"></label>
-   <label>Birth Time<input name="time" type="time"></label>
+   <label>Birth Date<input name="date" type="date" autocomplete="off" data-form-type="other" required min="1300-01-01" max="2500-12-31"></label>
+   <label>Birth Time<input name="time" type="time" autocomplete="off" data-form-type="other"></label>
   </div>
   <label class="sr-tick"><input name="unknown" type="checkbox"> Birth Time Unknown</label>
   <label>Birthplace<input id="sr-bplace" placeholder="City, State or City, Country" aria-describedby="sr-bhelp"></label>
