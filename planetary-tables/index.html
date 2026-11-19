@@ -824,7 +824,9 @@ window.APP_GLYB=[[[-30.5,29.5,-37.5,38.5],[-30.5,30.3,-37.9,38.4],[-30.5,31.1,-3
    Planets take the element color of the sign they are in (the Color Rule).
 
    window.EAWheel.svg(chart, opts) returns an <svg> string.
-     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
+     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even, .asc, .mc)}
+       cusps.asc / cusps.mc: the true Ascendant and Midheaven. Where they are not the 1st and 10th cusps (Whole Sign, Equal) the
+       AS-DS and MC-IC axes are still drawn at their own degrees, with the arrowheads (Gemini, Nov 18, global)
      opts (all optional):
        planets  list of bodies to draw (default Sun..Pluto plus the true North and South Nodes; add Fortune, Spirit to show them; AS and MC are drawn from the cusps)
        chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
@@ -924,7 +926,10 @@ function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
- const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big;
+ const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big,
+  /* the axes to draw: the 1st and 10th cusps, or the true AS and MC given with the cusps (Whole Sign, Equal: Gemini, Nov 18, global) */
+  AXA=cu?(cu.asc!=null?cu.asc:angles?cu[1]:null):null,AXM=cu?(cu.mc!=null?cu.mc:angles?cu[10]:null):null,
+  dAx=(a,b)=>Math.abs(n360(a-b+180)-180),onAx=l=>[AXA,AXM].some(v=>v!=null&&(dAx(l,v)<1e-6||dAx(l,v+180)<1e-6));
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]};
  /* bezel 199..190, then the outer ring 190..168: the zodiac (style 'signs') or the house cusps (style 'houses', no sign ring);
     optional Decans and Bounds rings with their guides (13 each), then house cusp degree / sign / minutes on the wheel
@@ -973,7 +978,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
- if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
+ if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
    /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
        bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
@@ -984,7 +989,10 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    if(!NCB)h+=txd(T,opts,q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
   /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
-  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
+  /* an AS or MC axis that is not a cusp: its own line, across the planet zone and faintly out to the zodiac ring */
+  [AXA,AXA!=null?AXA+180:null,AXM,AXM!=null?AXM+180:null].forEach(l=>{if(l==null||!(cu.asc!=null||cu.mc!=null))return;if([1,4,7,10].some(i=>dAx(cu[i],l)<1e-6&&((angles&&!cu.even)||onAx(cu[i]))))return;
+   const a=xy(l,RP),b=xy(l,RI),a0=xy(l,R1);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.axis}" stroke-width="1.8"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="1.8" opacity=".35"/>`});
+  [[AXA,'AS'],[AXM,'MC']].forEach(([l,t])=>{if(l==null)return;const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
    h+=`<path d="M${f(tp[0])} ${f(tp[1])}L${f(bs[0]+nx)} ${f(bs[1]+ny)}L${f(bs[0]-nx)} ${f(bs[1]-ny)}Z" fill="${T.axis}"><title>${t}</title></path>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
@@ -1024,9 +1032,13 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    /* STELLIUM (Gemini, Nov 18, GLOBAL): a house too full to hold its planets (Venus at 4° Leo crowded against the 2nd cusp) grows into
       the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
       true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
-   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}return O.length?O:null};
+   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}
+    /* also too full when the glyphs only fit by sitting back on a cusp line (the last relax pass pushed one there; Leo, Nov 18) */
+    list.forEach(x=>{if(C.some(c=>Math.abs(dd(x.d,c))<m-.3))O.push(x)});return O.length?O:null};
    /* each try is scored by how much glyphs still overlap; the best try is the one drawn */
-   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));return t};let best=null;
+   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));list.forEach(x=>C.forEach(c=>{t+=Math.max(0,m-Math.abs(dd(x.d,c)))}));
+    /* and as few glyphs as possible moved out of their own house */
+    const hs=l=>{let b=-1,bd=361;C.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};list.forEach(x=>{if(hs(x.d)!==hs(x.l))t+=1});return t};let best=null;
    for(let tries=0;tries<=n;tries++){
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
@@ -1037,12 +1049,17 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     if(!moved)break}
    {const v=sc();if(!best||v<best.v-1e-6)best={v,ds:list.map(x=>x.d)}}
    const o=C.length&&n*gp<330&&opts.stellium!==false?over():null;if(!o)break;let flip=null;
-   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(Math.abs(dd(x.d,+c))-m)<.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
+   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(dd(x.d,+c))<m+.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
    if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}
-   if(best)list.forEach((x,i)=>{x.d=best.ds[i]})}
-  if(cu&&opts.stellium!==false&&list.length>2){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
+   if(best)list.forEach((x,i)=>{x.d=best.ds[i]});
+   /* a cusp push can jump a glyph past its neighbor; hand the drawn places back out in true zodiac order so glyphs never swap (Leo, Nov 18) */
+   if(best&&n>1){const cut=a=>{const B=a.slice().sort((p,q)=>p-q);let w=-1,wi=0;for(let i=0;i<B.length;i++){const g=n360(B[(i+1)%B.length]-B[i]);if(g>w){w=g;wi=(i+1)%B.length}}return B.slice(wi).concat(B.slice(0,wi))};
+    const L=list.slice().sort((p,q)=>p.l-q.l);let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(L[(i+1)%n].l-L[i].l);if(g>w){w=g;wi=(i+1)%n}}
+    const LO=L.slice(wi).concat(L.slice(0,wi)),D=cut(list.map(x=>n360(x.d)));let k0=0,bd=1e9;for(let k=0;k<n;k++){let t=0;LO.forEach((x,i)=>{t+=Math.abs(((D[(i+k)%n]-x.l+540)%360)-180)});if(t<bd){bd=t;k0=k}}
+    LO.forEach((x,i)=>{x.d=D[(i+k0)%n]})}}
+  if(cu&&opts.stellium!==false&&list.length>2){const mm={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
    const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
-   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){if(n360(S[i].d-S[i-1].d)<gap*1.35)G[G.length-1].push(S[i]);else G.push([S[i]])}
+   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){const sp=n360(S[i].d-S[i-1].d),cx=CS.some(c=>n360(c-S[i-1].d)<sp);if(sp<gap*1.35||(cx&&sp<gap+2*mm+.5))G[G.length-1].push(S[i]);else G.push([S[i]])}
    const rr=[[R.g,R.gs||17*GS],[R.d,R.ds],[R.s,R.ss],[R.m,R.ms]].filter(a=>a[0]&&a[1]),ro=Math.max(...rr.map(a=>a[0]+a[1]*.62)),ri0=Math.min(...rr.map(a=>a[0]-a[1]*.62));
    for(const g of G){if(g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
@@ -7018,7 +7035,7 @@ function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==
   else if(sys==='koch'){const dec=Math.asin(Math.sin(eps)*Math.sin(mc*R)),x=Math.max(-1,Math.min(1,Math.tan(phi)*Math.tan(dec))),dsa=90+Math.asin(x)/R;
    n[11]=ascAt(t-2*dsa/3);n[12]=ascAt(t-dsa/3);n[2]=ascAt(t+dsa/3);n[3]=ascAt(t+2*dsa/3)}
   n[4]=n360(n[10]+180);n[7]=n360(n[1]+180);n[5]=n360(n[11]+180);n[6]=n360(n[12]+180);n[8]=n360(n[2]+180);n[9]=n360(n[3]+180)}
- if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc}if(sys==='whole')n.even=true;return n}
+ if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc;n.asc=asc;n.mc=mc}if(sys==='whole')n.even=true;return n}  /* .asc/.mc: the shared wheel draws the AS and MC axes in Whole Sign and Equal (Gemini, Nov 19, global) */
 /* Painter: the Earth has its own switch (Wheel Display > Earth) and steps aside while the Time Machine plays faster than
    one day a step. In its place a silver ring of the same size, matching the zodiac rings. */
 /* Earth size (Wheel Display > Earth): Full fills the inner ring, Small sits in the middle of the inner circle with the
@@ -7029,7 +7046,7 @@ function earthShown(){return earthSize()==='full'}
 function earthRing(){return `<circle cx="400" cy="400" r="${EARTH_R}" fill="none" stroke="${SILVER.col}" stroke-width="${SILVER.w}"/>`}
 /* Painter: Natural Houses (Wheel Display). 0 degrees Aries sits on the 1st house cusp at the left, every house is one sign,
    so the zodiac holds still and the Earth turns on its tilted axis. AS and MC are not drawn (Gemini, Oct 24). */
-function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.noAngles=true;n.even=true;return n}
+function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.noAngles=true;n.even=true;if(h&&h[1]!=null){n.asc=h[1];n.mc=h[10]}return n}
 /* Earth Center: Earth radius, which is also the innermost ring (Gemini: Earth fills the inner ring, no circle around it).
    About halfway between the old 100 and the Archer's southernmost star (radius about 165). */
 const EARTH_R=136;
