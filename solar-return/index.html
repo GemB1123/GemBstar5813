@@ -116,6 +116,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 @keyframes srpop{0%{opacity:0}35%{opacity:1;filter:drop-shadow(0 0 7px #ffd98a)}100%{opacity:1;filter:none}}
 .sr-pop .sr-pins,.sr-pop .srg-pin>rect:last-of-type{animation:srpop 1.4s ease-out}
 @media (prefers-reduced-motion:reduce){.sr-pop .sr-pins,.sr-pop .srg-pin>rect:last-of-type{animation:none}}
+#sr-angles[aria-pressed=true]{background:var(--btn);color:var(--btnInk);border-color:var(--btn)}
 </style>
 </head><body>
 <main class="sr-app">
@@ -156,7 +157,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
  </form>
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
-  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the three strongest aspects">Strong Transits</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
+  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">Return Angles</button><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the three strongest aspects">Strong Transits</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
 <script>/* ---------- EA_JPL: the shared NASA JPL ephemeris (DE441) for every World and every app ----------
@@ -1016,7 +1017,7 @@ function earthImage(F,gm,sunL,sx,sy){const tex=earthTex(),TW=720,TH=360,n=300,C=
 function earthProj(F,lat,lon,Rd,any){const la=lat*R,dl=(lon-F.lon0)*R,cl=Math.cos(la),sa=Math.sin(la),c1=cl*Math.cos(dl),c2=cl*Math.sin(dl);
  const x=c1*F.ux+c2*F.ex+sa*F.ax,y=c1*F.uy+c2*F.ey+sa*F.ay,z=c1*F.uz+c2*F.ez+sa*F.az;const hid=F.south?z>=1e-3:z<=-1e-3;if(hid&&!any)return null;return [x*Rd,y*Rd,!hid]}
 let EU=0;
-function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=n360(C.sr.pos.Sun+(C.ayS||0)),rot=(C.unknownTime?0:(wcu(C).asc!=null?wcu(C).asc:wcu(C)[1]))+(C.natal&&C.natalCusps?C.ayB:C.ayS||0),
+function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=n360(C.sr.pos.Sun+(C.ayS||0)),rot=(C.unknownTime?0:(wcu(C).asc!=null?wcu(C).asc:wcu(C)[1]))+wca(C),
   a=(270-(sunL-rot))*R,sx=Math.sin(a),sy=-Math.cos(a),F=earthFrame(rot,gm,C.at.lat<0),k=r/66,sz=2*r/.98;
  const dot=(q,col,core,rr,gl,id)=>q?`<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".9"/><stop offset=".35" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(gl*k).toFixed(2)}" fill="url(#${id})"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(rr*k).toFixed(2)}" fill="${core}"/>`:'';
  /* the Sun: on the subsolar point, or its glow at the rim when that point is behind the Earth */
@@ -1057,7 +1058,9 @@ function crossAspects(C,pp){const sk=CFG.planets.filter(k=>k!=='SNode'&&!(k==='N
 const soloAspects=(C,pp)=>styleAsp(C,EAWheel.findAspects(pp,undefined,false),pp,A=>(EAWheel.ASPECTS.find(x=>x.angle===A.angle)||{orb:8}).orb);
 /* the biwheel sits in the BIRTH chart's houses and angles (Gemini, Nov 18: "I always use natal angles for solar return charts
    unless I am considering the return chart alone"); the return's Ascendant and Midheaven ride in the inner ring like planets */
-const wcu=C=>C.natal&&C.natalCusps?C.natalCusps:C.cusps;
+/* RETURN ANGLES (Gemini, Nov 18): the biwheel turns on the birth chart's angles and houses; the Return Angles button, or a click on the
+   Earth, spins the wheel to the Solar Return's Ascendant and lets the return's angles and houses take over; the second click turns it back */
+const natAng=C=>C.natal&&C.natalCusps&&!C.srAng,wcu=C=>natAng(C)?C.natalCusps:C.cusps,wca=C=>natAng(C)?C.ayB:(C.ayS||0);
 const angTxt=t=>`<text x="0" y="1" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="currentColor" stroke="none" font-family="Inter,system-ui,sans-serif">${t}</text>`;
 /* Aspect Grid (Gemini, Nov 18, after the Device's main grid): birth planets down the left, return planets across the top,
    major aspects only; hovering a cell lights its row and column back to both planets */
@@ -1108,6 +1111,10 @@ function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.
   A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,pf?0:1,tier===1||tier===2?oi:0,best.o]})}
  A.sort((x,y)=>{for(let i=0;i<5;i++)if(x.key[i]!==y.key[i])return x.key[i]-y.key[i];return 0});
  P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
+function toggleAngles(){const C=LAST;if(!C||!C.natal||!C.natalCusps||C.unknownTime)return;const rot0=wcu(C)[1]+wca(C);C.srAng=!C.srAng;const rot1=wcu(C)[1]+wca(C);render(C);
+ /* spin from the old Ascendant to the new one */
+ const sv=document.querySelector('#sr-stage .sr-wheel svg');if(!sv||matchMedia('(prefers-reduced-motion:reduce)').matches||!sv.animate)return;const dlt=((rot1-rot0)%360+540)%360-180;
+ sv.style.transformOrigin='50% 50%';sv.animate([{transform:`rotate(${-dlt}deg)`},{transform:'rotate(0deg)'}],{duration:1400,easing:'cubic-bezier(.45,0,.2,1)'})}
 /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
 const hlLine=(a,b,col)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffe9a8" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/>`
   +[a,b].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}" stroke="#ffe9a8" stroke-width="1"/>`).join('');
@@ -1126,13 +1133,13 @@ function gridHover(svg,e){const hl=svg.querySelector('.srg-hl');if(!hl)return;co
  const s=44,r=+c.dataset.r,k=+c.dataset.c,x=(k+1)*s,y=(r+1)*s,a='fill="#ffd98a" fill-opacity=".1" stroke="#ffd98a" stroke-opacity=".55"';
  hl.innerHTML=`<rect x="${x}" y="0" width="${s}" height="${y+s}" ${a}/><rect x="0" y="${y}" width="${x+s}" height="${s}" ${a}/><rect x="${x}" y="${y}" width="${s}" height="${s}" fill="#ffd98a" fill-opacity=".22" stroke="#ffd98a" stroke-width="2.4"/>`}
 function wheelSVG(C,theme){usedCols=new Set();
- const RA=C.natal&&C.natalCusps&&!C.unknownTime;
+ const RA=natAng(C)&&!C.unknownTime,BA=C.natal&&C.natalCusps&&C.srAng&&!C.unknownTime;
  /* biwheel (Gemini, Nov 18): the birth chart is the inner wheel in silver, the Solar Return rides outside in gold with its AS and MC */
  const srOut=RA?Object.assign({},C.sr.pos,{'Return AS':C.cusps.asc!=null?C.cusps.asc:C.cusps[1],'Return MC':C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}):C.sr.pos,
   silver=theme==='dark'?CFG.ringColor:'#4b5563',gold=theme==='dark'?'#f5c35c':'#8a6418';
- let s=EAWheel.svg(C.natal?{pos:C.birth.pos,ret:C.birth.ret,cusps:C.unknownTime?null:wcu(C),label:'Birth',rings:[{pos:srOut,ret:C.sr.ret,label:'Solar Return '+C.year,color:gold}]}
+ let s=EAWheel.svg(C.natal?{pos:BA?Object.assign({},C.birth.pos,{'Birth AS':C.natalCusps.asc!=null?C.natalCusps.asc:C.natalCusps[1],'Birth MC':C.natalCusps.mc!=null?C.natalCusps.mc:C.natalCusps[10]}):C.birth.pos,ret:C.birth.ret,cusps:C.unknownTime?null:wcu(C),label:'Birth',rings:[{pos:srOut,ret:C.sr.ret,label:'Solar Return '+C.year,color:gold}]}
    :{pos:C.sr.pos,ret:C.sr.ret,cusps:C.unknownTime?null:wcu(C),label:'Solar Return '+C.year},
-  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp),planetColors:Object.fromEntries(CFG.planets.map(k=>[k,silver])),shiny:false}:{aspects:pp=>soloAspects(C,pp)}),earthSVG:r=>earthSVG(C,r),glyph:k=>k==='Return AS'?angTxt('AS'):k==='Return MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
+  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:BA?['Birth AS','Birth MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp),planetColors:Object.fromEntries(CFG.planets.concat(['Birth AS','Birth MC']).map(k=>[k,silver])),shiny:false}:{aspects:pp=>soloAspects(C,pp)}),earthSVG:r=>(C.natal&&C.natalCusps&&!C.unknownTime?'<g class="sr-earthbtn" style="cursor:pointer"><title>Click the Earth to switch between the birth and Solar Return angles</title>':'<g>')+earthSVG(C,r)+'</g>',glyph:k=>k==='Return AS'||k==='Birth AS'?angTxt('AS'):k==='Return MC'||k==='Birth MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
    label:`Solar Return ${C.year}${C.name?' for '+C.name:''}`}));   /* dark: the shared Chart Look (Wheel Style, Wheel, Planet and Sign Colors) on top */
  const defs='<defs>'+[...usedCols].map(c=>`<filter id="${fid(c)}" color-interpolation-filters="sRGB"><feFlood flood-color="${c}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`).join('')+'</defs>';
  if(C.prof){const rot=wcu(C)?wcu(C)[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},a0=C.prof.sign*30,a1=a0+30,r0=167,r1=191,P=[xy(a0,r1),xy(a1,r1),xy(a1,r0),xy(a0,r0)].map(p=>p.map(v=>v.toFixed(2)));
@@ -1142,7 +1149,7 @@ function wheelSVG(C,theme){usedCols=new Set();
  /* the sky behind the chart (Gemini, Nov 18, trial): the Device's star field, Milky Way and zodiac constellations (window.APP_SKY,
     an ecliptic-pole map 914 px wide, centered 452,450, the ecliptic at r 279) turned with the zodiac and kept faint under the planets */
  let sky='';const K=window.APP_SKY;
- if(K&&C.sky&&theme==='dark'){const rot=(wcu(C)?wcu(C)[1]:0)+(C.natal&&C.natalCusps?C.ayB:C.ayS||0),k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
+ if(K&&C.sky&&theme==='dark'){const rot=(wcu(C)?wcu(C)[1]:0)+wca(C),k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
   sky=`<g class="sr-sky" pointer-events="none"><defs><clipPath id="srsk"><circle r="${SKY.clip}"/></clipPath></defs><g clip-path="url(#srsk)"><g transform="rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
    +(co?`<g opacity="${SKY.con}">${K.LINES}</g>`:'')+'</g></g></g>'}
@@ -1198,13 +1205,14 @@ function placeNatal(){const st=$('#sr-stage'),n=st&&st.querySelector('.sr-natal'
  const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect();if(nr.right+16>hr.left||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
 addEventListener('resize',()=>{if(LAST)placeNatal()});
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
-const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
+const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?[C.srAng?'Solar Return Houses':'Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
 /* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||C.view==='both')?C.view:'wheel';
  st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
   +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div></div>`;placeNatal();
  const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('.srg-c[data-pk]');if(!c||!LAST)return;const k=c.dataset.pk;LAST.pins.has(k)?LAST.pins.delete(k):LAST.pins.add(k);render(LAST)});
   gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML='';wheelHL(null)})}
+ const ab=$('#sr-angles');if(ab){ab.hidden=!(C.natal&&C.natalCusps&&!C.unknownTime);ab.setAttribute('aria-pressed',C.srAng?'true':'false')}
  const sb=$('#sr-strong');if(sb){sb.hidden=!C.natal;sb.setAttribute('aria-pressed',C.strong?'true':'false')}
  if(C.pop){C.pop=false;const cd=st.querySelector('.sr-card');if(cd){cd.classList.add('sr-pop');setTimeout(()=>cd.classList.remove('sr-pop'),1600)}}
  const gv=$('#sr-views');if(gv){gv.hidden=!C.natal;gv.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===V?'true':'false'))}
@@ -1297,12 +1305,13 @@ function setup(){const f=$('#sr-form');if(!f)return;
  ['theme','houses','zodiac','natal','sky'].forEach(k=>f[k].addEventListener('change',async()=>{document.documentElement.dataset.look=f.theme.value;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});if(!LAST)return;
   /* a new house system or zodiac casts the same chart again (the return moment moves in a sidereal zodiac) */
-  if(LAST.houseSys!==f.houses.value||LAST.zodiac!==f.zodiac.value){const v=LAST.view,pins=LAST.pins,sg=LAST.strong;try{await cast(Object.assign({},LAST.opts,{houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value}));LAST.view=v;LAST.pins=pins;LAST.strong=sg;render(LAST)}catch(e){$('#sr-msg').textContent=e.message}return}
+  if(LAST.houseSys!==f.houses.value||LAST.zodiac!==f.zodiac.value){const v=LAST.view,pins=LAST.pins,sg=LAST.strong,sa=LAST.srAng;try{await cast(Object.assign({},LAST.opts,{houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value}));LAST.view=v;LAST.pins=pins;LAST.strong=sg;LAST.srAng=sa;render(LAST)}catch(e){$('#sr-msg').textContent=e.message}return}
   LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value==='off'?'':f.sky.value;render(LAST)}));
  $('#sr-png').onclick=()=>download('png').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-wide').onclick=()=>download('png','wide').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-jpg').onclick=()=>download('jpeg').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-copy').onclick=()=>copyImage().then(()=>$('#sr-msg').textContent='Copied.').catch(()=>$('#sr-msg').textContent='This browser blocked Copy; use Save As PNG.');
+ {const st=$('#sr-stage');if(st)st.addEventListener('click',e=>{const eb=st.querySelector('.sr-earthbtn');if(!eb||(e.target.closest&&e.target.closest('.eawp,.srg-c,.srg-h')))return;const r=eb.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);if(Math.hypot(dx,dy)<=r.width/2)toggleAngles()});   /* by position: aspect lines run over the Earth */const ab=$('#sr-angles');if(ab)ab.onclick=toggleAngles}
  /* Strong Transits: on opens the grid (Wheel And Grid unless the grid alone is showing) and lights the Solar Return plus the three
     strongest; off lets them go (pins of your own stay) */
  {const sb=$('#sr-strong');if(sb)sb.onclick=()=>{if(!LAST||!LAST.natal)return;const S=autoPins(LAST);
