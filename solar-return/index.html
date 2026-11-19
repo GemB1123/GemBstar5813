@@ -245,7 +245,7 @@ body.eawz .sr-wheel svg.eaw{touch-action:none!important}
 body.eawz .sr-stage,body.eawz .sr-right,body.eawz .sr-card,body.eawz .sr-wheel{overflow:visible}
 /* nothing may be wider than the screen (Gemini, Nov 19, iPhone in the chartsong.com frame): iPhones widen a frame to its widest content,
    and the sky image behind the wheel reaches past the wheel's edge before it is clipped */
-html,body{max-width:100%;overflow-x:hidden}
+html{max-width:100%;overflow-x:hidden}body{max-width:100%;overflow-x:clip}   /* only html may be "hidden": with both, the body becomes its own scroller and the page can no longer be scrolled to the top */
 .sr-wheel svg{overflow:hidden}
 .sr-sky{contain:paint}
 </style>
@@ -1333,8 +1333,9 @@ const WIDE=()=>typeof matchMedia!=='undefined'&&matchMedia('(min-width:800px)').
 const PHONE=()=>typeof matchMedia!=='undefined'&&matchMedia('(max-width:640px)').matches;
 const smooth=()=>matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
 function toChart(){const a=document.activeElement;if(a&&a.blur&&a!==document.body&&a.id!=='sr-stage')a.blur();
- const go=()=>{const t=$('.sr-right').getBoundingClientRect().top+scrollY;scrollTo({top:Math.max(0,t),behavior:smooth()})};
- requestAnimationFrame(()=>requestAnimationFrame(go));setTimeout(go,400);try{if(parent!==window)parent.postMessage('sr-top','*')}catch(e){}}
+ /* snap to the very top of the page (Gemini, Nov 19): an instant jump, repeated after the phone keyboard has closed, since iPhones drop a scroll made while it is still shrinking away */
+ const go=()=>{scrollTo(0,0);const se=document.scrollingElement||document.documentElement;se.scrollTop=0;document.body.scrollTop=0};
+ go();requestAnimationFrame(()=>requestAnimationFrame(go));[150,450,900].forEach(ms=>setTimeout(go,ms));try{if(parent!==window)parent.postMessage('sr-top','*')}catch(e){}}
 /* ---------- TIME LORDS (Gemini, Nov 19) ----------
    Three lords of the year, listed at the wheel's lower right: the Annual Profection (sign and Guide), the Return Ascendant (sign and
    Guide), and the return's planetary day and hour. The Time Lords pill picks one (Profection by default): its sign lights on the zodiac
