@@ -331,9 +331,11 @@ window.EA_CHARTS=API})();
    Planets take the element color of the sign they are in (the Color Rule).
 
    window.EAWheel.svg(chart, opts) returns an <svg> string.
-     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
+     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even, .asc, .mc)}
+       cusps.asc / cusps.mc: the true Ascendant and Midheaven. Where they are not the 1st and 10th cusps (Whole Sign, Equal) the
+       AS-DS and MC-IC axes are still drawn at their own degrees, with the arrowheads (Gemini, Nov 18, global)
      opts (all optional):
-       planets  list of bodies to draw (default Sun..Pluto; add Node, SNode, Fortune, Spirit to show them; AS and MC are drawn from the cusps)
+       planets  list of bodies to draw (default Sun..Pluto plus the true North and South Nodes; add Fortune, Spirit to show them; AS and MC are drawn from the cusps)
        chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
        glyph    k => inner SVG of a planet glyph in a -15..15 box, stroked with currentColor (Device: PLG)
        sign     (i,x,y,size,color) => SVG of sign glyph i (Device: agSvg, Ana's glyphs)
@@ -386,7 +388,7 @@ const BND={egyptian:BT.flatMap((s,i)=>s.map(([g,e],j)=>[g,i*30+(j?s[j-1][1]:0),i
  ptolemaic:PT.split('|').flatMap((x,i)=>{let a=i*30;return x.split(' ').map(t=>{const e=a+ +t.slice(2),r=[AB[t.slice(0,2)],a,e];a=e;return r})})};
 const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓'],PGT={Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄',Uranus:'♅',Neptune:'♆',Pluto:'♇',Node:'☊',SNode:'☋',Fortune:'⊗',Spirit:'⊕'};
 /* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
-const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
+const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];   /* Gemini, Nov 18 (global): both TRUE Nodes on by default (apps pass true-node longitudes; hide via opts.planets); Fortune and Spirit stay off */
 const THEMES={
  light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
  dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
@@ -431,7 +433,10 @@ function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
- const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big;
+ const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big,
+  /* the axes to draw: the 1st and 10th cusps, or the true AS and MC given with the cusps (Whole Sign, Equal: Gemini, Nov 18, global) */
+  AXA=cu?(cu.asc!=null?cu.asc:angles?cu[1]:null):null,AXM=cu?(cu.mc!=null?cu.mc:angles?cu[10]:null):null,
+  dAx=(a,b)=>Math.abs(n360(a-b+180)-180),onAx=l=>[AXA,AXM].some(v=>v!=null&&(dAx(l,v)<1e-6||dAx(l,v+180)<1e-6));
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]};
  /* bezel 199..190, then the outer ring 190..168: the zodiac (style 'signs') or the house cusps (style 'houses', no sign ring);
     optional Decans and Bounds rings with their guides (13 each), then house cusp degree / sign / minutes on the wheel
@@ -441,7 +446,20 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const glyph=opts.glyph,sign=opts.sign,ink=T.ink;
  const sg=(i,x,y,sz,col)=>sign?sign(i,x,y,sz,col):`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${SGN[i]}︎</text>`;
  const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col.startsWith('url')?T.gold:col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
- const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
+ /* degree numbers (Gemini, Nov 18, global, from the Solar Return applet): sized to the sign glyphs beside them (opts.degScale, default .8 of the
+   old size) and one weight lighter; planet degrees (dg) are white on a dark wheel, not the cream of the angle lines, with a thin halo in the
+   wheel's background so a cusp or angle line under them never hides them (opts.degHalo:false turns the halo off) */
+const txd=(T,o,s,x,y,sz,col,w,dg)=>{const k=o.degScale==null?.8:o.degScale,c=dg&&col===T.ink&&o.theme==='dark'?'#ffffff':col;
+ const t=tx(s,x,y,f(sz*k),c,w?w-100:w);return dg&&o.degHalo!==false?t.replace('<text ',`<text stroke="${T.bg}" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke" `):t};
+/* aspect lines (Gemini, Nov 19, every chart; the Solar Return's style): the tighter the orb the thicker the line, an aspect between the
+   right signs (a trine from Pisces to Scorpio) heavier than one across a sign line; trines and sextiles in the water signs' blue, squares and
+   oppositions in the fire signs' red, taken from the wheel. opts.aspectStyle:'plain' keeps an app's own colors and widths; an aspect that
+   already carries a width keeps it */
+const ASPC={dark:{60:'#6f78d6',120:'#6f78d6',90:'#cc5a4e',180:'#cc5a4e'},light:{60:'#33408f',120:'#33408f',90:'#a8382f',180:'#a8382f'}};
+function aspStyle(A,pp,dark){const pa=pp[A.a],pb=pp[A.b];if(pa==null||pb==null)return A;const ang=+A.angle,sep=Math.abs(((pa-pb)%360+540)%360-180),orb=A.orb!=null?+A.orb:Math.abs(sep-ang);
+ const D=ASPECTS.find(x=>x.angle===ang),mx=A.maxOrb||(D&&D.orb)||8,t=Math.max(0,1-orb/mx),d=((Math.floor(n360(pa)/30)-Math.floor(n360(pb)/30))%12+12)%12,k=Math.round(ang/30)%12,ins=d===k||d===(12-k)%12;
+ const c=ASPC[dark?'dark':'light'][ang];if(c&&!A.minor)A.color=c;if(A.width==null)A.width=(A.minor?.35+.9*t:.45+1.75*t)*(ins?1:.55);A.inSign=ins;return A}
+const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
  /* the bezel's lightest side faces the Sun, so the day and night sides of the chart read at a glance (Gemini, Nov 13) */
@@ -467,15 +485,22 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
- if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
+ if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
-   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp=hs?4.2:4.4,q=dms(cu[i]),pd=xy(cu[i]-sp,rc),
+   /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
+       bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
+   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp0=hs?4.2:4.4,q=dms(cu[i]),e0=xy(cu[i]-sp0,rc),e1=xy(cu[i]+sp0,rc),dx=e1[0]-e0[0],dy=e1[1]-e0[1],sp=(Math.abs(dx)>=Math.abs(dy)?dx<0:dy<0)?-sp0:sp0,pd=xy(cu[i]-sp,rc),
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
-   if(!NCB)h+=tx(q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
+   if(!NCB)h+=txd(T,opts,q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
-  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const o=xy(l,RP-4);h+=`<circle cx="${f(o[0])}" cy="${f(o[1])}" r="3.2" fill="${T.axis}"/>`})}
+  /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
+  /* an AS or MC axis that is not a cusp: its own line, across the planet zone and faintly out to the zodiac ring */
+  [AXA,AXA!=null?AXA+180:null,AXM,AXM!=null?AXM+180:null].forEach(l=>{if(l==null||!(cu.asc!=null||cu.mc!=null))return;if([1,4,7,10].some(i=>dAx(cu[i],l)<1e-6&&((angles&&!cu.even)||onAx(cu[i]))))return;
+   const a=xy(l,RP),b=xy(l,RI),a0=xy(l,R1);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.axis}" stroke-width="1.8"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="1.8" opacity=".35"/>`});
+  [[AXA,'AS'],[AXM,'MC']].forEach(([l,t])=>{if(l==null)return;const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
+   h+=`<path d="M${f(tp[0])} ${f(tp[1])}L${f(bs[0]+nx)} ${f(bs[1]+ny)}L${f(bs[0]-nx)} ${f(bs[1]-ny)}Z" fill="${T.axis}"><title>${t}</title></path>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
  const pm=opts.planetColors||T.pcol||'gold',shiny=pm==='gold'&&opts.shiny!==false,col=k=>pm==='gold'?T.gold:pm==='planet'?((C.pl&&C.pl[k])||T.pl[k]||T.gold):typeof pm==='object'?(pm[k]||T.gold):T.el[Math.floor(n360(P[k])/30)%4];
@@ -494,6 +519,13 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
   const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  /* opts.glyphScale (Solar Return, Gemini Nov 18: "everything smaller for breathing room"; default .85 for every chart, global) shrinks glyphs, numbers and ticks;
+     opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
+     stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
+  const GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(nb>1?5:6.5)*GS;
+  if(GS!==1)for(const k of ['gs','ds','ss','ms'])if(R[k])R[k]*=GS;
+  if(GS!==1&&!R.gs)R.gs=17*GS;
+  if(inv)for(const k of ['g','d','s','m'])if(R[k])R[k]=tb+(t-R[k]);
   /* spacing (Gemini, Nov 16: as close as possible without overlap, so a conjunction still looks like one): the widest piece of the
      glyph stack, measured as an angle at its own radius, plus a hair; inner rings sit at a smaller radius so they get more */
   const GW=[[R.gs||17,R.g,1.05],[R.ds,R.d,1.6],[R.ss,R.s,1.05],[R.ms,R.m,1.7]].filter(a=>a[0]&&a[1]).map(([z,r,w])=>z*w/r*57.3),gap=mode==='big'?GAP.big:Math.max(...GW)+.6;
@@ -504,23 +536,51 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
   /* then relax: cusps push glyphs off their lines and glyphs push each other apart again, so moving off a cusp never lands a glyph
      on its neighbour (Gemini, Nov 16: natal Sun and Uranus overlapped on a biwheel) */
   {const gp=gap,m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
+   /* STELLIUM (Gemini, Nov 18, GLOBAL): a house too full to hold its planets (Venus at 4° Leo crowded against the 2nd cusp) grows into
+      the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
+      true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
+   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}
+    /* also too full when the glyphs only fit by sitting back on a cusp line (the last relax pass pushed one there; Leo, Nov 18) */
+    list.forEach(x=>{if(C.some(c=>Math.abs(dd(x.d,c))<m-.3))O.push(x)});return O.length?O:null};
+   /* each try is scored by how much glyphs still overlap; the best try is the one drawn */
+   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));list.forEach(x=>C.forEach(c=>{t+=Math.max(0,m-Math.abs(dd(x.d,c)))}));
+    /* and as few glyphs as possible moved out of their own house */
+    const hs=l=>{let b=-1,bd=361;C.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};list.forEach(x=>{if(hs(x.d)!==hs(x.l))t+=1});return t};let best=null;
+   for(let tries=0;tries<=n;tries++){
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
      if(!x.cs){let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}x.cs={};x.cs[c]=sg}
      const sg=(x.cs[c]!=null?x.cs[c]:(x.cs[c]=Math.sign(e)||1));x.d=n360(c+sg*m);moved=true}});
     const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));
     for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
-    if(!moved)break}}
+    if(!moved)break}
+   {const v=sc();if(!best||v<best.v-1e-6)best={v,ds:list.map(x=>x.d)}}
+   const o=C.length&&n*gp<330&&opts.stellium!==false?over():null;if(!o)break;let flip=null;
+   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(dd(x.d,+c))<m+.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
+   if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}
+   if(best)list.forEach((x,i)=>{x.d=best.ds[i]});
+   /* a cusp push can jump a glyph past its neighbor; hand the drawn places back out in true zodiac order so glyphs never swap (Leo, Nov 18) */
+   if(best&&n>1){const cut=a=>{const B=a.slice().sort((p,q)=>p-q);let w=-1,wi=0;for(let i=0;i<B.length;i++){const g=n360(B[(i+1)%B.length]-B[i]);if(g>w){w=g;wi=(i+1)%B.length}}return B.slice(wi).concat(B.slice(0,wi))};
+    const L=list.slice().sort((p,q)=>p.l-q.l);let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(L[(i+1)%n].l-L[i].l);if(g>w){w=g;wi=(i+1)%n}}
+    const LO=L.slice(wi).concat(L.slice(0,wi)),D=cut(list.map(x=>n360(x.d)));let k0=0,bd=1e9;for(let k=0;k<n;k++){let t=0;LO.forEach((x,i)=>{t+=Math.abs(((D[(i+k)%n]-x.l+540)%360)-180)});if(t<bd){bd=t;k0=k}}
+    LO.forEach((x,i)=>{x.d=D[(i+k0)%n]})}}
+  if(cu&&opts.stellium!==false&&list.length>2){const mm={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
+   const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
+   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){const sp=n360(S[i].d-S[i-1].d),cx=CS.some(c=>n360(c-S[i-1].d)<sp);if(sp<gap*1.35||(cx&&sp<gap+2*mm+.5))G[G.length-1].push(S[i]);else G.push([S[i]])}
+   const rr=[[R.g,R.gs||17*GS],[R.d,R.ds],[R.s,R.ss],[R.m,R.ms]].filter(a=>a[0]&&a[1]),ro=Math.max(...rr.map(a=>a[0]+a[1]*.62)),ri0=Math.min(...rr.map(a=>a[0]-a[1]*.62));
+   for(const g of G){if(g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
+    const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
+    h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
   const cf=main?col:()=>ci,sh=main&&shiny;
-  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),t1=xy(x.l,t-2.5),rx=RXp[x.k];
+  list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
-   {const k0=xy(x.l,t),k1=xy(x.l,t-(nb>1?5:6.5)),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${nb>1?1.4:1.8}" stroke-linecap="round"/>`}
-   if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g+(mode==='full'||mode==='big'?10:7)),t2=xy(x.l,t-(nb>1?5:6.5));h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-   const g=xy(x.d,R.g),gs=R.gs||17;
+   {const k0=xy(x.l,tb),k1=xy(x.l,tb+sd*TL),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${f((nb>1?1.4:1.8)*(.4+.6*GS))}" stroke-linecap="${opts.ticksOnDivider!==false&&nb>1?'butt':'round'}"/>`}
+   if(Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=xy(x.d,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   const g=xy(x.d,R.g),gs=R.gs||17*GS;
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=tx(q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700)}
+   if(mode==='full'){const d=xy(x.d,R.d),s2=xy(x.d,R.s),m=xy(x.d,R.m);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=xy(x.d,R.d),s2=xy(x.d,R.s);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false,i+1)});
@@ -531,7 +591,8 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
  h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
-  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
+  if(opts.aspectStyle!=='plain')aspStyle(A,pp,opts.theme==='dark');
+  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${f((A.width!=null?A.width:A.minor?.6:1.1)*(big?1.4:1))}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
@@ -1025,7 +1086,20 @@ function sgBuild(G,pl,ds){let body='';try{body={tonight:tonightHTML,moon:moonHTM
  return head('gaze','Stargazer','not assigned')+whereHTML(pl,ds)+`<div class="segs stgtabs" role="tablist">${SG_TABS.map(([k,t])=>`<button class="seg ${G.tab===k?'on':''}" role="tab" aria-selected="${G.tab===k}" data-act="stgtab" data-id="${k}">${t}</button>`).join('')}</div>`+body}
 
 /* ================= round two (Gemini, Nov 7): sky events, heliacal phases, occultations, eclipses ================= */
-const EPH=()=>window.EA_EPH;
+/* Sun and Moon readouts prefer the shared NASA JPL DE441 ephemeris (EA_JPL); when a century isn't loaded yet they fall back to sgeph's Meeus math.
+   Eclipse searches inside sgeph stay on its own fast series (checked against NASA to seconds) and only the readouts and rise/set use JPL. */
+const AU_KM=149597870.7;let sgEphW=null;
+const sgJ=(n,jd,o)=>{const J=window.EA_JPL;if(!J||!J.body)return null;try{return J.body(n,jd,Object.assign({speed:false},o||{}))}catch(e){return null}};
+const sgRD=(b,r)=>{const km=b.dist*AU_KM;return {ra:b.ra,dec:b.dec,dist:km,sd:Math.asin(r/km)*180/Math.PI}};
+const EPH=()=>{const B=window.EA_EPH;if(!B)return B;if(sgEphW&&sgEphW.__b===B)return sgEphW;
+ sgEphW=Object.assign(Object.create(B),{__b:B,
+  moon:jd=>{const b=sgJ('Moon',jd);return b?{lon:b.lon,lat:b.lat,dist:b.dist*AU_KM}:B.moon(jd)},
+  sun:jd=>{const b=sgJ('Sun',jd);return b?{lon:b.lon,lat:b.lat,dist:b.dist}:B.sun(jd)},
+  moonGeo:jd=>{const b=sgJ('Moon',jd);return b?sgRD(b,1737.4):B.moonGeo(jd)},
+  sunGeo:jd=>{const b=sgJ('Sun',jd);return b?sgRD(b,696000):B.sunGeo(jd)},
+  moonTopo:(jd,lat,lon)=>{const b=sgJ('Moon',jd,{topo:{lat,lon}});return b?sgRD(b,1737.4):B.moonTopo(jd,lat,lon)},
+  sunTopo:(jd,lat,lon)=>{const b=sgJ('Sun',jd,{topo:{lat,lon}});return b?sgRD(b,696000):B.sunTopo(jd,lat,lon)}});
+ return sgEphW};
 const PLN5=['Mercury','Venus','Mars','Jupiter','Saturn'],PLN_ALL=['Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune'];
 const dateOfMs=(ms,pl)=>{const p=parts(ms,pl.tz);return p.y+'-'+p2(p.m)+'-'+p2(p.d)};
 const shortDate=(ms,pl)=>{const p=parts(ms,pl.tz);return MON[p.m-1].slice(0,3)+' '+p.d+(p.y!==+sgDate(pl).slice(0,4)?', '+p.y:'')};
@@ -1112,14 +1186,14 @@ function occHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),d
  return `<div class="segs">${[[30,'Next 30 Days'],[90,'Next 3 Months'],[365,'Next 12 Months']].map(([v,t])=>`<button class="seg ${days===v?'on':''}" data-act="stgoccdays" data-id="${v}">${t}</button>`).join('')}</div>${geoToggle()}
  <div class="cap">THE MOON IN FRONT OF PLANETS AND STARS, ${G.geo?'SEEN FROM THE EARTH’S CENTER (TIMES IN '+esc((pl.tz||'UTC').toUpperCase())+')':'SEEN FROM '+esc(pl.label.toUpperCase())}</div>${L.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Hidden</th><th scope="col">Disappears</th><th scope="col">Reappears</th><th scope="col">Moon Lit</th><th scope="col">Sky</th></tr></thead><tbody>${lr}</tbody></table></div>`:`<p>No lunar occultations of planets or stars brighter than magnitude 4 from here in this span.</p>`}
  <div class="cap">PLANETS IN FRONT OF STARS AND EACH OTHER, NEXT 12 MONTHS</div>${C.length?`<div class="stgtbl"><table><thead><tr><th scope="col">Date</th><th scope="col">Pair</th><th scope="col">Closest</th></tr></thead><tbody>${cr}</tbody></table></div>`:'<p>No planet comes within half a degree of a bright star or another planet in the next twelve months.</p>'}
- <small class="note">Lunar occultations use a precise Moon (the published ELP-2000/82 main terms) seen from this exact place, so times are good to about a minute. Topocentric is what you see from this place; Geocentric is the view from the Earth’s center, the reference astrologers and almanacs use, where the Moon sits up to a degree away from where you see it, so many occultations differ. Grey rows happen with the Moon below the horizon here. A planet passing in front of a star or another planet is very rare; closer than half a degree is listed, and the planets’ positions are approximate until the full ephemeris arrives.</small>`}
+ <small class="note">Lunar occultations use the Moon from NASA JPL’s DE441 ephemeris seen from this exact place, so times are good to about a minute. Topocentric is what you see from this place; Geocentric is the view from the Earth’s center, the reference astrologers and almanacs use, where the Moon sits up to a degree away from where you see it, so many occultations differ. Grey rows happen with the Moon below the horizon here. A planet passing in front of a star or another planet is very rare; closer than half a degree is listed.</small>`}
 /* ---- tab: Eclipses, with local animation ---- */
 function eclHTML(){const G=sgS(),pl=sgPlace(),ds=sgDate(pl),t0=midnight(ds,pl),L=eclList(t0,3*365.25,pl),fm=jd=>{const ms=msOfJd(jd);return shortDate(ms,pl)+' '+hm(ms,pl)};
  const rows=L.map((e,i)=>{let here;if(e.solar){const l=e.local;here=!l?'Not seen from here':l.below?'Below the horizon here':`<b>${ECL_NAME[l.kind]} here</b>, ${Math.round(l.obs*100)}% of the Sun covered at ${hm(msOfJd(l.max),pl)}${l.c2?`, ${Math.round((l.c3-l.c2)*1440*60/60)} min ${Math.round(((l.c3-l.c2)*86400)%60)} s of ${l.kind==='total'?'totality':'annularity'}`:''}${l.altMax<5?' (Sun low)':''}`}
   else here=!e.moonUp?'Moon below the horizon here':e.moonMax>0?`Seen from here, Moon ${Math.round(e.moonMax)}° up at greatest`:(e.moonEnd>0?'The Moon rises during the eclipse here; the later stages are seen':'The Moon sets during the eclipse here; the early stages are seen');
   return `<tr><td>${go(e.solar&&e.local&&e.local.max?msOfJd(e.local.max):msOfJd(e.jd),e.solar?'Sun':'Moon',0,fm(e.jd))}</td><th scope="row">${ECL_NAME[e.type]} ${e.solar?'Solar':'Lunar'}</th><td>${here}<div class="btns"><button data-act="stgeclw" data-id="${i}:here">Watch From Here</button><button data-act="stgeclw" data-id="${i}:best">Watch From Where It’s ${e.solar?(e.type==='partial'?'Greatest':'Most '+ECL_NAME[e.type]):'Highest'}</button></div></td></tr>`}).join('');
  sgEclCache={L,pl};return `${geoToggle()}<div id="stg-anim">${G.anim?animHTML():''}</div><div class="cap">ECLIPSES, NEXT 3 YEARS</div><div class="stgtbl"><table><thead><tr><th scope="col">Greatest</th><th scope="col">Eclipse</th><th scope="col">From ${esc(pl.label)}</th></tr></thead><tbody>${rows}</tbody></table></div>
- <small class="note">Computed from a precise Moon and Sun (Meeus, ELP-2000/82 terms) with the Earth’s shape, checked against NASA for the April 8, 2024 and August 2, 2027 eclipses (within seconds of their times). Topocentric and Geocentric change the animations of solar eclipses (from the Earth’s center the Moon often misses the Sun); a lunar eclipse looks the same from everywhere the Moon is up. The full Eclipse menu with maps, paths, Saros and Inex will be its own World.</small>`}
+ <small class="note">Eclipse times are found with a precise Moon and Sun series and the Earth’s shape, checked against NASA for the April 8, 2024 and August 2, 2027 eclipses (within seconds of their times). Local heights and animations use NASA JPL’s DE441 ephemeris. Topocentric and Geocentric change the animations of solar eclipses (from the Earth’s center the Moon often misses the Sun); a lunar eclipse looks the same from everywhere the Moon is up. The full Eclipse menu with maps, paths, Saros and Inex will be its own World.</small>`}
 let sgEclCache=null;
 /* the stars around an eclipse (Show Stars): stars to magnitude 5 and the Device's constellation figures, precessed once per eclipse */
 let sgAnimSky=null;
@@ -1267,7 +1341,7 @@ function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=E
  <div class="stgmoon">${moonFace(D.el,pl.lat<0)}<div><div class="stgmph">${ph.name}${ph.alt?` <small>(${ph.alt})</small>`:''}</div>
  <div>${Math.round(D.ill*100)}% lit · ${age.toFixed(1)} days old · ${SG_SIGNS[sg]} ${dms(inS)}</div>
  <div class="segs" role="group" aria-label="Phase system">${Object.keys(SG_MPH).map(k=>`<button class="seg ${(G.mph||'p12')===k?'on':''}" data-act="stgmph" data-id="${k}" aria-pressed="${(G.mph||'p12')===k}">${SG_MPH[k].t}</button>`).join('')}</div>
- <small class="note">${ph.name} runs from ${Math.round(ph.lo)}° to ${Math.round(ph.hi)}° of phase angle.${(G.mph||'p12')==='p12'?' Earthstrology Method names (Wild Meadow) in brackets.':(G.mph||'p12')==='p8'?' Rudhyar\u2019s names in brackets.':' Phased systems center each phase on its exact aspect.'}</small></div></div>
+ <small class="note">${ph.name} runs from ${Math.round(ph.lo)}° to ${Math.round(ph.hi)}° of phase angle.${(G.mph||'p12')==='p12'?' Earthstrology names (Wild Meadow) in brackets.':(G.mph||'p12')==='p8'?' Rudhyar\u2019s names in brackets.':' Phased systems center each phase on its exact aspect.'}</small></div></div>
  <div class="cap">PHASE AND LIGHT</div><div class="stgtbl"><table><tbody>
  ${row('Phase angle',dms(D.el),'the Moon\u2019s distance ahead of the Sun along the ecliptic, 0° new, 180° full')}
  ${row('Lit',Math.round(D.ill*1000)/10+'%')}${row('Age',age.toFixed(2)+' days','since the new Moon'+(tn?' of '+shortDate(tn,pl):''))}
@@ -1285,7 +1359,7 @@ function moonHTML(){const G=sgS(),pl=sgPlace(),t=moonMs(pl),D=moonData(t,pl),E=E
  ${row('Nakshatra',nak?(Math.floor(sid/(360/27))+1)+'. '+esc(nak)+', pada '+pada:'\u2014','27 equal nakshatras, sidereal (Lahiri)')}
  ${row('Chinese lunar lodge',xi?(xi.i+1)+'. '+SG_XIU[xi.i][0]+', '+SG_XIU[xi.i][1]+` <small>${dms(xi.into)} in</small>`:'\u2014','28 unequal lodges, each starting at its determinative star (right ascension)')}</tbody></table></div>
  <div class="cap">COMING UP</div><div class="stgtbl"><table><tbody>${next.map(e=>`<tr><td style="white-space:nowrap">${go(e.t,'Moon',/Quarter|Full|New/.test(e.w)?1:0,shortDate(e.t,pl)+' '+hm(e.t,pl))}</td><td>${e.w}</td></tr>`).join('')}</tbody></table></div>
- <small class="note">From a precise Moon (Meeus, ELP-2000/82 main terms). Size and distance compare with the average distance of 385,000 km. Out of bounds means a declination beyond the Sun\u2019s greatest, about 23°26′. The Moon picture is drawn as seen from ${esc(pl.label)}.</small>`}
+ <small class="note">Positions from NASA JPL’s DE441 ephemeris. Size and distance compare with the average distance of 385,000 km. Out of bounds means a declination beyond the Sun\u2019s greatest, about 23°26′. The Moon picture is drawn as seen from ${esc(pl.label)}.</small>`}
 
 /* ---- every event opens the Planetarium (Gemini, Nov 7): its date, time, and a view facing it ----
    target: a body or star name, 'az:<deg>' for a direction, or 'eq:<ra>:<dec>'; mode 0 exact, 1 nearest moment it is
@@ -1357,7 +1431,7 @@ function houseSystem(h,sys,sun,moon){if(!sys||sys==='placidus')return h;if(sys==
   else if(sys==='koch'){const dec=Math.asin(Math.sin(eps)*Math.sin(mc*R)),x=Math.max(-1,Math.min(1,Math.tan(phi)*Math.tan(dec))),dsa=90+Math.asin(x)/R;
    n[11]=ascAt(t-2*dsa/3);n[12]=ascAt(t-dsa/3);n[2]=ascAt(t+dsa/3);n[3]=ascAt(t+2*dsa/3)}
   n[4]=n360(n[10]+180);n[7]=n360(n[1]+180);n[5]=n360(n[11]+180);n[6]=n360(n[12]+180);n[8]=n360(n[2]+180);n[9]=n360(n[3]+180)}
- if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc}if(sys==='whole')n.even=true;return n}
+ if(lab){n.angleLabels=true;n.realAS=asc;n.realMC=mc;n.asc=asc;n.mc=mc}if(sys==='whole')n.even=true;return n}  /* .asc/.mc: the shared wheel draws the AS and MC axes in Whole Sign and Equal (Gemini, Nov 19, global) */
 const EMASK='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';let ETEX=null,ECK='',ECU='';
 function earthTex(){if(ETEX)return ETEX;const TW=720,TH=360,b=atob(EMASK),t=new Uint8Array(TW*TH);let p=0;const rd=()=>{let n=0,sh=0,c;do{c=b.charCodeAt(p++);n|=(c&127)<<sh;sh+=7}while(c&128);return n};
  for(let y=0;y<TH;y++){const k=rd();let x=0,v=0;for(let i=0;i<k;i++){const n=rd();if(v)for(let q=0;q<n;q++)t[y*TW+x+q]=255;x+=n;v^=1}}return ETEX=t}
@@ -2565,7 +2639,7 @@ function drawSimple(g){const top=CHTOP(),bot=CHBOT(),S0=Math.max(120,Math.min(W-
  g.fillStyle=CHO.theme==='light'?'#e6e8ec':(ST.night?'#0a0202':'#05070f');g.fillRect(0,0,W,H);
  let cu=null;try{cu=houseSystem(cuspsFor(jd,ST.lat,ST.lon),ST.hsys)}catch(e){}
  const pos={},ret={};for(const b of chVis(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}chNodes(pos,jd,z);
- const cus=cu?cu.map(c=>c==null?c:n360(c-z)):null;
+ const cus=chCu(cu,z);
  const MW=chMulti(jd,z);const RES=800*Math.min(4,Math.ceil(CHZ.s*(devicePixelRatio||1)*S0/800)),key=[MW?MW.key:'',RES,Math.round(jd*1440),ST.lat.toFixed(4),ST.lon.toFixed(4),ST.hsys,z.toFixed(3),JSON.stringify(CHO),ST.planets].join('|');
  if(window.EAWheel&&key!==CHSW.key&&key!==CHSW.pend){CHSW.pend=key;const svg=EAWheel.svg(MW?MW.chart:{pos:ST.planets?pos:{},ret,cusps:cus},swOpts()).replace('<svg ',`<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${RES}" height="${RES}" `).replace('width="100%" height="100%"','');
   const im=new Image();im.onload=()=>{if(CHSW.pend===key){CHSW.img=im;CHSW.key=key;CHSW.pend=''}};im.onerror=()=>{CHSW.pend=''};im.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)}
@@ -2607,11 +2681,12 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-chh]');if(
    Leo's Simple Wheel draws the rings and the legend. ---- */
 const CHR={base:null,rings:[],partner:null,mode:null,pend:null};
 const RINGN={tr:'Transits',pr:'Progressions',sa:'Solar Arc',syn:'Synastry'};
+const chCu=(cu,z)=>{if(!cu)return null;const o=cu.map(c=>c==null?c:n360(c-z));for(const k of['noAngles','even','thick','angleLabels'])if(cu[k]!=null)o[k]=cu[k];for(const k of['asc','mc','realAS','realMC'])if(cu[k]!=null)o[k]=n360(cu[k]-z);return o};
 const chRecJd=r=>CHS.ms(r)/864e5+2440587.5;
 function chRecParts(r){const [y,mo,d]=(r.date||'2000-01-01').split('-').map(Number),[h,mi]=(r.time||'12:00').split(':').map(Number);return {y,mo,d,h,mi}}
 function chAt(jd,lat,lon,z){let cu=null;try{cu=houseSystem(cuspsFor(jd,lat,lon),ST.hsys)}catch(e){}
  const pos={},ret={};for(const b of chVis(jd)){pos[b.k]=n360(b.lon-z);if(b.spd<0)ret[b.k]=true}chNodes(pos,jd,z);
- return {pos,ret,cusps:cu?cu.map(c=>c==null?c:n360(c-z)):null}}
+ return {pos,ret,cusps:chCu(cu,z)}}
 const mid=(a,b)=>n360(a+((((b-a)%360)+540)%360-180)/2);
 const chOf=r=>chAt(chRecJd(r),r.place.lat,r.place.lon,K.z);
 function chMulti(jd,z){const B=CHR.base;if(!B||!B.place)return null;const P=CHR.partner;let main,label=B.name||'Chart';
