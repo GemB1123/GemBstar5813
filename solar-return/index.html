@@ -1089,17 +1089,23 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
    (cast with strong:true, sr-png.js does by default) they are lit from the start. The set is the Solar Return itself (return Sun on birth Sun) lit, plus the three strongest
    return-to-birth aspects, which do not count the Solar Return: Her hierarchy, strongest first:
    1. a planet back on itself (a synodic return: Nodes, Moon every 19 years, Mercury 7, 6, 7, 6, 7, Venus 8, Mars 15 and 17, the Goal Years);
-   2. outers to inners: return Pluto, Neptune, Uranus, Saturn, Jupiter to birth Sun, Moon, Mercury, Venus, Mars;
-   3. everything else.
-   Within each, conjunctions, squares, and oppositions come before trines and sextiles, then the tighter orb. They are ordinary pins. */
+   2. an outer planet square or opposite itself;
+   3. outers to inners: return Pluto, Neptune, Uranus, Saturn, Jupiter to birth Sun, Moon, Mercury, Venus, Mars (the Sun no more than the others);
+   4. everything else.
+   Within each: conjunctions, squares, and oppositions before trines and sextiles; then an outer planet that will still perfect the aspect
+   during the return year before one that won't (Jupiter applying at 4° beats Saturn separating at 3° after its three squares); then the
+   outer planet's order; then the tighter orb. They are ordinary pins. */
+/* does return planet k reach the exact aspect a to birth longitude lb during the return year? */
+function perfects(C,k,lb,a){if(!C.fut||!OUTER.includes(k))return true;const T=a===0?[0]:a===180?[180]:[a,-a],g=(s,t)=>((s-t+540)%360)-180;
+ for(const t of T){let prev=null;for(const r of C.fut){if(r[k]==null)return true;const v=g(((r[k]-lb+540)%360)-180,t);if(Math.abs(v)<.05)return true;if(prev!=null&&prev*v<=0&&Math.abs(prev)<20&&Math.abs(v)<20)return true;prev=v}}return false}
 const OUTER=['Pluto','Neptune','Uranus','Saturn','Jupiter'],INNER=['Sun','Moon','Mercury','Venus','Mars'];
 function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),RA=!C.unknownTime&&C.cusps,
   srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),A=[];
  for(const k of L.concat(RA?['AS','MC']:[]))for(const t of L){const d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let best=null;
   for(const a of GRID_ASP){const e=Math.abs(d-a[0]);if(e<=(a[0]===60?XORB.sextile:5)&&(!best||e<best.o))best={a:a[0],o:e}}
   if(!best||(k==='Sun'&&t==='Sun'))continue;if(k==='SNode'&&t==='SNode'&&L.includes('Node'))continue;   /* the Nodes return together: count it once */
-  const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.indexOf(t),tier=self?0:oi>=0&&ii>=0?1:2;
-  A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,tier===1?oi:0,tier===1?ii:0,best.o]})}
+  const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.indexOf(t),tier=self?0:k===t&&oi>=0&&(best.a===90||best.a===180)?1:oi>=0&&ii>=0?2:3,pf=perfects(C,k,C.birth.pos[t],best.a);
+  A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,pf?0:1,tier===1||tier===2?oi:0,best.o]})}
  A.sort((x,y)=>{for(let i=0;i<5;i++)if(x.key[i]!==y.key[i])return x.key[i]-y.key[i];return 0});
  P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
 /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
@@ -1166,6 +1172,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,them
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
  if(!unknown&&window.EA_TL){C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys,ayB,bT.pos.Sun,bT.pos.Moon);const nasc=C.natalCusps.asc;C.natalAsc=nasc;C.natalMC=C.natalCusps.mc;C.prof=EA_TL.profYear(nasc,C.age)}
  C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bp.utc);
+ if(C.natal){try{await need(srjd+367);C.fut=[];for(let d=0;d<=366;d+=4){const q=EA_JPL.positions(srjd+d),r={};OUTER.forEach(k=>{if(q[k]!=null)r[k]=n360(q[k]-(sT.pos[k]-C.sr.pos[k]))});C.fut.push(r)}}catch(e){C.fut=null}}
  C.view=VIEW;C.strong=!!o.strong&&C.natal;C.pins=C.strong?autoPins(C):new Set();LAST=C;piClose();render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
  return {name:C.name,year:C.year,age:C.age,returnUTC:new Date(C.srms).toISOString(),returnLocal:C.when.date+', '+C.when.time,place:C.at.label,
