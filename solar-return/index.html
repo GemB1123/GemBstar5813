@@ -252,15 +252,16 @@ html{max-width:100%;overflow-x:hidden}body{max-width:100%;overflow-x:clip}   /* 
 .sr-sky{contain:paint}
 
 /* Cast Yours invitation (Gemini, Nov 19): five slow golden glows when the app opens */
-@keyframes srInvite{0%,100%{box-shadow:0 0 0 0 rgba(245,195,92,0);background-color:inherit}50%{box-shadow:0 0 18px 4px rgba(245,195,92,.75);border-color:#f5c35c;color:#ffe9a8}}
-#sr-yours.sr-invite{animation:srInvite 1.6s ease-in-out 5}
+/* each glow turns the button fully gold, like a pressed toggle, and holds it (Gemini, Nov 19: twice as long) */
+@keyframes srInvite{0%,100%{box-shadow:0 0 0 0 rgba(245,195,92,0)}30%,70%{background:#f5c35c;color:#0b0f26;border-color:#f5c35c;box-shadow:0 0 18px 4px rgba(245,195,92,.6)}}
+#sr-yours.sr-invite{animation:srInvite 3.2s ease-in-out 5}
 
 /* phones: Cast Yours at the very top (Gemini, Nov 19) */
 .sr-topcast{display:none}
 @media (max-width:640px){
  .sr-topcast{display:flex;justify-content:center;order:-10;width:100%;margin:2px 0 8px}
  .sr-topyours{min-height:44px;padding:0 22px;font:inherit;font-size:15px;color:#f3e7c4;background:transparent;border:1px solid #c9b27a99;border-radius:10px;cursor:pointer}
- .sr-topyours.sr-invite{animation:srInvite 1.6s ease-in-out 5}
+ .sr-topyours.sr-invite{animation:srInvite 3.2s ease-in-out 5}
  .sr-bar>#sr-yours{display:none}
 }
 </style>
@@ -1539,7 +1540,7 @@ function prefs(){try{return JSON.parse(localStorage.getItem('sr-look-v1'))||{}}c
 function savePrefs(o){try{localStorage.setItem('sr-look-v1',JSON.stringify(Object.assign(prefs(),o)))}catch(e){}}
 function setup(){const f=$('#sr-form');if(!f)return;
  /* Cast Yours glows slowly five times when the app opens, to invite people to cast their own (Gemini, Nov 19); hover or a tap stops it */
- {const y=$('#sr-yours');if(y&&!matchMedia('(prefers-reduced-motion: reduce)').matches){y.classList.add('sr-invite');const stop=()=>y.classList.remove('sr-invite');y.addEventListener('animationend',stop);y.addEventListener('pointerdown',stop);setTimeout(stop,9000)}}
+ {const y=$('#sr-yours');if(y&&!matchMedia('(prefers-reduced-motion: reduce)').matches){y.classList.add('sr-invite');const stop=()=>y.classList.remove('sr-invite');y.addEventListener('animationend',stop);y.addEventListener('pointerdown',stop);setTimeout(stop,17000)}}
  f.houses.innerHTML=Object.entries(HS_NAMES).map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
  f.zodiac.innerHTML=ZODS.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
  const P=prefs();if(P.zodiac&&AYA0[P.zodiac]!=null)f.zodiac.value=P.zodiac;if(P.theme){f.theme.value=P.theme;document.documentElement.dataset.look=P.theme}if(P.houses&&HS_NAMES[P.houses])f.houses.value=P.houses;if(P.natal===false)f.natal.checked=false;
