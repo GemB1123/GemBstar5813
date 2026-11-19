@@ -5779,6 +5779,7 @@ const AMP_CFG={
  /* pop-ups over the drawing (Gemini, Nov 11): a simple chart wheel (the Planetary Tables look) and a Local Space compass, each movable with an X */
  vis:{max:3,op:.26},
  /* Story Maps (Gemini, Nov 19): example lists beside the page, how far in the map flies, parans within 1° of latitude, lines within 150 mi in bold */
+ ltag:{hit:9},meas:{color:'#ffd166',n:96},
  story:{sample:'stories.json',zoom:6,zoomMax:12,zoomTrip:2.5,globeZoom:1.8,flySteps:30,parOrb:1,max:8,tight:150,hit:16,freeMin:260,sideW:380,globeStepsMax:96,globeStepsPerDeg:.45,globeTripDeg:35},tide:{sun:.46,color:'#5fd0e0',op:.5},find:{min:8,max:10},
  pops:{stories:{name:'Stories',x:20,y:96,w:340},story:{name:'Story',x:372,y:96,w:390},lines:{name:'Lines',x:20,y:96,w:720},zodiac:{name:'Zodiac',x:640,y:110,w:300},ecl:{name:'Eclipses',x:600,y:96,w:400},sky:{name:'Horizons',x:560,y:96,w:390},gaze:{name:'Eclipse From Here',x:330,y:70,w:520},relocate:{name:'Relocate',x:395,y:150,w:270},wheel:{name:'Chart Wheel',x:22,y:230,w:250},compass:{name:'Local Space Compass',x:712,y:110,w:250}},
  /* Geodetic zodiac (Gemini, Nov 11): 0° Aries laid on a prime meridian, each sign 30° of longitude eastward. Greenwich by default, the Great Pyramid, or any place typed in */
@@ -5830,7 +5831,7 @@ const PRESETS=[['all','All',BODIES.slice()],['inner','Sun To Mars',['Sun','Moon'
 const VIEWS={h:84,stars:[['map','ampmap','World Map',24,40],['globe','ampglobe','Globe',76,40]],lines:[['map','globe']]};
 const nm=k=>k==='Node'?'North Node':k==='SNode'?'South Node':k;
 const D=AMP_CFG.defaults;
-const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
+const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
  show:Object.fromEntries(Object.entries(AMP_CFG.show).map(([k,v])=>[k,v[1]]))};
 const SH=k=>!!ST.show[k];
 const TH=()=>AMP_CFG.themes[ST.theme]||AMP_CFG.themes.night;
@@ -6229,6 +6230,7 @@ function mapLab(c,L){const M=MAPR(),I=TH();let s=(SH('grat')?gratLabels(I):'')+c
  if(SH('birth')&&c&&c.lat!=null){const p=mapXY(c.lon,c.lat);if(inMap(p))s+=birthMark(c,p[0],p[1],I)}
  if(ST.place){const p=mapXY(ST.place[0],ST.place[1]);if(inMap(p))s+=placeMark(p[0],p[1],I)}
  s+=stoPins((lo,la)=>{const p=mapXY(lo,la);return inMap(p,4)?p:null},I);
+ s+=measSVG(I)+ltagSVG(I)+'<g class="amp-measlive"></g>';
  return s}
 const STR=()=>window.AMP_STREETS||{status:()=>'off',init(){},paint(){},CFG:{}};
 function streetsInit(){const T=STR();if(T.status()!=='idle')return;T.state.onChange=()=>{if(S.gv==='amap')renderAll()};T.state.onTile=()=>{if(STR.__q)return;STR.__q=requestAnimationFrame(()=>{STR.__q=0;const sv=STAGE&&STAGE.querySelector('svg.amp');if(sv)paintStreets(sv)})};T.init()}
@@ -6306,6 +6308,7 @@ function globeVector(V,c,L){const I=TH(),F=FR();let s='';
  if(SH('birth')&&c.lat!=null){const p=gProj(V,c.lon,c.lat);if(p&&p[2]>.05)s+=birthMark(c,p[0],p[1],I)}
  if(ST.place){const p=gProj(V,ST.place[0],ST.place[1]);if(p&&p[2]>.02)s+=placeMark(p[0],p[1],I)}
  s+=stoPins((lo,la)=>{const p=gProj(V,lo,la);return p&&p[2]>.05?p:null},I);
+ s+=measSVG(I)+ltagSVG(I)+'<g class="amp-measlive"></g>';
  return s}
 function globeBody(c,L,scale){const V=view(),I=TH();
  return `<defs><clipPath id="amp-gclip"><circle cx="${V.cx}" cy="${V.cy}" r="${V.r}"/></clipPath><clipPath id="amp-fclip"><rect x="0" y="70" width="${FR().w}" height="${FR().h-70-DOCK()}" rx="14"/></clipPath><radialGradient id="amp-halo" cx="50%" cy="50%" r="50%"><stop offset=".86" stop-color="${I.tropic}" stop-opacity="0"/><stop offset=".93" stop-color="${I.tropic}" stop-opacity=".35"/><stop offset="1" stop-color="${I.tropic}" stop-opacity="0"/></radialGradient></defs>
@@ -6347,7 +6350,10 @@ function animZoom(k,p,center){const sv=STAGE&&STAGE.querySelector('svg.amp');if(
   if(ST.view==='map'){ST.mz=tgt;if(g)ST.mc=[m0[0]+w180(g[0]-m0[0])*e,m0[1]+(g[1]-m0[1])*e];clampMap();fastMap(sv)}
   else{ST.gz=Math.max(1,Math.min(AMP_CFG.globe.maxZoom,tgt));if(g&&r0)ST.rot=[w180(r0[0]+w180(g[0]-r0[0])*e),Math.max(-85,Math.min(85,r0[1]+(g[1]-r0[1])*e))];fastGlobe(sv)}
   if(i<steps)requestAnimationFrame(go);else redraw(1.5)};requestAnimationFrame(go)}
-function tapAt(p){{const sid=stoHit(p);if(sid){stoGo(sid);return}}let q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y),nmx='',best=12;if(!q)return;for(const c of CITY_SEEN){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<best){best=d;q=[c.r.lo,c.r.la];nmx=cityLabel(c.r)}}ST.place=q;ST.placeName=nmx;reading();
+function tapAt(p){{const sid=stoHit(p);if(sid){stoGo(sid);return}}
+ if(ST.meas.on){const q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);if(q)measTap(q);return}
+ {const h=lineHit(p);if(h){ST.ltag=h;renderAll();return}if(ST.ltag){ST.ltag=null}}
+ let q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y),nmx='',best=12;if(!q)return;for(const c of CITY_SEEN){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<best){best=d;q=[c.r.lo,c.r.la];nmx=cityLabel(c.r)}}ST.place=q;ST.placeName=nmx;reading();
  if(eclShown()&&A.openGaze){const e=eclNear(q);if(e){let tz='UTC',nmP=nmx;try{const G=window.GemBPlaces,r=G&&G.nearest?G.nearest(q[1],q[0]):null;if(r){tz=r.tz||r.timezone||tz;if(!nmP)nmP=r.label}}catch(err){}
   const o={tab:'eclipses',jd:e.jd,place:{lat:q[1],lon:q[0],name:nmP||llTxt(q),label:nmP||llTxt(q),tz},watch:'here'};ST.gazeO=o;
   if(A.gaze){A.gaze().open(o);ST.pops.gaze=true;ST.popOrder=ST.popOrder.filter(x=>x!=='gaze');ST.popOrder.push('gaze');renderAll()}else A.openGaze(o);return}}
@@ -6360,6 +6366,7 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
  const toPlace=p=>ST.view==='map'?mapInv(Math.max(MAPR().x,Math.min(MAPR().x+MAPR().w,p.x)),p.y):gInv(view(),p.x,p.y);
  const PT=new Map();let G=null,raf=0;
  const sched=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;if(ST.view==='map')moveMap(sv);else fastGlobe(sv)})};
+ sv.addEventListener('mousemove',e=>{if(!ST.meas.on||ST.meas.pts.length!==1||G)return;const g=sv.querySelector('.amp-measlive');if(!g)return;const p=toLocal(e);if(!p)return;const q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);g.innerHTML=q?measSVG(TH(),[ST.meas.pts[0],q]):''});
  const two=()=>{const [a,b]=[...PT.values()];return {d:Math.hypot(a.x-b.x,a.y-b.y)||1,m:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}};
  sv.addEventListener('pointerdown',e=>{if(!e.target.closest('.amp-hit'))return;const p=toLocal(e);if(!p)return;PT.set(e.pointerId,p);try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();try{sv.focus({preventScroll:true})}catch(_){}
   if(PT.size===1){let pin=false;if(ST.place){const q=ST.view==='map'?mapXY(ST.place[0],ST.place[1]):gProj(view(),ST.place[0],ST.place[1]);pin=!!q&&Math.hypot(q[0]-p.x,q[1]-p.y)<22}
@@ -6378,6 +6385,7 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
   if(g.pin&&g.moved){reading();renderAll();return}
   if(g.moved){redraw(1.5);return}
   if(e.type==='pointercancel')return;
+  if(ST.meas.on){tapAt(p);return}   /* measuring: every click is a point, no double-tap zoom */
   /* a tap: wait a moment to see if a second tap makes it a double tap */
   const now=Date.now();if(now-TAP.t<320&&Math.hypot(TAP.x-p.x,TAP.y-p.y)<40){clearTimeout(TAP.tm);TAP.t=0;animZoom(2,p,true);return}
   TAP.t=now;TAP.x=p.x;TAP.y=p.y;clearTimeout(TAP.tm);TAP.tm=setTimeout(()=>{TAP.t=0;tapAt(p)},300)};
@@ -6432,7 +6440,7 @@ function popSub(){const P=rplace(),nm=ST.place?(ST.placeName||nearName()||llTxt(
 function overlay(){const F=FR(),b=(act,id,t,on,lab)=>`<button type="button" class="${on?'on':''}" aria-pressed="${!!on}" data-act="${act}" data-id="${id}"${lab?` aria-label="${lab}"`:''}>${t}</button>`;
  /* one bar of buttons under the map (Gemini, Nov 11); the docked Time Machine sits under it, inside the window */
  const seg=(act,pairs,cur)=>`<span class="amp-grp">${pairs.map(([k,t])=>b(act,k,t,cur===k)).join('')}</span>`;
- let h=`<div class="amp-bar" role="toolbar" aria-label="AstroMaps buttons" style="left:${F.x+F.w/2}px;top:${F.y+BARY()}px;transform:translateX(-50%)"><button type="button" class="amp-mb" data-slot="astromaps" aria-label="Open or close the AstroMaps menu">Menu</button>${b('ampmode',ST.mode==='mundo'?'zodiaco':'mundo',AMP_CFG.modes[ST.mode],false,'In Mundo or In Zodiaco: tap to switch')}${b('amppop','sky','Horizons',ST.pops.sky||ST.vis.length>0||ST.tide,'Day and night, planets above the horizon, tides, and places')}${b('amptheme',ST.theme==='light'?'night':'light','Light Mode',ST.theme==='light','Light mode')}${b('amppop','lines','Lines',ST.pops.lines,'Choose the lines on the map')}${b('amppop','zodiac','Zodiac',ST.pops.zodiac,'Sky lines and signs')}${b('amppll','1','Parallels',ST.pll,'Parallels of declination')}${b('amppop','ecl','Eclipses',ST.pops.ecl||ST.ecl.on.size>0,'Eclipse paths')}${b('amppop','stories','Stories',ST.pops.stories||ST.pops.story,'Story Maps: stories pinned to places')}${b('amppop','relocate','Relocate',ST.pops.relocate)}${b('amptm','1','Time Machine',ST.moment==='tm'&&S.dockTM,'Time Machine under the map')}${b('amppop','wheel','Chart Wheel',ST.pops.wheel)}${b('amppop','compass','Compass',ST.pops.compass,'Local Space Compass')}${seg('ampview',[['map','Map'],['globe','Globe']],ST.view)}</div>`;
+ let h=`<div class="amp-bar" role="toolbar" aria-label="AstroMaps buttons" style="left:${F.x+F.w/2}px;top:${F.y+BARY()}px;transform:translateX(-50%)"><button type="button" class="amp-mb" data-slot="astromaps" aria-label="Open or close the AstroMaps menu">Menu</button>${b('ampmode',ST.mode==='mundo'?'zodiaco':'mundo',AMP_CFG.modes[ST.mode],false,'In Mundo or In Zodiaco: tap to switch')}${b('amppop','sky','Horizons',ST.pops.sky||ST.vis.length>0||ST.tide,'Day and night, planets above the horizon, tides, and places')}${b('amptheme',ST.theme==='light'?'night':'light','Light Mode',ST.theme==='light','Light mode')}${b('amppop','lines','Lines',ST.pops.lines,'Choose the lines on the map')}${b('amppop','zodiac','Zodiac',ST.pops.zodiac,'Sky lines and signs')}${b('amppll','1','Parallels',ST.pll,'Parallels of declination')}${b('amppop','ecl','Eclipses',ST.pops.ecl||ST.ecl.on.size>0,'Eclipse paths')}${b('amppop','stories','Stories',ST.pops.stories||ST.pops.story,'Story Maps: stories pinned to places')}${b('amppop','relocate','Relocate',ST.pops.relocate)}${window.EA_PHONE?'':b('ampmeas','1','Measure',ST.meas.on,'Measure: click a starting point, then an end point')}${b('amptm','1','Time Machine',ST.moment==='tm'&&S.dockTM,'Time Machine under the map')}${b('amppop','wheel','Chart Wheel',ST.pops.wheel)}${b('amppop','compass','Compass',ST.pops.compass,'Local Space Compass')}${seg('ampview',[['map','Map'],['globe','Globe']],ST.view)}</div>`;
  for(const id of ST.popOrder){if(!ST.pops[id])continue;if(id==='story'&&SIDEON())continue;
   if(id==='stories'&&SIDEON()){const l=stoList(),sS=stoSel(),top=64,hh=BARY()-top-10;h+=`<div class="amp-pop amp-side${sS?' amp-ssel':''}" data-pop="stories" role="dialog" aria-label="Stories" style="left:${F.x+12}px;top:${F.y+top}px;width:${AMP_CFG.story.sideW-20}px;height:${hh}px"><div class="amp-ph"><span><b>${esc(l?l.name:'Stories')}</b><small>${esc(l&&l.rec?l.rec.name||'':(chart()&&chart().name)||'')}</small></span><button type="button" class="x" data-act="amppop" data-id="stories" aria-label="Close Stories">&times;</button></div><div class="amp-pb">${(()=>{const pb=popBody('stories').split('<!--sto-tools-->'),rp=sS&&!STO.edit&&!STO.mk?`<div class="amp-sdiv"><div class="amp-sttl"><b>${esc(sS.title)}</b><small>${esc(sS.place)}</small></div>${popBody('story')}</div>`:'';return pb[0]+rp+(pb[1]?`<div class="amp-sdiv">${pb[1]}</div>`:'')})()}</div></div>`;continue}
   if(id==='gaze'&&!(A.gaze&&A.gaze().hasAnim())){ST.pops.gaze=false;continue}const C=AMP_CFG.pops[id],q=ST.popPos[id]||C;
@@ -6472,7 +6480,7 @@ function compassSVG(){const jd=mjd(),P=rplace(),G=gmst(jd),f=n=>n.toFixed(1),RR=
  const rows=L.slice().sort((a,b)=>a.l-b.l).map(x=>`<tr><th scope="row">${PGH(x.k,13,colOf(x.k))} ${x.k}</th><td>${Math.round(x.l)}°</td><td>${x.alt>=0?'up':'down'} ${Math.abs(Math.round(x.alt))}°</td></tr>`).join('');
  return h+`</svg><small class="amp-pn">Solid: above the horizon. Dashed: below. Azimuth from north toward east.</small><div class="amp-ctbl"><table>${rows}</table></div>`}
 /* Escape closes the newest pop-up first (the menu rule: every pop-up has an X and closes with Escape) */
-if(!window.__ampEsc){window.__ampEsc=true;document.addEventListener('keydown',e=>{if(e.key!=='Escape'||S.gv!=='amap'||S.open)return;   /* an open menu closes first, then the pop-ups, newest first */const open=ST.popOrder.filter(k=>ST.pops[k]);if(!open.length)return;const k=open[open.length-1];ST.pops[k]=false;ST.popOrder=ST.popOrder.filter(x=>x!==k);e.stopImmediatePropagation();e.preventDefault();renderAll()},true)}
+if(!window.__ampEsc){window.__ampEsc=true;document.addEventListener('keydown',e=>{if(e.key!=='Escape'||S.gv!=='amap'||S.open)return;   /* an open menu closes first, then the pop-ups, newest first */const open=ST.popOrder.filter(k=>ST.pops[k]);if(!open.length){if(ST.meas.on||ST.ltag){ST.meas.on=false;ST.meas.pts=[];ST.ltag=null;e.stopImmediatePropagation();e.preventDefault();renderAll()}return}const k=open[open.length-1];ST.pops[k]=false;ST.popOrder=ST.popOrder.filter(x=>x!==k);e.stopImmediatePropagation();e.preventDefault();renderAll()},true)}
 /* while dragging: a quicker, coarser globe, swapped in place */
 function fastGlobe(sv){const c=chart(),V=view(),L=drawnL(c&&!c.unknown?lines()||[]:[]);const r=sv.querySelector('.amp-ras'),v=sv.querySelector('.amp-vec');if(r)r.innerHTML=globeRaster(V,.6);if(v)v.innerHTML=globeVector(V,c,L);const cp=sv.querySelector('#amp-gclip circle');if(cp)cp.setAttribute('r',V.r);const zc=sv.querySelector('.amp-zw');if(zc)zc.innerHTML=zoomCtl(FR().w-58,BARY()-130,TH())}
 
@@ -6592,11 +6600,29 @@ function act(a,id){
  else if(a==='ampmoment'){if(id==='tm')return act('amptm','');ST.moment='chart';reading()}
  else if(a==='amptm'){const on=ST.moment==='tm'&&S.dockTM;if(on){ST.moment='chart';S.dockTM=false}else{ST.moment='tm';S.dockTM=true;if(S.open==='tm')S.open=null;if(!S.tm.active){const c=chart();S.tm.active=true;S.tm.playing=false;S.tm.time=c?chartMs(c):Date.now()}}saveS();reading()}
  else if(a==='amppop'){if(ST.pops[id]!=null){ST.pops[id]=!ST.pops[id];ST.popOrder=ST.popOrder.filter(x=>x!==id);if(ST.pops[id])ST.popOrder.push(id);if(id==='stories'&&ST.pops.stories)stoOpened()}}
+ else if(a==='ampmeas'){ST.meas.on=!ST.meas.on;ST.meas.pts=[];if(ST.meas.on){ST.ltag=null;toast('Measure: click a starting point, then an end point. A third click starts over.')}}
  else if(a==='ampsto'){if(stoAct(id))return}
  else if(a==='amphit')return;   /* taps and drags are handled by mount's listeners; nothing to redraw here */
  renderAll()}
 /* on desktop AstroMaps opens with the Time Machine docked under the map, at the chart's moment (Gemini, Nov 11) */
 function opened(){if(window.EA_PHONE||ST.tmOpened)return;ST.tmOpened=true;if(ST.moment==='tm'&&S.dockTM)return;ST.moment='tm';S.dockTM=true;if(S.open==='tm')S.open=null;if(!S.tm.active){const c=chart();S.tm.active=true;S.tm.playing=false;S.tm.time=c?chartMs(c):Date.now()}reading()}
+/* ---- tap a line for its name (Gemini, Nov 19: the glyphs at the edge are hard to match to lines); Measure from A to B on desktop ---- */
+function lproj(){if(ST.view==='map')return (lo,la)=>{const q=mapXY(lo,la);return inMap(q)?q:null};const V=view();return (lo,la)=>{const q=gProj(V,lo,la);return q&&q[2]>.05?q:null}}
+function segD(p,a,b){const dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;let t=L2?((p.x-a[0])*dx+(p.y-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));return Math.hypot(p.x-a[0]-t*dx,p.y-a[1]-t*dy)}
+function lineHit(p){const c=chart();if(!c||c.unknown)return null;let L=[];try{L=drawnL(lines()||[])}catch(e){return null}const pr=lproj();let best=null,bd=AMP_CFG.ltag.hit;
+ for(const l of L){if(l.ghost)continue;const pts=ST.view==='map'?fine(l):l.pts;let prev=null;for(const q of pts){const s=pr(q[0],q[1]);if(s&&prev&&Math.abs(s[0]-prev[0])<240&&Math.abs(s[1]-prev[1])<240){const d=segD(p,prev,s);if(d<bd){bd=d;best=l}}prev=s}}
+ if(!best)return null;const at=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);return at?{l:best,at}:null}
+function ltagSVG(I){const T=ST.ltag;if(!T)return '';const p=lproj()(T.at[0],T.at[1]);if(!p)return '';const l=T.l,col=colOf(l.k),txt=lineName0(l).replace(/ \((AS|DS|MC|IC)\)$/,''),w=Math.round(txt.length*6.6+40),x=Math.max(8,Math.min(FR().w-w-8,p[0]-w/2)),y=p[1]-40;
+ return `<g class="amp-ltag" pointer-events="none"><circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="5" fill="${col}" stroke="${I.bg}" stroke-width="2"/><line x1="${f1(p[0])}" y1="${f1(p[1]-5)}" x2="${f1(p[0])}" y2="${f1(y+26)}" stroke="${col}" stroke-width="1.5"/><rect x="${f1(x)}" y="${f1(y)}" width="${w}" height="26" rx="13" fill="${I.bg}" fill-opacity=".92" stroke="${col}" stroke-width="1.5"/>${PGH(l.k,16,col).replace('<svg ',`<svg x="${f1(x+8)}" y="${f1(y+5)}" `)}<text x="${f1(x+30)}" y="${f1(y+17.5)}" font-size="12.5" font-weight="700" fill="${col}">${esc(txt)}</text></g>`}
+/* Measure: tap a starting point, then an end point; the great circle between them is drawn with its length (miles by default, or km) */
+function gcPts(a,b,n){const v0=vecOf(a),v1=vecOf(b),W=Math.acos(Math.max(-1,Math.min(1,dot3(v0,v1)))),sw=Math.sin(W),out=[];for(let i=0;i<=n;i++){const t=i/n;let v;if(sw<1e-9)v=v0;else{const p=Math.sin((1-t)*W)/sw,q=Math.sin(t*W)/sw;v=[p*v0[0]+q*v1[0],p*v0[1]+q*v1[1],p*v0[2]+q*v1[2]]}out.push([Math.atan2(v[1],v[0])/R,Math.asin(Math.max(-1,Math.min(1,v[2])))/R])}return out}
+function measSVG(I,pts){pts=pts||ST.meas.pts;if(!ST.meas.on||!pts.length)return '';const pr=lproj(),C=AMP_CFG.meas;let s='';
+ if(pts.length>1){const g=gcPts(pts[0],pts[1],C.n),runs=ST.view==='map'?runsMap(g):runsGlobe(view(),g);for(const r of runs)s+=`<path d="${dPath(r)}" fill="none" stroke="${I.bg}" stroke-width="5" opacity=".7"/><path d="${dPath(r)}" fill="none" stroke="${C.color}" stroke-width="2.4" stroke-dasharray="8 5"/>`;
+  const km=gcKm(pts[0],pts[1]),mid=pr(...g[C.n>>1]),t=ST.units==='km'?Math.round(km).toLocaleString()+' km':Math.round(km*0.621371).toLocaleString()+' mi',sub=ST.units==='km'?Math.round(km*0.621371).toLocaleString()+' mi':Math.round(km).toLocaleString()+' km';
+  if(mid){const w=Math.max(t.length,sub.length)*8+22;s+=`<g pointer-events="none"><rect x="${f1(mid[0]-w/2)}" y="${f1(mid[1]-44)}" width="${w}" height="36" rx="9" fill="${I.bg}" fill-opacity=".94" stroke="${C.color}" stroke-width="1.5"/><text x="${f1(mid[0])}" y="${f1(mid[1]-27)}" text-anchor="middle" font-size="14" font-weight="800" fill="${C.color}">${t}</text><text x="${f1(mid[0])}" y="${f1(mid[1]-14)}" text-anchor="middle" font-size="10.5" fill="${I.dim}">${sub}</text></g>`}}
+ pts.forEach((q,i)=>{const p=pr(q[0],q[1]);if(p)s+=`<g pointer-events="none"><circle cx="${f1(p[0])}" cy="${f1(p[1])}" r="7" fill="${I.bg}" stroke="${C.color}" stroke-width="2.4"/><text x="${f1(p[0])}" y="${f1(p[1]+3.6)}" text-anchor="middle" font-size="9" font-weight="800" fill="${C.color}">${i?'B':'A'}</text></g>`});
+ return `<g class="amp-meas">${s}</g>`}
+function measTap(q){const M=ST.meas;if(M.pts.length>=2)M.pts=[];M.pts.push(q);renderAll()}
 /* ---- Story Maps (Gemini, Nov 19): lists of stories pinned to places. Tap a story to fly there and read the chart's activations
    at that place: the lines near it (with the house each planet falls in there), the parans at its latitude, and the angles there.
    Lists keep their own chart, so choosing a list casts that chart. Kept in this browser; Export and Import move a list between devices. */
@@ -6608,12 +6634,15 @@ function stoNorm(l){if(!l||!Array.isArray(l.stories))return null;
  const st=l.stories.map(s=>({id:String(s.id||uid()),title:String(s.title||'Story').slice(0,200),place:String(s.place||''),lat:+s.lat,lon:+s.lon,when:String(s.when||''),story:String(s.story||''),note:String(s.note||''),
   extra:Array.isArray(s.extra)?s.extra.filter(e=>e&&isFinite(+e.lat)&&isFinite(+e.lon)).map(e=>({lat:+e.lat,lon:+e.lon,label:String(e.label||'')})):[]})).filter(s=>isFinite(s.lat)&&isFinite(s.lon)&&Math.abs(s.lat)<=90&&Math.abs(s.lon)<=180);
  const r=l.rec&&l.rec.date&&l.rec.place&&isFinite(+l.rec.place.lat)&&isFinite(+l.rec.place.lon)?l.rec:null;
- return {id:String(l.id||uid()),name:String(l.name||'Stories').slice(0,80),rec:r,stories:st}}
+ return {id:String(l.id||uid()),v:+l.v||1,name:String(l.name||'Stories').slice(0,80),rec:r,stories:st}}
 function stoImportable(o){const arr=Array.isArray(o)?o:o&&Array.isArray(o.lists)?o.lists:[o];return arr.map(stoNorm).filter(Boolean)}
 /* example lists shipped beside the page (stories.json) are added once; one you delete stays deleted */
 function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const v=localStorage.getItem('ea-amp-stories-side');if(v!=null)STO.side=v==='1'}catch(e){}try{const o=JSON.parse(localStorage.getItem(STO_KEY)||'null');if(o&&Array.isArray(o.lists)){STO.lists=o.lists.map(stoNorm).filter(Boolean);STO.cur=o.cur||'';STO.seen=Array.isArray(o.seen)?o.seen:[]}}catch(e){}
  try{if(typeof fetch!=='function')return;fetch(AMP_CFG.story.sample).then(r=>r.ok?r.json():null).then(o=>{if(!o)return;let add=0;
-  for(const l of stoImportable(o)){if(STO.seen.includes(l.id)||STO.lists.some(x=>x.id===l.id))continue;STO.lists.push(l);STO.seen.push(l.id);add++}
+  for(const l of stoImportable(o)){const old=STO.lists.find(x=>x.id===l.id);
+   /* a newer example (v) refreshes the text of its own stories, keeping your order and your added stories */
+   if(old&&l.v>(old.v||1)){for(const s of l.stories){const t=old.stories.find(x=>x.id===s.id);if(t)Object.assign(t,{title:s.title,place:s.place,lat:s.lat,lon:s.lon,when:s.when,story:s.story,note:s.note,extra:s.extra})}old.v=l.v;add++;continue}
+   if(STO.seen.includes(l.id)||old)continue;STO.lists.push(l);STO.seen.push(l.id);add++}
   if(add){if(!stoList())STO.cur=STO.lists[0].id;stoSave();if(ST.pops.stories&&!stoChartOn(stoList()))stoUseChart(stoList());if(S.gv==='amap')renderAll()}}).catch(()=>{})}catch(e){}}
 /* opening Stories casts the list's chart (Gemini, Nov 19: her own chart showed with Erik's list), and in the side panel shows the globe */
 function stoOpened(){stoLoad();const l=stoList();if(l&&!stoChartOn(l))stoUseChart(l);if(SIDEON())ST.view='globe'}
@@ -9698,7 +9727,7 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(/^ecl[a-z]+$/.test(a)&&S.open==='eclipse'){ecl().act(a,id);return}
   else if(a==='hmopen'&&S.open==='harmonia'){hmw().act(a,id);return}
   else if(/^tl[a-z]+$/.test(a)&&S.open==='timelords'){tl().act(a,id);return}
-  else if(/^amp(view|pl|set|ang|focus|show|theme|units|orb|clr|go|zoom|center|hit|mode|moment|tm|pop|geo|prime|lines|asp|mid|par|pll|ecl|sky|sto)$/.test(a)){amp().act(a,id);return}
+  else if(/^amp(view|pl|set|ang|focus|show|theme|units|orb|clr|go|zoom|center|hit|mode|moment|tm|pop|geo|prime|lines|asp|mid|par|pll|ecl|sky|sto|meas)$/.test(a)){amp().act(a,id);return}
   else if(/^agr(view|span|move|dial|set|node|moon|around|style|stylereset|theme|show|pl|focus|cur|clr|at|go|natal|hit)$/.test(a)){agr().act(a,id);return}
   else if(a==='pipick'){S.pi=id}
   else if(a==='piasp'){S.piAsp=!S.piAsp}
