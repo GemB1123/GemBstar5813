@@ -117,6 +117,8 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 .sr-pop .sr-pins,.sr-pop .srg-pin>rect:last-of-type{animation:srpop 1.4s ease-out}
 @media (prefers-reduced-motion:reduce){.sr-pop .sr-pins,.sr-pop .srg-pin>rect:last-of-type{animation:none}}
 #sr-angles[aria-pressed=true]{background:var(--btn);color:var(--btnInk);border-color:var(--btn)}
+/* no calendar button in the date box, so Tab goes from the year straight to the hour (Gemini, Nov 18) */
+input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1113,8 +1115,8 @@ function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.
  P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
 function toggleAngles(){const C=LAST;if(!C||!C.natal||!C.natalCusps||C.unknownTime)return;const rot0=wcu(C)[1]+wca(C);C.srAng=!C.srAng;const rot1=wcu(C)[1]+wca(C);render(C);
  /* spin from the old Ascendant to the new one */
- const sv=document.querySelector('#sr-stage .sr-wheel svg');if(!sv||matchMedia('(prefers-reduced-motion:reduce)').matches||!sv.animate)return;const dlt=((rot1-rot0)%360+540)%360-180;
- sv.style.transformOrigin='50% 50%';sv.animate([{transform:`rotate(${-dlt}deg)`},{transform:'rotate(0deg)'}],{duration:1400,easing:'cubic-bezier(.45,0,.2,1)'})}
+ const sv=document.querySelector('#sr-stage .sr-wheel svg');if(!sv||matchMedia('(prefers-reduced-motion:reduce)').matches||!sv.animate)return;const dlt=((rot1-rot0)%360+360)%360;   /* always clockwise, the primary (diurnal) direction, even the long way round (Gemini, Nov 18) */
+ sv.style.transformOrigin='50% 50%';sv.animate([{transform:`rotate(${-dlt}deg)`},{transform:'rotate(0deg)'}],{duration:900+dlt*2.5,easing:'cubic-bezier(.45,0,.2,1)'})}
 /* a glowing line between the two planets' places on the aspect circle (a conjunction shows as one bright point) */
 const hlLine=(a,b,col)=>`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#ffe9a8" stroke-width="5" stroke-opacity=".35" stroke-linecap="round"/><line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="${col}" stroke-width="2.4" stroke-linecap="round"/>`
   +[a,b].map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.2" fill="${col}" stroke="#ffe9a8" stroke-width="1"/>`).join('');
