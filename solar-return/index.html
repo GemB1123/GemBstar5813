@@ -36,7 +36,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:16px/1
 .sr-stage{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;padding:12px;outline:none;overflow:auto}
 .sr-card{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center}
 /* the listing sits upper left; the upper right stays clear (teacher camera area) */
-.sr-head{align-self:flex-start;margin:0 0 4px;font-variant-numeric:tabular-nums}
+.sr-head{align-self:center;text-align:center;margin:0 0 4px;font-variant-numeric:tabular-nums}
 .sr-title{font-size:24px;font-weight:700;color:var(--ink)}
 html:not([data-look=dark]) .sr-title{color:var(--accent)}
 .sr-when{font-size:16px;color:var(--soft);font-weight:500}
@@ -62,8 +62,10 @@ html:not([data-look=dark]) .sr-title{color:var(--accent)}
 .sr-x{position:absolute;top:6px;right:6px;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:20px;cursor:pointer}
 .sr-img[hidden]{display:none}
 .sr-shown{border:0;margin:0 0 6px;padding:0;display:flex;gap:16px;flex-wrap:wrap}.sr-shown legend{font-size:14px;font-weight:600;margin-bottom:6px;padding:0}
-.sr-outer{position:absolute;right:0;top:0;text-align:right;font-variant-numeric:tabular-nums}
-@media (max-width:799px){.sr-outer{position:static;align-self:flex-end;margin-bottom:4px}}
+/* the birth chart block sits just upper left of the wheel; the return listing is centered on top (Gemini, Nov 18) */
+.sr-natal{position:absolute;top:0;left:0;font-variant-numeric:tabular-nums;z-index:1}
+.sr-natal.sr-stack{position:static;align-self:flex-start;order:1;margin:0 0 4px}
+.sr-natal.sr-stack~.sr-wheel{order:2}.sr-natal.sr-stack~.sr-sys{order:3}
 .sr-prof{font-size:15px;font-weight:700;color:var(--accent)}
 /* after a cast the data panel closes so the chart can grow; Cast Another reopens it (Gemini, Nov 18) */
 .sr-right{flex:1;min-width:0;display:flex;flex-direction:column}
@@ -1109,22 +1111,30 @@ function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(con
   sun:C.sunTxt,ascendant:C.unknownTime?null:dms(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]).txt,midheaven:C.unknownTime?null:dms(C.cusps.mc!=null?C.cusps.mc:C.cusps[10]).txt,planets:P,houses:HS_NAMES[C.houseSys],zodiac:zodName(C.zodiac),profection:C.prof?{house:C.prof.house,sign:SIGNS[C.prof.sign],guide:C.prof.guide,age:C.age,text:`${ord(C.prof.house)} House Annual Profection, ${SIGNS[C.prof.sign]}`}:null}}
 
 /* ---------- the card (what Savannah sends): title, return moment, wheel, footer ---------- */
+/* Gemini, Nov 18: the return is listed top center as "Solar Return 11 · 2026" (which return, then the year), with no name,
+   since the birth chart block at the chart's upper left carries the name */
 function cardLines(C){const L=[];
- L.push({t:`Solar Return ${C.year}`,k:'title'});
- if(C.name)L.push({t:C.name,k:'name'});
- L.push({t:`The Sun returns to ${C.sunTxt}`,k:'line'});
+ L.push({t:`Solar Return ${C.age>0?C.age+' · ':''}${C.year}`,k:'title'});
+ L.push({t:`The Sun's return to ${C.sunTxt}`,k:'line'});
  L.push({t:`${C.when.date} · ${C.when.time}`,k:'when'});
  L.push({t:C.at.label,k:'line'});
  if(C.prof)L.push({t:`${ord(C.prof.house)} House Annual Profection · ${SIGNS[C.prof.sign]} · Guide ${C.prof.guide}`,k:'prof'});
  return L}
-/* biwheel: the outer wheel (birth chart) is listed upper right, opposite the inner listing, no color legend (Gemini, Nov 16) */
-const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'line'}]:[]);
+/* the birth chart block, just upper left of the chart: name, birth date and time, birthplace, Ascendant */
+const natalLines=C=>(C.name?[{t:C.name,k:'name'}]:[]).concat(C.natal?[{t:`Birth Chart · ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'when'}]:[])
+  :[{t:`Born ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}]);
+/* the birth chart block ends just inside the wheel's left edge, level with the return listing; stack it under the listing when they would touch */
+function placeNatal(){const st=$('#sr-stage'),n=st&&st.querySelector('.sr-natal'),cd=st&&st.querySelector('.sr-card'),h=st&&st.querySelector('.sr-head');if(!n||!cd||!h)return;
+ n.classList.remove('sr-stack');n.style.left='0px';const sv=st.querySelector('.sr-wheel svg');const cr=cd.getBoundingClientRect();
+ if(sv&&!st.querySelector('.sr-both')){const r=sv.getBoundingClientRect(),nw=n.getBoundingClientRect().width;n.style.left=Math.max(0,r.left-cr.left-nw+r.width*.08)+'px'}
+ const nr=n.getBoundingClientRect(),hr=h.getBoundingClientRect();if(nr.right+16>hr.left||matchMedia('(max-width:799px)').matches){n.classList.add('sr-stack');n.style.left=''}}
+addEventListener('resize',()=>{if(LAST)placeNatal()});
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
 const sysLines=C=>[C.unknownTime?'No Houses':(C.polar?'Whole Sign (near the pole)':HS_NAMES[C.houseSys]),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),zodName(C.zodiac),'Geocentric'];
 /* View (Gemini, Nov 18): Wheel, Aspect Grid, or Wheel And Grid side by side; the grid views need the Birth Chart Biwheel */
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||C.view==='both')?C.view:'wheel';
- st.innerHTML=`<div class="sr-card"><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
-  +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
+ st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
+  +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div></div>`;placeNatal();
  const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('.srg-c[data-pk]');if(!c||!LAST)return;const k=c.dataset.pk;LAST.pins.has(k)?LAST.pins.delete(k):LAST.pins.add(k);render(LAST)});
   gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML='';wheelHL(null)})}
  const gv=$('#sr-views');if(gv){gv.hidden=!C.natal;gv.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.v===V?'true':'false'))}
@@ -1140,11 +1150,9 @@ async function wideURL(type){const C=LAST,W=1920,H=1080,col=CFG.card[C.theme],F=
  const WS=960,wx=50,wy=108;g.drawImage(await svgImg(wheelSVG(C,C.theme),WS,WS),wx,wy,WS,WS);
  g.font=F(500,18);g.fillStyle=col.soft;sysLines(C).forEach((t,i,a)=>g.fillText(t,wx+6,wy+WS-(a.length-i)*24));
  let y=34;const put=(t,w,px,c,gap,x,al)=>{g.font=F(w,px);g.fillStyle=c;g.textAlign=al||'left';g.fillText(t,x,y);y+=px+gap};
- if(C.name)put(C.name,600,30,col.ink,8,40);
- if(C.natal){const ol=outerLines(C);put(`${ol[0].t} · ${ol[1].t}`,500,18,col.soft,5,40);ol.slice(2).forEach(l=>put(l.t,500,18,l.t.startsWith('Ascendant')?col.soft:col.ink,5,40))}
- else put(`Born ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time} · ${C.birthPlace.label}`,500,18,col.soft,5,40);
+ for(const l of natalLines(C)){if(l.k==='name')put(l.t,600,30,col.ink,8,40);else put(l.t,500,18,l.k==='when'?col.soft:col.ink,5,40)}
  const x0=1090,x1=W-60,cx=(x0+x1)/2;y=58;
- for(const l of cardLines(C)){if(l.k==='name')continue;if(l.k==='title')put(l.t,700,44,C.theme==='dark'?col.ink:col.accent,14,cx,'center');
+ for(const l of cardLines(C)){if(l.k==='title')put(l.t,700,44,C.theme==='dark'?col.ink:col.accent,14,cx,'center');
   else put(l.t,l.k==='prof'?700:500,21,l.k==='prof'?col.accent:l.k==='when'?col.soft:col.ink,7,cx,'center')}
  g.textAlign='left';
  const fy=H-70;
@@ -1156,14 +1164,17 @@ async function wideURL(type){const C=LAST,W=1920,H=1080,col=CFG.card[C.theme],F=
 async function imageURL(type,layout){const C=LAST;if(!C)throw new Error('Cast a Solar Return first.');if(layout==='wide')return wideURL(type);
  const W=CFG.cardWidth,pad=Math.round(W*.05),col=CFG.card[C.theme],lines=cardLines(C);
  const sz={title:W*.042,name:W*.03,when:W*.022,line:W*.022,prof:W*.022,soft:W*.018},gap={title:W*.012,name:W*.012,when:W*.008,line:W*.008,prof:W*.008,soft:W*.008};
- let hh=pad;for(const l of lines)hh+=sz[l.k]+gap[l.k];hh+=pad*.4;
+ const font=(k)=>`${k==='title'||k==='prof'?'700 ':k==='name'?'600 ':'500 '}${sz[k]}px Inter, 'Helvetica Neue', Arial, sans-serif`;
+ const nl=natalLines(C),mc=document.createElement('canvas').getContext('2d'),wOf=L=>Math.max(0,...L.map(l=>{mc.font=font(l.k);return mc.measureText(l.t).width}));
+ const hOf=L=>L.reduce((a,l)=>a+sz[l.k]+gap[l.k],0),side=pad+wOf(nl)+W*.02<(W-wOf(lines))/2;
+ let hh=pad+(side?Math.max(hOf(lines),hOf(nl)):hOf(lines)+W*.01+hOf(nl))+pad*.4;
  const wheelW=W-pad,footH=W*.06,H=Math.round(hh+wheelW+footH);
  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');
  g.fillStyle=col.bg;g.fillRect(0,0,W,H);g.textBaseline='top';
  /* text runs from the upper left (the upper right stays clear, as on every Device view) */
- let y=pad;const font=(k)=>`${k==='title'||k==='prof'?'700 ':k==='name'?'600 ':'500 '}${sz[k]}px Inter, 'Helvetica Neue', Arial, sans-serif`;
- for(const l of lines){g.font=font(l.k);g.fillStyle=l.k==='prof'?col.accent:l.k==='title'?(C.theme==='dark'?col.ink:col.accent):l.k==='when'?col.soft:l.k==='soft'?col.soft:col.ink;g.fillText(l.t,pad,y);y+=sz[l.k]+gap[l.k]}
- if(C.natal){let y2=pad+sz.title+gap.title;g.textAlign='right';for(const l of outerLines(C)){g.font=font(l.k);g.fillStyle=l.k==='when'?col.soft:col.ink;g.fillText(l.t,W-pad,y2);y2+=sz[l.k]+gap[l.k]}g.textAlign='left'}
+ let y=pad;g.textAlign='center';
+ for(const l of lines){g.font=font(l.k);g.fillStyle=l.k==='prof'?col.accent:l.k==='title'?(C.theme==='dark'?col.ink:col.accent):l.k==='when'?col.soft:l.k==='soft'?col.soft:col.ink;g.fillText(l.t,W/2,y);y+=sz[l.k]+gap[l.k]}
+ g.textAlign='left';let y2=side?pad:y+W*.01;for(const l of nl){g.font=font(l.k);g.fillStyle=l.k==='when'?col.soft:col.ink;g.fillText(l.t,pad,y2);y2+=sz[l.k]+gap[l.k]}
  let svg=wheelSVG(C,C.theme).replace('width="100%" height="100%"',`width="${wheelW}" height="${wheelW}"`);
  if(!/^<svg[^>]*xmlns=/.test(svg))svg=svg.replace('<svg','<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"');
  const img=await loadImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));
