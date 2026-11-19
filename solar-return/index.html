@@ -75,6 +75,8 @@ html:not([data-look=dark]) .sr-title{color:var(--accent)}
 .sr-cardonly .sr-bar{display:none}
 @media (max-width:799px){.sr-right{flex:none}}
 html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time picker icons light on the dark look */
+/* no browser clock or calendar button in the time box: type the time (Gemini, Nov 18) */
+.sr-panel input[type=time]::-webkit-calendar-picker-indicator{display:none}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1015,6 +1017,8 @@ function setup(){const f=$('#sr-form');if(!f)return;
  const P=prefs();if(P.theme){f.theme.value=P.theme;document.documentElement.dataset.look=P.theme}if(P.houses)f.houses.value=P.houses;if(P.natal===false)f.natal.checked=false;
  f.year.value=new Date().getFullYear();
  const bGet=placeField('sr-bplace'),aGet=placeField('sr-aplace');
+ /* typing A or P for AM/PM finishes the Birth Time and moves straight on to the Birthplace (Gemini, Nov 18) */
+ f.time.addEventListener('keyup',e=>{if(/^[ap]$/i.test(e.key)&&f.time.value){const b=$('#sr-bplace');b.focus();b.select()}});
  f.same.onchange=()=>{$('#sr-at').hidden=f.same.checked};f.unknown.onchange=()=>{f.time.disabled=f.unknown.checked};
  f.onsubmit=async e=>{e.preventDefault();const msg=$('#sr-msg');msg.textContent='Casting…';
   savePrefs({theme:f.theme.value,houses:f.houses.value,natal:f.natal.checked});
