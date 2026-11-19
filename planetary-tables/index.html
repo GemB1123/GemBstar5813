@@ -939,6 +939,14 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    wheel's background so a cusp or angle line under them never hides them (opts.degHalo:false turns the halo off) */
 const txd=(T,o,s,x,y,sz,col,w,dg)=>{const k=o.degScale==null?.8:o.degScale,c=dg&&col===T.ink&&o.theme==='dark'?'#ffffff':col;
  const t=tx(s,x,y,f(sz*k),c,w?w-100:w);return dg&&o.degHalo!==false?t.replace('<text ',`<text stroke="${T.bg}" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke" `):t};
+/* aspect lines (Gemini, Nov 19, every chart; the Solar Return's style): the tighter the orb the thicker the line, an aspect between the
+   right signs (a trine from Pisces to Scorpio) heavier than one across a sign line; trines and sextiles in the water signs' blue, squares and
+   oppositions in the fire signs' red, taken from the wheel. opts.aspectStyle:'plain' keeps an app's own colors and widths; an aspect that
+   already carries a width keeps it */
+const ASPC={dark:{60:'#6f78d6',120:'#6f78d6',90:'#cc5a4e',180:'#cc5a4e'},light:{60:'#33408f',120:'#33408f',90:'#a8382f',180:'#a8382f'}};
+function aspStyle(A,pp,dark){const pa=pp[A.a],pb=pp[A.b];if(pa==null||pb==null)return A;const ang=+A.angle,sep=Math.abs(((pa-pb)%360+540)%360-180),orb=A.orb!=null?+A.orb:Math.abs(sep-ang);
+ const D=ASPECTS.find(x=>x.angle===ang),mx=A.maxOrb||(D&&D.orb)||8,t=Math.max(0,1-orb/mx),d=((Math.floor(n360(pa)/30)-Math.floor(n360(pb)/30))%12+12)%12,k=Math.round(ang/30)%12,ins=d===k||d===(12-k)%12;
+ const c=ASPC[dark?'dark':'light'][ang];if(c&&!A.minor)A.color=c;if(A.width==null)A.width=(A.minor?.35+.9*t:.45+1.75*t)*(ins?1:.55);A.inSign=ins;return A}
 const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
@@ -967,7 +975,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
-   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp=hs?4.2:4.4,q=dms(cu[i]),pd=xy(cu[i]-sp,rc),
+   /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
+       bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
+   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp0=hs?4.2:4.4,q=dms(cu[i]),e0=xy(cu[i]-sp0,rc),e1=xy(cu[i]+sp0,rc),dx=e1[0]-e0[0],dy=e1[1]-e0[1],sp=(Math.abs(dx)>=Math.abs(dy)?dx<0:dy<0)?-sp0:sp0,pd=xy(cu[i]-sp,rc),
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
@@ -1038,7 +1048,8 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
-  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${(A.minor?.6:1.1)*(big?1.4:1)}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
+  if(opts.aspectStyle!=='plain')aspStyle(A,pp,opts.theme==='dark');
+  h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${f((A.width!=null?A.width:A.minor?.6:1.1)*(big?1.4:1))}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
@@ -7003,6 +7014,9 @@ function naturalHouses(h){const n=Array.from({length:13},(_,i)=>i?(i-1)*30:0);n.
 /* Earth Center: Earth radius, which is also the innermost ring (Gemini: Earth fills the inner ring, no circle around it).
    About halfway between the old 100 and the Archer's southernmost star (radius about 165). */
 const EARTH_R=136;
+/* Gemini, Nov 18 (global): degree numbers white with a halo in the wheel's background color so they never blend with the cusp lines;
+   glyphs, numbers and placement ticks at 0.85, numbers 0.8 and one weight lighter (same values as the shared Simple Wheel, PR #82) */
+const DGH=' stroke="#0b0f26" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke"';
 function wheelSVG(layers,houses){const cx=400,cy=400;paintFix();
  const E=S.ws==='earth',n=layers.length,tlw=tlRingW(),top=340-tlw,bot=E?EARTH_R:94,th=(top-bot)/n,hole=S.paint.inner.mode==='bg';
  let g=(hole?`<defs><mask id="innerhole"><circle cx="400" cy="400" r="400" fill="#fff"/><circle cx="400" cy="400" r="${bot}" fill="#000"/></mask></defs><g mask="url(#innerhole)">`:'')+`<circle cx="400" cy="400" r="380" fill="${WHEEL_BG}"/>`+skyLayer()+(hole?'</g>':'');
@@ -7019,20 +7033,20 @@ function wheelSVG(layers,houses){const cx=400,cy=400;paintFix();
   g+=`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${bl[0].toFixed(1)} ${bl[1].toFixed(1)}" stroke="${SILVER.col}" stroke-width="${CUSP_W.ang}"/><path d="M${t[0].toFixed(1)} ${t[1].toFixed(1)} L${b1[0].toFixed(1)} ${b1[1].toFixed(1)} L${b2[0].toFixed(1)} ${b2[1].toFixed(1)} Z" fill="${SILVER.col}"/>`;
   if(houses.angleLabels){const tx=pt(cx,cy,AXIS_TIP-20,l+(nm==='AS'?4:-4));g+=`<text x="${tx[0].toFixed(1)}" y="${tx[1].toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#f2e7c4">${nm}</text>`}});
  layers.forEach((L,i)=>{const ro=top-i*th,ri=ro-th,mid=(ro+ri)/2,colr=RC[L.id];const items=[];for(const k of (L.bodies||PLANETS))if(isShown(L.id,k)&&wdOn('planets'))items.push([k,L.pos[k]]);
-  const minsep=Math.max(5,(42/mid)*57.3);spread(items,minsep).forEach(([k,l,dl])=>{const a=pt(cx,cy,ro,l),b=pt(cx,cy,ro-7,l);g+=`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${colr}" stroke-width="1.4"/>`;const p=pt(cx,cy,((wdOn('lat')||wdOn('ecl'))&&n===1?259:mid)+latOff(L.id,k),dl);
+  const minsep=Math.max(5,(42/mid)*57.3);spread(items,minsep).forEach(([k,l,dl])=>{const a=pt(cx,cy,ro,l),b=pt(cx,cy,ro-(n>1?4.25:5.5),l);g+=`<path d="M${a[0].toFixed(1)} ${a[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}" stroke="${colr}" stroke-width="1.27"/>`;const p=pt(cx,cy,((wdOn('lat')||wdOn('ecl'))&&n===1?259:mid)+latOff(L.id,k),dl);
    if(PG[k]){g+=`<g data-pl="${k}" data-ly="${L.id}" style="cursor:pointer;pointer-events:all"><rect x="${(p[0]-20).toFixed(1)}" y="${(p[1]-22).toFixed(1)}" width="40" height="44" fill="transparent"/>`;const tot=Math.floor(l*60+0.5)%21600,sg=Math.floor(tot/1800),rr=tot%1800,dg=Math.floor(rr/60),mn=rr%60,rc=L.ret[k]?RED:colr;
-    if(S.wd.pls!=='classic'){const ang=rad(scr(dl)),ux=Math.sin(ang),uy=-Math.cos(ang),SEC=ELC[Math.floor(sg/1)%4]||'#e0c27a',tc=L.ret[k]?RED:'#ece6d6';
-     const gw=ppOn()&&PP.file[k]?32:26,it=[{w:gw,h:gw,t:'g'}].concat(S.wd.degs===false?[]:[{w:22,h:13,t:'d'},{w:17,h:17,t:'s'},{w:19,h:12,t:'m'}]);
+    if(S.wd.pls!=='classic'){const ang=rad(scr(dl)),ux=Math.sin(ang),uy=-Math.cos(ang),SEC=ELC[Math.floor(sg/1)%4]||'#e0c27a',tc=L.ret[k]?RED:'#ffffff';
+     const gw=ppOn()&&PP.file[k]?27:22,it=[{w:gw,h:gw,t:'g'}].concat(S.wd.degs===false?[]:[{w:18,h:11,t:'d'},{w:14.5,h:14.5,t:'s'},{w:16,h:10,t:'m'}]);
      let off=[0];for(let q=1;q<it.length;q++){const A=it[q-1],B=it[q],nx=Math.abs(ux)<.01?1e9:(A.w+B.w)/2/Math.abs(ux),ny=Math.abs(uy)<.01?1e9:(A.h+B.h)/2/Math.abs(uy);off.push(off[q-1]-Math.min(nx,ny)-1)}
      it.forEach((o,q)=>{const d=off[q],x=p[0]+ux*d,y=p[1]+uy*d;
-      if(o.t==='g'){const pp=planetPic(L.id,k,x,y);g+=planetHalo(x,y,pp?PP.lastR+3:15,colr)+(pp||PGW(k,x.toFixed(1),y.toFixed(1),.95,glyphCol(L.id,colr)))}
-      else if(o.t==='d')g+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="13" font-weight="600" fill="${tc}">${p2(dg)}°</text>`;
-      else if(o.t==='s')g+=agSvg(sg,x,y,17,SEC);
-      else g+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="${tc}">${p2(mn)}'</text>`})}
+      if(o.t==='g'){const pp=planetPic(L.id,k,x,y);g+=planetHalo(x,y,pp?PP.lastR+3:15,colr)+(pp||PGW(k,x.toFixed(1),y.toFixed(1),.81,glyphCol(L.id,colr)))}
+      else if(o.t==='d')g+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="10.4" font-weight="500" fill="${tc}"${DGH}>${p2(dg)}°</text>`;
+      else if(o.t==='s')g+=agSvg(sg,x,y,14.5,SEC);
+      else g+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="8.8" font-weight="500" fill="${tc}"${DGH}>${p2(mn)}'</text>`})}
     else{
-    if(S.wd.degs!==false)g+=`<text x="${p[0].toFixed(1)}" y="${(p[1]-14).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="${rc}">${p2(dg)}°</text>`;
-    {const pp=planetPic(L.id,k,p[0],p[1]);g+=planetHalo(p[0],p[1],pp?PP.lastR+3:12.5,colr)+(pp||PGW(k,p[0].toFixed(1),p[1].toFixed(1),.78,glyphCol(L.id,colr)))}
-    if(S.wd.degs!==false)g+=`<text x="${(p[0]+2).toFixed(1)}" y="${(p[1]+15).toFixed(1)}" text-anchor="end" dominant-baseline="central" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="${rc}">${p2(mn)}'</text>`+agSvg(sg,p[0]+8,p[1]+15,11,rc)}
+    if(S.wd.degs!==false)g+=`<text x="${p[0].toFixed(1)}" y="${(p[1]-14).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="8" font-weight="500" fill="${rc}"${DGH}>${p2(dg)}°</text>`;
+    {const pp=planetPic(L.id,k,p[0],p[1]);g+=planetHalo(p[0],p[1],pp?PP.lastR+3:12.5,colr)+(pp||PGW(k,p[0].toFixed(1),p[1].toFixed(1),.66,glyphCol(L.id,colr)))}
+    if(S.wd.degs!==false)g+=`<text x="${(p[0]+2).toFixed(1)}" y="${(p[1]+15).toFixed(1)}" text-anchor="end" dominant-baseline="central" font-family="Inter,sans-serif" font-size="8" font-weight="500" fill="${rc}"${DGH}>${p2(mn)}'</text>`+agSvg(sg,p[0]+7,p[1]+15,9.4,rc)}
     g+=`</g>`}
    else g+=`<text x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-size="15" font-weight="800" fill="#f2e7c4">${k==='AS'?'As':'Mc'}</text>`})});
  return `<svg viewBox="0 0 800 800" style="position:absolute;left:320px;top:50px;width:800px;height:800px;overflow:visible">${g}</svg>`}
