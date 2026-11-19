@@ -107,6 +107,7 @@ html[data-look=dark]{color-scheme:dark}   /* the browser draws the date and time
 #sr-pi .piab{margin-top:8px;font:600 13px Inter,system-ui,sans-serif;color:#f3e7c4;background:#1b2340;border:1px solid #c9b27a;border-radius:8px;padding:5px 12px;cursor:pointer}#sr-pi .piab[aria-expanded="true"]{background:#c9b27a;color:#0f0d22}
 #sr-pi .pial{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:3px}#sr-pi .pial li{display:flex;align-items:center;gap:6px}#sr-pi .pial li span{min-width:84px;font-weight:600}#sr-pi .pial li b{margin-left:auto;font-variant-numeric:tabular-nums;color:#f3e7c4}#sr-pi .pial small{color:#b3a688}
 #sr-pi .pinote{margin:8px 0 0;color:#b3a688}
+.sr-grid .srg-h{cursor:pointer;outline:none}.sr-grid .srg-h:hover rect,.sr-grid .srg-h:focus rect{stroke:#ffd98a;stroke-width:1.6}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1027,8 +1028,8 @@ function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='
  /* Gemini, Nov 18 (her reference grid): birth planets across the top, Solar Return planets with its AS and MC down the side */
  let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: birth planets across, Solar Return planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
  h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.66}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text><text x="${s*.36}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text>`;
- L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h" data-c="${j}"><title>Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}</title><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,silver)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`});
- RL.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h" data-r="${i}"><title>Return ${nm(k)} ${dms(srP[k]).txt}</title><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,gold)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`;
+ L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h eawp" data-c="${j}" data-pl="${k}" data-ring="0" tabindex="0" role="button" aria-label="Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}, open info"><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,silver)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`});
+ RL.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h eawp" data-r="${i}" data-pl="${k==='AS'||k==='MC'?'Return '+k:k}" data-ring="1" tabindex="0" role="button" aria-label="Return ${nm(k)} ${dms(srP[k]).txt}, open info"><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,gold)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`;
   L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
    let mx=5;for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e;mx=orb}}
    const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],C.birth.pos[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
