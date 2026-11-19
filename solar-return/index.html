@@ -248,6 +248,10 @@ body.eawz .sr-stage,body.eawz .sr-right,body.eawz .sr-card,body.eawz .sr-wheel{o
 html{max-width:100%;overflow-x:hidden}body{max-width:100%;overflow-x:clip}   /* only html may be "hidden": with both, the body becomes its own scroller and the page can no longer be scrolled to the top */
 .sr-wheel svg{overflow:hidden}
 .sr-sky{contain:paint}
+
+/* Cast Yours invitation (Gemini, Nov 19): five slow golden glows when the app opens */
+@keyframes srInvite{0%,100%{box-shadow:0 0 0 0 rgba(245,195,92,0);background-color:inherit}50%{box-shadow:0 0 18px 4px rgba(245,195,92,.75);border-color:#f5c35c;color:#ffe9a8}}
+#sr-yours.sr-invite{animation:srInvite 1.6s ease-in-out 5}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1519,6 +1523,8 @@ function coords(pre){const la=$('#'+pre+'-lat'),lo=$('#'+pre+'-lon'),tz=$('#'+pr
 function prefs(){try{return JSON.parse(localStorage.getItem('sr-look-v1'))||{}}catch(e){return {}}}
 function savePrefs(o){try{localStorage.setItem('sr-look-v1',JSON.stringify(Object.assign(prefs(),o)))}catch(e){}}
 function setup(){const f=$('#sr-form');if(!f)return;
+ /* Cast Yours glows slowly five times when the app opens, to invite people to cast their own (Gemini, Nov 19); hover or a tap stops it */
+ {const y=$('#sr-yours');if(y&&!matchMedia('(prefers-reduced-motion: reduce)').matches){y.classList.add('sr-invite');const stop=()=>y.classList.remove('sr-invite');y.addEventListener('animationend',stop);y.addEventListener('pointerdown',stop);setTimeout(stop,9000)}}
  f.houses.innerHTML=Object.entries(HS_NAMES).map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
  f.zodiac.innerHTML=ZODS.map(([k,n])=>`<option value="${k}">${esc(n)}</option>`).join('');
  const P=prefs();if(P.zodiac&&AYA0[P.zodiac]!=null)f.zodiac.value=P.zodiac;if(P.theme){f.theme.value=P.theme;document.documentElement.dataset.look=P.theme}if(P.houses&&HS_NAMES[P.houses])f.houses.value=P.houses;if(P.natal===false)f.natal.checked=false;
