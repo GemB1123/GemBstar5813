@@ -1076,13 +1076,17 @@ async function svgImg(svg,w,h){svg=svg.replace(/^<svg/,`<svg width="${w}" height
 /* the wide card (Gemini, Nov 18, for Savannah): one 1920 x 1080 rectangle, the wheel on the left and the Aspect Grid on the right */
 async function wideURL(type){const C=LAST,W=1920,H=1080,col=CFG.card[C.theme],F=(w,px)=>`${w} ${px}px Inter, 'Helvetica Neue', Arial, sans-serif`;
  const cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.fillStyle=col.bg;g.fillRect(0,0,W,H);g.textBaseline='top';
- const WS=1010,wx=30,wy=35;g.drawImage(await svgImg(wheelSVG(C,C.theme),WS,WS),wx,wy,WS,WS);
- g.font=F(500,18);g.fillStyle=col.soft;sysLines(C).forEach((t,i,a)=>g.fillText(t,wx+16,wy+WS-(a.length-i)*24));
- const x0=1090,x1=W-60;let y=60;
- const put=(t,w,px,c,gap)=>{g.font=F(w,px);g.fillStyle=c;g.fillText(t,x0,y);y+=px+gap};
- for(const l of cardLines(C)){if(l.k==='title')put(l.t,700,44,C.theme==='dark'?col.ink:col.accent,12);else if(l.k==='name')put(l.t,600,30,col.ink,12);
-  else put(l.t,l.k==='prof'?700:500,21,l.k==='prof'?col.accent:l.k==='when'?col.soft:col.ink,7)}
- if(C.natal){y+=10;for(const l of outerLines(C))put(l.t,l.k==='name'?600:500,l.k==='name'?21:18,l.k==='name'?col.ink:col.soft,6)}
+ /* left: the client's name and birth data above the wheel (Gemini, Nov 18); right: the return centered over the Aspect Grid */
+ const WS=960,wx=50,wy=108;g.drawImage(await svgImg(wheelSVG(C,C.theme),WS,WS),wx,wy,WS,WS);
+ g.font=F(500,18);g.fillStyle=col.soft;sysLines(C).forEach((t,i,a)=>g.fillText(t,wx+6,wy+WS-(a.length-i)*24));
+ let y=34;const put=(t,w,px,c,gap,x,al)=>{g.font=F(w,px);g.fillStyle=c;g.textAlign=al||'left';g.fillText(t,x,y);y+=px+gap};
+ if(C.name)put(C.name,600,30,col.ink,8,40);
+ if(C.natal){const ol=outerLines(C);put(`${ol[0].t} · ${ol[1].t}`,500,18,col.soft,5,40);ol.slice(2).forEach(l=>put(l.t,500,18,l.t.startsWith('Ascendant')?col.soft:col.ink,5,40))}
+ else put(`Born ${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time} · ${C.birthPlace.label}`,500,18,col.soft,5,40);
+ const x0=1090,x1=W-60,cx=(x0+x1)/2;y=58;
+ for(const l of cardLines(C)){if(l.k==='name')continue;if(l.k==='title')put(l.t,700,44,C.theme==='dark'?col.ink:col.accent,14,cx,'center');
+  else put(l.t,l.k==='prof'?700:500,21,l.k==='prof'?col.accent:l.k==='when'?col.soft:col.ink,7,cx,'center')}
+ g.textAlign='left';
  const fy=H-70;
  if(C.natal){const gs=gridSVG(C),vb=gs.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number),top=y+22,aw=x1-x0,ah=fy-24-top,k=Math.min(aw/vb[2],ah/vb[3]),gw=vb[2]*k,gh=vb[3]*k;
   g.drawImage(await svgImg(gs,Math.round(gw),Math.round(gh)),x0+(aw-gw)/2,top,gw,gh)}
