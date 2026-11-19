@@ -254,6 +254,15 @@ html{max-width:100%;overflow-x:hidden}body{max-width:100%;overflow-x:clip}   /* 
 /* Cast Yours invitation (Gemini, Nov 19): five slow golden glows when the app opens */
 @keyframes srInvite{0%,100%{box-shadow:0 0 0 0 rgba(245,195,92,0);background-color:inherit}50%{box-shadow:0 0 18px 4px rgba(245,195,92,.75);border-color:#f5c35c;color:#ffe9a8}}
 #sr-yours.sr-invite{animation:srInvite 1.6s ease-in-out 5}
+
+/* phones: Cast Yours at the very top (Gemini, Nov 19) */
+.sr-topcast{display:none}
+@media (max-width:640px){
+ .sr-topcast{display:flex;justify-content:center;order:-10;width:100%;margin:2px 0 8px}
+ .sr-topyours{min-height:44px;padding:0 22px;font:inherit;font-size:15px;color:#f3e7c4;background:transparent;border:1px solid #c9b27a99;border-radius:10px;cursor:pointer}
+ .sr-topyours.sr-invite{animation:srInvite 1.6s ease-in-out 5}
+ .sr-bar>#sr-yours{display:none}
+}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1437,13 +1446,16 @@ function setTL(on,mode){TL.on=on;if(mode)TL.mode=mode;savePrefs({tlOn:TL.on,tlMo
  LAST.tlOn=TL.on;LAST.tlMode=TL.mode;if(was){was.forEach(k=>LAST.pins.delete(k));autoPins(LAST).forEach(k=>LAST.pins.add(k))}render(LAST)}
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||(C.view==='both'&&!PHONE()))?C.view:'wheel';
  const corner=V!=='grid'&&WIDE();   /* desktop: the return listing goes to the wheel's upper right (Gemini, Nov 19); the grid alone and phones keep it on top */
- st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}${dayRow(C.bday,'Birth',C.theme==='dark'?CFG.ringColor:'#4b5563')}</div>`
+ /* phones: Cast Yours sits at the very top so nobody has to scroll to find it (Gemini, Nov 19); it presses the bar's own button */
+ const yb=$('#sr-yours'),topCast=PHONE()&&yb?`<div class="sr-topcast"><button type="button" class="sr-topyours${yb.classList.contains('sr-invite')?' sr-invite':''}">${esc(yb.textContent)}</button></div>`:'';
+ st.innerHTML=`<div class="sr-card">${topCast}<div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}${dayRow(C.bday,'Birth',C.theme==='dark'?CFG.ringColor:'#4b5563')}</div>`
   +(corner?`<div class="sr-ret">${retLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:`<div class="sr-head">${retLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`)
   +tlBlock(C)
   +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`;placeNatal();
  st.querySelectorAll('.sr-tl button[data-tl]').forEach(b=>b.onclick=()=>setTL(true,b.dataset.tl));
  const tb=$('#sr-tl'),tm=$('#sr-tlmode');if(tb){tb.closest('.sr-tlwrap').hidden=!C.prof&&!C.ras;tb.setAttribute('aria-pressed',C.tlOn?'true':'false');tb.textContent=tlName(C,tlMode(C)||C.tlMode);
   if(tm){tm.value=C.tlMode;const od=tm.querySelector('option[value=day]');if(od)od.textContent=tlName(C,'day');const op=tm.querySelector('option[value=prof]');if(op)op.disabled=!C.prof}}
+ {const tb=st.querySelector('.sr-topyours');if(tb)tb.onclick=()=>{tb.classList.remove('sr-invite');const y=$('#sr-yours');if(y){y.classList.remove('sr-invite');y.click()}}}
  const gs=st.querySelector('.sr-grid');if(gs){gs.addEventListener('mousemove',e=>gridHover(gs,e));gs.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('.srg-c[data-pk]');if(!c||!LAST)return;const k=c.dataset.pk;LAST.pins.has(k)?LAST.pins.delete(k):LAST.pins.add(k);render(LAST)});
   gs.addEventListener('mouseleave',()=>{const q=gs.querySelector('.srg-hl');if(q)q.innerHTML='';wheelHL(null)})}
  const ab=$('#sr-angles');if(ab){ab.hidden=!(C.natal&&C.natalCusps&&!C.unknownTime);ab.setAttribute('aria-pressed',C.srAng?'true':'false')}
@@ -1539,7 +1551,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});
   try{await cast({name:f.name.value,date:f.date.value,time:f.time.value,unknownTime:f.unknown.checked,place:coords('sr-b')||bGet(),
     at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,zodiac:f.zodiac.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value,strong:!prefs().strongOff});msg.textContent='';
-    document.body.classList.add('sr-cast','sr-closed','sr-mine');document.body.classList.remove('sr-formopen');{const y=$('#sr-yours');if(y)y.textContent='Cast Another'}const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)toChart()}
+    document.body.classList.add('sr-cast','sr-closed','sr-mine');document.body.classList.remove('sr-formopen');{const y=$('#sr-yours');if(y)y.textContent='Cast Another';const t=document.querySelector('.sr-topyours');if(t)t.textContent='Cast Another'}const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)toChart()}
   catch(err){msg.textContent=err.message||String(err)}};
  ['theme','houses','zodiac','natal','sky'].forEach(k=>f[k].addEventListener('change',async()=>{document.documentElement.dataset.look=f.theme.value;
   savePrefs({theme:f.theme.value,houses:f.houses.value,zodiac:f.zodiac.value,natal:f.natal.checked});if(!LAST)return;
