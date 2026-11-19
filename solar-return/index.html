@@ -972,7 +972,7 @@ function fmtWhen(ms,tz,utc){const d=new Date(ms);
 /* ---------- places (GemB Places; the full list loads from places.txt beside the page when it is there) ---------- */
 let fullTried=null;
 function loadFull(){if(fullTried)return fullTried;fullTried=fetch('places.txt').then(r=>r.ok?r.text():Promise.reject()).then(t=>{GemBPlaces.load(t);return true}).catch(()=>false);return fullTried}
-async function findPlace(q){if(q&&typeof q==='object')return {label:q.label||`${(+q.lat).toFixed(2)}, ${(+q.lon).toFixed(2)}`,lat:+q.lat,lon:+q.lon,tz:q.tz||'UTC',utc:q.utc,birthUtc:q.birthUtc};
+async function findPlace(q){if(q&&typeof q==='object')return {label:q.label||`${(+q.lat).toFixed(2)}, ${(+q.lon).toFixed(2)}`,lat:+q.lat,lon:+q.lon,tz:q.tz||'UTC',utc:q.utc,birthUtc:q.birthUtc,birthZone:q.birthZone};
  let r=GemBPlaces.search(String(q||''),1)[0];if(!r&&await loadFull())r=GemBPlaces.search(String(q||''),1)[0];
  if(!r)throw new Error(`Place not found: ${q}. Try "City, State" or "City, Country", or enter latitude, longitude and time zone.`);
  return {label:r.label,lat:r.latitude,lon:r.longitude,tz:r.timezone}}
@@ -1213,7 +1213,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,zodiac:CFG.zodiac,them
  C.cusps=houses(srjd,at.lat,at.lon,C.houseSys,ayS,sT.pos.Sun,sT.pos.Moon);C.polar=C.cusps.polar;
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
  if(!unknown&&window.EA_TL){C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys,ayB,bT.pos.Sun,bT.pos.Moon);const nasc=C.natalCusps.asc;C.natalAsc=nasc;C.natalMC=C.natalCusps.mc;C.prof=EA_TL.profYear(nasc,C.age)}
- C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bu);
+ C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bu);if(bp.birthZone&&bp.birthUtc!=null)C.birthWhen.time=C.birthWhen.time.replace(/ (LMT|UTC\S*)$/,' '+bp.birthZone);
  if(C.natal){try{await need(srjd+367);C.fut=[];for(let d=0;d<=366;d+=4){const q=EA_JPL.positions(srjd+d),r={};OUTER.forEach(k=>{if(q[k]!=null)r[k]=n360(q[k]-(sT.pos[k]-C.sr.pos[k]))});C.fut.push(r)}}catch(e){C.fut=null}}
  C.view=VIEW;C.strong=!!o.strong&&C.natal;C.pins=C.strong?autoPins(C):new Set();LAST=C;piClose();render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
@@ -1371,10 +1371,10 @@ function setup(){const f=$('#sr-form');if(!f)return;
  $('#sr-new').onclick=()=>{f.reset();f.year.value=new Date().getFullYear();$('#sr-at').hidden=true;LAST=null;$('#sr-stage').innerHTML='';$('#sr-export').hidden=true;$('#sr-yearnav').hidden=true;document.body.classList.remove('sr-cast');f.name.focus()};
  document.addEventListener('keydown',e=>{const im=$('#sr-img');if(e.key==='Escape'&&im&&!im.hidden){im.hidden=true;return}if(e.key==='Escape'&&document.body.classList.contains('sr-cast')&&window.innerWidth<800)document.body.classList.remove('sr-cast')})}
 /* with no data the page opens on a clearly marked example, so the first view shows what the applet makes */
-/* the opening chart (Gemini, Nov 18: a famous person with a foot in astrology, born under the Gregorian calendar): Carl Jung,
-   born July 26, 1875, 7:32 PM local mean time, Kesswil, Switzerland (time from his daughter, the astrologer Gret Baumann-Jung);
-   his birth uses Kesswil's local mean time (9°20'E, 37 minutes 20 seconds ahead of Greenwich), his returns Swiss clock time */
-const EXAMPLE={name:'Carl Jung',date:'1875-07-26',time:'19:32',place:{label:'Kesswil, Switzerland',lat:47.6,lon:9.3333,tz:'Europe/Zurich',birthUtc:9.3333/15}};
+/* the opening chart (Gemini, Nov 18): Miles Davis, born May 26, 1926, 5:00 AM Central Standard Time, Alton, Illinois
+   (birth certificate, Rodden AA, Astro-Databank: 38n53, 90w11, CST; the Gauquelin/Muller file has May 25). Alton kept standard time in 1926, so the birth
+   is fixed at UTC-6 rather than Chicago's daylight time; his returns use US Central clock time */
+const EXAMPLE={name:'Miles Davis',date:'1926-05-26',time:'05:00',place:{label:'Alton, IL, USA',lat:38+53/60,lon:-(90+11/60),tz:'America/Chicago',birthUtc:-6,birthZone:'CST'}};
 async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/.test(h)){try{await cast(Object.assign({},EXAMPLE,{strong:!prefs().strongOff,year:new Date().getFullYear(),theme:$('#sr-form')?$('#sr-form').theme.value:CFG.theme}))}catch(e){}return}const q=new URLSearchParams(h);
  const pt=(a,b,c,name)=>q.get(a)?{lat:+q.get(a),lon:+q.get(b),tz:q.get(c)||'UTC'}:q.get(name);
  if(q.get('card')==='1')document.body.classList.add('sr-cardonly');
