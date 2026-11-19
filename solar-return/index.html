@@ -496,6 +496,8 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
       true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
    const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}return O.length?O:null};
+   /* each try is scored by how much glyphs still overlap; the best try is the one drawn */
+   const sc=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));let t=0;for(let i=0;i<n&&n>1;i++)t+=Math.max(0,gp-n360(B[(i+1)%n].d-B[i].d));return t};let best=null;
    for(let tries=0;tries<=n;tries++){
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
@@ -504,9 +506,11 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));
     for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
     if(!moved)break}
+   {const v=sc();if(!best||v<best.v-1e-6)best={v,ds:list.map(x=>x.d)}}
    const o=C.length&&n*gp<330&&opts.stellium!==false?over():null;if(!o)break;let flip=null;
    for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(Math.abs(dd(x.d,+c))-m)<.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
-   if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}}
+   if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}
+   if(best)list.forEach((x,i)=>{x.d=best.ds[i]})}
   if(cu&&opts.stellium!==false&&list.length>2){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
    const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
    const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){if(n360(S[i].d-S[i-1].d)<gap*1.35)G[G.length-1].push(S[i]);else G.push([S[i]])}
@@ -1047,16 +1051,17 @@ const ASP_GLY={0:'<circle cx="-2" cy="2.5" r="4.2"/><path d="M1 -0.6L6.5 -7"/>',
  90:'<rect x="-5.5" y="-5.5" width="11" height="11"/>',120:'<path d="M0 -6.5L6.5 5H-6.5Z"/>',180:'<circle cx="-4" cy="4" r="2.8"/><circle cx="4" cy="-4" r="2.8"/><path d="M-2 2L2 -2"/>'};
 function gridSVG(C){const L=CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)&&C.sr.pos[k]!=null&&C.birth.pos[k]!=null),
   RA=!C.unknownTime&&C.cusps,srP=Object.assign({},C.sr.pos,RA?{AS:C.cusps.asc!=null?C.cusps.asc:C.cusps[1],MC:C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}:{}),
-  RL=L.concat(RA?['AS','MC']:[]),n=L.length,m=RL.length,s=44,W=(n+1)*s,H=(m+1)*s,dark=C.theme==='dark',
+  RL=L.concat(RA?['AS','MC']:[]),n=L.length,m=RL.length,s=44,W=(m+1)*s,H=(n+1)*s,dark=C.theme==='dark',
   ink=dark?'#ffffff':'#1d2027',line=dark?'#2a3350':'#d9dce3',hb=dark?'#1b2340':'#eef0f4',cb=dark?'#10162b':'#ffffff',gold=dark?'#f5c35c':'#8a6418',silver=dark?'#d9dde6':'#4b5563',
   G=window.SR_PLG||{},pg=(k,x,y,col)=>{if(k==='AS'||k==='MC')return `<g transform="translate(${x} ${y}) scale(.6)" color="${col}">${angTxt(k)}</g>`;const g=G[k==='Node'?'NNode':k];return g?`<g transform="translate(${x} ${y}) scale(.6)" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="14" fill="${col}">${k}</text>`},
   nm=k=>({Node:'North Node',SNode:'South Node',AS:'Ascendant',MC:'Midheaven'})[k]||k,dg=v=>{const t=dms(v);return `${t.d}° ${SIGNS[t.s].slice(0,3)}`};
- /* Gemini, Nov 18 (her reference grid): birth planets across the top, Solar Return planets with its AS and MC down the side */
- let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: birth planets across, Solar Return planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
- h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.66}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text><text x="${s*.36}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text>`;
- L.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h eawp" data-c="${j}" data-pl="${k}" data-ring="0" tabindex="0" role="button" aria-label="Birth ${nm(k)} ${dms(C.birth.pos[k]).txt}, open info"><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,silver)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[k])}</text></g>`});
- RL.forEach((k,i)=>{const y=(i+1)*s;h+=`<g class="srg-h eawp" data-r="${i}" data-pl="${k==='AS'||k==='MC'?'Return '+k:k}" data-ring="1" tabindex="0" role="button" aria-label="Return ${nm(k)} ${dms(srP[k]).txt}, open info"><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,s/2,y+s*.4,gold)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`;
-  L.forEach((t,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
+ /* Gemini, Nov 18 (her original layout, "emphasizes the transits' weight"): Solar Return planets with its AS and MC across the top,
+    birth planets down the side */
+ let h=`<svg class="sr-grid" viewBox="-1 -1 ${W+2} ${H+2}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Aspect Grid: Solar Return planets across, birth planets down" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
+ h+=`<rect x="0" y="0" width="${s}" height="${s}" fill="${cb}" stroke="${line}"/><text x="${s*.62}" y="${s*.3}" text-anchor="middle" font-size="7.5" fill="${gold}" font-weight="700">RETURN</text><text x="${s*.36}" y="${s*.8}" text-anchor="middle" font-size="7.5" fill="${silver}" font-weight="700">BIRTH</text>`;
+ RL.forEach((k,j)=>{const x=(j+1)*s;h+=`<g class="srg-h eawp" data-c="${j}" data-pl="${k==='AS'||k==='MC'?'Return '+k:k}" data-ring="1" tabindex="0" role="button" aria-label="Return ${nm(k)} ${dms(srP[k]).txt}, open info"><rect x="${x}" y="0" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(k,x+s/2,s*.4,gold)}<text x="${x+s/2}" y="${s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(srP[k])}</text></g>`});
+ L.forEach((t,i)=>{const y=(i+1)*s;h+=`<g class="srg-h eawp" data-r="${i}" data-pl="${t}" data-ring="0" tabindex="0" role="button" aria-label="Birth ${nm(t)} ${dms(C.birth.pos[t]).txt}, open info"><rect x="0" y="${y}" width="${s}" height="${s}" fill="${hb}" stroke="${line}"/>${pg(t,s/2,y+s*.4,silver)}<text x="${s/2}" y="${y+s*.84}" text-anchor="middle" font-size="8" fill="${ink}" opacity=".8">${dg(C.birth.pos[t])}</text></g>`;
+  RL.forEach((k,j)=>{const x=(j+1)*s,d=Math.abs(n360(srP[k]-C.birth.pos[t]+180)-180);let A=null,o=99;
    let mx=5;for(const a of GRID_ASP){const e=Math.abs(d-a[0]),orb=a[0]===60?XORB.sextile:5;if(e<=orb&&e<o){A=a;o=e;mx=orb}}
    const ac=A?ASPC[dark?'dark':'light'][A[0]]:'',ins=A&&inSign(srP[k],C.birth.pos[t],A[0]),aw=A?(1+1.6*Math.max(0,1-o/mx))*(ins?1:.6):0;
    const pk=k+'|'+t,pin=A&&C.pins&&C.pins.has(pk);
