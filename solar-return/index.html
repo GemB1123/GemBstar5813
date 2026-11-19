@@ -410,6 +410,14 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
    wheel's background so a cusp or angle line under them never hides them (opts.degHalo:false turns the halo off) */
 const txd=(T,o,s,x,y,sz,col,w,dg)=>{const k=o.degScale==null?.8:o.degScale,c=dg&&col===T.ink&&o.theme==='dark'?'#ffffff':col;
  const t=tx(s,x,y,f(sz*k),c,w?w-100:w);return dg&&o.degHalo!==false?t.replace('<text ',`<text stroke="${T.bg}" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke" `):t};
+/* aspect lines (Gemini, Nov 19, every chart; the Solar Return's style): the tighter the orb the thicker the line, an aspect between the
+   right signs (a trine from Pisces to Scorpio) heavier than one across a sign line; trines and sextiles in the water signs' blue, squares and
+   oppositions in the fire signs' red, taken from the wheel. opts.aspectStyle:'plain' keeps an app's own colors and widths; an aspect that
+   already carries a width keeps it */
+const ASPC={dark:{60:'#6f78d6',120:'#6f78d6',90:'#cc5a4e',180:'#cc5a4e'},light:{60:'#33408f',120:'#33408f',90:'#a8382f',180:'#a8382f'}};
+function aspStyle(A,pp,dark){const pa=pp[A.a],pb=pp[A.b];if(pa==null||pb==null)return A;const ang=+A.angle,sep=Math.abs(((pa-pb)%360+540)%360-180),orb=A.orb!=null?+A.orb:Math.abs(sep-ang);
+ const D=ASPECTS.find(x=>x.angle===ang),mx=A.maxOrb||(D&&D.orb)||8,t=Math.max(0,1-orb/mx),d=((Math.floor(n360(pa)/30)-Math.floor(n360(pb)/30))%12+12)%12,k=Math.round(ang/30)%12,ins=d===k||d===(12-k)%12;
+ const c=ASPC[dark?'dark':'light'][ang];if(c&&!A.minor)A.color=c;if(A.width==null)A.width=(A.minor?.35+.9*t:.45+1.75*t)*(ins?1:.55);A.inSign=ins;return A}
 const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}" font-family="Inter,system-ui,sans-serif"${w?` font-weight="${w}"`:''}>${s}</text>`;
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
@@ -484,13 +492,28 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   /* then relax: cusps push glyphs off their lines and glyphs push each other apart again, so moving off a cusp never lands a glyph
      on its neighbour (Gemini, Nov 16: natal Sun and Uranus overlapped on a biwheel) */
   {const gp=gap,m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
+   /* STELLIUM (Gemini, Nov 18, GLOBAL): a house too full to hold its planets (Venus at 4° Leo crowded against the 2nd cusp) grows into
+      the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
+      true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
+   const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}return O.length?O:null};
+   for(let tries=0;tries<=n;tries++){
    if(C.length&&n*gp<330)for(let it=0;it<60;it++){let moved=false;
     list.forEach(x=>{for(const c of C){const e=dd(x.d,c);if(Math.abs(e)>=m-1e-6)continue;
      if(!x.cs){let sg=Math.sign(dd(x.l,c))||Math.sign(e);if(!sg){const o=list.filter(y=>y!==x).map(y=>dd(y.d,c));sg=o.filter(v=>v>0&&v<15).length>o.filter(v=>v<0&&v>-15).length?-1:1}x.cs={};x.cs[c]=sg}
      const sg=(x.cs[c]!=null?x.cs[c]:(x.cs[c]=Math.sign(e)||1));x.d=n360(c+sg*m);moved=true}});
     const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d));
     for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n],sp=n360(A2.d-A1.d);if(sp<gp-1e-6){const k=(gp-sp)/2;A1.d=n360(A1.d-k);A2.d=n360(A2.d+k);moved=true}}
-    if(!moved)break}}
+    if(!moved)break}
+   const o=C.length&&n*gp<330&&opts.stellium!==false?over():null;if(!o)break;let flip=null;
+   for(const x of o)if(x.cs)for(const c of Object.keys(x.cs)){if(Math.abs(Math.abs(dd(x.d,+c))-m)<.5&&!(x.fl&&x.fl[c])){flip=[x,c];break}}
+   if(!flip)break;const [fx,fc]=flip;fx.fl=fx.fl||{};fx.fl[fc]=1;fx.cs[fc]=-fx.cs[fc];list.forEach(x=>{x.d=x.l})}}
+  if(cu&&opts.stellium!==false&&list.length>2){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
+   const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
+   const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){if(n360(S[i].d-S[i-1].d)<gap*1.35)G[G.length-1].push(S[i]);else G.push([S[i]])}
+   const rr=[[R.g,R.gs||17*GS],[R.d,R.ds],[R.s,R.ss],[R.m,R.ms]].filter(a=>a[0]&&a[1]),ro=Math.max(...rr.map(a=>a[0]+a[1]*.62)),ri0=Math.min(...rr.map(a=>a[0]-a[1]*.62));
+   for(const g of G){if(g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
+    const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
+    h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
   const cf=main?col:()=>ci,sh=main&&shiny;
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
@@ -511,6 +534,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
+  if(opts.aspectStyle!=='plain')aspStyle(A,pp,opts.theme==='dark');
   h+=`<line class="eawa" x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${A.color||T.line}" stroke-width="${f((A.width!=null?A.width:A.minor?.6:1.1)*(big?1.4:1))}"${A.minor?' stroke-dasharray="3 2"':''}><title>${A.a} ${A.name||A.angle+'°'} ${A.b}${A.orb!=null?' · orb '+Math.floor(A.orb)+'°'+String(Math.round(A.orb%1*60)).padStart(2,'0')+"'":''}</title></line>`}}
  /* the Earth in the center, over the aspect lines (Gemini, Nov 13): Small or Large; Large still leaves a ring of aspect lines */
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
