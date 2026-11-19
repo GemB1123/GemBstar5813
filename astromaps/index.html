@@ -641,6 +641,12 @@ body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
 .amp-stbl table{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}.amp-stbl th,.amp-stbl td{text-align:left;padding:3px 4px;border-bottom:1px solid #ffffff12;font-weight:500;white-space:nowrap}.amp-stbl td{color:#d9cfb4}
 .amp-stbl tr.in th,.amp-stbl tr.in td{font-weight:800;color:#ffe08a}
 .amp-spar{margin:2px 0 4px;padding-left:16px;font-size:12px;line-height:1.45}.amp-spar small{color:#c9b27a}
+.amp-pop.amp-side{display:flex;flex-direction:column}.amp-pop.amp-side .amp-ph{cursor:default}
+.amp-pop.amp-side .amp-pb{flex:1;min-height:0;max-height:none;overflow:auto}
+.amp-side .amp-slist{max-height:300px;overflow:auto;padding-right:2px}
+.amp-sdiv{margin-top:10px;padding-top:8px;border-top:1.5px solid #c9b27a88}.amp-sttl{display:flex;flex-direction:column;margin:0 2px 6px}.amp-sttl b{font-size:14px;line-height:1.25}.amp-sttl small{font-size:11px;color:#c9b27a}
+.amp-side.amp-ssel .amp-slist{max-height:196px}
+.amp-side .amp-stbl th{white-space:normal}.amp-side .amp-stbl th small{display:block;font-size:9.5px;color:#c9b27a}
 </style>
 <div id="bg"></div>
 <div id="stage"><div id="wheel"></div><div id="scene"></div><div id="lUL" class="lb ul"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lUR" class="lb ur"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLR" class="lb lr"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLL" class="lb ll"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="dock" hidden></div><div id="dropzone" hidden>Drop Here To Dock Below The Chart</div><div id="box" hidden></div>
@@ -5773,7 +5779,7 @@ const AMP_CFG={
  /* pop-ups over the drawing (Gemini, Nov 11): a simple chart wheel (the Planetary Tables look) and a Local Space compass, each movable with an X */
  vis:{max:3,op:.26},
  /* Story Maps (Gemini, Nov 19): example lists beside the page, how far in the map flies, parans within 1° of latitude, lines within 150 mi in bold */
- story:{sample:'stories.json',zoom:6,zoomMax:12,zoomTrip:2.5,globeZoom:1.8,flySteps:30,parOrb:1,max:8,tight:150,hit:16,freeMin:260},tide:{sun:.46,color:'#5fd0e0',op:.5},find:{min:8,max:10},
+ story:{sample:'stories.json',zoom:6,zoomMax:12,zoomTrip:2.5,globeZoom:1.8,flySteps:30,parOrb:1,max:8,tight:150,hit:16,freeMin:260,sideW:380,globeStepsMax:96,globeStepsPerDeg:.45,globeTripDeg:35},tide:{sun:.46,color:'#5fd0e0',op:.5},find:{min:8,max:10},
  pops:{stories:{name:'Stories',x:20,y:96,w:340},story:{name:'Story',x:372,y:96,w:390},lines:{name:'Lines',x:20,y:96,w:720},zodiac:{name:'Zodiac',x:640,y:110,w:300},ecl:{name:'Eclipses',x:600,y:96,w:400},sky:{name:'Horizons',x:560,y:96,w:390},gaze:{name:'Eclipse From Here',x:330,y:70,w:520},relocate:{name:'Relocate',x:395,y:150,w:270},wheel:{name:'Chart Wheel',x:22,y:230,w:250},compass:{name:'Local Space Compass',x:712,y:110,w:250}},
  /* Geodetic zodiac (Gemini, Nov 11): 0° Aries laid on a prime meridian, each sign 30° of longitude eastward. Greenwich by default, the Great Pyramid, or any place typed in */
  primes:{greenwich:['Greenwich',0],giza:['Great Pyramid (Giza)',31.1342]},
@@ -5927,8 +5933,11 @@ const FULL=()=>{const st=typeof document!=='undefined'&&document.getElementById(
 const DOCK=()=>S.dockTM&&!window.EA_PHONE?58:0;
 const FR=()=>{const F=AMP_CFG.frame,d=DOCK();return FULL()?{x:16,y:16,w:1408,h:868}:{x:F.x,y:F.y,w:F.w,h:F.h+d}};
 const BARY=()=>{const F=FR();return F.h-DOCK()-16-36};
-function MAPR(){const F=FR(),C=AMP_CFG.map,aw=F.w-128,ah=F.h-C.y-C.below-DOCK(),w=Math.floor(Math.min(aw,ah*2)/2)*2;return {x:Math.round((F.w-w)/2),y:C.y,w,h:w/2,maxZoom:STR().status()==='on'?C.streetZoom:C.maxZoom}}
-function GLB(){const F=FR(),G=AMP_CFG.globe,b=BARY()-8,t=72;return {cx:F.w/2,cy:(t+b)/2,r:Math.min((b-t)/2-6,F.w/2-24)}}
+function MAPR(){const F=FR(),C=AMP_CFG.map,sw=SIDEW(),aw=F.w-128-sw,ah=F.h-C.y-C.below-DOCK(),w=Math.floor(Math.min(aw,ah*2)/2)*2;return {x:sw+Math.round((F.w-sw-w)/2),y:C.y,w,h:w/2,maxZoom:STR().status()==='on'?C.streetZoom:C.maxZoom}}
+function GLB(){const F=FR(),G=AMP_CFG.globe,b=BARY()-8,t=72,sw=SIDEW();return {cx:(F.w+sw)/2,cy:(t+b)/2,r:Math.min((b-t)/2-6,(F.w-sw)/2-24)}}
+/* Story Maps side panel (Gemini, Nov 19): the stories down the left side, the globe or map in the room to its right */
+function SIDEON(){return !window.EA_PHONE&&typeof STO!=='undefined'&&STO.side&&!!ST.pops.stories}
+function SIDEW(){return SIDEON()?AMP_CFG.story.sideW:0}
 /* past about 4x the map's north-south scale grows toward 1/cos(latitude), so at city zoom streets keep their true shape (an equirectangular map squashes them) */
 const ASP=()=>{const t=Math.max(0,Math.min(1,(Math.log2(ST.mz||1)-2)/3));return 1+(1/Math.cos(Math.min(80,Math.abs(ST.mc[1]))*R)-1)*t};
 const MV=()=>{const M=MAPR(),s=M.w/360*ST.mz;return {M,s,sy:s*ASP(),cx:M.x+M.w/2,cy:M.y+M.h/2}};
@@ -6398,7 +6407,7 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
   redraw(1.5);const s2=STAGE&&STAGE.querySelector('svg.amp');if(s2)s2.focus()});
  /* pop-ups: drag by the title bar */
  el.querySelectorAll('.amp-pop').forEach(pp=>{const h=pp.querySelector('.amp-ph');if(!h)return;let st=null;
-  h.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;const m=sv.getScreenCTM();const k=m?m.a:1;st={x:e.clientX,y:e.clientY,l:parseFloat(pp.style.left),t:parseFloat(pp.style.top),k};try{h.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+  h.addEventListener('pointerdown',e=>{if(e.target.closest('button')||pp.classList.contains('amp-side'))return;const m=sv.getScreenCTM();const k=m?m.a:1;st={x:e.clientX,y:e.clientY,l:parseFloat(pp.style.left),t:parseFloat(pp.style.top),k};try{h.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
   h.addEventListener('pointermove',e=>{if(!st)return;pp.style.left=(st.l+(e.clientX-st.x)/st.k)+'px';pp.style.top=(st.t+(e.clientY-st.y)/st.k)+'px'});
   const up=()=>{if(!st)return;st=null;const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   h.addEventListener('keydown',e=>{const m={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[e.key];if(!m||e.target.closest('button'))return;e.preventDefault();pp.style.left=(parseFloat(pp.style.left)+m[0])+'px';pp.style.top=(parseFloat(pp.style.top)+m[1])+'px';const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}})})}
@@ -6424,7 +6433,9 @@ function overlay(){const F=FR(),b=(act,id,t,on,lab)=>`<button type="button" clas
  /* one bar of buttons under the map (Gemini, Nov 11); the docked Time Machine sits under it, inside the window */
  const seg=(act,pairs,cur)=>`<span class="amp-grp">${pairs.map(([k,t])=>b(act,k,t,cur===k)).join('')}</span>`;
  let h=`<div class="amp-bar" role="toolbar" aria-label="AstroMaps buttons" style="left:${F.x+F.w/2}px;top:${F.y+BARY()}px;transform:translateX(-50%)"><button type="button" class="amp-mb" data-slot="astromaps" aria-label="Open or close the AstroMaps menu">Menu</button>${b('ampmode',ST.mode==='mundo'?'zodiaco':'mundo',AMP_CFG.modes[ST.mode],false,'In Mundo or In Zodiaco: tap to switch')}${b('amppop','sky','Horizons',ST.pops.sky||ST.vis.length>0||ST.tide,'Day and night, planets above the horizon, tides, and places')}${b('amptheme',ST.theme==='light'?'night':'light','Light Mode',ST.theme==='light','Light mode')}${b('amppop','lines','Lines',ST.pops.lines,'Choose the lines on the map')}${b('amppop','zodiac','Zodiac',ST.pops.zodiac,'Sky lines and signs')}${b('amppll','1','Parallels',ST.pll,'Parallels of declination')}${b('amppop','ecl','Eclipses',ST.pops.ecl||ST.ecl.on.size>0,'Eclipse paths')}${b('amppop','stories','Stories',ST.pops.stories||ST.pops.story,'Story Maps: stories pinned to places')}${b('amppop','relocate','Relocate',ST.pops.relocate)}${b('amptm','1','Time Machine',ST.moment==='tm'&&S.dockTM,'Time Machine under the map')}${b('amppop','wheel','Chart Wheel',ST.pops.wheel)}${b('amppop','compass','Compass',ST.pops.compass,'Local Space Compass')}${seg('ampview',[['map','Map'],['globe','Globe']],ST.view)}</div>`;
- for(const id of ST.popOrder){if(!ST.pops[id])continue;if(id==='gaze'&&!(A.gaze&&A.gaze().hasAnim())){ST.pops.gaze=false;continue}const C=AMP_CFG.pops[id],q=ST.popPos[id]||C;
+ for(const id of ST.popOrder){if(!ST.pops[id])continue;if(id==='story'&&SIDEON())continue;
+  if(id==='stories'&&SIDEON()){const l=stoList(),sS=stoSel(),top=64,hh=BARY()-top-10;h+=`<div class="amp-pop amp-side${sS?' amp-ssel':''}" data-pop="stories" role="dialog" aria-label="Stories" style="left:${F.x+12}px;top:${F.y+top}px;width:${AMP_CFG.story.sideW-20}px;height:${hh}px"><div class="amp-ph"><span><b>${esc(l?l.name:'Stories')}</b><small>${esc(l&&l.rec?l.rec.name||'':(chart()&&chart().name)||'')}</small></span><button type="button" class="x" data-act="amppop" data-id="stories" aria-label="Close Stories">&times;</button></div><div class="amp-pb">${(()=>{const pb=popBody('stories').split('<!--sto-tools-->'),rp=sS&&!STO.edit&&!STO.mk?`<div class="amp-sdiv"><div class="amp-sttl"><b>${esc(sS.title)}</b><small>${esc(sS.place)}</small></div>${popBody('story')}</div>`:'';return pb[0]+rp+(pb[1]?`<div class="amp-sdiv">${pb[1]}</div>`:'')})()}</div></div>`;continue}
+  if(id==='gaze'&&!(A.gaze&&A.gaze().hasAnim())){ST.pops.gaze=false;continue}const C=AMP_CFG.pops[id],q=ST.popPos[id]||C;
   const sS=id==='story'?stoSel():null,pT=sS?sS.title:id==='stories'&&stoList()?stoList().name:C.name,pS=sS?[sS.place,sS.when].filter(Boolean).join(' · '):popSub();
   h+=`<div class="amp-pop" data-pop="${id}" role="dialog" aria-label="${esc(pT)}" style="left:${F.x+q.x}px;top:${F.y+q.y}px;width:${C.w}px"><div class="amp-ph" tabindex="0" title="Drag to move (or arrow keys)"><span><b>${esc(pT)}</b><small>${esc(pS)}</small></span><button type="button" class="x" data-act="amppop" data-id="${id}" aria-label="Close ${C.name}">&times;</button></div><div class="amp-pb">${popBody(id)}</div></div>`}
  return h}
@@ -6580,7 +6591,7 @@ function act(a,id){
  else if(a==='ampmode'){if(AMP_CFG.modes[id])ST.mode=id;reading()}
  else if(a==='ampmoment'){if(id==='tm')return act('amptm','');ST.moment='chart';reading()}
  else if(a==='amptm'){const on=ST.moment==='tm'&&S.dockTM;if(on){ST.moment='chart';S.dockTM=false}else{ST.moment='tm';S.dockTM=true;if(S.open==='tm')S.open=null;if(!S.tm.active){const c=chart();S.tm.active=true;S.tm.playing=false;S.tm.time=c?chartMs(c):Date.now()}}saveS();reading()}
- else if(a==='amppop'){if(ST.pops[id]!=null){ST.pops[id]=!ST.pops[id];ST.popOrder=ST.popOrder.filter(x=>x!==id);if(ST.pops[id])ST.popOrder.push(id)}}
+ else if(a==='amppop'){if(ST.pops[id]!=null){ST.pops[id]=!ST.pops[id];ST.popOrder=ST.popOrder.filter(x=>x!==id);if(ST.pops[id])ST.popOrder.push(id);if(id==='stories'&&ST.pops.stories)stoOpened()}}
  else if(a==='ampsto'){if(stoAct(id))return}
  else if(a==='amphit')return;   /* taps and drags are handled by mount's listeners; nothing to redraw here */
  renderAll()}
@@ -6590,7 +6601,7 @@ function opened(){if(window.EA_PHONE||ST.tmOpened)return;ST.tmOpened=true;if(ST.
    at that place: the lines near it (with the house each planet falls in there), the parans at its latitude, and the angles there.
    Lists keep their own chart, so choosing a list casts that chart. Kept in this browser; Export and Import move a list between devices. */
 const STO_KEY='ea-amp-stories-v1';
-const STO={lists:[],cur:'',sel:'',edit:null,mk:null,del:'',pins:true,loaded:false,seen:[]};ST.sto=STO;
+const STO={lists:[],cur:'',sel:'',edit:null,mk:null,del:'',pins:true,side:true,loaded:false,seen:[]};ST.sto=STO;
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
 function stoSave(){try{localStorage.setItem(STO_KEY,JSON.stringify({lists:STO.lists,cur:STO.cur,seen:STO.seen}))}catch(e){}}
 function stoNorm(l){if(!l||!Array.isArray(l.stories))return null;
@@ -6600,10 +6611,12 @@ function stoNorm(l){if(!l||!Array.isArray(l.stories))return null;
  return {id:String(l.id||uid()),name:String(l.name||'Stories').slice(0,80),rec:r,stories:st}}
 function stoImportable(o){const arr=Array.isArray(o)?o:o&&Array.isArray(o.lists)?o.lists:[o];return arr.map(stoNorm).filter(Boolean)}
 /* example lists shipped beside the page (stories.json) are added once; one you delete stays deleted */
-function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const o=JSON.parse(localStorage.getItem(STO_KEY)||'null');if(o&&Array.isArray(o.lists)){STO.lists=o.lists.map(stoNorm).filter(Boolean);STO.cur=o.cur||'';STO.seen=Array.isArray(o.seen)?o.seen:[]}}catch(e){}
+function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const v=localStorage.getItem('ea-amp-stories-side');if(v!=null)STO.side=v==='1'}catch(e){}try{const o=JSON.parse(localStorage.getItem(STO_KEY)||'null');if(o&&Array.isArray(o.lists)){STO.lists=o.lists.map(stoNorm).filter(Boolean);STO.cur=o.cur||'';STO.seen=Array.isArray(o.seen)?o.seen:[]}}catch(e){}
  try{if(typeof fetch!=='function')return;fetch(AMP_CFG.story.sample).then(r=>r.ok?r.json():null).then(o=>{if(!o)return;let add=0;
   for(const l of stoImportable(o)){if(STO.seen.includes(l.id)||STO.lists.some(x=>x.id===l.id))continue;STO.lists.push(l);STO.seen.push(l.id);add++}
-  if(add){if(!stoList())STO.cur=STO.lists[0].id;stoSave();if(S.gv==='amap')renderAll()}}).catch(()=>{})}catch(e){}}
+  if(add){if(!stoList())STO.cur=STO.lists[0].id;stoSave();if(ST.pops.stories&&!stoChartOn(stoList()))stoUseChart(stoList());if(S.gv==='amap')renderAll()}}).catch(()=>{})}catch(e){}}
+/* opening Stories casts the list's chart (Gemini, Nov 19: her own chart showed with Erik's list), and in the side panel shows the globe */
+function stoOpened(){stoLoad();const l=stoList();if(l&&!stoChartOn(l))stoUseChart(l);if(SIDEON())ST.view='globe'}
 const stoList=()=>STO.lists.find(l=>l.id===STO.cur)||null;
 const stoSel=()=>{const l=stoList();return l&&l.stories.find(s=>s.id===STO.sel)||null};
 const recKey=r=>r?JSON.stringify([r.date,r.time,r.unknown||false,f1(+r.place.lat),f1(+r.place.lon)]):'';
@@ -6642,7 +6655,7 @@ function storyHTML(){const s=stoSel(),l=stoList();if(!s||!l)return '<small class
  <div class="btns amp-sbtn"><button type="button" data-act="ampsto" data-id="prev" ${i<=0?'disabled':''}>Previous</button><span>${i+1} of ${n}</span><button type="button" data-act="ampsto" data-id="next" ${i>=n-1?'disabled':''}>Next</button><button type="button" data-act="ampsto" data-id="edit:${esc(s.id)}">Edit</button></div>`}
 function storiesHTML(){stoLoad();const l=stoList(),c=chart();
  const lists=STO.lists.map(x=>`<button type="button" class="amp-lc ${x.id===STO.cur?'on':''}" aria-pressed="${x.id===STO.cur}" data-act="ampsto" data-id="list:${esc(x.id)}">${esc(x.name)}</button>`).join('');
- let h=`<div class="amp-asps" role="group" aria-label="Story lists">${lists}<button type="button" class="amp-lc" data-act="ampsto" data-id="new">+ New List</button></div>`;
+ let h=(window.EA_PHONE?'':`<div class="amp-asps" role="group" aria-label="Layout"><button type="button" class="amp-lc ${STO.side?'on':''}" aria-pressed="${STO.side}" data-act="ampsto" data-id="side">Side Panel</button><button type="button" class="amp-lc ${STO.side?'':'on'}" aria-pressed="${!STO.side}" data-act="ampsto" data-id="popup">Pop-Up</button></div>`)+`<div class="amp-asps" role="group" aria-label="Story lists">${lists}<button type="button" class="amp-lc" data-act="ampsto" data-id="new">+ New List</button></div>`;
  if(STO.mk)return h+`<div class="amp-sform"><label>${STO.mk.id?'Rename the list':'Name the new list'}<input type="text" data-amp-sk="name" value="${esc(STO.mk.name)}" placeholder="For example: Tour Stories 2026"></label><small class="amp-pn">${STO.mk.id?'':`It keeps the chart on the map now: ${esc(c&&c.name||'Chart 1')}.`}</small><div class="btns"><button type="button" data-act="ampsto" data-id="mksave">${STO.mk.id?'Rename':'Create'}</button><button type="button" data-act="ampsto" data-id="cancel">Cancel</button></div></div>`;
  if(STO.edit)return h+stoForm();
  if(!l)return h+`<small class="amp-pn">Make a list, then add stories: each one is pinned to its place. Tap a story to fly there and read the lines, parans, and houses at that place.</small><div class="btns"><button type="button" data-act="ampsto" data-id="import">Import A List</button></div>`;
@@ -6651,7 +6664,7 @@ function storiesHTML(){stoLoad();const l=stoList(),c=chart();
  h+=`<ol class="amp-slist" aria-label="${esc(l.name)}">${l.stories.map((s,i)=>`<li class="${s.id===STO.sel?'on':''}" data-sid="${esc(s.id)}"><button type="button" class="amp-sh" data-amp-drag="${esc(s.id)}" aria-label="Drag to reorder ${esc(s.title)}" title="Drag to reorder">⋮⋮</button><button type="button" class="amp-sgo" data-act="ampsto" data-id="go:${esc(s.id)}"><b>${i+1}</b><span><span class="t">${esc(s.title)}</span><small>${esc(s.place)}</small></span></button><span class="amp-sud"><button type="button" data-act="ampsto" data-id="up:${esc(s.id)}" aria-label="Move up" ${i?'':'disabled'}>▲</button><button type="button" data-act="ampsto" data-id="dn:${esc(s.id)}" aria-label="Move down" ${i<l.stories.length-1?'':'disabled'}>▼</button></span></li>`).join('')}</ol>`;
  if(!l.stories.length)h+='<small class="amp-pn">No stories yet. Add Story, then choose its place.</small>';
  const sel=stoSel(),dl=STO.del;
- h+=`<div class="btns amp-sbar"><button type="button" data-act="ampsto" data-id="add">Add Story</button>${sel?`<button type="button" data-act="ampsto" data-id="edit:${esc(sel.id)}">Edit</button><button type="button" data-act="ampsto" data-id="del">${dl==='s:'+sel.id?'Tap Again To Delete':'Delete Story'}</button>`:''}<button type="button" class="${STO.pins?'on':''}" aria-pressed="${STO.pins}" data-act="ampsto" data-id="pins">Pins</button></div>
+ h+=`<!--sto-tools--><div class="btns amp-sbar"><button type="button" data-act="ampsto" data-id="add">Add Story</button>${sel?`<button type="button" data-act="ampsto" data-id="edit:${esc(sel.id)}">Edit</button><button type="button" data-act="ampsto" data-id="del">${dl==='s:'+sel.id?'Tap Again To Delete':'Delete Story'}</button>`:''}<button type="button" class="${STO.pins?'on':''}" aria-pressed="${STO.pins}" data-act="ampsto" data-id="pins">Pins</button></div>
  <div class="btns amp-sbar"><button type="button" data-act="ampsto" data-id="rename">Rename List</button><button type="button" data-act="ampsto" data-id="dellist">${dl==='l:'+l.id?'Tap Again To Delete':'Delete List'}</button><button type="button" data-act="ampsto" data-id="export">Export</button><button type="button" data-act="ampsto" data-id="import">Import</button></div>
  <small class="amp-pn">Tap a story to fly there. Drag ⋮⋮ or use the arrows to reorder. Stories are kept in this browser; Export saves a list as a file you can Import on another device.</small>`;
  return h}
@@ -6679,8 +6692,11 @@ function stoFly(lon,lat){const sv=STAGE&&STAGE.querySelector('svg.amp');if(!sv)r
  if(ST.view==='map'){const z0=ST.mz,z1=Math.max(C.zoom,Math.min(z0,C.zoomMax));ST.mz=z1;const V1=MV();ST.mz=z0;lon=w180(lon-(xt-V1.cx)/V1.s);
   const m0=ST.mc.slice(),dl=w180(lon-m0[0]),far=Math.hypot(dl,lat-m0[1])>40,zm=far?Math.min(z0,z1,C.zoomTrip):Math.min(z0,z1);
   const go=()=>{i++;const t=i/steps,e=t*t*(3-2*t);ST.mc=[w180(m0[0]+dl*e),m0[1]+(lat-m0[1])*e];ST.mz=e<.5?z0*Math.pow(zm/z0,e*2):zm*Math.pow(z1/zm,(e-.5)*2);clampMap();fastMap(sv);if(i<steps)requestAnimationFrame(go);else renderAll()};requestAnimationFrame(go)}
- else{view();const r0=ST.rot.slice(),g0=ST.gz,g1=Math.max(g0,C.globeZoom),G0=GLB(),off=Math.asin(Math.max(-.8,Math.min(.8,(xt-G0.cx)/(G0.r*g1))))/R,lt=Math.max(-60,Math.min(60,lat)),dl=w180(lon-off/Math.max(.3,Math.cos(lt*R))-r0[0]);
-  const go=()=>{i++;const t=i/steps,e=t*t*(3-2*t);ST.rot=[w180(r0[0]+dl*e),r0[1]+(lt-r0[1])*e];ST.gz=g0+(g1-g0)*e;fastGlobe(sv);if(i<steps)requestAnimationFrame(go);else renderAll()};requestAnimationFrame(go)}}
+ else{view();const r0=ST.rot.slice(),g0=ST.gz,g1=Math.max(g0,C.globeZoom),G0=GLB(),off=Math.asin(Math.max(-.8,Math.min(.8,(xt-G0.cx)/(G0.r*g1))))/R,lt=Math.max(-60,Math.min(60,lat)),tg=[w180(lon-off/Math.max(.3,Math.cos(lt*R))),lt];
+  /* the globe turns along the great circle between the two places; a long trip pulls back to the whole Earth halfway and takes longer (Gemini, Nov 19: Atlanta to Tokyo) */
+  const v0=vecOf(r0),v1=vecOf(tg),W=Math.acos(Math.max(-1,Math.min(1,dot3(v0,v1)))),deg=W/R,n=Math.round(Math.min(C.globeStepsMax,steps+deg*C.globeStepsPerDeg)),gm=deg>C.globeTripDeg?Math.min(g0,1):Math.min(g0,g1),sw=Math.sin(W);
+  const go=()=>{i++;const t=i/n,e=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;let v;if(sw<1e-6)v=v1;else{const a=Math.sin((1-e)*W)/sw,b=Math.sin(e*W)/sw;v=[a*v0[0]+b*v1[0],a*v0[1]+b*v1[1],a*v0[2]+b*v1[2]]}
+   ST.rot=[Math.atan2(v[1],v[0])/R,Math.max(-85,Math.min(85,Math.asin(Math.max(-1,Math.min(1,v[2])))/R))];const u=e<.5?e*2:(e-.5)*2,uu=u*u*(3-2*u);ST.gz=e<.5?g0+(gm-g0)*uu:gm+(g1-gm)*uu;fastGlobe(sv);if(i<n)requestAnimationFrame(go);else renderAll()};requestAnimationFrame(go)}}
 function stoGo(id){const l=stoList(),s=l&&l.stories.find(x=>x.id===id);if(!s)return;if(!stoChartOn(l))stoUseChart(l);STO.sel=id;STO.edit=null;STO.del='';ST.place=[s.lon,s.lat];ST.placeName=s.place;reading();
  ST.pops.story=true;ST.popOrder=ST.popOrder.filter(x=>x!=='story');ST.popOrder.push('story');renderAll();
  if(window.EA_PHONE){try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}}   /* on a phone the map is at the top of the page */
@@ -6703,6 +6719,7 @@ function stoAct(v){const l=stoList();v=String(v);const [t,x]=[v.split(':')[0],v.
  else if(t==='cancel'){STO.mk=null;STO.edit=null}
  else if(t==='chart')stoUseChart(l);
  else if(t==='pins')STO.pins=!STO.pins;
+ else if(t==='side'||t==='popup'){STO.side=t==='side';if(STO.side)ST.view='globe';try{localStorage.setItem('ea-amp-stories-side',STO.side?'1':'0')}catch(e){}}
  else if(t==='add'){if(!l){STO.mk={name:''}}else{const P=ST.place;STO.edit={id:null,title:'',q:'',place:P?(ST.placeName||nearName()||'').replace(/^Near /,'').replace(/ \([^)]*\)$/,''):'',lat:P?P[1]:null,lon:P?P[0]:null,when:'',story:'',note:''}}}
  else if(t==='edit'){const s=l&&l.stories.find(y=>y.id===x);if(s){STO.edit=Object.assign({q:''},JSON.parse(JSON.stringify(s)));ST.pops.stories=true;if(!ST.popOrder.includes('stories'))ST.popOrder.push('stories')}}
  else if(t==='pick'){const E=STO.edit,r=E&&E.res&&E.res[+x];if(r){E.lat=r.latitude;E.lon=r.longitude;E.place=String(r.label||'').split(',').slice(0,2).join(',');E.q='';ST.place=[r.longitude,r.latitude];ST.placeName=r.label;reading()}}
@@ -6722,6 +6739,7 @@ function wireStories(){const pp=STAGE&&STAGE.querySelector('.amp-pop[data-pop="s
   if(k==='q')inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(STO.edit&&STO.edit.res&&STO.edit.res[0]){stoAct('pick:0');renderAll()}else toast('No place found by that name.')}});
   inp.addEventListener('keydown',e=>{if(e.key==='Escape'){e.stopPropagation();inp.blur()}})});
  pp.querySelectorAll('[data-amp-sk]').forEach(inp=>{if(inp.__amp)return;inp.__amp=true;inp.addEventListener('input',()=>{if(STO.mk)STO.mk.name=inp.value});inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();stoAct('mksave');renderAll()}})});
+ {const o2=pp.querySelector('.amp-slist'),on=o2&&o2.querySelector('li.on');if(on&&o2.scrollHeight>o2.clientHeight){const r=on.offsetTop-o2.offsetTop;if(r<o2.scrollTop||r+on.offsetHeight>o2.scrollTop+o2.clientHeight)o2.scrollTop=Math.max(0,r-o2.clientHeight/3)}}
  const ol=pp.querySelector('.amp-slist');if(!ol||ol.__amp)return;ol.__amp=true;let D=null;
  ol.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-amp-drag]');if(!h)return;const li=h.closest('li');D={id:h.dataset.ampDrag,li,y:e.clientY,to:null};li.classList.add('drag');try{h.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
  ol.addEventListener('pointermove',e=>{if(!D)return;D.li.style.transform=`translateY(${e.clientY-D.y}px)`;let to=0;for(const x of ol.children){if(x===D.li)continue;const r=x.getBoundingClientRect();if(e.clientY>r.top+r.height/2)to++}D.to=to});
