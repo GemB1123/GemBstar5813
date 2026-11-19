@@ -871,7 +871,7 @@ function earthImage(F,gm,sunL,sx,sy){const tex=earthTex(),TW=720,TH=360,n=300,C=
 function earthProj(F,lat,lon,Rd,any){const la=lat*R,dl=(lon-F.lon0)*R,cl=Math.cos(la),sa=Math.sin(la),c1=cl*Math.cos(dl),c2=cl*Math.sin(dl);
  const x=c1*F.ux+c2*F.ex+sa*F.ax,y=c1*F.uy+c2*F.ey+sa*F.ay,z=c1*F.uz+c2*F.ez+sa*F.az;const hid=F.south?z>=1e-3:z<=-1e-3;if(hid&&!any)return null;return [x*Rd,y*Rd,!hid]}
 let EU=0;
-function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=C.sr.pos.Sun,rot=C.unknownTime?0:(C.cusps.asc!=null?C.cusps.asc:C.cusps[1]),
+function earthSVG(C,r){const u='sr'+(++EU),jd=jdOf(C.srms),gm=n360(EA_JPL.gast(jd)),sunL=C.sr.pos.Sun,rot=C.unknownTime?0:(wcu(C).asc!=null?wcu(C).asc:wcu(C)[1]),
   a=(270-(sunL-rot))*R,sx=Math.sin(a),sy=-Math.cos(a),F=earthFrame(rot,gm,C.at.lat<0),k=r/66,sz=2*r/.98;
  const dot=(q,col,core,rr,gl,id)=>q?`<radialGradient id="${id}"><stop offset="0" stop-color="${col}" stop-opacity=".9"/><stop offset=".35" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(gl*k).toFixed(2)}" fill="url(#${id})"/><circle cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${(rr*k).toFixed(2)}" fill="${core}"/>`:'';
  /* the Sun: on the subsolar point, or its glow at the rim when that point is behind the Earth */
@@ -900,32 +900,28 @@ function crossAspects(C,pp){const sk=CFG.planets.filter(k=>k!=='SNode'&&!(k==='N
  Object.keys(both).forEach(k=>{if(k.startsWith('Birth '))pp[k]=both[k]});if(pp.Node!=null)pp['North Node']=pp.Node;
  return EAWheel.findAspects(both,XORB,false).filter(A=>A.a.startsWith('Birth ')!==A.b.startsWith('Birth '))
   .map(A=>A.a.startsWith('Birth ')?Object.assign(A,{a:A.b,b:A.a}):A).map(A=>Object.assign(A,{a:A.a==='Node'?'North Node':A.a}))}
+/* the biwheel sits in the BIRTH chart's houses and angles (Gemini, Nov 18: "I always use natal angles for solar return charts
+   unless I am considering the return chart alone"); the return's Ascendant and Midheaven ride in the inner ring like planets */
+const wcu=C=>C.natal&&C.natalCusps?C.natalCusps:C.cusps;
+const angTxt=t=>`<text x="0" y="1" text-anchor="middle" dominant-baseline="central" font-size="21" font-weight="700" fill="currentColor" stroke="none" font-family="Inter,system-ui,sans-serif">${t}</text>`;
 function wheelSVG(C,theme){usedCols=new Set();
- let s=EAWheel.svg({pos:C.sr.pos,ret:C.sr.ret,cusps:C.unknownTime?null:C.cusps,label:'Solar Return '+C.year,
+ const RA=C.natal&&C.natalCusps&&!C.unknownTime;
+ let s=EAWheel.svg({pos:RA?Object.assign({},C.sr.pos,{'Return AS':C.cusps.asc!=null?C.cusps.asc:C.cusps[1],'Return MC':C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}):C.sr.pos,ret:C.sr.ret,cusps:C.unknownTime?null:wcu(C),label:'Solar Return '+C.year,
    rings:C.natal?[{pos:C.birth.pos,ret:C.birth.ret,label:'Birth'}]:undefined},
-  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp)}:{}),earthSVG:r=>earthSVG(C,r),glyph:k=>(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
+  Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp)}:{}),earthSVG:r=>earthSVG(C,r),glyph:k=>k==='Return AS'?angTxt('AS'):k==='Return MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
    label:`Solar Return ${C.year}${C.name?' for '+C.name:''}`}));   /* dark: the shared Chart Look (Wheel Style, Wheel, Planet and Sign Colors) on top */
  const defs='<defs>'+[...usedCols].map(c=>`<filter id="${fid(c)}" color-interpolation-filters="sRGB"><feFlood flood-color="${c}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`).join('')+'</defs>';
- if(C.prof){const rot=C.cusps?C.cusps[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},a0=C.prof.sign*30,a1=a0+30,r0=167,r1=191,P=[xy(a0,r1),xy(a1,r1),xy(a1,r0),xy(a0,r0)].map(p=>p.map(v=>v.toFixed(2)));
+ if(C.prof){const rot=wcu(C)?wcu(C)[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},a0=C.prof.sign*30,a1=a0+30,r0=167,r1=191,P=[xy(a0,r1),xy(a1,r1),xy(a1,r0),xy(a0,r0)].map(p=>p.map(v=>v.toFixed(2)));
   const lit=`<g class="sr-prof" pointer-events="none"><defs><filter id="srpg" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>`
    +[['#ffd36e','6',' filter="url(#srpg)" opacity=".9"'],['#ffe9a8','2.2','']].map(([c,w,x])=>`<path d="M${P[0]} A${r1} ${r1} 0 0 0 ${P[1]} L${P[2]} A${r0} ${r0} 0 0 1 ${P[3]} Z" fill="${x?'none':'rgba(255,224,140,.22)'}" stroke="${c}" stroke-width="${w}" stroke-linejoin="round"${x}/>`).join('')+'</g>';
   s=s.replace(/<\/svg>\s*$/,lit+'</svg>')}
  /* the sky behind the chart (Gemini, Nov 18, trial): the Device's star field, Milky Way and zodiac constellations (window.APP_SKY,
     an ecliptic-pole map 914 px wide, centered 452,450, the ecliptic at r 279) turned with the zodiac and kept faint under the planets */
  let sky='';const K=window.APP_SKY;
- if(K&&C.sky&&theme==='dark'){const rot=C.cusps?C.cusps[1]:0,k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
+ if(K&&C.sky&&theme==='dark'){const rot=wcu(C)?wcu(C)[1]:0,k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
   sky=`<g class="sr-sky" pointer-events="none"><defs><clipPath id="srsk"><circle r="${SKY.clip}"/></clipPath></defs><g clip-path="url(#srsk)"><g transform="rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
    +(co?`<g opacity="${SKY.con}">${K.LINES}</g>`:'')+'</g></g></g>'}
- /* the birth chart's own Ascendant and Midheaven on the outer (birth) ring (Gemini, Nov 18: the biwheel sits in the return's houses,
-    so the birth angles are marked where the birth planets are): dashed blue lines across that ring with arrowheads at the outer edge */
- if(C.natal&&C.natalAsc!=null){const rot=C.cusps?C.cusps[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},
-   RP=(!C.cusps||C.houseSys==='whole')?168:152,r0=RP-(RP-70)/2+1,col='#9fc4ff',D=v=>{const m=Math.round(((v%360)+360)%360*60),z=Math.floor(m/60);return `${z%30}°${String(m%60).padStart(2,'0')}′ ${SIGNS[Math.floor(z/30)]}`};
-  let g='<g class="sr-nang" pointer-events="visiblePainted">';
-  for(const [lon,nm] of [[C.natalAsc,'Birth Ascendant'],[C.natalMC,'Birth Midheaven']]){if(lon==null)continue;const a=xy(lon,r0),b=xy(lon,RP-1.5),t=(180+lon-rot)*R,ux=Math.cos(t),uy=-Math.sin(t),px=-uy,py=ux,
-    h1=[b[0]-ux*5+px*2.6,b[1]-uy*5+py*2.6],h2=[b[0]-ux*5-px*2.6,b[1]-uy*5-py*2.6];
-   g+=`<g><title>${nm} ${D(lon)}</title><line x1="${a[0].toFixed(2)}" y1="${a[1].toFixed(2)}" x2="${b[0].toFixed(2)}" y2="${b[1].toFixed(2)}" stroke="${col}" stroke-width="1.3" stroke-dasharray="3 2"/><path d="M${b[0].toFixed(2)} ${b[1].toFixed(2)}L${h1[0].toFixed(2)} ${h1[1].toFixed(2)}L${h2[0].toFixed(2)} ${h2[1].toFixed(2)}Z" fill="${col}"/></g>`}
-  s=s.replace(/<\/svg>\s*$/,g+'</g></svg>')}
  if(sky)s=s.replace(/(<\/defs><circle r="[\d.]+" fill="[^"]*"\/>)/,'$1'+sky);   /* just above the wheel's background disc */
  return s.replace(/(<svg[^>]*>)/,'$1'+defs)}
 const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
@@ -943,7 +939,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,theme:CFG.theme,natal:
   bms,srms:msOf(srjd),sunTxt:dms(birth.pos.Sun).txt};
  C.cusps=houses(srjd,at.lat,at.lon,C.houseSys);if(C.cusps.even&&C.houseSys!=='whole')C.polar=true;
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
- if(!unknown&&window.EA_TL){const ncu=placidus(bjd,bp.lat,bp.lon),nasc=ncu[1];C.natalAsc=nasc;C.natalMC=ncu[10];C.prof=EA_TL.profYear(nasc,C.age)}
+ if(!unknown&&window.EA_TL){const ncu=placidus(bjd,bp.lat,bp.lon),nasc=ncu[1];C.natalAsc=nasc;C.natalMC=ncu[10];C.bjd=bjd;C.natalCusps=houses(bjd,bp.lat,bp.lon,C.houseSys);C.prof=EA_TL.profYear(nasc,C.age)}
  C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bp.utc);
  LAST=C;render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
@@ -962,7 +958,7 @@ function cardLines(C){const L=[];
 /* biwheel: the outer wheel (birth chart) is listed upper right, opposite the inner listing, no color legend (Gemini, Nov 16) */
 const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'line'}]:[]);
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
-const sysLines=C=>[C.unknownTime?'No Houses':C.houseSys==='whole'||C.polar?'Whole Sign':'Placidus','Tropical','Geocentric'];
+const sysLines=C=>[C.unknownTime?'No Houses':(C.houseSys==='whole'||C.polar?'Whole Sign':'Placidus'),...(C.natal&&C.natalCusps&&!C.unknownTime?['Birth Chart Houses']:[]),'Tropical','Geocentric'];
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;
  st.innerHTML=`<div class="sr-card"><div class="sr-head">${cardLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`
   +`<div class="sr-wheel">${wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).join('<br>')}</div>${C.natal?`<div class="sr-outer">${outerLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:''}</div>`;
@@ -1024,7 +1020,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
     document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)sg.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
   catch(err){msg.textContent=err.message||String(err)}};
  ['theme','houses','natal','sky'].forEach(k=>f[k].addEventListener('change',()=>{document.documentElement.dataset.look=f.theme.value;if(LAST){LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value;
-  if(LAST.houseSys!==f.houses.value){LAST.houseSys=f.houses.value;LAST.cusps=houses(jdOf(LAST.srms),LAST.at.lat,LAST.at.lon,LAST.houseSys)}render(LAST)}
+  if(LAST.houseSys!==f.houses.value){LAST.houseSys=f.houses.value;LAST.cusps=houses(jdOf(LAST.srms),LAST.at.lat,LAST.at.lon,LAST.houseSys);if(LAST.bjd)LAST.natalCusps=houses(LAST.bjd,LAST.birthPlace.lat,LAST.birthPlace.lon,LAST.houseSys)}render(LAST)}
   savePrefs({theme:f.theme.value,houses:f.houses.value,natal:f.natal.checked})}));
  $('#sr-png').onclick=()=>download('png').catch(e=>$('#sr-msg').textContent=e.message);
  $('#sr-jpg').onclick=()=>download('jpeg').catch(e=>$('#sr-msg').textContent=e.message);
