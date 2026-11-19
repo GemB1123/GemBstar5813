@@ -917,6 +917,15 @@ function wheelSVG(C,theme){usedCols=new Set();
   sky=`<g class="sr-sky" pointer-events="none"><defs><clipPath id="srsk"><circle r="${SKY.clip}"/></clipPath></defs><g clip-path="url(#srsk)"><g transform="rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
    +(co?`<g opacity="${SKY.con}">${K.LINES}</g>`:'')+'</g></g></g>'}
+ /* the birth chart's own Ascendant and Midheaven on the outer (birth) ring (Gemini, Nov 18: the biwheel sits in the return's houses,
+    so the birth angles are marked where the birth planets are): dashed blue lines across that ring with arrowheads at the outer edge */
+ if(C.natal&&C.natalAsc!=null){const rot=C.cusps?C.cusps[1]:0,xy=(lon,r)=>{const t=(180+lon-rot)*R;return [r*Math.cos(t),-r*Math.sin(t)]},
+   RP=(!C.cusps||C.houseSys==='whole')?168:152,r0=RP-(RP-70)/2+1,col='#9fc4ff',D=v=>{const m=Math.round(((v%360)+360)%360*60),z=Math.floor(m/60);return `${z%30}°${String(m%60).padStart(2,'0')}′ ${SIGNS[Math.floor(z/30)]}`};
+  let g='<g class="sr-nang" pointer-events="visiblePainted">';
+  for(const [lon,nm] of [[C.natalAsc,'Birth Ascendant'],[C.natalMC,'Birth Midheaven']]){if(lon==null)continue;const a=xy(lon,r0),b=xy(lon,RP-1.5),t=(180+lon-rot)*R,ux=Math.cos(t),uy=-Math.sin(t),px=-uy,py=ux,
+    h1=[b[0]-ux*5+px*2.6,b[1]-uy*5+py*2.6],h2=[b[0]-ux*5-px*2.6,b[1]-uy*5-py*2.6];
+   g+=`<g><title>${nm} ${D(lon)}</title><line x1="${a[0].toFixed(2)}" y1="${a[1].toFixed(2)}" x2="${b[0].toFixed(2)}" y2="${b[1].toFixed(2)}" stroke="${col}" stroke-width="1.3" stroke-dasharray="3 2"/><path d="M${b[0].toFixed(2)} ${b[1].toFixed(2)}L${h1[0].toFixed(2)} ${h1[1].toFixed(2)}L${h2[0].toFixed(2)} ${h2[1].toFixed(2)}Z" fill="${col}"/></g>`}
+  s=s.replace(/<\/svg>\s*$/,g+'</g></svg>')}
  if(sky)s=s.replace(/(<\/defs><circle r="[\d.]+" fill="[^"]*"\/>)/,'$1'+sky);   /* just above the wheel's background disc */
  return s.replace(/(<svg[^>]*>)/,'$1'+defs)}
 const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
@@ -934,7 +943,7 @@ async function cast(o){o=Object.assign({houses:CFG.houses,theme:CFG.theme,natal:
   bms,srms:msOf(srjd),sunTxt:dms(birth.pos.Sun).txt};
  C.cusps=houses(srjd,at.lat,at.lon,C.houseSys);if(C.cusps.even&&C.houseSys!=='whole')C.polar=true;
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
- if(!unknown&&window.EA_TL){const nasc=placidus(bjd,bp.lat,bp.lon)[1];C.natalAsc=nasc;C.prof=EA_TL.profYear(nasc,C.age)}
+ if(!unknown&&window.EA_TL){const ncu=placidus(bjd,bp.lat,bp.lon),nasc=ncu[1];C.natalAsc=nasc;C.natalMC=ncu[10];C.prof=EA_TL.profYear(nasc,C.age)}
  C.when=fmtWhen(C.srms,at.tz,at.utc);C.birthWhen=fmtWhen(bms,bp.tz,bp.utc);
  LAST=C;render(C);return summary(C)}
 function summary(C){const NM={Node:'North Node',SNode:'South Node'},P={};for(const k of CFG.planets)P[NM[k]||k]=dms(C.sr.pos[k]).txt+(C.sr.ret[k]?' (retrograde)':'');
@@ -951,7 +960,7 @@ function cardLines(C){const L=[];
  if(C.prof)L.push({t:`${ord(C.prof.house)} House Annual Profection · ${SIGNS[C.prof.sign]} · Guide ${C.prof.guide}`,k:'prof'});
  return L}
 /* biwheel: the outer wheel (birth chart) is listed upper right, opposite the inner listing, no color legend (Gemini, Nov 16) */
-const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}];
+const outerLines=C=>[{t:'Birth Chart',k:'name'},{t:`${C.birthWhen.date.replace(/^\w+, /,'')} · ${C.unknownTime?'time unknown':C.birthWhen.time}`,k:'when'},{t:C.birthPlace.label,k:'line'}].concat(C.natalAsc!=null?[{t:`Ascendant ${dms(C.natalAsc).txt}`,k:'line'}]:[]);
 /* lower left, as on the Planetary Tables chart: house system, zodiac, viewpoint */
 const sysLines=C=>[C.unknownTime?'No Houses':C.houseSys==='whole'||C.polar?'Whole Sign':'Placidus','Tropical','Geocentric'];
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;
