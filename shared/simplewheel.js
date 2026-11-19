@@ -139,7 +139,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
  /* the bezel's lightest side faces the Sun, so the day and night sides of the chart read at a glance (Gemini, Nov 13) */
  const sun=P.Sun!=null?xy(P.Sun,200):[-141,-141];
- let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums;touch-action:none">`;
+ let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
  const CB=[].concat(T.cuspBand||[T.band||T.house]);if(CB.length<2)CB.push(CB[0]);const MET=opts.cuspRing!=='silver',ME=sty==='houses'?R0:RX0,cIn=T.cuspInk||null,cEl=T.cuspEl||T.el;
  h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${+opts.signBold||0}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
  /* bezel: a thin metal rim around the zodiac ring (after Gemini's AstroSynth wheel, Nov 13) */
@@ -263,7 +263,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
  const at=k=>pp[k]!=null?xy(pp[k],RI-2):null;
- h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:manipulation;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
+ h+=`<g data-eaw="asp" tabindex="0" role="button" aria-label="Aspects${opts.setLabel?': '+opts.setLabel:''}. Click for the next aspect set, double-click to change the Earth" style="cursor:pointer;touch-action:pan-y;outline:none"><title>Click: next aspects (Major, Minor, Symmetry). Double-click: Earth small, large, or none.</title><circle r="${RI}" fill="${T.aspBg}" stroke="${T.line}" stroke-width="1"/>`;
  if(opts.pictures){for(const q of opts.pictures(pp)||[]){const a=at(q.a),b=at(q.b),c=at(q.c);if(!a||!b||!c)continue;h+=`<path d="M${f(a[0])} ${f(a[1])}L${f(c[0])} ${f(c[1])}L${f(b[0])} ${f(b[1])}" fill="none" stroke="${q.color||T.axis}" stroke-width="${big?1.2:.9}" opacity=".8"/>`}}
  else if(opts.aspects!==false){for(const A of (opts.aspects||(q=>findAspects(q,opts.aspectTypes,opts.aspectAngles)))(pp)||[]){if(!A.angle)continue;const a=at(A.a),b=at(A.b);if(!a||!b)continue;
   if(opts.aspectStyle!=='plain')aspStyle(A,pp,opts.theme==='dark');
@@ -292,13 +292,19 @@ function zoomable(){const root=document;if(root.__eawz)return;root.__eawz=1;   /
  /* a = screen px per CSS px (the page may be scaled, e.g. the Device stage), so finger moves map to the transform */
  const sc=s=>{const r=s.getBoundingClientRect(),w=s.clientWidth||r.width/ZV.k;return r.width/ZV.k/w||1};
  const ctr=(s,a)=>{const r=s.getBoundingClientRect();return [r.left+r.width/2-ZV.x*a,r.top+r.height/2-ZV.y*a]};
- root.addEventListener('pointerdown',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s||e.pointerType==='mouse')return;pts.set(e.pointerId,[e.clientX,e.clientY]);st=null},true);
- root.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;const s=e.target.closest&&e.target.closest('svg.eaw')||sv()[0];if(!s)return;pts.set(e.pointerId,[e.clientX,e.clientY]);const P=[...pts.values()];
-  if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),mx=(P[0][0]+P[1][0])/2,my=(P[0][1]+P[1][1])/2;
+ /* Gemini, Nov 19 (global, from Anu's Solar Return fix): one finger on the wheel scrolls the page (touch-action pan-y), two fingers
+    pinch-zoom it above everything; once zoomed (body.eawz) the wheel takes every touch, so one finger pans it. Touch events, not pointer
+    events, because the browser cancels a pointer it has started scrolling with before the second finger lands */
+ const load=e=>{pts.clear();for(const t of e.touches)pts.set(t.identifier,[t.clientX,t.clientY])};let tgt=null;
+ root.addEventListener('touchstart',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s&&!pts.size)return;if(s)tgt=s;load(e);st=null},{capture:true,passive:true});
+ root.addEventListener('touchmove',e=>{if(!pts.size)return;const s=tgt||sv()[0];if(!s)return;load(e);const P=[...pts.values()];
+  if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),mx=(P[0][0]+P[1][0])/2,my=(P[0][1]+P[1][1])/2;if(e.cancelable)e.preventDefault();
    if(!st||st.n!==2){const a=sc(s),c=ctr(s,a);st={n:2,d,k:ZV.k,c,a,p:[(mx-c[0]-ZV.x*a)/ZV.k,(my-c[1]-ZV.y*a)/ZV.k]};return}
-   ZV.k=Math.max(1,Math.min(6,st.k*d/st.d));if(ZV.k<1.03){ZV.k=1;ZV.x=0;ZV.y=0}else{ZV.x=(mx-st.c[0]-st.p[0]*ZV.k)/st.a;ZV.y=(my-st.c[1]-st.p[1]*ZV.k)/st.a}all();e.preventDefault()}
-  else if(ZV.k>1){if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y,a:sc(s)};return}ZV.x=st.x+(P[0][0]-st.c[0])/st.a;ZV.y=st.y+(P[0][1]-st.c[1])/st.a;all();e.preventDefault()}},{passive:false});
- const up=e=>{pts.delete(e.pointerId);st=null};root.addEventListener('pointerup',up,true);root.addEventListener('pointercancel',up,true);}
+   ZV.k=Math.max(1,Math.min(6,st.k*d/st.d));if(ZV.k<1.03){ZV.k=1;ZV.x=0;ZV.y=0}else{ZV.x=(mx-st.c[0]-st.p[0]*ZV.k)/st.a;ZV.y=(my-st.c[1]-st.p[1]*ZV.k)/st.a}all()}
+  else if(ZV.k>1){if(e.cancelable)e.preventDefault();if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y,a:sc(s)};return}ZV.x=st.x+(P[0][0]-st.c[0])/st.a;ZV.y=st.y+(P[0][1]-st.c[1])/st.a;all()}},{capture:true,passive:false});
+ const up=e=>{load(e);st=null;if(!pts.size)tgt=null};root.addEventListener('touchend',up,true);root.addEventListener('touchcancel',up,true);
+ /* the wheel lets the page scroll under one finger until it is zoomed */
+ if(root.head&&!root.getElementById('eaw-touch')){const st0=root.createElement('style');st0.id='eaw-touch';st0.textContent='svg.eaw{touch-action:pan-y}body.eawz svg.eaw{touch-action:none}';root.head.appendChild(st0)}}
 function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply);zState()}
 function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
  root.addEventListener('click',e=>{const pl=e.target.closest&&e.target.closest('g.eawp');
