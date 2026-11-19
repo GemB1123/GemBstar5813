@@ -1156,7 +1156,7 @@ function wheelSVG(C,theme){usedCols=new Set();
  if(K&&C.sky&&theme==='dark'){const rot=(wcu(C)?wcu(C)[1]:0)+wca(C),k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
   sky=`<g class="sr-sky" pointer-events="none"><defs><clipPath id="srsk"><circle r="${SKY.clip}"/></clipPath></defs><g clip-path="url(#srsk)"><g transform="rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
-   +(co?`<g opacity="${SKY.con}">${K.LINES}</g>`:'')+'</g></g></g>'}
+   +(co?`<g opacity="${SKY.con}">${K.LINES_SR||(K.LINES_SR=K.LINES.replace(/stroke-width="([\d.]+)"/g,(m,w)=>`stroke-width="${+w*SKY.conW}"`))}</g>`:'')+'</g></g></g>'}
  /* retrograde degree numbers a deeper, brighter red so they carry the same weight as the white ones (Gemini, Nov 18) */
  if(theme==='dark')s=s.replace(/fill="#ff9a8a"([^>]*>\d+°<)/gi,'fill="#ff6e5e"$1');
  if(sky)s=s.replace(/(<\/defs><circle r="[\d.]+" fill="[^"]*"\/>)/,'$1'+sky);   /* just above the wheel's background disc */
@@ -1164,7 +1164,7 @@ function wheelSVG(C,theme){usedCols=new Set();
   if(m){const xy=ringXY(C,+m[1]-2),P=[...C.pins].sort((a,b)=>(a==='Sun|Sun')-(b==='Sun|Sun')).map(pk=>pinData(C,pk)).filter(Boolean);
    s=s.replace(/class="eawa"/g,'class="eawa" opacity=".22"').replace(/<\/svg>\s*$/,`<g class="sr-pins" pointer-events="none">${P.map(q=>hlLine(xy(q.la),xy(q.lb),q.col)).join('')}</g></svg>`)}}
  return s.replace(/(<svg[^>]*>)/,'$1'+defs)}
-const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
+const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.3,conW:.5};   /* constellations at half thickness and half brightness (Gemini, Nov 18) */
 
 /* ---------- casting ---------- */
 let LAST=null,VIEW='wheel';
