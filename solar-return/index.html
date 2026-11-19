@@ -235,7 +235,9 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  #sr-yours{display:inline-flex;align-items:center;order:-1}
  /* Wheel And Grid: room between them for the return listing and the time lords at the wheel's right corners */
  .sr-stage{padding:0 32px}
- .sr-wheel.sr-both{gap:190px;--wz:min(50%,max(420px,calc(100vh - 290px)))}
+ /* a gutter on the left for the birth listing and house labels, and the wheel sized so wheel, gap, and grid always fit across
+    (Gemini, Nov 19: on a smaller laptop window the listings sat on the wheel) */
+ .sr-wheel.sr-both{gap:190px;padding-left:150px;box-sizing:border-box;--wz:min(50%,calc((100% - 190px) / 1.93),max(420px,calc(100vh - 290px)))}
  .sr-wheel.sr-both>.sr-grid{width:min(36%,calc(var(--wz) * .93))}
 }
 /* touch (Gemini, Nov 19): one finger on the wheel scrolls the page; two fingers zoom the wheel (shared EAWheel zoom); once zoomed, one finger moves it */
