@@ -126,6 +126,16 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
 .sr-yearnav button{width:44px;height:40px;font-size:24px;line-height:1;padding:0}
 .sr-yearnav input{width:92px;height:40px;text-align:center;font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
 .sr-yearnav input::-webkit-inner-spin-button,.sr-yearnav input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+/* Strong Transits: one button with the count built in (Gemini, Nov 18): the number and arrow at the left open the 3 to 6 choice,
+   the rest toggles; the whole pill lights when on */
+.sr-strongwrap{display:inline-flex;align-items:stretch;border:1px solid var(--line);border-radius:8px;background:var(--bg);overflow:hidden}
+.sr-strongwrap select{appearance:none;-webkit-appearance:none;border:0;border-right:1px solid var(--line);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23999' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 7px center;color:inherit;font:600 14px inherit;font-family:inherit;padding:0 22px 0 12px;cursor:pointer;min-height:44px;border-radius:0;margin:0}
+.sr-strongwrap select option{color:#111;background:#fff}
+.sr-btns .sr-strongwrap #sr-strong{border:0;border-radius:0;background:transparent;color:inherit}
+.sr-strongwrap{color:var(--ink)}
+.sr-strongwrap:has(#sr-strong[aria-pressed=true]){background:var(--btn);color:var(--btnInk);border-color:var(--btn)}
+.sr-strongwrap:has(#sr-strong[aria-pressed=true]) select{border-right-color:rgba(0,0,0,.25);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23333' stroke-width='1.6'/%3E%3C/svg%3E")}
+.sr-strongwrap:focus-within{outline:2px solid var(--btn);outline-offset:2px}
 </style>
 </head><body>
 <main class="sr-app">
@@ -167,7 +177,7 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
  <div class="sr-right">
   <section id="sr-stage" class="sr-stage" tabindex="-1" aria-label="Solar Return chart"></section>
   <div id="sr-yearnav" class="sr-yearnav" role="group" aria-label="Solar Return year" hidden><button type="button" id="sr-yprev" aria-label="Previous Solar Return">&#8249;</button><input id="sr-yval" type="number" min="1300" max="2500" inputmode="numeric" aria-label="Solar Return year"><button type="button" id="sr-ynext" aria-label="Next Solar Return">&#8250;</button></div>
-  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">ReTurn Angles</button><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the three strongest aspects">Strong Transits</button><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
+  <div id="sr-export" class="sr-btns sr-bar" hidden><button type="button" id="sr-again" class="sr-go">Cast Another</button><span id="sr-views" class="sr-seg" role="group" aria-label="View"><button type="button" data-v="wheel" aria-pressed="true">Wheel</button><button type="button" data-v="grid" aria-pressed="false">Aspect Grid</button><button type="button" data-v="both" aria-pressed="false">Wheel And Grid</button></span><button type="button" id="sr-angles" aria-pressed="false" title="Spin to the Solar Return Ascendant: the return's angles and houses take over (or click the Earth)">ReTurn Angles</button><span class="sr-strongwrap"><select id="sr-strongn" aria-label="How many strong transits" title="How many strong transits to light, besides the Solar Return"><option>3</option><option selected>4</option><option>5</option><option>6</option></select><button type="button" id="sr-strong" aria-pressed="false" title="Light the Solar Return and the strongest aspects">Strong Transits</button></span><button type="button" id="sr-png">Save As PNG</button><button type="button" id="sr-wide" title="1920 x 1080: the wheel on the left, the Aspect Grid on the right">Save Wide PNG</button><button type="button" id="sr-jpg">Save As JPEG</button><button type="button" id="sr-copy">Copy To Clipboard</button></div>
  </div>
 </main>
 <script>/* ---------- EA_JPL: the shared NASA JPL ephemeris (DE441) for every World and every app ----------
@@ -1134,7 +1144,7 @@ function autoPins(C){const P=new Set();if(!C.natal)return P;const L=CFG.planets.
   const self=k===t&&best.a===0,oi=OUTER.indexOf(k),ii=INNER.concat(['AS','MC']).indexOf(t),tier=self?0:k===t&&oi>=0&&(best.a===90||best.a===180)?1:oi>=0&&ii>=0?2:3,pf=perfects(C,k,bP[t],best.a);
   A.push({pk:k+'|'+t,txt:`Return ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[k]||k} ${GRID_ASP.find(a=>a[0]===best.a)[1]} Birth ${({AS:'Ascendant',MC:'Midheaven',Node:'North Node',SNode:'South Node'})[t]||t}, orb ${Math.floor(best.o)}°${String(Math.floor(best.o%1*60)).padStart(2,'0')}′`,key:[tier,best.a%180===0||best.a===90?0:1,pf?0:1,tier===1||tier===2?oi:0,best.o]})}
  A.sort((x,y)=>{for(let i=0;i<5;i++)if(x.key[i]!==y.key[i])return x.key[i]-y.key[i];return 0});
- P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins==null?3:CFG.autoPins,top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
+ P.add('Sun|Sun');const sc=C.opts&&C.opts.strongCount!=null&&C.opts.strongCount!==true&&!isNaN(+C.opts.strongCount)?+C.opts.strongCount:CFG.autoPins!=null?CFG.autoPins:(typeof document!=='undefined'&&document.getElementById('sr-strongn')?+document.getElementById('sr-strongn').value||4:4),top=A.slice(0,sc);top.forEach(a=>P.add(a.pk));P.list=top.map(a=>a.txt);return P}
 function toggleAngles(){const C=LAST;if(!C||!C.natal||!C.natalCusps||C.unknownTime)return;const rot0=wcu(C)[1]+wca(C);C.srAng=!C.srAng;const rot1=wcu(C)[1]+wca(C);render(C);
  /* spin from the old Ascendant to the new one */
  const sv=document.querySelector('#sr-stage .sr-wheel svg');if(!sv||matchMedia('(prefers-reduced-motion:reduce)').matches||!sv.animate)return;const dlt=((rot1-rot0)%360+360)%360;   /* always clockwise, the primary (diurnal) direction, even the long way round (Gemini, Nov 18) */
@@ -1350,6 +1360,10 @@ function setup(){const f=$('#sr-form');if(!f)return;
    try{await cast(Object.assign({},LAST.opts,{year:y,strong:sg}));LAST.view=v;LAST.srAng=sa&&LAST.natal&&LAST.natalCusps&&!LAST.unknownTime;render(LAST);f.year.value=y;if(msg)msg.textContent=''}catch(e){if(msg)msg.textContent=e.message||String(e)}};
   const yv=$('#sr-yval');$('#sr-yprev').onclick=()=>go(+LAST.year-1);$('#sr-ynext').onclick=()=>go(+LAST.year+1);
   yv.addEventListener('change',()=>go(+yv.value));yv.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();go(+yv.value)}})}
+ /* how many Strong Transits (Gemini, Nov 18): 3 to 6, default 4, remembered; changing it relights them */
+ {const sn=$('#sr-strongn'),P0=prefs();if(sn){if([3,4,5,6].includes(+P0.strongN))sn.value=String(P0.strongN);
+  sn.onchange=()=>{savePrefs({strongN:+sn.value});if(!LAST)return;const was=LAST.strong?autoPins(LAST):null;LAST.opts=Object.assign({},LAST.opts,{strongCount:+sn.value});
+   if(was){was.forEach(k=>LAST.pins.delete(k));autoPins(LAST).forEach(k=>LAST.pins.add(k));LAST.pop=true;render(LAST)}}}}
  document.querySelectorAll('#sr-views button').forEach(b=>b.onclick=()=>{VIEW=b.dataset.v;savePrefs({view:VIEW});if(LAST){LAST.view=VIEW;render(LAST)}});
  if(['wheel','grid','both'].includes(P.view))VIEW=P.view;
  $('#sr-again').onclick=()=>{document.body.classList.remove('sr-closed');f.name.focus();f.name.select()};
