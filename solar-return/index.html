@@ -106,7 +106,7 @@ html:not([data-look=dark]) .sr-title{color:var(--accent)}
    <label>Look<select name="theme"><option value="dark">Dark</option><option value="light">Light</option></select></label>
   </div>
   <label class="sr-tick"><input name="natal" type="checkbox" checked> Birth Chart Biwheel</label>
-  <label>Sky Behind The Chart <small>(trial, Dark look)</small><select name="sky"><option value="">Off</option><option value="stars">Stars And Milky Way</option><option value="con">Constellations</option><option value="both">Stars, Milky Way, And Constellations</option></select></label>
+  <label>Sky Behind The Chart <small>(Dark look)</small><select name="sky"><option value="off">Off</option><option value="stars" selected>Stars And Milky Way</option><option value="con">Constellations</option><option value="both">Stars, Milky Way, And Constellations</option></select></label>
   <div class="sr-btns"><button type="submit" class="sr-go">Cast Solar Return</button><button type="button" id="sr-new">Clear</button></div>
   <p id="sr-msg" class="sr-msg" role="status" aria-live="polite"></p>
   <p id="sr-sum" class="sr-vh" aria-live="polite"></p>
@@ -788,7 +788,9 @@ GemBPlaces.load("Africa/Abidjan,Africa/Accra,Africa/Addis_Ababa,Africa/Algiers,A
    worlds/solar-return/sr-png.js drives this page in headless Chromium and writes the PNG file. */
 (function(){'use strict';
 const CFG=window.SR_CONFIG=Object.assign({
- theme:'dark', houses:'placidus', natal:true,   /* Gemini, Nov 18: Birth Chart Biwheel on by default */   /* Gemini, Nov 18: the Planetary Tables chart look (black page, navy wheel, Earth in the center) */
+ theme:'dark', houses:'placidus', natal:true, sky:'stars',   /* Gemini, Nov 18: stars and Milky Way behind the chart by default, constellations optional */
+ ringColor:'#d9dde6',   /* Gemini, Nov 18: birth planets silver, return planets gold */
+   /* Gemini, Nov 18: Birth Chart Biwheel on by default */   /* Gemini, Nov 18: the Planetary Tables chart look (black page, navy wheel, Earth in the center) */
  cardWidth:1600,                                    /* the saved image, in pixels */
  footer:'Cast with The Earthstrology Device · earthstrology.com',
  credit:'Positions: NASA JPL DE441',
@@ -907,7 +909,7 @@ const angTxt=t=>`<text x="0" y="1" text-anchor="middle" dominant-baseline="centr
 function wheelSVG(C,theme){usedCols=new Set();
  const RA=C.natal&&C.natalCusps&&!C.unknownTime;
  let s=EAWheel.svg({pos:RA?Object.assign({},C.sr.pos,{'Return AS':C.cusps.asc!=null?C.cusps.asc:C.cusps[1],'Return MC':C.cusps.mc!=null?C.cusps.mc:C.cusps[10]}):C.sr.pos,ret:C.sr.ret,cusps:C.unknownTime?null:wcu(C),label:'Solar Return '+C.year,
-   rings:C.natal?[{pos:C.birth.pos,ret:C.birth.ret,label:'Birth'}]:undefined},
+   rings:C.natal?[{pos:C.birth.pos,ret:C.birth.ret,label:'Birth',color:theme==='dark'?CFG.ringColor:'#6b7280'}]:undefined},
   Object.assign({},theme==='dark'&&window.EALook?EALook.wheelOpts(EALook.get()):{},{planets:CFG.planets.filter(k=>!(k==='Node'&&C.noNN)&&!(k==='SNode'&&C.noSN)).concat(RA?['Return AS','Return MC']:[]),theme,...(window.EALook&&theme==='dark'?{}:{cuspRing:'metal',planetColors:'gold'}),earth:'large',...(C.natal?{aspects:pp=>crossAspects(C,pp)}:{}),earthSVG:r=>earthSVG(C,r),glyph:k=>k==='Return AS'?angTxt('AS'):k==='Return MC'?angTxt('MC'):(window.SR_PLG||{})[k==='Node'?'NNode':k],sign:signSvg,
    label:`Solar Return ${C.year}${C.name?' for '+C.name:''}`}));   /* dark: the shared Chart Look (Wheel Style, Wheel, Planet and Sign Colors) on top */
  const defs='<defs>'+[...usedCols].map(c=>`<filter id="${fid(c)}" color-interpolation-filters="sRGB"><feFlood flood-color="${c}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`).join('')+'</defs>';
@@ -928,14 +930,14 @@ const SKY={scale:.42,clip:152,mw:.35,stars:.55,con:.6};
 
 /* ---------- casting ---------- */
 let LAST=null;
-async function cast(o){o=Object.assign({houses:CFG.houses,theme:CFG.theme,natal:CFG.natal},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
+async function cast(o){o=Object.assign({houses:CFG.houses,theme:CFG.theme,natal:CFG.natal,sky:CFG.sky},Object.fromEntries(Object.entries(o||{}).filter(([,v])=>v!==undefined&&v!==null&&v!=='')));
  const [y,mo,d]=String(o.date||'').split('-').map(Number);if(!y||!mo||!d)throw new Error('Birth date is needed (year-month-day).');
  const unknown=!!o.unknownTime||!o.time,[h,mi]=unknown?[12,0]:String(o.time).split(':').map(Number);
  const bp=await findPlace(o.place);const at=o.at?await findPlace(o.at):bp;
  const bms=localToMs(y,mo,d,h,mi||0,bp.tz,bp.utc),bjd=jdOf(bms);
  const birth=await positions(bjd);const year=+o.year||new Date().getFullYear();
  const srjd=await solarReturn(birth.pos.Sun,bjd+(year-y)*365.2422);const sr=await positions(srjd);
- const C={name:(o.name||'').trim(),year,age:year-y,unknownTime:unknown,birth,sr,birthPlace:bp,at,natal:!!o.natal,sky:o.sky||'',noNN:o.northNode===false,noSN:o.southNode===false,theme:o.theme==='dark'?'dark':'light',houseSys:o.houses==='whole'?'whole':'placidus',
+ const C={name:(o.name||'').trim(),year,age:year-y,unknownTime:unknown,birth,sr,birthPlace:bp,at,natal:!!o.natal,sky:o.sky==='off'?'':(o.sky||''),noNN:o.northNode===false,noSN:o.southNode===false,theme:o.theme==='dark'?'dark':'light',houseSys:o.houses==='whole'?'whole':'placidus',
   bms,srms:msOf(srjd),sunTxt:dms(birth.pos.Sun).txt};
  C.cusps=houses(srjd,at.lat,at.lon,C.houseSys);if(C.cusps.even&&C.houseSys!=='whole')C.polar=true;
  /* Annual Profection, whole sign, from the birth Ascendant (Time Lords World, EA_TL.profYear; Gemini, Nov 18) */
@@ -1019,7 +1021,7 @@ function setup(){const f=$('#sr-form');if(!f)return;
     at:f.same.checked?null:(coords('sr-a')||aGet()),year:f.year.value,houses:f.houses.value,theme:f.theme.value,natal:f.natal.checked,sky:f.sky.value});msg.textContent='';
     document.body.classList.add('sr-cast','sr-closed');const sg=$('#sr-stage');sg.focus({preventScroll:true});if(window.innerWidth<800)sg.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'})}
   catch(err){msg.textContent=err.message||String(err)}};
- ['theme','houses','natal','sky'].forEach(k=>f[k].addEventListener('change',()=>{document.documentElement.dataset.look=f.theme.value;if(LAST){LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value;
+ ['theme','houses','natal','sky'].forEach(k=>f[k].addEventListener('change',()=>{document.documentElement.dataset.look=f.theme.value;if(LAST){LAST.theme=f.theme.value;LAST.natal=f.natal.checked;LAST.sky=f.sky.value==='off'?'':f.sky.value;
   if(LAST.houseSys!==f.houses.value){LAST.houseSys=f.houses.value;LAST.cusps=houses(jdOf(LAST.srms),LAST.at.lat,LAST.at.lon,LAST.houseSys);if(LAST.bjd)LAST.natalCusps=houses(LAST.bjd,LAST.birthPlace.lat,LAST.birthPlace.lon,LAST.houseSys)}render(LAST)}
   savePrefs({theme:f.theme.value,houses:f.houses.value,natal:f.natal.checked})}));
  $('#sr-png').onclick=()=>download('png').catch(e=>$('#sr-msg').textContent=e.message);
@@ -1037,7 +1039,7 @@ async function fromHash(){const h=location.hash.replace(/^#/,'');if(!h||!/date=/
   if(q.get('theme'))f.theme.value=q.get('theme')==='dark'?'dark':'light';if(q.get('houses'))f.houses.value=q.get('houses')==='whole'?'whole':'placidus';f.natal.checked=q.get('natal')!=='0';
   if(q.get('place'))$('#sr-bplace').value=q.get('place');if(q.get('at')){f.same.checked=false;$('#sr-at').hidden=false;$('#sr-aplace').value=q.get('at')}}
  try{await cast({name:q.get('name')||'',date:q.get('date'),time:q.get('time')||'',unknownTime:q.get('unknown')==='1',place:pt('blat','blon','btz','place'),at:pt('alat','alon','atz','at'),
-  year:q.get('year'),houses:q.get('houses')||undefined,theme:q.get('theme')||undefined,natal:q.get('natal')!=='0',sky:q.get('sky')||'',northNode:q.get('nn')!=='0',southNode:q.get('sn')!=='0'});document.body.classList.add('sr-cast','sr-closed')}
+  year:q.get('year'),houses:q.get('houses')||undefined,theme:q.get('theme')||undefined,natal:q.get('natal')!=='0',sky:q.get('sky')||undefined,northNode:q.get('nn')!=='0',southNode:q.get('sn')!=='0'});document.body.classList.add('sr-cast','sr-closed')}
  catch(e){const m=$('#sr-msg');if(m)m.textContent=e.message;window.SolarReturn.error=e.message}}
 window.SolarReturn={cast,imageURL,download,summary:()=>LAST&&summary(LAST),config:CFG};
 window.SolarReturn.ready=new Promise(ok=>{const go=()=>{setup();fromHash().then(ok,ok)};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',go):go()});
