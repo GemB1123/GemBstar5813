@@ -1326,7 +1326,8 @@ function wheelSVG(C,theme){usedCols=new Set();
     an ecliptic-pole map 914 px wide, centered 452,450, the ecliptic at r 279) turned with the zodiac and kept faint under the planets */
  let sky='';const K=window.APP_SKY;
  if(K&&C.sky&&theme==='dark'){const rot=(wcu(C)?wcu(C)[1]:0)+wca(C),k=SKY.scale,st=C.sky!=='con',co=C.sky!=='stars';
-  const sc=SKY.clip;sky=`<g class="sr-sky" pointer-events="none"><defs><pattern id="srsk" patternUnits="userSpaceOnUse" x="${-sc}" y="${-sc}" width="${2*sc}" height="${2*sc}"><g transform="translate(${sc} ${sc}) rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
+  /* with no house cusp ring (Whole Sign, Natural Zodiac and others on 0° of each sign) the sky reaches out to the zodiac ring, leaving no dark band (Gemini, Nov 19) */
+  const sc=/stroke="url\(#eawc[mb][^"]*\)" stroke-width="16"/.test(s)?SKY.clip:168;sky=`<g class="sr-sky" pointer-events="none"><defs><pattern id="srsk" patternUnits="userSpaceOnUse" x="${-sc}" y="${-sc}" width="${2*sc}" height="${2*sc}"><g transform="translate(${sc} ${sc}) rotate(${rot.toFixed(3)}) scale(${k}) translate(-452 -450)">`
    +(st?`<image href="${K.MW}" x="0" y="0" width="914" height="914" preserveAspectRatio="none" opacity="${SKY.mw}"/><g opacity="${SKY.stars}">${K.STARS}</g>`:'')
    +(co?`<g opacity="${SKY.con}">${K.LINES_SR||(K.LINES_SR=K.LINES.replace(/stroke-width="([\d.]+)"/g,(m,w)=>`stroke-width="${+w*SKY.conW}"`))}</g>`:'')+`</g></pattern></defs><circle r="${sc}" fill="url(#srsk)"/></g>`}
  /* the time lord glows in both charts (Gemini, Nov 19): a soft gold halo with a fine ring, under the glyph */
