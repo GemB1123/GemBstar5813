@@ -312,7 +312,9 @@ window.EA_JPL={version:'DE441',source:'NASA JPL DE441 (public domain)',deltaT:y=
    Planets take the element color of the sign they are in (the Color Rule).
 
    window.EAWheel.svg(chart, opts) returns an <svg> string.
-     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even)}
+     chart: {pos:{Sun:lon, ...}, ret:{Mercury:true, ...}, cusps:[ , c1 .. c12 ] or null (+ .noAngles, .even, .asc, .mc)}
+       cusps.asc / cusps.mc: the true Ascendant and Midheaven. Where they are not the 1st and 10th cusps (Whole Sign, Equal) the
+       AS-DS and MC-IC axes are still drawn at their own degrees, with the arrowheads (Gemini, Nov 18, global)
      opts (all optional):
        planets  list of bodies to draw (default Sun..Pluto plus the true North and South Nodes; add Fortune, Spirit to show them; AS and MC are drawn from the cusps)
        chart.dec {Sun:deg, ...} optional declinations, shown in the hover box with degrees, minutes, and seconds
@@ -412,7 +414,10 @@ function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
- const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big;
+ const angles=cu&&!cu.noAngles,rot=cu?cu[1]:0,big=!!opts.big,
+  /* the axes to draw: the 1st and 10th cusps, or the true AS and MC given with the cusps (Whole Sign, Equal: Gemini, Nov 18, global) */
+  AXA=cu?(cu.asc!=null?cu.asc:angles?cu[1]:null):null,AXM=cu?(cu.mc!=null?cu.mc:angles?cu[10]:null):null,
+  dAx=(a,b)=>Math.abs(n360(a-b+180)-180),onAx=l=>[AXA,AXM].some(v=>v!=null&&(dAx(l,v)<1e-6||dAx(l,v+180)<1e-6));
  const xy=(lon,r)=>{const t=rad(180+lon-rot);return [r*Math.cos(t),-r*Math.sin(t)]};
  /* bezel 199..190, then the outer ring 190..168: the zodiac (style 'signs') or the house cusps (style 'houses', no sign ring);
     optional Decans and Bounds rings with their guides (13 each), then house cusp degree / sign / minutes on the wheel
@@ -461,7 +466,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
- if(cu){for(let i=1;i<=12;i++){const ax=angles&&!cu.even&&(i===1||i===4||i===7||i===10),a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
+ if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
    /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
        bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
@@ -472,7 +477,10 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    if(!NCB)h+=txd(T,opts,q.d+'°',pd[0],pd[1],hs?11:9.5,cI||(ax?T.axis:ink),ax?800:600)+sgb(q.s,ps[0],ps[1],hs?13:10.5,cE[q.s%4])+tx(String(q.m).padStart(2,'0')+'′',pm[0],pm[1],hs?9:8,cI||cc,ax?700:400);
    if(!big){const nx=cu[i%12+1],mid=cu[i]+n360(nx-cu[i])/2,n=xy(mid,(RH+RI)/2);h+=tx(i,n[0],n[1],8.5,T.soft,600)}}
   /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
-  if(angles)[[cu[1],'AS'],[cu[10],'MC']].forEach(([l,t])=>{const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
+  /* an AS or MC axis that is not a cusp: its own line, across the planet zone and faintly out to the zodiac ring */
+  [AXA,AXA!=null?AXA+180:null,AXM,AXM!=null?AXM+180:null].forEach(l=>{if(l==null||!(cu.asc!=null||cu.mc!=null))return;if([1,4,7,10].some(i=>dAx(cu[i],l)<1e-6&&((angles&&!cu.even)||onAx(cu[i]))))return;
+   const a=xy(l,RP),b=xy(l,RI),a0=xy(l,R1);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.axis}" stroke-width="1.8"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="1.8" opacity=".35"/>`});
+  [[AXA,'AS'],[AXM,'MC']].forEach(([l,t])=>{if(l==null)return;const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
    h+=`<path d="M${f(tp[0])} ${f(tp[1])}L${f(bs[0]+nx)} ${f(bs[1]+ny)}L${f(bs[0]-nx)} ${f(bs[1]-ny)}Z" fill="${T.axis}"><title>${t}</title></path>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
  /* planets: a dot on the ring at the exact degree, then glyph, degree, sign and minutes toward the center */
