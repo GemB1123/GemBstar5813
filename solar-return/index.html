@@ -242,6 +242,11 @@ input[type=date]::-webkit-calendar-picker-indicator{display:none;-webkit-appeara
 .sr-wheel svg.eaw{touch-action:pan-y!important}
 body.eawz .sr-wheel svg.eaw{touch-action:none!important}
 body.eawz .sr-stage,body.eawz .sr-right,body.eawz .sr-card,body.eawz .sr-wheel{overflow:visible}
+/* nothing may be wider than the screen (Gemini, Nov 19, iPhone in the chartsong.com frame): iPhones widen a frame to its widest content,
+   and the sky image behind the wheel reaches past the wheel's edge before it is clipped */
+html,body{max-width:100%;overflow-x:hidden}
+.sr-wheel svg{overflow:hidden}
+.sr-sky{contain:paint}
 </style>
 </head><body>
 <main class="sr-app">
@@ -1415,7 +1420,7 @@ function setTL(on,mode){TL.on=on;if(mode)TL.mode=mode;savePrefs({tlOn:TL.on,tlMo
 function render(C){const st=$('#sr-stage');if(!st)return;document.documentElement.dataset.look=C.theme;const V=C.natal&&(C.view==='grid'||(C.view==='both'&&!PHONE()))?C.view:'wheel';
  const corner=V!=='grid'&&WIDE();   /* desktop: the return listing goes to the wheel's upper right (Gemini, Nov 19); the grid alone and phones keep it on top */
  st.innerHTML=`<div class="sr-card"><div class="sr-natal">${natalLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}${dayRow(C.bday,'Birth',C.theme==='dark'?CFG.ringColor:'#4b5563')}</div>`
-  +(corner?`<div class="sr-ret">${retLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:`<div class="sr-head">${cardLines(C).filter(l=>l.k!=='prof'&&(WIDE()||l.k!=='line'||!/^The Sun/.test(l.t))).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`)
+  +(corner?`<div class="sr-ret">${retLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`:`<div class="sr-head">${retLines(C).map(l=>`<div class="sr-${l.k}">${esc(l.t)}</div>`).join('')}</div>`)
   +tlBlock(C)
   +`<div class="sr-wheel${V==='grid'?' sr-gridv':V==='both'?' sr-both':''}">${V==='grid'?gridSVG(C):V==='both'?wheelSVG(C,C.theme)+gridSVG(C):wheelSVG(C,C.theme)}</div><div class="sr-sys">${sysLines(C).map(t=>`<span>${esc(t)}</span>`).join('')}</div></div>`;placeNatal();
  st.querySelectorAll('.sr-tl button[data-tl]').forEach(b=>b.onclick=()=>setTL(true,b.dataset.tl));
