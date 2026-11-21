@@ -280,7 +280,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    midpoint, one finger pans while zoomed; touch only, no zoom on a computer (Gemini, Nov 13); the view survives re-renders */
 /* pinch to zoom (Gemini, Nov 15: a global rule): the wheel itself grows, over the tables and chart text, as the top layer.
    It scales the <svg> with a CSS transform about the pinch point; body.eawz is set while zoomed so each app can open up its
-   containers' overflow. Pinch back to full size to end the zoom (double tap is the Earth cycle), or call EAWheel.zoomReset(). */
+   containers' overflow. Pinch back to full size or double tap the zoomed wheel to end the zoom (unzoomed, double tap is the Earth cycle), or call EAWheel.zoomReset(). */
 const ZV={k:1,x:0,y:0};
 function zApply(sv){if(ZV.k===1){sv.style.transform='';sv.style.zIndex='';sv.style.position='';sv.style.transformOrigin='';return}
  sv.style.transformOrigin='50% 50%';sv.style.position='relative';sv.style.zIndex='1000';sv.style.transform=`translate(${f(ZV.x)}px,${f(ZV.y)}px) scale(${ZV.k.toFixed(3)})`}
@@ -298,13 +298,19 @@ function zoomable(){const root=document;if(root.__eawz)return;root.__eawz=1;   /
     pinch-zoom it above everything; once zoomed (body.eawz) the wheel takes every touch, so one finger pans it. Touch events, not pointer
     events, because the browser cancels a pointer it has started scrolling with before the second finger lands */
  const load=e=>{pts.clear();for(const t of e.touches)pts.set(t.identifier,[t.clientX,t.clientY])};let tgt=null;
- root.addEventListener('touchstart',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s&&!pts.size)return;if(s)tgt=s;load(e);st=null},{capture:true,passive:true});
+ /* Gemini, Nov 21: double tap the zoomed wheel to put it back to its original size (unzoomed, double tap stays the Earth cycle) */
+ let tap0=null,last=null;
+ root.addEventListener('touchstart',e=>{const s=e.target.closest&&e.target.closest('svg.eaw');if(!s&&!pts.size)return;if(s)tgt=s;load(e);st=null;
+  tap0=ZV.k>1&&e.touches.length===1?{t:Date.now(),x:e.touches[0].clientX,y:e.touches[0].clientY,moved:false}:null},{capture:true,passive:true});
  root.addEventListener('touchmove',e=>{if(!pts.size)return;const s=tgt||sv()[0];if(!s)return;load(e);const P=[...pts.values()];
   if(P.length>=2){const d=Math.hypot(P[0][0]-P[1][0],P[0][1]-P[1][1]),mx=(P[0][0]+P[1][0])/2,my=(P[0][1]+P[1][1])/2;if(e.cancelable)e.preventDefault();
    if(!st||st.n!==2){const a=sc(s),c=ctr(s,a);st={n:2,d,k:ZV.k,c,a,p:[(mx-c[0]-ZV.x*a)/ZV.k,(my-c[1]-ZV.y*a)/ZV.k]};return}
    ZV.k=Math.max(1,Math.min(6,st.k*d/st.d));if(ZV.k<1.03){ZV.k=1;ZV.x=0;ZV.y=0}else{ZV.x=(mx-st.c[0]-st.p[0]*ZV.k)/st.a;ZV.y=(my-st.c[1]-st.p[1]*ZV.k)/st.a}all()}
-  else if(ZV.k>1){if(e.cancelable)e.preventDefault();if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y,a:sc(s)};return}ZV.x=st.x+(P[0][0]-st.c[0])/st.a;ZV.y=st.y+(P[0][1]-st.c[1])/st.a;all()}},{capture:true,passive:false});
- const up=e=>{load(e);st=null;if(!pts.size)tgt=null};root.addEventListener('touchend',up,true);root.addEventListener('touchcancel',up,true);
+  else if(ZV.k>1){if(e.cancelable)e.preventDefault();if(tap0&&Math.hypot(P[0][0]-tap0.x,P[0][1]-tap0.y)>12)tap0.moved=true;if(!st||st.n!==1){st={n:1,c:P[0],x:ZV.x,y:ZV.y,a:sc(s)};return}ZV.x=st.x+(P[0][0]-st.c[0])/st.a;ZV.y=st.y+(P[0][1]-st.c[1])/st.a;all()}},{capture:true,passive:false});
+ const up=e=>{load(e);st=null;if(!pts.size)tgt=null;
+  if(e.type==='touchend'&&tap0&&!tap0.moved&&!e.touches.length&&Date.now()-tap0.t<300&&ZV.k>1){const now=Date.now();
+   if(last&&now-last.t<350&&Math.hypot(tap0.x-last.x,tap0.y-last.y)<40){last=null;ZV.sup=now;if(e.cancelable)e.preventDefault();zoomReset()}else last={t:now,x:tap0.x,y:tap0.y}}
+  else if(e.type==='touchend'&&(!tap0||tap0.moved))last=null;tap0=null};root.addEventListener('touchend',up,true);root.addEventListener('touchcancel',up,true);
  /* the wheel lets the page scroll under one finger until it is zoomed */
  if(root.head&&!root.getElementById('eaw-touch')){const st0=root.createElement('style');st0.id='eaw-touch';st0.textContent='svg.eaw{touch-action:pan-y}body.eawz svg.eaw{touch-action:none}';root.head.appendChild(st0)}}
 function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply);zState()}
@@ -313,7 +319,8 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
   /* tap a planet: cb.planet(name, ring, event), ring 0 = the main chart, 1 and 2 the outer rings (Gemini, Nov 16: a planet info box) */
   if(pl&&root.__eaw.planet){e.preventDefault();root.__eaw.planet(pl.dataset.pl,+pl.dataset.ring||0,e);return}
   const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g)return;e.preventDefault();
-  if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
+  if(ZV.k>1||Date.now()-(ZV.sup||0)<600){clearTimeout(tm);tm=null;return}   /* on the zoomed wheel a tap belongs to the zoom: double tap = back to size */
+  if(tm){clearTimeout(tm);tm=null;root.__eaw.dbl&&root.__eaw.dbl();return}   /* a double tap on the zoomed wheel only resets the zoom */tm=setTimeout(()=>{tm=null;root.__eaw.tap&&root.__eaw.tap()},260)});
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
 /* legend for bi- and tri-wheels: one line per ring, inner to outer, a dot in the ring's color and its label */
 function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
