@@ -648,6 +648,10 @@ body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
 .amp-side.amp-ssel .amp-slist{max-height:196px}
 .amp-side .amp-stbl th{white-space:normal}.amp-side .amp-stbl th small{display:block;font-size:9.5px;color:#c9b27a}
 .amp-pop{position:absolute}.amp-pop .xb{position:absolute;right:8px;bottom:8px;z-index:2;background:#10142a;box-shadow:0 2px 10px rgba(0,0,0,.6)}
+
+/* stretchable Chart Wheel and Compass (Nov 20): a gold corner grip at the bottom right */
+.amp-grip{position:absolute;right:3px;bottom:3px;width:18px;height:18px;cursor:nwse-resize;touch-action:none;z-index:3;border-radius:0 0 11px 0;background:linear-gradient(135deg,transparent 0 45%,#c9b27a 45% 52%,transparent 52% 64%,#c9b27a 64% 71%,transparent 71% 83%,#c9b27a 83% 90%,transparent 90%)}
+.amp-grip:focus-visible{outline:2px solid #ffd166;outline-offset:1px}
 </style>
 <div id="bg"></div>
 <div id="stage"><div id="wheel"></div><div id="scene"></div><div id="lUL" class="lb ul"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lUR" class="lb ur"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLR" class="lb lr"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLL" class="lb ll"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="dock" hidden></div><div id="dropzone" hidden>Drop Here To Dock Below The Chart</div><div id="box" hidden></div>
@@ -873,7 +877,7 @@ window.APP_GLYB=[[[-30.5,29.5,-37.5,38.5],[-30.5,30.3,-37.9,38.4],[-30.5,31.1,-3
        setLabel short name of the aspect set (e.g. 'Major'), for screen readers; showSetLabel:true also writes it at the foot of the aspect circle
        big      true draws the large aspect circle
        theme    'light' (default) or 'dark'
-       colors   overrides for any theme color: {bg, bezel:[4 stops, Mercury to iron], cuspBand:[light, dark] (the ring with the cusp degrees), cuspInk, cuspEl:[4],
+       colors   overrides for any theme color: {bg, rim:[4 stops, Sun-side gold to night gray: the outer bezel], bezel:[4 stops, Mercury to iron], cuspBand:[light, dark] (the ring with the cusp degrees), cuspInk, cuspEl:[4],
                 (opts.cuspRing default 'metal' (Gemini, Nov 13: the default look): that ring takes the bezel's Mercury-to-iron gradient, always light at the top (the nonagesimal side) and dark at the bottom; 'silver' = flat silver / near-black band; Houses Only uses it on the outer band) ringFill:[fire, earth, air, water] (dark: colored ring, white glyphs), ringA, ringB, rinkA, rinkB, ringEdge, house, line, axis, ink, soft, ret, aspBg, el:[fire, earth, air, water]}
                 rinkA / rinkB 'el' = sign glyphs in their element color
        ringStyle 'signs' (default: zodiac ring, house cusps on the wheel) or 'houses' (no sign ring: house cusp degrees on the outer band)
@@ -913,8 +917,8 @@ const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','�
 /* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];   /* Gemini, Nov 18 (global): both TRUE Nodes on by default (apps pass true-node longitudes; hide via opts.planets); Fortune and Spirit stay off */
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
 /* glyph spacing in degrees per wheel mode (Gemini, Nov 16: more room, above all on bi- and tri-wheels) */
 const GAP={big:8.5,full:14.5,compact:13,bi:13.5,tri:12};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
@@ -986,10 +990,12 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  const dms=l=>{const m=Math.floor(n360(l)*60+.5)%21600;return {s:Math.floor(m/1800),d:Math.floor(m/60)%30,m:m%60}};
  const rink=i=>{const v=i%2?T.rinkB:T.rinkA;return v==='el'?T.el[i%4]:v};
  /* the bezel's lightest side faces the Sun, so the day and night sides of the chart read at a glance (Gemini, Nov 13) */
+ /* the Solar bezel (Gemini, Nov 19, global): the outer rim is bright gold on the Sun's side fading to dark gray on the deepest night side (colors.rim);
+    the cusp ring keeps the silver Mercury-to-iron colors.bezel. A custom colors.bezel without colors.rim still recolors both. */
  const sun=P.Sun!=null?xy(P.Sun,200):[-141,-141];
  let h=`<svg class="eaw" viewBox="-200 -200 400 400" width="100%" height="100%" role="img" aria-label="${(opts.label||'Chart wheel').replace(/"/g,'&quot;')}" style="font-family:Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`;
  const CB=[].concat(T.cuspBand||[T.band||T.house]);if(CB.length<2)CB.push(CB[0]);const MET=opts.cuspRing!=='silver',ME=sty==='houses'?R0:RX0,cIn=T.cuspInk||null,cEl=T.cuspEl||T.el;
- h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${+opts.signBold||0}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
+ h+=`<defs><linearGradient id="eawbz" gradientUnits="userSpaceOnUse" x1="${f(sun[0])}" y1="${f(sun[1])}" x2="${f(-sun[0])}" y2="${f(-sun[1])}">${(C.rim||C.bezel||T.rim).map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawcb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${CB[0]}"/><stop offset="1" stop-color="${CB[1]}"/></linearGradient><linearGradient id="eawcm" gradientUnits="userSpaceOnUse" x1="0" y1="${f(-ME)}" x2="0" y2="${f(ME)}">${T.bezel.map((c,i)=>`<stop offset="${[0,.3,.6,1][i]}" stop-color="${c}"/>`).join('')}</linearGradient><linearGradient id="eawgg" gradientUnits="userSpaceOnUse" x1="0" y1="-14" x2="0" y2="14"><stop offset="0" stop-color="${T.goldHi}"/><stop offset=".5" stop-color="${T.gold}"/><stop offset="1" stop-color="${T.goldLo}"/></linearGradient><filter id="eawglow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur in="SourceAlpha" stdDeviation="1.6" result="b"/><feFlood flood-color="${T.gold}" flood-opacity="${T.glow}"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="eawbold" x="-20%" y="-20%" width="140%" height="140%"><feMorphology operator="dilate" radius="${+opts.signBold||0}"/></filter></defs><circle r="${R0}" fill="${T.bg}"/>`;
  /* bezel: a thin metal rim around the zodiac ring (after Gemini's AstroSynth wheel, Nov 13) */
  h+=`<circle r="${RB}" fill="none" stroke="url(#eawbz)" stroke-width="9"/><circle r="${RB+4.4}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width=".8"/><circle r="${R0+.4}" fill="none" stroke="#000" stroke-opacity=".5" stroke-width=".9"/>`;
  /* sign glyphs are drawn bolder on the ring and in the planet positions (Gemini, Nov 13) */
@@ -4714,6 +4720,397 @@ window.EA_WORLDS.harmonia=function(A){
  return {box,act,open:openReader,close,config:HM_CFG}};
 })();
 </script>
+<script>/* ---------- Planetary Hours math (window.EA_PH) ----------
+   Planetary Hours World (Andronicus), started Nov 19, 2026. Pure math, no DOM, so the Device, Time Lords, the Solar Return applet,
+   Sky and the phone apps can all share one engine for the planetary day and hour Guides.
+
+   The planetary day runs from sunrise to the next sunrise. Daylight (sunrise to sunset) is split into 12 equal day hours,
+   the night (sunset to the next sunrise) into 12 equal night hours, so hours are long in summer days and short in winter days.
+   The first hour belongs to the Guide of the day (Sunday Sun, Monday Moon, Tuesday Mars, Wednesday Mercury, Thursday Jupiter,
+   Friday Venus, Saturday Saturn); each later hour takes the next planet in Chaldean order (Saturn, Jupiter, Mars, Sun, Venus,
+   Mercury, Moon). 24 hours = 3 rounds of 7 plus 3, so the next day's first hour lands 3 planets on: the order of the week.
+
+   Sun positions come from the shared NASA JPL DE441 ephemeris (window.EA_JPL) when the century is loaded, otherwise from a
+   low-precision solar formula (good to well under a minute of sunrise time for 1800 to 2100).
+
+   API
+     EA_PH.CHALDEAN, EA_PH.WEEKDAY_GUIDES (Sunday first), EA_PH.config (editable data)
+     EA_PH.sunEvents(t0, t1, lat, lon, opts)      -> [{t, rise:true|false}] sunrises and sunsets between two UTC ms times
+     EA_PH.at(ms, place, opts)                    -> the planetary day holding moment ms: {dayGuide, hourGuide, current, hours[24], ...}
+     EA_PH.day(y, m, d, place, opts)              -> the planetary day that begins with the sunrise on local date y-m-d
+     EA_PH.guides(ms, place, opts)                -> {dayGuide, hourGuide} only (what the Device clock row needs)
+     EA_PH.hourGuide(dayGuide, n)                 -> Guide of hour n (0 to 23) of a day whose Guide is dayGuide
+     EA_PH.localParts(ms, tz)                     -> {y, m, d, hh, mm, ss, wd} in an IANA time zone
+     EA_PH.sunAltAz(ms, lat, lon)                 -> {alt, az} of the Sun in degrees (azimuth from North through East)
+   place = {lat, lon (east positive), tz (IANA name, e.g. 'America/Los_Angeles')}
+   opts.horizon: 'limb' (default: upper limb of the Sun with refraction, -0.833 degrees, as in almanacs) or 'center' (0 degrees) */
+(function(){'use strict';
+const CHALDEAN=['Saturn','Jupiter','Mars','Sun','Venus','Mercury','Moon'];
+const WEEKDAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const WEEKDAY_GUIDES=['Sun','Moon','Mars','Mercury','Jupiter','Venus','Saturn'];
+const config={
+ horizon:{limb:-0.8333,center:0},   /* Sun altitude (degrees) that counts as sunrise / sunset */
+ step:20*60000,                      /* scan step when searching for sunrises and sunsets (ms) */
+ polarFallback:[6,18]                /* when the Sun does not rise or set: local clock hours used as "sunrise" and "sunset" */
+};
+const R=Math.PI/180,n360=x=>((x%360)+360)%360,jdOf=ms=>ms/864e5+2440587.5;
+
+/* ---- the Sun's apparent right ascension and declination (degrees) and the sidereal time at Greenwich ---- */
+function sunLow(jd){const T=(jd-2451545)/36525,L0=n360(280.46646+36000.76983*T),M=n360(357.52911+35999.05029*T),
+ C=(1.914602-0.004817*T)*Math.sin(M*R)+0.019993*Math.sin(2*M*R)+0.000289*Math.sin(3*M*R),om=125.04-1934.136*T,
+ lam=L0+C-0.00569-0.00478*Math.sin(om*R),eps=23.4392911-0.0130042*T+0.00256*Math.cos(om*R);
+ return {ra:n360(Math.atan2(Math.cos(eps*R)*Math.sin(lam*R),Math.cos(lam*R))/R),dec:Math.asin(Math.sin(eps*R)*Math.sin(lam*R))/R}}
+function gmstLow(jd){const T=(jd-2451545)/36525;return n360(280.46061837+360.98564736629*(jd-2451545)+0.000387933*T*T)}
+function sunAltAz(ms,lat,lon){const jd=jdOf(ms),J=window.EA_JPL;let s=null,g=null;
+ if(J&&J.has&&J.has(jd)){try{s=J.body('Sun',jd,{speed:false});g=s&&J.gast(jd)}catch(e){s=null}}
+ if(!s||g==null){s=sunLow(jd);g=gmstLow(jd)}
+ const H=(g+lon-s.ra)*R,d=s.dec*R,f=lat*R,alt=Math.asin(Math.sin(f)*Math.sin(d)+Math.cos(f)*Math.cos(d)*Math.cos(H))/R,
+  az=n360(Math.atan2(-Math.sin(H)*Math.cos(d),Math.cos(f)*Math.sin(d)-Math.sin(f)*Math.cos(d)*Math.cos(H))/R);
+ return {alt,az}}   /* degrees; azimuth from North through East */
+function sunAlt(ms,lat,lon){return sunAltAz(ms,lat,lon).alt}
+
+/* ---- sunrises and sunsets between t0 and t1 (bisection to about a second) ---- */
+const cache=new Map();
+function sunEvents(t0,t1,lat,lon,opts){const h0=config.horizon[(opts&&opts.horizon)||'limb'],st=config.step,out=[];
+ const key=[t0,t1,lat,lon,h0].join('|');if(cache.has(key))return cache.get(key);
+ let a=t0,fa=sunAlt(a,lat,lon)-h0;
+ for(let b=t0+st;b<=t1+st;b+=st){const fb=sunAlt(b,lat,lon)-h0;
+  if((fa<0)!==(fb<0)){let lo=a,hi=b,flo=fa;while(hi-lo>1000){const mid=(lo+hi)/2,fm=sunAlt(mid,lat,lon)-h0;if((fm<0)===(flo<0)){lo=mid;flo=fm}else hi=mid}
+   const t=Math.round((lo+hi)/2);if(t>=t0&&t<=t1)out.push({t,rise:fa<0})}
+  a=b;fa=fb}
+ if(cache.size>200)cache.clear();cache.set(key,out);return out}
+
+/* ---- local clock parts in an IANA time zone ---- */
+const fmts={};
+function localParts(ms,tz){const f=fmts[tz]||(fmts[tz]=new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',weekday:'long'}));
+ const o={};for(const p of f.formatToParts(new Date(ms)))o[p.type]=p.value;
+ return {y:+o.year,m:+o.month,d:+o.day,hh:+o.hour%24,mm:+o.minute,ss:+o.second,wd:WEEKDAYS.indexOf(o.weekday)}}
+/* UTC ms of a local clock time (y, m, d, hh:mm) in tz */
+function localToUTC(y,m,d,hh,mm,tz){let t=Date.UTC(y,m-1,d,hh||0,mm||0);for(let i=0;i<3;i++){const p=localParts(t,tz),seen=Date.UTC(p.y,p.m-1,p.d,p.hh,p.mm,p.ss);t+=Date.UTC(y,m-1,d,hh||0,mm||0)-seen}return t}
+
+const hourGuide=(dayGuide,n)=>CHALDEAN[(CHALDEAN.indexOf(dayGuide)+n)%7];
+
+/* ---- build the 24 hours of a planetary day from its sunrise, sunset and next sunrise ---- */
+function build(rise,set,next,tz,polar){const wd=localParts(rise,tz).wd,dayGuide=WEEKDAY_GUIDES[wd],dl=(set-rise)/12,nl=(next-set)/12,hours=[];
+ for(let n=0;n<24;n++){const day=n<12,start=day?rise+n*dl:set+(n-12)*nl;hours.push({n,day,start:Math.round(start),end:Math.round(day?start+dl:start+nl),guide:hourGuide(dayGuide,n)})}
+ hours[11].end=set;hours[23].end=next;
+ return {sunrise:rise,sunset:set,nextSunrise:next,weekday:WEEKDAYS[wd],wd,dayGuide,dayHourMin:dl/60000,nightHourMin:nl/60000,hours,polar:polar||null}}
+
+/* rise on or before ms, then the following set and rise; falls back to clock hours when the Sun stays up or down */
+function at(ms,place,opts){const {lat,lon,tz}=place,H=36e5;
+ const ev=sunEvents(ms-60*H,ms+60*H,lat,lon,opts),rises=ev.filter(e=>e.rise),sets=ev.filter(e=>!e.rise);
+ const r0=[...rises].reverse().find(e=>e.t<=ms),s0=r0&&sets.find(e=>e.t>r0.t),r1=s0&&rises.find(e=>e.t>s0.t);
+ let D;
+ if(r0&&s0&&r1&&r1.t-r0.t<36*H)D=build(r0.t,s0.t,r1.t,tz);
+ else{/* midnight sun or polar night: equal hours from the fallback clock times, and say so */
+  const p=localParts(ms,tz),[a,b]=config.polarFallback;let rise=localToUTC(p.y,p.m,p.d,a,0,tz);if(rise>ms)rise=localToUTC(p.y,p.m,p.d-1,a,0,tz);
+  const q=localParts(rise,tz),set=localToUTC(q.y,q.m,q.d,b,0,tz),next=localToUTC(q.y,q.m,q.d+1,a,0,tz);
+  D=build(rise,set,next,tz,sunAlt(ms,lat,lon)>0?'midnight sun':'polar night')}
+ D.current=D.hours.findIndex(h=>ms>=h.start&&ms<h.end);if(D.current<0)D.current=ms<D.sunrise?0:23;
+ D.hourGuide=D.hours[D.current].guide;D.ms=ms;return D}
+
+/* the planetary day that starts with the sunrise on local date y-m-d */
+function day(y,m,d,place,opts){const mid=localToUTC(y,m,d,0,0,place.tz),ev=sunEvents(mid-2*36e5,mid+28*36e5,place.lat,place.lon,opts);
+ const r=ev.find(e=>e.rise&&e.t>=mid&&localParts(e.t,place.tz).d===d);
+ const D=at(r?r.t+1000:localToUTC(y,m,d,12,0,place.tz),place,opts);D.current=-1;D.hourGuide=null;return D}
+
+function guides(ms,place,opts){const D=at(ms,place,opts);return {dayGuide:D.dayGuide,hourGuide:D.hourGuide,hour:D.current+1,day:D.current<12}}
+
+window.EA_PH={CHALDEAN,WEEKDAYS,WEEKDAY_GUIDES,config,sunAlt,sunAltAz,sunEvents,at,day,guides,hourGuide,localParts,localToUTC};
+})();
+</script>
+<script>/* ---------- Planetary Hours World (Andronicus): the planetary day and hour Guides ----------
+   Started Nov 19, 2026 from Gemini's request "Please create Planetary Hours world".
+   Shows the Guide of the day and of the hour for any place and moment, a 24-hour wheel of the unequal hours,
+   the day's hour table, and the Star Of The Week (the heptagram that turns the Chaldean order into the weekdays).
+   Math: window.EA_PH (phmath.js). Every color, size and label is data in PH_CFG so it can be edited later.
+   World Contract: EA_PH_UI.mount(container, opts) draws only inside the container and returns {unmount, set, state};
+   window.EA_WORLDS.planetaryhours(A) wraps it for the Device core (menu slot is a Core Request).
+   Wording: "Guide", not "Ruler"; planets by name, no pronouns. The upper right stays empty (teacher area). */
+(function(){'use strict';
+const PH_CFG={
+ planet:{Saturn:'#7d84a3',Jupiter:'#e5893a',Mars:'#c4554f',Sun:'#e0b443',Venus:'#5fae87',Mercury:'#4f8fdc',Moon:'#b9c3d8'},
+ bg:'#0b1430',panel:'rgba(16,28,64,.72)',ink:'#e9e3cf',dim:'#9aa3bf',gold:'#e8c46a',line:'#3a4a7a',night:'#08102a',dayTint:'#22346b',
+ ring:{outer:272,inner:214,label:200},hept:132,
+ tower:{r:228,fitAlt:22,stone:['#efe8da','#d9cfbd','#b9ad97'],frieze:'#2a3358',edge:'#6b6150',line:'#5d5240',windInk:'#e8dcc0',today:'#b8862b',shadow:'#2b2418',
+  winds:[['Boreas','N'],['Kaikias','NE'],['Apeliotes','E'],['Euros','SE'],['Notos','S'],['Lips','SW'],['Zephyros','W'],['Skiron','NW']]},
+ teacherZone:150,           /* px kept clear at the upper right for the teacher's camera */
+ refreshMs:20000,
+ glyphFont:{Sun:'☉',Moon:'☽',Mercury:'☿',Venus:'♀',Mars:'♂',Jupiter:'♃',Saturn:'♄'}
+};
+const CSS=`
+.ph-root{position:relative;width:100%;height:100%;min-height:560px;background:${PH_CFG.bg};color:${PH_CFG.ink};font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif;display:grid;grid-template-columns:minmax(250px,300px) 1fr minmax(290px,340px);gap:14px;padding:14px;box-sizing:border-box;overflow:hidden}
+.ph-root *{box-sizing:border-box}
+.ph-col{min-height:0;overflow:auto;scrollbar-width:thin}
+.ph-panel{background:${PH_CFG.panel};border:1px solid ${PH_CFG.line};border-radius:10px;padding:12px;margin-bottom:12px}
+.ph-root h2{font-size:15px;margin:0 0 8px;color:${PH_CFG.gold};font-weight:600;letter-spacing:.02em}
+.ph-big{display:flex;align-items:center;gap:10px;margin:4px 0}
+.ph-big b{font-size:20px}
+.ph-sub{color:${PH_CFG.dim};font-size:13px}
+.ph-num{font-variant-numeric:tabular-nums}
+.ph-root label{display:block;font-size:12px;color:${PH_CFG.dim};margin:8px 0 3px}
+.ph-root input,.ph-root select{width:100%;background:#0e1a3d;color:${PH_CFG.ink};border:1px solid ${PH_CFG.line};border-radius:6px;padding:6px 8px;font:inherit}
+.ph-row{display:flex;gap:6px}.ph-row>*{flex:1}
+.ph-btn{background:#16245199;color:${PH_CFG.ink};border:1px solid ${PH_CFG.line};border-radius:6px;padding:6px 8px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.ph-btn:hover,.ph-btn:focus-visible{border-color:${PH_CFG.gold};outline:none}
+.ph-btn[aria-pressed=true]{background:#3a3418;border-color:${PH_CFG.gold};color:${PH_CFG.gold}}
+.ph-list{list-style:none;margin:2px 0 0;padding:0;max-height:160px;overflow:auto}
+.ph-list li button{width:100%;text-align:left;background:none;border:0;color:${PH_CFG.ink};padding:4px 6px;font:inherit;font-size:13px;cursor:pointer;border-radius:4px}
+.ph-list li button:hover,.ph-list li button:focus-visible{background:#22346b;outline:none}
+.ph-wheel{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}
+.ph-wheel svg{width:100%;height:100%;max-height:100%;display:block}
+.ph-right{padding-top:${PH_CFG.teacherZone}px}
+.ph-table{width:100%;border-collapse:collapse;font-size:13px}
+.ph-table th{color:${PH_CFG.dim};font-weight:500;text-align:left;padding:3px 4px;border-bottom:1px solid ${PH_CFG.line};position:sticky;top:0;background:${PH_CFG.bg}}
+.ph-table td{padding:3px 4px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ph-table td.r,.ph-table th.r{text-align:right}
+.ph-table tr{cursor:pointer}
+.ph-table tr.ph-night td{color:#c8cde0}
+.ph-table tr.ph-cur td{background:#3a3418;color:${PH_CFG.gold}}
+.ph-table tr:focus-visible td{outline:1px solid ${PH_CFG.gold}}
+.ph-table tr.ph-sep td{border-top:1px dashed ${PH_CFG.line}}
+.ph-dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.ph-root details summary{cursor:pointer;color:${PH_CFG.gold}}
+.ph-root details p{margin:8px 0;color:${PH_CFG.ink};font-size:13px}
+.ph-note{color:${PH_CFG.dim};font-size:12px;margin:6px 0 0}
+.ph-warn{color:#ffb38a}
+@media (max-width:980px){.ph-root{grid-template-columns:1fr;grid-auto-rows:auto;height:auto;overflow:visible}.ph-col{overflow:visible}.ph-right{padding-top:0}.ph-wheel{order:-1;height:min(92vw,560px)}}
+`;
+const pad=n=>String(n).padStart(2,'0');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function mount(root,opts){
+ opts=opts||{};const PH=window.EA_PH,G=opts.glyphs||window.PH_PLG||window.SR_PLG||{};
+ const st={place:opts.place||{name:'Oakland, CA, USA',lat:37.8044,lon:-122.2712,tz:'America/Los_Angeles'},live:true,ms:Date.now(),
+  layout:'horizon',horizon:'limb',clock:'12',showHept:true};
+ try{const s=JSON.parse(localStorage.getItem('ph.settings')||'null');if(s){['layout','horizon','clock','showHept'].forEach(k=>{if(s[k]!=null)st[k]=s[k]});if(s.place&&!opts.place)st.place=s.place}}catch(e){}
+ const saveSt=()=>{try{localStorage.setItem('ph.settings',JSON.stringify({layout:st.layout,horizon:st.horizon,clock:st.clock,showHept:st.showHept,place:st.place}))}catch(e){}};
+
+ root.innerHTML='';const style=document.createElement('style');style.textContent=CSS;root.appendChild(style);
+ const el=document.createElement('div');el.className='ph-root';root.appendChild(el);
+ el.innerHTML=`
+ <div class="ph-col ph-left">
+  <div style="display:flex;align-items:center;gap:10px;margin:2px 2px 12px;font-size:18px;color:${PH_CFG.gold};font-weight:600">${iconSVG(PH_CFG.gold,30)}Planetary Hours</div>
+  <div class="ph-panel" aria-live="polite" data-r="now"></div>
+  <div class="ph-panel">
+   <h2>Place And Time</h2>
+   <label for="ph-place">Place</label><input id="ph-place" placeholder="City, State or City, Country" autocomplete="off">
+   <ul class="ph-list" data-r="plist" aria-label="Matching places"></ul>
+   <div class="ph-row"><div><label for="ph-date">Date</label><input id="ph-date" type="date" min="1300-01-01" max="2500-12-31"></div><div><label for="ph-time">Time</label><input id="ph-time" type="time"></div></div>
+   <div class="ph-row" style="margin-top:8px"><button class="ph-btn" data-a="prev" title="The planetary day before">◀ Day</button><button class="ph-btn" data-a="now" title="Follow the clock">Now</button><button class="ph-btn" data-a="next" title="The planetary day after">Day ▶</button></div>
+  </div>
+  <div class="ph-panel">
+   <h2>Display</h2>
+   <label for="ph-layout">View</label><select id="ph-layout"><option value="horizon">Day Above, Night Below</option><option value="clock">Clock Time (Hours Sized By Length)</option><option value="tower">Tower Of The Winds Sundial</option></select>
+   <label for="ph-hz">Sunrise Counts When</label><select id="ph-hz"><option value="limb">The Sun's Upper Edge Clears The Horizon</option><option value="center">The Sun's Center Reaches The Horizon</option></select>
+   <label for="ph-clock">Clock</label><select id="ph-clock"><option value="12">12 Hour</option><option value="24">24 Hour</option></select>
+   <label style="display:flex;gap:6px;align-items:center;color:inherit;font-size:13px"><input type="checkbox" id="ph-hept" style="width:auto"> Star Of The Week In The Center</label>
+  </div>
+  <div class="ph-panel">
+   <h2>Save The Wheel</h2>
+   <div class="ph-row"><button class="ph-btn" data-a="png">Save As PNG</button><button class="ph-btn" data-a="jpg">Save As JPEG</button></div>
+   <div class="ph-row" style="margin-top:6px"><button class="ph-btn" data-a="copy">Copy To Clipboard</button></div>
+   <p class="ph-note" data-r="msg"></p>
+  </div>
+  <div class="ph-panel"><details><summary>About Planetary Hours</summary>
+   <p>The planetary day begins at sunrise. The daylight from sunrise to sunset is split into 12 equal day hours, and the night from sunset to the next sunrise into 12 equal night hours. In summer the day hours are long and the night hours short; in winter the reverse. Only at the equinoxes are all 24 hours close to 60 minutes.</p>
+   <p>The first hour of each day belongs to the Guide of the day. Each hour after takes the next planet in the Chaldean order, slowest to fastest as seen from Earth: Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon.</p>
+   <p>24 hours make 3 rounds of the 7 planets plus 3 more, so the first hour of the next day lands 3 planets further on. Stepping by 3 through the Chaldean order gives Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn: the order of the week. Drawn on a circle, those steps make the seven-pointed Star Of The Week.</p>
+  </details></div>
+ </div>
+ <div class="ph-wheel" data-r="wheel"></div>
+ <div class="ph-col ph-right"><div class="ph-panel"><h2 data-r="thead">Hours Of The Day</h2><table class="ph-table" data-r="table"></table></div></div>`;
+ const $=s=>el.querySelector(s),R=k=>el.querySelector(`[data-r="${k}"]`);
+ const tz=()=>st.place.tz,P=()=>({lat:st.place.lat,lon:st.place.lon,tz:st.place.tz});
+ const fmtT=ms=>{const p=PH.localParts(ms,tz());if(st.clock==='24')return pad(p.hh)+':'+pad(p.mm);const h=p.hh%12||12;return pad(h)+':'+pad(p.mm)+(p.hh<12?' AM':' PM')};
+ const fmtD=ms=>{const p=PH.localParts(ms,tz());return `${PH.WEEKDAYS[p.wd]}, ${p.y}-${pad(p.m)}-${pad(p.d)}`};
+ const dur=m=>{m=Math.round(m);return m>=60?`${Math.floor(m/60)} h ${pad(m%60)} min`:`${m} min`};
+ const glyph=(k,x,y,s,col)=>{const g=G[k];return g?`<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${col}" color="${col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="${36*s}" fill="${col}">${PH_CFG.glyphFont[k]||k}</text>`};
+ const chip=(k,sz)=>`<svg viewBox="-15 -15 30 30" width="${sz}" height="${sz}" aria-hidden="true" style="vertical-align:middle">${glyph(k,0,0,1,PH_CFG.planet[k])}</svg>`;
+ let D=null,svgStr='';
+
+ function compute(){if(st.live)st.ms=Date.now();D=PH.at(st.ms,P(),{horizon:st.horizon})}
+
+ /* ---- Tower Of The Winds: a horizontal sundial for this place, in an octagon facing the eight winds ----
+   Gemini, Nov 19: after Andronicus of Cyrrhus's Tower in Athens, whose sundials marked the 12 unequal (planetary) hours.
+   Seen from above, North up, East right. A point gnomon at the center casts a shadow tip; the dial is cut with the
+   solstice and equinox day curves and the 11 hour lines between sunrise and sunset, so each band is one planetary hour. */
+ const towerCache={};
+ function towerLines(){const P0=P(),y=PH.localParts(D.sunrise,tz()).y,key=[y,P0.lat,P0.lon,st.horizon].join('|');if(towerCache[key])return towerCache[key];
+  const S=P0.lat<0?-1:1,dates=[[12,21],[1,20],[2,19],[3,20],[4,20],[5,21],[6,21]];   /* winter to summer solstice (northern months; same days serve the south) */
+  const days=dates.map(([m,d])=>PH.day(y,m,d,P0,{horizon:st.horizon})).filter(x=>!x.polar);
+  const pt=ms=>{const a=PH.sunAltAz(ms,P0.lat,P0.lon);return a.alt>2?a:null};
+  const out={days:days.map(x=>({d:x,hours:Array.from({length:13},(_,k)=>pt(x.sunrise+k*(x.sunset-x.sunrise)/12)),curve:Array.from({length:97},(_,k)=>pt(x.sunrise+k*(x.sunset-x.sunrise)/96))})),S};
+  return towerCache[key]=out}
+ function tower(){const C=PH_CFG,T=C.tower,R0=T.r,P0=P(),L=towerLines();
+  /* fit the dial: the shadow-tip field (Sun at least 10 degrees up) plus the gnomon, scaled into the octagon */
+  const raw=a=>{const r=1/Math.tan(a.alt*Math.PI/180),A=a.az*Math.PI/180;return [-r*Math.sin(A),r*Math.cos(A)]};
+  const fitPts=[[0,0]];L.days.forEach(x=>x.curve.concat(x.hours).forEach(a=>{if(a&&a.alt>=T.fitAlt)fitPts.push(raw(a))}));
+  const xs=fitPts.map(p=>p[0]),ys=fitPts.map(p=>p[1]),x0=Math.min(...xs),x1=Math.max(...xs),y0=Math.min(...ys),y1=Math.max(...ys),
+   box=1.62*R0,k=Math.min(box/Math.max(x1-x0,1e-6),box/Math.max(y1-y0,1e-6)),cx=-k*(x0+x1)/2,cy=-k*(y0+y1)/2;
+  const tip=a=>{if(!a)return null;const q=raw(a);return [cx+k*q[0],cy+k*q[1]]};
+  const pl=pts=>pts.filter(Boolean).map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join('');
+  const oct=Array.from({length:8},(_,i)=>{const a=(i*45+22.5)*Math.PI/180;return [R0/Math.cos(Math.PI/8)*Math.sin(a),-R0/Math.cos(Math.PI/8)*Math.cos(a)]});
+  const octD='M'+oct.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L')+'Z';
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-310 -310 620 620" role="img" aria-label="Tower Of The Winds sundial for ${esc(st.place.name||'')}: ${esc(D.weekday)}, day of ${D.dayGuide}${D.current>=0?', hour of '+D.hourGuide:''}">`;
+  s+=`<defs><linearGradient id="ph-marble" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${T.stone[0]}"/><stop offset=".55" stop-color="${T.stone[1]}"/><stop offset="1" stop-color="${T.stone[2]}"/></linearGradient>
+   <clipPath id="ph-oct"><path d="${octD}"/></clipPath><filter id="ph-soft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2"/></filter>
+   <filter id="ph-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter></defs>`;
+  s+=`<rect x="-310" y="-310" width="620" height="620" fill="${C.bg}"/>`;
+  /* the tower's eight faces and the winds */
+  const ro=R0+30,octO=Array.from({length:8},(_,i)=>{const a=(i*45+22.5)*Math.PI/180;return [ro/Math.cos(Math.PI/8)*Math.sin(a),-ro/Math.cos(Math.PI/8)*Math.cos(a)]});
+  s+=`<path d="M${octO.map(p=>p.join(' ')).join('L')}Z" fill="${T.frieze}" stroke="${T.edge}" stroke-width="2"/>`;
+  T.winds.forEach(([name,dir],i)=>{const a=i*45,rr=R0+15,x=rr*Math.sin(a*Math.PI/180),y=-rr*Math.cos(a*Math.PI/180),rot=a>90&&a<270?a+180:a;
+   s+=`<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})" text-anchor="middle" dominant-baseline="central" font-size="13" letter-spacing="2" fill="${T.windInk}" font-family="Georgia,'Times New Roman',serif">${name.toUpperCase()} · ${dir}</text>`});
+  s+=`<path d="${octD}" fill="url(#ph-marble)" stroke="${T.edge}" stroke-width="2.5"/>`;
+  s+=`<g clip-path="url(#ph-oct)">`;
+  /* the current hour's band, in its Guide's color */
+  const dS=L.days.length?L.days:[];
+  if(D.current>=0&&D.current<12&&dS.length){const k=D.current,a=dS.map(x=>tip(x.hours[k])),b=dS.map(x=>tip(x.hours[k+1]));
+   const band=[...a.filter(Boolean),...b.filter(Boolean).reverse()];if(band.length>2)s+=`<path d="M${band.map(p=>p.map(v=>v.toFixed(1)).join(' ')).join('L')}Z" fill="${C.planet[D.hourGuide]}" fill-opacity=".45"/>`}
+  /* hour lines (1 to 11) across the day curves, and the solstice and equinox curves */
+  for(let k=1;k<12;k++)s+=`<path d="${pl(dS.map(x=>tip(x.hours[k])))}" fill="none" stroke="${T.line}" stroke-width="1.6"/>`;
+  [0,3,6].forEach(i=>{if(dS[i])s+=`<path d="${pl(dS[i].curve.map(tip))}" fill="none" stroke="${T.line}" stroke-width="${i===3?1.6:2}"/>`});
+  /* today's day curve in gold */
+  const today=Array.from({length:97},(_,k)=>tip(PH.sunAltAz(D.sunrise+k*(D.sunset-D.sunrise)/96,P0.lat,P0.lon).alt>2?PH.sunAltAz(D.sunrise+k*(D.sunset-D.sunrise)/96,P0.lat,P0.lon):null));
+  if(!D.polar)s+=`<path d="${pl(today)}" fill="none" stroke="${T.today}" stroke-width="2.4" stroke-dasharray="6 4"/>`;
+  /* planet glyphs in each band, between the solstice curves */
+  if(dS.length>=7){const G=[];for(let k=0;k<12;k++){const f=k+0.5,mid=x=>{const t=x.sunrise+f*(x.sunset-x.sunrise)/12,a=PH.sunAltAz(t,P0.lat,P0.lon);return a.alt>2?tip(a):null},
+    p1=mid(dS[1].d),p2=mid(dS[5].d);if(p1&&p2)G.push({k,x:(p1[0]+p2[0])/2,y:(p1[1]+p2[1])/2})}
+   G.forEach((g,i)=>{const nb=[G[i-1],G[i+1]].filter(Boolean).map(o=>Math.hypot(o.x-g.x,o.y-g.y)),r=Math.max(7,Math.min(13,...nb.map(d=>d/2-1))),pg=D.hours[g.k].guide;
+    s+=`<circle cx="${g.x.toFixed(1)}" cy="${g.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${T.stone[1]}" fill-opacity=".85" stroke="${C.planet[pg]}" stroke-width="${g.k===D.current?2.5:1.2}"/>${glyph(pg,g.x,g.y,.6*r/13,C.planet[pg])}`})}
+  /* the shadow now */
+  const now=PH.sunAltAz(D.ms,P0.lat,P0.lon),tp=now.alt>2?tip(now):null;
+  if(tp&&D.current>=0)s+=`<line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${tp[0].toFixed(1)}" y2="${tp[1].toFixed(1)}" stroke="${T.shadow}" stroke-width="7" stroke-linecap="round" opacity=".55" filter="url(#ph-soft)"/><circle cx="${tp[0].toFixed(1)}" cy="${tp[1].toFixed(1)}" r="5" fill="${T.shadow}" opacity=".8"><title>Shadow tip at ${fmtT(D.ms)}</title></circle>`;
+  s+=`</g>`;
+  /* gnomon (seen from above) */
+  s+=`<g transform="translate(${cx.toFixed(1)} ${cy.toFixed(1)})"><circle r="7" fill="${T.edge}"/><circle r="3" fill="${T.stone[0]}"/></g>`;
+  if(!(tp&&D.current>=0))s+=`<text y="${(cy>0?-R0*0.75:R0*0.75).toFixed(0)}" text-anchor="middle" font-size="15" fill="${T.windInk}" font-family="Georgia,serif">${D.current>=12?'Night Hour Of '+D.hourGuide+': the dial rests until sunrise':'The Sun is too low to cast a clear shadow'}</text>`;
+  s+=`<text x="-300" y="296" font-size="11" fill="${C.dim}" font-family="system-ui,sans-serif">${esc(st.place.name||'')} · ${fmtD(D.sunrise)} · Day of ${D.dayGuide} · North up</text>`;
+  return s+'</svg>'}
+
+ /* ---- the wheel ---- */
+ function wheel(){if(st.layout==='tower')return tower();const C=PH_CFG,ro=C.ring.outer,ri=C.ring.inner,span=D.nextSunrise-D.sunrise;
+  /* angle in degrees, SVG math (0 = right, counterclockwise positive); sunrise sits on the left, the hours run clockwise over the top */
+  const ang=ms=>{if(st.layout==='clock')return 180-360*(ms-D.sunrise)/span;
+   if(ms<D.sunset)return 180-180*(ms-D.sunrise)/(D.sunset-D.sunrise);return -180*(ms-D.sunset)/(D.nextSunrise-D.sunset)};
+  const xy=(a,r)=>[+(r*Math.cos(a*Math.PI/180)).toFixed(2),+(-r*Math.sin(a*Math.PI/180)).toFixed(2)];
+  const arc=(a0,a1,r0,r1)=>{const [x0,y0]=xy(a0,r1),[x1,y1]=xy(a1,r1),[x2,y2]=xy(a1,r0),[x3,y3]=xy(a0,r0),lg=Math.abs(a0-a1)>180?1:0;
+   return `M${x0} ${y0}A${r1} ${r1} 0 ${lg} 1 ${x1} ${y1}L${x2} ${y2}A${r0} ${r0} 0 ${lg} 0 ${x3} ${y3}Z`};
+  let s=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="-310 -310 620 620" role="img" aria-label="Planetary hours wheel: ${esc(D.weekday)}, day of ${D.dayGuide}${D.current>=0?', hour of '+D.hourGuide:''}">`;
+  s+=`<defs><radialGradient id="ph-bez" cx="50%" cy="30%" r="75%"><stop offset="0" stop-color="#c9ced8"/><stop offset=".55" stop-color="#7d8597"/><stop offset="1" stop-color="#3b4150"/></radialGradient>
+   <radialGradient id="ph-sky" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#16244f"/><stop offset="1" stop-color="${C.night}"/></radialGradient>
+   <filter id="ph-glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter></defs>`;
+  s+=`<rect x="-310" y="-310" width="620" height="620" fill="${C.bg}"/>`;
+  s+=`<circle r="${ro+12}" fill="url(#ph-bez)"/><circle r="${ro+3}" fill="${C.night}"/>`;
+  /* day half tint inside the ring */
+  const a0=ang(D.sunrise),a1=ang(D.sunset);
+  s+=`<circle r="${ri-2}" fill="url(#ph-sky)"/>`;
+  s+=`<path d="${arc(a0,a1,0.001,ri-2)}" fill="${C.dayTint}" opacity=".45"/>`;
+  D.hours.forEach((h,i)=>{const b0=ang(h.start),b1=ang(h.end),mid=(b0+b1)/2,cur=i===D.current,col=C.planet[h.guide];
+   const [gx,gy]=xy(mid,(ro+ri)/2),[tx,ty]=xy(mid,C.ring.label);
+   s+=`<path d="${arc(b0,b1,ri,ro)}" fill="${col}" fill-opacity="${cur?.9:h.day?.42:.24}" stroke="${C.night}" stroke-width="1.5" data-h="${i}" style="cursor:pointer"><title>Hour ${i+1}, ${h.guide}: ${fmtT(h.start)} to ${fmtT(h.end)}</title></path>`;
+   s+=`<g pointer-events="none">${glyph(h.guide,gx,gy,.72,cur?'#10183a':(h.day?'#f3ecd8':'#cfd5e6'))}</g>`;
+   s+=`<text x="${tx}" y="${ty}" text-anchor="middle" dominant-baseline="central" font-size="10.5" fill="${cur?C.gold:C.dim}" font-family="system-ui,sans-serif" style="font-variant-numeric:tabular-nums">${fmtT(h.start).replace(/ ([AP])M/,(m,a)=>a.toLowerCase())}</text>`});
+  /* horizon line through sunrise and sunset */
+  const [rx,ry]=xy(a0,ro+12),[sx,sy]=xy(a1,ro+12);
+  s+=`<line x1="${rx}" y1="${ry}" x2="0" y2="0" stroke="${C.gold}" stroke-width="1.2" stroke-dasharray="5 5" opacity=".7"/><line x1="0" y1="0" x2="${sx}" y2="${sy}" stroke="${C.gold}" stroke-width="1.2" stroke-dasharray="5 5" opacity=".7"/>`;
+  const lab=(a,t,dy)=>{const [x,y]=xy(a,ri-48);return `<text x="${x}" y="${y+dy}" text-anchor="${x<-5?'start':x>5?'end':'middle'}" font-size="12" fill="${C.gold}" font-family="system-ui,sans-serif">${t}</text>`};
+  s+=lab(a0,'Sunrise '+fmtT(D.sunrise),-8)+lab(a1,'Sunset '+fmtT(D.sunset),-8);
+  /* the Sun marker at the moment */
+  if(D.current>=0){const [mx,my]=xy(ang(D.ms),ro+12);s+=`<circle cx="${mx}" cy="${my}" r="13" fill="${C.planet.Sun}" opacity=".55" filter="url(#ph-glow)"/><circle cx="${mx}" cy="${my}" r="8" fill="#ffe7a1" stroke="#7a5a12" stroke-width="1.5"><title>${fmtT(D.ms)}</title></circle>`}
+  /* center: Star Of The Week, or the hour's Guide large */
+  if(st.showHept){const r=C.hept,pos=k=>xy(90-360*PH.CHALDEAN.indexOf(k)/7,r);
+   let d='';for(let i=0;i<=7;i++){const [x,y]=pos(PH.WEEKDAY_GUIDES[i%7]);d+=(i?'L':'M')+x+' '+y}
+   s+=`<circle r="${r}" fill="none" stroke="${C.line}" stroke-width="1"/><path d="${d}" fill="none" stroke="${C.gold}" stroke-opacity=".55" stroke-width="1.4"/>`;
+   PH.CHALDEAN.forEach(k=>{const [x,y]=pos(k),isDay=k===D.dayGuide,isHour=k===D.hourGuide,col=C.planet[k];
+    s+=`${isHour?`<circle cx="${x}" cy="${y}" r="30" fill="${col}" opacity=".5" filter="url(#ph-glow)"/>`:''}<circle cx="${x}" cy="${y}" r="22" fill="${C.night}" stroke="${isDay?C.gold:isHour?col:C.line}" stroke-width="${isDay?3:isHour?2.5:1}"/>${glyph(k,x,y,isHour?.95:.78,col)}`;
+    const [lx,ly]=xy(90-360*PH.CHALDEAN.indexOf(k)/7,r+34);s+=`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="central" font-size="10" fill="${isDay?C.gold:C.dim}" font-family="system-ui,sans-serif">${PH.WEEKDAYS[PH.WEEKDAY_GUIDES.indexOf(k)].slice(0,3)}</text>`});
+  }else{const k=D.current>=0?D.hourGuide:D.dayGuide;s+=`<circle r="70" fill="${PH_CFG.planet[k]}" opacity=".25" filter="url(#ph-glow)"/>${glyph(k,0,-6,3.2,PH_CFG.planet[k])}<text y="78" text-anchor="middle" font-size="16" fill="${C.ink}" font-family="system-ui,sans-serif">${D.current>=0?'Hour of '+k:'Day of '+k}</text>`}
+  s+=`<text x="-300" y="296" font-size="11" fill="${C.dim}" font-family="system-ui,sans-serif">${esc(st.place.name||'')} · ${fmtD(D.sunrise)} · Day of ${D.dayGuide}</text>`;
+  return s+'</svg>'}
+
+ /* ---- readouts ---- */
+ function nowPanel(){const h=D.hours[D.current],nx=D.current<23?D.hours[D.current+1]:null;
+  let nextG=nx?nx.guide:PH.WEEKDAY_GUIDES[(D.wd+1)%7],nextT=nx?nx.start:D.nextSunrise,mins=Math.round((nextT-D.ms)/60000);
+  return `<h2>${st.live?'Right Now':'At '+fmtT(D.ms)}</h2>
+  <div class="ph-big">${chip(D.hourGuide,40)}<div><b>Hour Of ${D.hourGuide}</b><div class="ph-sub">${h.day?'Day':'Night'} hour ${h.day?h.n+1:h.n-11} of 12 · ${fmtT(h.start)} to ${fmtT(h.end)}</div></div></div>
+  <div class="ph-big">${chip(D.dayGuide,30)}<div><b style="font-size:16px">Day Of ${D.dayGuide}</b><div class="ph-sub">${D.weekday}'s planetary day, from sunrise ${fmtT(D.sunrise)}</div></div></div>
+  <div class="ph-sub ph-num" style="margin-top:6px">Next: Hour Of ${nextG} at ${fmtT(nextT)}${st.live?` (in ${dur(mins)})`:''}</div>
+  <div class="ph-sub ph-num">Day hours ${dur(D.dayHourMin)} · Night hours ${dur(D.nightHourMin)}</div>
+  ${D.polar?`<p class="ph-note ph-warn">The Sun ${D.polar==='midnight sun'?'does not set':'does not rise'} here today (${D.polar}), so these are equal hours from ${pad(PH.config.polarFallback[0])}:00 and ${pad(PH.config.polarFallback[1])}:00 clock time.</p>`:''}`}
+ function table(){let h=`<thead><tr><th>Hour</th><th>Guide</th><th class="r">Starts</th><th class="r">Ends</th><th class="r">Length</th></tr></thead><tbody>`;
+  D.hours.forEach((x,i)=>{h+=`<tr tabindex="0" data-h="${i}" class="${x.day?'':'ph-night'}${i===D.current?' ph-cur':''}${i===12?' ph-sep':''}" aria-current="${i===D.current}"><td>${x.day?'Day':'Night'} ${pad(x.day?x.n+1:x.n-11)}</td><td><span class="ph-dot" style="background:${PH_CFG.planet[x.guide]}"></span>${x.guide}</td><td class="r">${fmtT(x.start)}</td><td class="r">${fmtT(x.end)}</td><td class="r">${pad(Math.round((x.end-x.start)/60000))} min</td></tr>`});
+  return h+'</tbody>'}
+ function render(){compute();svgStr=wheel();R('wheel').innerHTML=svgStr;R('now').innerHTML=nowPanel();R('table').innerHTML=table();
+  R('thead').textContent=`${D.weekday}: Day Of ${D.dayGuide}`;
+  if(document.activeElement!==$('#ph-date')&&document.activeElement!==$('#ph-time')){const p=PH.localParts(D.ms,tz());$('#ph-date').value=`${String(p.y).padStart(4,'0')}-${pad(p.m)}-${pad(p.d)}`;$('#ph-time').value=`${pad(p.hh)}:${pad(p.mm)}`}
+  el.querySelector('[data-a="now"]').setAttribute('aria-pressed',st.live)}
+
+ /* ---- controls ---- */
+ $('#ph-place').value=st.place.name||'';$('#ph-layout').value=st.layout;$('#ph-hz').value=st.horizon;$('#ph-clock').value=st.clock;$('#ph-hept').checked=st.showHept;
+ const fromInputs=()=>{const [y,m,d]=$('#ph-date').value.split('-').map(Number),[hh,mm]=($('#ph-time').value||'12:00').split(':').map(Number);if(!y)return;st.live=false;st.ms=PH.localToUTC(y,m,d,hh,mm,tz());render()};
+ const shiftDay=k=>{st.ms+=k*864e5;st.live=false;render()};
+ const onClick=e=>{const b=e.target.closest('[data-a],[data-h],[data-pl]');if(!b||!el.contains(b))return;
+  if(b.dataset.pl!=null){const r=places[+b.dataset.pl];st.place={name:r.label,lat:r.latitude,lon:r.longitude,tz:r.timezone};$('#ph-place').value=st.place.name;R('plist').innerHTML='';saveSt();render();return}
+  if(b.dataset.h!=null){st.live=false;st.ms=D.hours[+b.dataset.h].start+1000;render();return}
+  const a=b.dataset.a;if(a==='now'){st.live=true;render()}else if(a==='prev')shiftDay(-1);else if(a==='next')shiftDay(1);else if(a==='png'||a==='jpg'||a==='copy')exportImg(a)};
+ const onKey=e=>{const tr=e.target.closest&&e.target.closest('tr[data-h]');if(tr&&(e.key==='Enter'||e.key===' ')){e.preventDefault();tr.click()}};
+ const GP=()=>window.GemBPlaces||{search:()=>[]};let places=[];
+ const onInput=e=>{if(e.target.id==='ph-place'){const q=e.target.value.trim();places=q.length<2?[]:GP().search(q,8,true);
+   R('plist').innerHTML=places.map((r,i)=>`<li><button type="button" data-pl="${i}">${esc(r.label)}</button></li>`).join('')}};
+ const onChange=e=>{const id=e.target.id;
+  if(id==='ph-date'||id==='ph-time')fromInputs();
+  else if(id==='ph-layout'){st.layout=e.target.value;saveSt();render()}else if(id==='ph-hz'){st.horizon=e.target.value;saveSt();render()}
+  else if(id==='ph-clock'){st.clock=e.target.value;saveSt();render()}else if(id==='ph-hept'){st.showHept=e.target.checked;saveSt();render()}};
+ el.addEventListener('click',onClick);el.addEventListener('keydown',onKey);el.addEventListener('input',onInput);el.addEventListener('change',onChange);
+ const timer=setInterval(()=>{if(st.live)render()},PH_CFG.refreshMs);
+ const onJPL=window.EA_JPL&&EA_JPL.onLoad?EA_JPL.onLoad(()=>render()):null;
+
+ /* ---- Save As PNG / JPEG, Copy To Clipboard ---- */
+ function exportImg(kind){const msg=R('msg'),img=new Image(),size=1600;
+  img.onload=()=>{const c=document.createElement('canvas');c.width=c.height=size;const g=c.getContext('2d');g.fillStyle=PH_CFG.bg;g.fillRect(0,0,size,size);g.drawImage(img,0,0,size,size);
+   const name=`planetary-hours-${$('#ph-date').value||'day'}`;
+   if(kind==='copy'){c.toBlob(b=>{try{navigator.clipboard.write([new ClipboardItem({'image/png':b})]).then(()=>msg.textContent='Copied.',()=>msg.textContent='This browser did not allow copying. Use Save As PNG.')}catch(e){msg.textContent='This browser cannot copy images. Use Save As PNG.'}},'image/png');return}
+   const fn=name+(kind==='jpg'?'.jpg':'.png'),type=kind==='jpg'?'image/jpeg':'image/png';
+   /* inside a claude.ai artifact the page offers the file through the downloads capability; elsewhere a plain download link */
+   const dl=window.claude&&window.claude.use?window.claude.use('downloads'):Promise.resolve(null);
+   dl.then(d=>{if(d)c.toBlob(b=>d.save({filename:fn,data:b}).then(()=>msg.textContent='Saved '+fn+'.',e=>msg.textContent=e&&e.code==='declined'?'Not saved.':'This viewer could not save the file.'),type,.92);
+    else{const a=document.createElement('a');a.download=fn;a.href=c.toDataURL(type,.92);a.click();msg.textContent='Saved '+fn+'.'}})};
+  img.onerror=()=>msg.textContent='The image could not be made.';
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgStr)}
+
+ render();
+ return {state:st,set:o=>{Object.assign(st,o);render()},data:()=>D,svg:()=>svgStr,
+  unmount(){clearInterval(timer);if(onJPL)onJPL();el.removeEventListener('click',onClick);el.removeEventListener('keydown',onKey);el.removeEventListener('input',onInput);el.removeEventListener('change',onChange);root.innerHTML=''}};
+}
+/* Andy's Star Of The Week: the Hours menu icon everywhere (Gemini, Nov 19). 100x100 units, color c. */
+const ICON=c=>{const P=[0,1,2,3,4,5,6].map(k=>[50+36*Math.sin(2*Math.PI*k/7),50-36*Math.cos(2*Math.PI*k/7)]),
+ d='M'+[0,3,6,2,5,1,4,0].map(k=>P[k].map(v=>v.toFixed(1)).join(' ')).join('L')+'Z';
+ return `<circle cx="50" cy="50" r="36" fill="none" stroke="${c}" stroke-width="1.4" stroke-opacity=".55"/><path d="${d}" fill="none" stroke="${c}" stroke-width="2.3" stroke-linejoin="round"/>`+P.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="4.6" fill="${c}"/>`).join('')};
+const iconSVG=(c,size)=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"${size?` width="${size}" height="${size}"`:''}>${ICON(c||'#e8c46a')}</svg>`;
+window.EA_PH_UI={mount,config:PH_CFG,icon:ICON,iconSVG};
+/* Device core wrapper: a box with today's Guides and Open Planetary Hours, which mounts the full app over the window */
+window.EA_WORLDS=window.EA_WORLDS||{};
+window.EA_WORLDS.planetaryhours=function(A){A=A||{};let inst=null,host=null;const H=A.HOME||{};
+ const place=()=>H.lat!=null?{name:H.place||H.name||'',lat:H.lat,lon:H.lon,tz:H.tz}:undefined;
+ function onKey(e){if(e.key==='Escape'&&host){e.stopPropagation();close()}}
+ function open(){if(host)return;host=document.createElement('div');host.id='ph-app';
+  host.style.cssText='position:fixed;inset:0;z-index:9000;background:'+PH_CFG.bg;
+  const x=document.createElement('button');x.type='button';x.textContent='×';x.setAttribute('aria-label','Close Planetary Hours');
+  x.style.cssText='position:absolute;top:10px;right:12px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid '+PH_CFG.line+';background:#16245199;color:'+PH_CFG.ink+';font-size:22px;line-height:1;cursor:pointer';
+  x.onclick=close;const root=document.createElement('div');root.style.cssText='position:absolute;inset:0';host.append(root,x);document.body.appendChild(host);
+  inst=mount(root,{place:place(),glyphs:A.PLG});document.addEventListener('keydown',onKey,true);x.focus()}
+ function close(){if(inst)inst.unmount();inst=null;if(host){host.remove();host=null}document.removeEventListener('keydown',onKey,true);const b=document.querySelector('[data-act="phopen"]');if(b)b.focus()}
+ function box(){const head=A.head||(()=>''),p=place()||{lat:37.8044,lon:-122.2712,tz:'America/Los_Angeles'};let g='';
+  try{const D=window.EA_PH.at(Date.now(),p),sw=k=>`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${PH_CFG.planet[k]};margin-right:6px"></span>`;
+   g=`<p style="margin:6px 0 2px;line-height:1.6">${sw(D.hourGuide)}<b>Hour Of ${D.hourGuide}</b><br>${sw(D.dayGuide)}Day Of ${D.dayGuide} (${D.weekday}'s planetary day)</p>`}catch(e){}
+  return head('phours','Planetary Hours','not assigned')+g+`<p style="margin:6px 0 10px;opacity:.8;font-size:13px">The Guide of the day and the hour for ${(p.name||'home')}, the 24 unequal hours, the Star Of The Week and the Tower Of The Winds sundial.</p><button class="hm-open" data-act="phopen" data-id="">Open Planetary Hours</button>`}
+ function act(a){if(a==='phopen')open()}
+ return {config:PH_CFG,box,act,open,close,icon:ICON,mount(container){inst=mount(container,{place:place(),glyphs:A.PLG});return inst},unmount:close,
+  guides:(ms,pl)=>window.EA_PH.guides(ms,pl||place())}};
+})();
+</script>
 <script>/* ---------- Time Lords World: the math (pure, no DOM) ----------
    Registers window.EA_TL. Hellenistic and medieval timing from a natal chart:
    annual and monthly profections, firdaria, zodiacal releasing, and circumambulations (the Ascendant directed
@@ -5782,7 +6179,9 @@ const AMP_CFG={
  /* Story Maps (Gemini, Nov 19): example lists beside the page, how far in the map flies, parans within 1° of latitude, lines within 150 mi in bold */
  ltag:{hit:9},meas:{color:'#ffd166',n:96},
  story:{sample:'stories.json',zoom:6,zoomMax:12,zoomTrip:2.5,globeZoom:1.8,flySteps:30,parOrb:1,max:8,tight:150,hit:16,freeMin:260,sideW:380,phoneY:.3,globeStepsMax:96,globeStepsPerDeg:.45,globeTripDeg:35},tide:{sun:.46,color:'#5fd0e0',op:.5},find:{min:8,max:10},
- pops:{stories:{name:'Stories',x:20,y:96,w:340},story:{name:'Story',x:372,y:96,w:390},lines:{name:'Lines',x:20,y:96,w:720},zodiac:{name:'Zodiac',x:640,y:110,w:300},ecl:{name:'Eclipses',x:600,y:96,w:400},sky:{name:'Horizons',x:560,y:96,w:390},gaze:{name:'Eclipse From Here',x:330,y:70,w:520},relocate:{name:'Relocate',x:395,y:150,w:270},wheel:{name:'Chart Wheel',x:22,y:230,w:250},compass:{name:'Local Space Compass',x:712,y:110,w:250}},
+ pops:{stories:{name:'Stories',x:20,y:96,w:340},story:{name:'Story',x:372,y:96,w:390},lines:{name:'Lines',x:20,y:96,w:720},zodiac:{name:'Zodiac',x:640,y:110,w:300},ecl:{name:'Eclipses',x:600,y:96,w:400},sky:{name:'Horizons',x:560,y:96,w:390},gaze:{name:'Eclipse From Here',x:330,y:70,w:520},relocate:{name:'Relocate',x:395,y:150,w:270},wheel:{name:'Chart Wheel',x:22,y:230,w:250,grow:true},compass:{name:'Local Space Compass',x:712,y:110,w:250,grow:true}},
+ /* stretchable pop-ups (Gemini, Nov 20): drag the corner grip; the wheel and compass grow with the box */
+ grow:{min:200,max:760,step:40},
  /* Geodetic zodiac (Gemini, Nov 11): 0° Aries laid on a prime meridian, each sign 30° of longitude eastward. Greenwich by default, the Great Pyramid, or any place typed in */
  primes:{greenwich:['Greenwich',0],giza:['Great Pyramid (Giza)',31.1342]},
  orbsWheel:{Conjunct:8,Opposite:8,Square:7,Trine:7,Sextile:5},
@@ -5832,7 +6231,7 @@ const PRESETS=[['all','All',BODIES.slice()],['inner','Sun To Mars',['Sun','Moon'
 const VIEWS={h:84,stars:[['map','ampmap','World Map',24,40],['globe','ampglobe','Globe',76,40]],lines:[['map','globe']]};
 const nm=k=>k==='Node'?'North Node':k==='SNode'?'South Node':k;
 const D=AMP_CFG.defaults;
-const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
+const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popW:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
  show:Object.fromEntries(Object.entries(AMP_CFG.show).map(([k,v])=>[k,v[1]]))};
 const SH=k=>!!ST.show[k];
 const TH=()=>AMP_CFG.themes[ST.theme]||AMP_CFG.themes.night;
@@ -6423,8 +6822,19 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
    h.addEventListener('pointermove',e=>{if(!s0)return;const t=Math.max(8,Math.min(innerHeight-120,s0.t+e.clientY-s0.y));pp.style.setProperty('top',t+'px','important');pp.style.setProperty('bottom','auto','important')});
    const u2=()=>{if(!s0)return;s0=null;ST.phoneTop=pp.getBoundingClientRect().top};h.addEventListener('pointerup',u2);h.addEventListener('pointercancel',u2);return}
   h.addEventListener('pointerdown',e=>{if(e.target.closest('button')||pp.classList.contains('amp-side'))return;const m=sv.getScreenCTM();const k=m?m.a:1;st={x:e.clientX,y:e.clientY,l:parseFloat(pp.style.left),t:parseFloat(pp.style.top),k};try{h.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault()});
+  h.addEventListener('click',e=>{if(!e.target.closest('button'))e.stopPropagation()});
   h.addEventListener('pointermove',e=>{if(!st)return;pp.style.left=(st.l+(e.clientX-st.x)/st.k)+'px';pp.style.top=(st.t+(e.clientY-st.y)/st.k)+'px'});
   const up=()=>{if(!st)return;st=null;const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}};h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  const gr=pp.querySelector('.amp-grip');if(gr){const G=AMP_CFG.grow,id=pp.dataset.pop,clamp=w=>Math.max(G.min,Math.min(G.max,Math.round(w)));let g0=null;
+   const set=w=>{const F=FR(),L=parseFloat(pp.style.left)-F.x,lim=BARY()-8;w=Math.min(clamp(w),F.w-8-L);pp.style.width=w+'px';
+    /* stay inside the map: grow upward when the bottom would pass the button bar, and stop growing once the box fills the height */
+    let h=pp.offsetHeight,T=parseFloat(pp.style.top)-F.y;if(T+h>lim)T=Math.max(8,lim-h);if(T+h>lim){w=Math.max(G.min,Math.floor(w-(T+h-lim)));pp.style.width=w+'px';h=pp.offsetHeight}
+    pp.style.top=(F.y+T)+'px';ST.popW[id]=w;ST.popPos[id]={x:L,y:T}};
+   gr.addEventListener('pointerdown',e=>{const m=sv.getScreenCTM();g0={x:e.clientX,y:e.clientY,w:parseFloat(pp.style.width)||pp.offsetWidth,k:m?m.a:1};try{gr.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopPropagation()});
+   gr.addEventListener('pointermove',e=>{if(!g0)return;set(g0.w+Math.max(e.clientX-g0.x,e.clientY-g0.y)/g0.k)});
+   const gu=()=>{g0=null};gr.addEventListener('click',e=>e.stopPropagation());   /* a drag that ends off the map must not read as a click outside it */
+   gr.addEventListener('pointerup',gu);gr.addEventListener('pointercancel',gu);
+   gr.addEventListener('keydown',e=>{const d={ArrowRight:1,ArrowDown:1,ArrowLeft:-1,ArrowUp:-1}[e.key];if(!d)return;e.preventDefault();set((parseFloat(pp.style.width)||pp.offsetWidth)+d*G.step)})}
   h.addEventListener('keydown',e=>{const m={ArrowLeft:[-20,0],ArrowRight:[20,0],ArrowUp:[0,-20],ArrowDown:[0,20]}[e.key];if(!m||e.target.closest('button'))return;e.preventDefault();pp.style.left=(parseFloat(pp.style.left)+m[0])+'px';pp.style.top=(parseFloat(pp.style.top)+m[1])+'px';const F=FR();ST.popPos[pp.dataset.pop]={x:parseFloat(pp.style.left)-F.x,y:parseFloat(pp.style.top)-F.y}})})}
 /* while the map moves: only the coastline transform changes; lines, night, grid, cities and labels are redrawn */
 /* while the map moves, the drawn lines, grid and night are slid and stretched as one picture (cheap), and fully redrawn a few
@@ -6453,7 +6863,7 @@ function overlay(){const F=FR(),b=(act,id,t,on,lab)=>`<button type="button" clas
   if(id==='gaze'&&!(A.gaze&&A.gaze().hasAnim())){ST.pops.gaze=false;continue}const C=AMP_CFG.pops[id],q=ST.popPos[id]||(id==='story'&&SIDEON()?{x:AMP_CFG.story.sideW+8,y:C.y}:C);
   const sS=id==='story'?stoSel():null,pT=sS?sS.title:id==='stories'&&stoList()?stoList().name:C.name,pS=sS?[sS.place,sS.when].filter(Boolean).join(' · '):popSub();
   const anc=!window.EA_PHONE&&id!=='story'&&!ST.popPos[id];
-  h+=`<div class="amp-pop" data-pop="${id}"${anc?' data-anchor="1"':''} role="dialog" aria-label="${esc(pT)}" style="${window.EA_PHONE&&id==='story'?(ST.phoneTop!=null?`top:${ST.phoneTop}px !important;bottom:auto !important`:''):`left:${F.x+q.x}px;top:${F.y+q.y}px;width:${C.w}px`}"><div class="amp-ph" tabindex="0" title="Drag to move (or arrow keys)"><span><b>${esc(pT)}</b><small>${esc(pS)}</small></span><button type="button" class="x" data-act="amppop" data-id="${id}" aria-label="Close ${C.name}">&times;</button></div><div class="amp-pb">${popBody(id)}</div><button type="button" class="x xb" data-act="amppop" data-id="${id}" aria-label="Close ${C.name}" hidden>&times;</button></div>`}
+  h+=`<div class="amp-pop" data-pop="${id}"${anc?' data-anchor="1"':''} role="dialog" aria-label="${esc(pT)}" style="${window.EA_PHONE&&id==='story'?(ST.phoneTop!=null?`top:${ST.phoneTop}px !important;bottom:auto !important`:''):`left:${F.x+q.x}px;top:${F.y+q.y}px;width:${ST.popW[id]||C.w}px`}"><div class="amp-ph" tabindex="0" title="Drag to move (or arrow keys)"><span><b>${esc(pT)}</b><small>${esc(pS)}</small></span><button type="button" class="x" data-act="amppop" data-id="${id}" aria-label="Close ${C.name}">&times;</button></div><div class="amp-pb">${popBody(id)}</div><button type="button" class="x xb" data-act="amppop" data-id="${id}" aria-label="Close ${C.name}" hidden>&times;</button>${C.grow&&!window.EA_PHONE?`<span class="amp-grip" tabindex="0" role="separator" aria-label="Resize ${esc(C.name)}: drag, or use the arrow keys" title="Drag to stretch"></span>`:''}</div>`}
  return h}
 function popBody(id){try{return id==='stories'?storiesHTML():id==='story'?storyHTML():id==='gaze'?gazeHTML():id==='sky'?skyHTML():id==='ecl'?eclHTML():id==='zodiac'?zodiacHTML():id==='lines'?linesHTML():id==='relocate'?relocateHTML():id==='wheel'?wheelSVG():compassSVG()}catch(e){return `<small class="note">${esc(String(e&&e.message||e))}</small>`}}
 const PL10=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto'];
@@ -6502,7 +6912,11 @@ function wireEcl(){const pp=STAGE&&STAGE.querySelector('.amp-pop[data-pop="ecl"]
 function anchorPops(){if(!STAGE)return;const sv=STAGE.querySelector('svg.amp'),F=FR();if(!sv)return;const sr=sv.getBoundingClientRect(),k=sr.width/F.w||1;
  STAGE.querySelectorAll('.amp-pop').forEach(pp=>{const pb=pp.querySelector('.amp-pb'),xb=pp.querySelector('.xb');if(xb&&pb)xb.hidden=!(pb.scrollHeight>pb.clientHeight+4);
   if(!pp.dataset.anchor)return;const id=pp.dataset.pop,btn=STAGE.querySelector(`.amp-bar [data-act="amppop"][data-id="${id}"]`);if(!btn)return;const br=btn.getBoundingClientRect(),w=pp.offsetWidth,hh=pp.offsetHeight;
-  let x=(br.left-sr.left)/k,y=(br.top-sr.top)/k-hh-8;x=Math.max(8,Math.min(F.w-w-8,x));y=Math.max(8,y);pp.style.left=(F.x+x)+'px';pp.style.top=(F.y+y)+'px';ST.popPos[id]={x,y};delete pp.dataset.anchor})}
+  let x=(br.left-sr.left)/k,y=(br.top-sr.top)/k-hh-8;x=Math.max(8,Math.min(F.w-w-8,x));y=Math.max(8,y);
+  /* neighbouring buttons would stack their pop-ups: slide this one beside any already open (Nov 20) */
+  const rs=[...STAGE.querySelectorAll('.amp-pop')].filter(o=>o!==pp&&!o.dataset.anchor&&!o.classList.contains('amp-side')).map(o=>{const b=o.getBoundingClientRect();return{l:(b.left-sr.left)/k,r:(b.right-sr.left)/k,t:(b.top-sr.top)/k,b:(b.bottom-sr.top)/k}});
+  const hit=X=>rs.find(o=>X<o.r+6&&X+w>o.l-6&&y<o.b+6&&y+hh>o.t-6);for(let i=0,o;i<8&&(o=hit(x));i++){const R=o.r+10,L=o.l-10-w;x=R+w<=F.w-8?R:L>=8?L:x;if(hit(x)===o)break}
+  pp.style.left=(F.x+x)+'px';pp.style.top=(F.y+y)+'px';ST.popPos[id]={x,y};delete pp.dataset.anchor})}
 function wireBox(){anchorPops();wireEcl();wireStories();wireIn(STAGE&&STAGE.querySelector('.amp-pop[data-pop="relocate"]'));const bx=document.getElementById('box');if(!bx||bx.hidden)return;const pq=bx.querySelector('[data-amp-in="pq"]');if(pq&&!pq.__amp){pq.__amp=true;pq.addEventListener('keydown',e=>{if(e.key!=='Enter')return;e.preventDefault();ST.pq=pq.value;const G=window.GemBPlaces;let r=null;try{r=G&&G.search(pq.value,1)[0]}catch(_){}if(!r){toast('No place found by that name.');return}ST.primeC={lon:r.longitude,label:r.label};ST.prime='custom';ST.pq='';reading();renderAll()})}const inp=bx.querySelector('[data-amp-in="q"]');if(!inp||inp.__amp)return;inp.__amp=true;
  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();ST.q=inp.value;findPlace(true)}});
  inp.addEventListener('input',()=>{ST.q=inp.value;const o=bx.querySelector('.amp-found');if(o)o.innerHTML=foundHTML()})}
@@ -7477,13 +7891,16 @@ const SILVER={col:'#cfd3dc',w:1.6};
    bezel around the zodiac ring whose lightest side faces the Sun (Chart 1's Sun, or the current Sun). The Simple Wheel's
    cusp ring look (light at the top, dark at the bottom) goes on the house number ring of the classic wheel, its numbers dark on the light half and white on the dark half. Colors are data (METAL). */
 const METAL={stops:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],at:[0,.3,.6,1],bezel:[380,398]};
-function metalDefs(id,x1,y1,x2,y2){return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}">${METAL.stops.map((c,i)=>`<stop offset="${METAL.at[i]}" stop-color="${c}"/>`).join('')}</linearGradient>`}
+/* Gemini, Nov 19 (global): the Solar bezel: the outer rim runs bright gold on the Sun's side to dark gray on the deepest night side
+   (same stops as the shared Simple Wheel's colors.rim); the house cusp ring keeps the silver METAL */
+const RIM={stops:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],at:[0,.3,.6,1]};
+function metalDefs(id,x1,y1,x2,y2,M){M=M||METAL;return `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}">${M.stops.map((c,i)=>`<stop offset="${M.at[i]}" stop-color="${c}"/>`).join('')}</linearGradient>`}
 function zodRing(asc,zmode,sunL){const cx=400,cy=400,AA=l=>zmode?l:270-(l-asc),P=(r,l)=>{const a=rad(AA(l));return [cx+r*Math.sin(a),cy-r*Math.cos(a)]},F=v=>v.toFixed(1),G=window.APP_GLY||[],sw1=zmode?1:0,sw2=zmode?0:1,dir=zmode?1:-1;
  const arc=(r1,r2,l1,l2)=>{const a=P(r1,l1),b=P(r1,l2),c=P(r2,l2),d=P(r2,l1);return `M${F(a[0])} ${F(a[1])} A${r1} ${r1} 0 0 ${sw1} ${F(b[0])} ${F(b[1])} L${F(c[0])} ${F(c[1])} A${r2} ${r2} 0 0 ${sw2} ${F(d[0])} ${F(d[1])} Z`};
  let g='';for(let i=0;i<12;i++){g+=`<path d="${arc(380,340,i*30,i*30+30)}" fill="${SFILL[i%4]}" stroke="${SILVER.col}" stroke-width="${SILVER.w}" stroke-linejoin="round"/>`;const l=i*30+15,p=P(360,l);let gx=p[0],gy=p[1];const GB=window.APP_GLYB,ad=((AA(l))%360+360)%360,ar=rad(ad),nd=GLYPH_NUDGE[i]||[0,0,100],zs=(nd[2]>0?nd[2]:100)/100;if(GB&&GB[i]){const B=GB[i][Math.round(ad/2)%180],sc=30/96*zs,orr=-(B[0]+B[1])/2*sc,ot=-(B[2]+B[3])/2*sc;gx+=Math.sin(ar)*orr+Math.cos(ar)*ot;gy+=-Math.cos(ar)*orr+Math.sin(ar)*ot}gx+=Math.sin(ar)*nd[0]+dir*Math.cos(ar)*nd[1];gy+=-Math.cos(ar)*nd[0]+dir*Math.sin(ar)*nd[1];g+=G[i]?`<image href="${G[i]}" x="${F(gx-15*zs)}" y="${F(gy-15*zs)}" width="${F(30*zs)}" height="${F(30*zs)}" opacity=".95"/>`:`<text x="${F(p[0])}" y="${F(p[1])}" text-anchor="middle" dominant-baseline="central" font-family="${GLY}" font-size="19" fill="#b4b8c4">${SG[i]}︎</text>`}
  for(let k=0;k<360;k+=5){const l=k%10===0?7:4,a=P(340,k),b=P(340-l,k);g+=`<path d="M${F(a[0])} ${F(a[1])} L${F(b[0])} ${F(b[1])}" stroke="#b4b8c4" stroke-width="${k%10===0?1:.6}" opacity="1"/>`}
- if(sunL==null)sunL=positions(jdOf(nowMs())).Sun;const sp=P(400,sunL),so=P(400,sunL+180),bz='mbz'+Math.round(n360(sunL)*10)+(zmode?'z':'a')+Math.round(n360(asc)*10),[b0,b1]=METAL.bezel;
- const defs=`<defs>${metalDefs(bz,sp[0],sp[1],so[0],so[1])}</defs>`;
+ if(sunL==null)sunL=positions(jdOf(nowMs())).Sun;const sp=P(400,sunL),so=P(400,sunL+180),bz='mrim'+Math.round(n360(sunL)*10)+(zmode?'z':'a')+Math.round(n360(asc)*10),[b0,b1]=METAL.bezel;
+ const defs=`<defs>${metalDefs(bz,sp[0],sp[1],so[0],so[1],RIM)}</defs>`;
  const met=`<circle cx="400" cy="400" r="${(b0+b1)/2}" fill="none" stroke="url(#${bz})" stroke-width="${b1-b0}"/><circle cx="400" cy="400" r="${b1}" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="1.4"/>`;
  return `${defs}${met}${g}<circle cx="400" cy="400" r="380" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="1.6"/><circle cx="400" cy="400" r="340" fill="none" stroke="${SILVER.col}" stroke-width="${SILVER.w}" stroke-opacity="1"/>`}
 function synZod(asc){return zodRing(asc,false)}
@@ -7625,6 +8042,7 @@ IC.rx=`<path d="M22 80V22H42A14 14 0 0 1 42 50H22M36 50L56 80M60 58L80 82M80 58L
 IC.hourglass=`<g fill="none" stroke="@C@" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M28 14H72M28 86H72"/><path d="M33 14C33 36 50 40 50 50C50 60 33 64 33 86M67 14C67 36 50 40 50 50C50 60 67 64 67 86"/></g><path d="M39 30H61C58 38 50 42 50 46C50 42 42 38 39 30ZM38 82C40 72 50 68 50 62C50 68 60 72 62 82Z" fill="@C@" fill-opacity=".6"/>`;
 IC.harmonia=`<g fill="none" stroke="@C@" stroke-width="2.3" stroke-linecap="round"><circle cx="50" cy="50" r="34"/><ellipse cx="50" cy="50" rx="34" ry="12" transform="rotate(-23 50 50)"/><circle cx="50" cy="50" r="21" stroke-dasharray="3 4"/></g><circle cx="50" cy="50" r="7" fill="@C@"/><circle cx="78" cy="38" r="4" fill="@C@"/>`; /* Harmonia World: armillary sphere after Cellarius */
 IC.eclipse=`<g fill="none" stroke="@C@" stroke-width="2.3" stroke-linecap="round"><circle cx="50" cy="50" r="22"/><path d="M50 12V20M50 80V88M12 50H20M80 50H88M23 23L29 29M71 71L77 77M77 23L71 29M23 77L29 71"/></g><circle cx="56" cy="46" r="20" fill="@C@" fill-opacity=".55" stroke="@C@" stroke-width="2"/>`;
+IC.phours=`<circle cx="50" cy="50" r="36" fill="none" stroke="@C@" stroke-width="1.4" stroke-opacity=".55"/><path d="M50.0 14.0L65.6 82.4L21.9 27.6L85.1 58.0L14.9 58.0L78.1 27.6L34.4 82.4L50.0 14.0Z" fill="none" stroke="@C@" stroke-width="2.3" stroke-linejoin="round"/><circle cx="50.0" cy="14.0" r="4.6" fill="@C@"/><circle cx="78.1" cy="27.6" r="4.6" fill="@C@"/><circle cx="85.1" cy="58.0" r="4.6" fill="@C@"/><circle cx="65.6" cy="82.4" r="4.6" fill="@C@"/><circle cx="34.4" cy="82.4" r="4.6" fill="@C@"/><circle cx="14.9" cy="58.0" r="4.6" fill="@C@"/><circle cx="21.9" cy="27.6" r="4.6" fill="@C@"/>`; /* Planetary Hours World (Andronicus): Andy's Star Of The Week, the {7/3} heptagram through the planets in Chaldean order (Gemini, Nov 19) */
 /* AstroGraphs (Nov 8): a graph frame with two planet lines crossing, one dashed for a retrograde stretch */
 IC.astromaps=`<circle cx="50" cy="50" r="36" fill="none" stroke="@C@" stroke-width="3"/><ellipse cx="50" cy="50" rx="15" ry="36" fill="none" stroke="@C@" stroke-width="2" opacity=".7"/><path d="M14 50H86M20 32H80M20 68H80" fill="none" stroke="@C@" stroke-width="2" opacity=".7"/><path d="M24 22C40 40 46 62 44 86M70 16C62 40 66 64 80 78" fill="none" stroke="@C@" stroke-width="3.4" stroke-linecap="round"/>`;
 IC.ampmap=`<rect x="10" y="24" width="80" height="52" rx="4" fill="none" stroke="@C@" stroke-width="3"/><path d="M36 24V76M64 24V76" stroke="@C@" stroke-width="2.4" stroke-dasharray="5 4"/><path d="M14 66C30 60 40 40 52 38S76 48 86 30" fill="none" stroke="@C@" stroke-width="3" stroke-linecap="round"/>`;
@@ -8990,7 +9408,7 @@ function badge(id,style){return S.info?`<span class="ib" data-act="tip" data-id=
 function tileHTML(kind,x,y,col,solid,uid){const mm=MENU.find(m=>m.id===uid);const c=solid?'#0a0a0a':col,body=IC[kind].replace(/@C@/g,c);
  return `<div class="tile ${solid?'sel':''}" data-slot="${uid}" data-side="${x<720?'l':'r'}" title="${mm?mm.name+' ('+mm.key+')':''}" style="left:${x}px;top:${y}px;border-color:${col};${solid?`background:${col}`:''}"><svg viewBox="0 0 100 100"><defs><filter id="f${uid}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2"/></filter></defs><g filter="url(#f${uid})">${body}</g></svg>${uid==='info'?'':badge(uid)}</div>`}
 function blankHTML(x,y,col){return `<div class="tile blank" data-side="${x<720?'l':'r'}" style="left:${x}px;top:${y}px;border-color:${col}55"></div>`}
-const MENU=[{id:'settings',kind:'gear',c:1,r:1,name:'Settings',key:'C+,'},{id:'credits',kind:'heart',c:4,r:1,name:'Credits',key:'not assigned',global:true},{id:'info',kind:'info',c:1,r:2,name:'Information',key:'Ci · browser Opt+Cmd+/',global:true},{id:'chart',kind:'zwheel',c:2,r:1,name:'Chart Information',key:'Co Open · Cn New',pulse:true},{id:'timings',kind:'clock',c:2,r:2,name:'Timings',key:'Ct'},{id:'tm',kind:'play',c:2,r:3,name:'Time Machine',key:'Cy (suggested)'},{id:'space',kind:'solar',c:2,r:4,name:'Space Is The Place',key:'Ch'},{id:'ground',kind:'mtn',c:2,r:5,name:'Feet On The Ground',key:'Cg'},{id:'pinfo',kind:'pinfo',c:1,r:3,name:'Planet Info',key:'not assigned',global:true},{id:'cycles',kind:'cycles',c:1,r:4,name:'Cycles',key:'not assigned',global:true},{id:'harmonics',kind:'hoct',c:1,r:5,name:'Harmonics',key:'not assigned',global:true},{id:'wdisp',kind:'wdisp',c:3,r:2,name:'Wheel Display',key:'not assigned',global:true},{id:'agrid',kind:'agrid',c:3,r:3,name:'Aspect Grid',key:'not assigned',global:true},{id:'dial',kind:'dial',c:3,r:4,name:'Dial View',key:'not assigned',global:true},{id:'earth',kind:'teach',c:1,r:7,name:'Earthstrology',key:'not assigned',global:true},{id:'games',kind:'games',c:1,r:6,name:'Games',key:'not assigned',global:true},{id:'stargaze',kind:'gaze',c:2,r:6,name:'Stargazer',key:'not assigned',global:true},{id:'moon',kind:'crescent',c:2,r:7,name:'Moon',key:'not assigned',global:true},{id:'eclipse',kind:'eclipse',c:4,r:2,name:'Eclipses',key:'not assigned',global:true},{id:'timelords',kind:'hourglass',c:3,r:5,name:'Time Lords',key:'not assigned',global:true},{id:'graphs',kind:'graphs',c:3,r:6,name:'AstroGraphs',key:'not assigned',global:true},{id:'astromaps',kind:'astromaps',c:4,r:5,name:'AstroMaps',key:'not assigned',global:true},{id:'harmonia',kind:'harmonia',c:4,r:3,name:'Harmonia',key:'not assigned',global:true}];
+const MENU=[{id:'settings',kind:'gear',c:1,r:1,name:'Settings',key:'C+,'},{id:'credits',kind:'heart',c:4,r:1,name:'Credits',key:'not assigned',global:true},{id:'info',kind:'info',c:1,r:2,name:'Information',key:'Ci · browser Opt+Cmd+/',global:true},{id:'chart',kind:'zwheel',c:2,r:1,name:'Chart Information',key:'Co Open · Cn New',pulse:true},{id:'timings',kind:'clock',c:2,r:2,name:'Timings',key:'Ct'},{id:'tm',kind:'play',c:2,r:3,name:'Time Machine',key:'Cy (suggested)'},{id:'space',kind:'solar',c:2,r:4,name:'Space Is The Place',key:'Ch'},{id:'ground',kind:'mtn',c:2,r:5,name:'Feet On The Ground',key:'Cg'},{id:'pinfo',kind:'pinfo',c:1,r:3,name:'Planet Info',key:'not assigned',global:true},{id:'cycles',kind:'cycles',c:1,r:4,name:'Cycles',key:'not assigned',global:true},{id:'harmonics',kind:'hoct',c:1,r:5,name:'Harmonics',key:'not assigned',global:true},{id:'wdisp',kind:'wdisp',c:3,r:2,name:'Wheel Display',key:'not assigned',global:true},{id:'agrid',kind:'agrid',c:3,r:3,name:'Aspect Grid',key:'not assigned',global:true},{id:'dial',kind:'dial',c:3,r:4,name:'Dial View',key:'not assigned',global:true},{id:'earth',kind:'teach',c:1,r:7,name:'Earthstrology',key:'not assigned',global:true},{id:'games',kind:'games',c:1,r:6,name:'Games',key:'not assigned',global:true},{id:'stargaze',kind:'gaze',c:2,r:6,name:'Stargazer',key:'not assigned',global:true},{id:'moon',kind:'crescent',c:2,r:7,name:'Moon',key:'not assigned',global:true},{id:'eclipse',kind:'eclipse',c:4,r:2,name:'Eclipses',key:'not assigned',global:true},{id:'timelords',kind:'hourglass',c:3,r:5,name:'Time Lords',key:'not assigned',global:true},{id:'graphs',kind:'graphs',c:3,r:6,name:'AstroGraphs',key:'not assigned',global:true},{id:'astromaps',kind:'astromaps',c:4,r:5,name:'AstroMaps',key:'not assigned',global:true},{id:'harmonia',kind:'harmonia',c:4,r:3,name:'Harmonia',key:'not assigned',global:true},{id:'phours',kind:'phours',c:3,r:7,name:'Planetary Hours',key:'not assigned',global:true}];
 let pulsing=true;
 function elCol(){return D.lift[S.corner]}
 function renderScene(){const col=elCol();let h='';
@@ -9621,7 +10039,7 @@ function infoBox(){const t=S.tip&&TIPS[S.tip];
  <table class="kt"><tr><td>One to four wheels</td><td>${MOD_WEB} + 1 to 4</td></tr><tr><td>Swap inner and outer chart</td><td>${MOD_WEB} + 5 (or Right Arrow)</td></tr><tr><td>Cycle 1 to 4 charts</td><td>${MOD_WEB} + 6 (or Down Arrow)</td></tr><tr><td>Information</td><td>${MOD_WEB} + /</td></tr><tr><td>Close a menu</td><td>Escape</td></tr></table>
  <small class="note">In the desktop app the same actions use ${IS_MAC?'Command':'Control'} (C) instead: C1 to C4, C+Right Arrow, C+Down Arrow, Ci, plus Co, Cn, Ct, Ch, Cg and Cy as those menus come online. The browser set avoids Cmd/Ctrl+T, N, W, O, G, H, and 1 to 9, which browsers keep. Shortcuts pause while you are typing in a field.</small>`}
 function renderBox(){const b=$('#box');if(!S.open||(S.open==='tm'&&tmDocked())){b.hidden=true;roomFor();return}b.hidden=false;
- const hh={timelords:()=>tl().box(),settings:settingsBox,chart:chartBox,timings:timingsBox,tm:tmBox,space:()=>ptBox('solar','Space Is The Place','space'),tables:()=>ptBox('ptables','Planetary Tables','table'),ptearth:()=>ptBox('ptearth','Earth','earth'),ground:()=>pln().box(),info:infoBox,credits:creditsBox,pinfo:pinfoBox,wdisp:wdispBox,agrid:agridBox,dial:dialBox,cycles:cyclesBox,harmonics:harmonicsBox,games:gamesBox,earth:()=>ear().box(),stargaze:()=>stg().box(),moon:()=>stg().moonBox(),eclipse:()=>ecl().box(),harmonia:()=>hmw().box(),graphs:()=>agr().box(),astromaps:()=>amp().box()};
+ const hh={phours:()=>phw().box(),timelords:()=>tl().box(),settings:settingsBox,chart:chartBox,timings:timingsBox,tm:tmBox,space:()=>ptBox('solar','Space Is The Place','space'),tables:()=>ptBox('ptables','Planetary Tables','table'),ptearth:()=>ptBox('ptearth','Earth','earth'),ground:()=>pln().box(),info:infoBox,credits:creditsBox,pinfo:pinfoBox,wdisp:wdispBox,agrid:agridBox,dial:dialBox,cycles:cyclesBox,harmonics:harmonicsBox,games:gamesBox,earth:()=>ear().box(),stargaze:()=>stg().box(),moon:()=>stg().moonBox(),eclipse:()=>ecl().box(),harmonia:()=>hmw().box(),graphs:()=>agr().box(),astromaps:()=>amp().box()};
  b.innerHTML=hh[S.open]();b.classList.toggle('stgw',S.open==='stargaze'||S.open==='moon');b.classList.toggle('eclw',S.open==='eclipse');b.classList.toggle('tlw',S.open==='timelords');b.classList.toggle('agrw',S.open==='graphs');b.classList.toggle('ampw',S.open==='astromaps');const pos=S.boxPos[S.open];const dp=S.open==='credits'?{x:880,y:130}:(S.open==='chart'||S.open==='cycles'||S.open==='harmonics')?{x:200,y:150}:{x:200,y:215};b.style.left=(pos?pos.x:dp.x)+'px';b.style.top=(pos?pos.y:dp.y)+'px';b.style.setProperty('--col',elCol());fitBox(b)}
 /* Layout and UI World: shared layout numbers, kept as data so layouts stay editable.
    room: the chart slides into the free space beside an open box and shrinks to fit, so the box never covers it
@@ -9740,6 +10158,7 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(/^stg[a-z]+$/.test(a)&&(S.open==='stargaze'||S.open==='moon'||S.gv==='amap')){stg().act(a,id);return}
   else if(/^ecl[a-z]+$/.test(a)&&S.open==='eclipse'){ecl().act(a,id);return}
   else if(a==='hmopen'&&S.open==='harmonia'){hmw().act(a,id);return}
+  else if(a==='phopen'&&S.open==='phours'){phw().act(a,id);return}
   else if(/^tl[a-z]+$/.test(a)&&S.open==='timelords'){tl().act(a,id);return}
   else if(/^amp(view|pl|set|ang|focus|show|theme|units|orb|clr|go|zoom|center|hit|mode|moment|tm|pop|geo|prime|lines|asp|mid|par|pll|ecl|sky|sto|meas)$/.test(a)){amp().act(a,id);return}
   else if(/^agr(view|span|move|dial|set|node|moon|around|style|stylereset|theme|show|pl|focus|cur|clr|at|go|natal|hit)$/.test(a)){agr().act(a,id);return}
@@ -10045,6 +10464,7 @@ function tlRingW(){return window.EA_WORLDS&&window.EA_WORLDS.timelords&&S.tl?tl(
 /* AstroGraphs (Nov 8): planets as graphs over time on the stage; Open Chart At This Moment goes to the wheel through the Time Machine */
 let AMP=null;function amp(){return AMP||(AMP=window.EA_WORLDS.astromaps({openGaze:o=>{stg().open(o);S.open="stargaze";renderAll()},gaze:()=>stg(),S,head,esc,PGW,PGH,positions,detail,jdOf,nowMs,renderAll,toast,pickerHTML,cpRegister,buildChart,constellationHTML,BIRTH,agSvg,cuspsFor,ASPG,SFILL,save}))}
 let AGR=null;function agr(){return AGR||(AGR=window.EA_WORLDS.astrographs({S,head,esc,agSvg,agHtml,PGW,PGH,positions,detail,jdOf,nowMs,parts,renderAll,toast,pickerHTML,cpRegister,buildChart,constellationHTML,BIRTH,goTime:ms=>{setPlay(false);S.tm.active=true;S.tm.playing=false;S.tm.time=ms;S.gv='';S.open=null;save();renderAll()}}))}
+let PHW=null;function phw(){return PHW||(PHW=window.EA_WORLDS.planetaryhours({S,head,esc,HOME,PLG}))}   /* Planetary Hours World (Andronicus) */
 let HMW=null;function hmw(){return HMW||(HMW=window.EA_WORLDS.harmonia({S,head,esc,renderAll,toast}))}   /* Harmonia World (Cellarius plates) */
 let ECL=null;function ecl(){return ECL||(ECL=window.EA_WORLDS.eclipses({S,head,esc,agHtml,renderAll,toast,HOME,parts,openGaze:o=>{stg().open(o);S.open='stargaze';renderAll()}}))}
 let STG=null;function stg(){return STG||(STG=window.EA_WORLDS.stargazing({S,positions,jdOf,HOME,head,esc,opt,rad,deg,n360,renderAll,pickerHTML,cpRegister,localToMs,parts,toast,pln:()=>pln(),openSky:o=>{pln().goto(o);S.gv='sky';S.synView=false;S.game='';S.hv='';S.open=null;renderAll()}}))}
