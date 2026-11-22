@@ -104,7 +104,16 @@ function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.le
  A.forEach(a=>a.x.d=a.d)}
 /* each wheel gets its own gradient and filter ids, so two wheels on one page keep their own colors */
 let UID=0;
-function svg(chart,opts){const u='w'+(++UID).toString(36);return svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u)}
+function svg(chart,opts){const u='w'+(++UID).toString(36),o=svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u);return opts&&opts.facingNorth?mirror(o):o}
+/* Facing North (Gemini, Nov 22, global, for southern-hemisphere charts): in the south the Sun and Moon arc across the northern sky, so
+   someone facing them sees the east on the right with the Midheaven overhead. opts.facingNorth mirrors the whole wheel left to right
+   about its center (Ascendant on the right); words, degree numbers, planet glyphs and sign images are turned back so they still read.
+   The app shows the tick box only for southern places and remembers it (after the Moon app's mirrorSVG, PR #136). */
+function mirror(o){const m=o.match(/^<svg[^>]*>/);if(!m)return o;let b=o.slice(m[0].length,o.lastIndexOf('</svg>'));
+ b=b.replace(/<g transform="translate\(([-\d.]+) ([-\d.]+)\)( scale\([-\d.]+\))?"/g,(q,x,y,sc)=>`<g transform="translate(${x} ${y})${sc||''} scale(-1 1)"`);
+ b=b.replace(/<text([^>]*?) x="([-\d.]+)"([^>]*)>/g,(q,a,x,c)=>{if(/transform=/.test(a+c))return q;const sw=t=>t.replace(/text-anchor="(start|end)"/,(z,v)=>`text-anchor="${v==='start'?'end':'start'}"`);return `<text${sw(a)} x="${x}"${sw(c)} transform="matrix(-1 0 0 1 ${(2*x).toFixed(2)} 0)">`});
+ b=b.replace(/<image([^>]*?) x="([-\d.]+)"([^>]*?) width="([-\d.]+)"/g,(q,a,x,c,w)=>/transform=/.test(a+c)?q:`<image${a} x="${x}"${c} width="${w}" transform="matrix(-1 0 0 1 ${(2*x+ +w).toFixed(2)} 0)"`);
+ return m[0]+'<g transform="scale(-1 1)">'+b+'</g></svg>'}
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
