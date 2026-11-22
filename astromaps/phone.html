@@ -6920,9 +6920,11 @@ function live(sv){const P=ST.place;if(!P)return;const I=TH();let g=sv.querySelec
 function dtIn(ms,tz){const o={month:'2-digit',day:'2-digit',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true};let p;try{p=new Intl.DateTimeFormat('en-US',Object.assign({timeZone:tz||'UTC'},o)).formatToParts(new Date(ms))}catch(e){p=new Intl.DateTimeFormat('en-US',o).formatToParts(new Date(ms))}const g=t=>(p.find(x=>x.type===t)||{}).value||'';return [`${g('month')}/${g('day')}/${g('year')}`,`${g('hour')}:${g('minute')}${g('dayPeriod').toLowerCase()}`]}
 function shiftTxt(d){const m=Math.round(Math.abs(d)/6e4),h=Math.floor(m/60),r=m%60;return (d<0?'−':'+')+(h?h+' h'+(r?' '+r+' min':''):r+' min')}
 const rectOn=()=>AMP_CFG.rectifyUnits.includes((S.tm&&S.tm.su)||'Hour');
-function rectShift(c,tm){if(!c||!tm||!rectOn())return '';const d=nowMs()-chartMs(c);return Math.abs(d)>30000?' ('+shiftTxt(d)+')':''}
-function chartLine(c,tm){if(!c)return '';const base=[c.dateText,c.timeText,c.place].filter(Boolean).join(' · ');if(!tm)return base;const now=nowMs(),d=now-chartMs(c);if(Math.abs(d)<=30000)return base;
- const [dt,tt]=dtIn(now,c.tz);if(rectOn())return [dt,tt,c.place].filter(Boolean).join(' · ');return 'Transits · '+[dt,tt].join(' · ')}
+/* relocated (Gemini, Nov 22): the name reads Chart Name (relocated) and the new place goes in the data line beneath */
+function relocTxt(c){if(ST.place)return String(ST.placeName||nearName()||llTxt(ST.place)).replace(/^Near /,'').replace(/ \([^)]*\)$/,'');return c&&c.reloc?String(c.reloc):''}
+function rectShift(c,tm){if(!c)return '';const t=[];if(relocTxt(c))t.push('relocated');if(tm&&rectOn()){const d=nowMs()-chartMs(c);if(Math.abs(d)>30000)t.push(shiftTxt(d))}return t.length?' ('+t.join(', ')+')':''}
+function chartLine(c,tm){if(!c)return '';const pl=relocTxt(c)||c.place,base=[c.dateText,c.timeText,pl].filter(Boolean).join(' · ');if(!tm)return base;const now=nowMs(),d=now-chartMs(c);if(Math.abs(d)<=30000)return base;
+ const [dt,tt]=dtIn(now,c.tz);if(rectOn())return [dt,tt,pl].filter(Boolean).join(' · ');return 'Transits · '+[dt,tt,relocTxt(c)].filter(Boolean).join(' · ')}
 const tmTxt=ms=>{try{return new Date(ms).toLocaleString('en-US',{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}catch(e){return new Date(ms).toISOString()}};
 function popSub(){const P=rplace(),nm=ST.place?(ST.placeName||nearName()||llTxt(P)):(chart().place||'Birthplace');return nm.replace(/^Near /,'').replace(/ \([^)]*\)$/,'')+' · '+(ST.moment==='tm'?tmTxt(nowMs()):(chart().dateText||''))}
 function overlay(){const F=FR(),b=(act,id,t,on,lab)=>`<button type="button" class="${on?'on':''}" aria-pressed="${!!on}" data-act="${act}" data-id="${id}"${lab?` aria-label="${lab}"`:''}>${t}</button>`;
