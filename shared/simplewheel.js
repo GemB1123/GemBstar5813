@@ -104,21 +104,16 @@ function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.le
  A.forEach(a=>a.x.d=a.d)}
 /* each wheel gets its own gradient and filter ids, so two wheels on one page keep their own colors */
 let UID=0;
-function svg(chart,opts){opts=opts||{};const u='w'+(++UID).toString(36),h=svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u);
- return (opts.facingNorth!=null?opts.facingNorth:(opts.lat<0&&facingNorth()))?mirror(h):h}
-/* Facing North (Gemini, Nov 22, a global rule; after the Moon app's mirrorSVG): in the Southern Hemisphere the Sun and Moon arc across the
-   northern sky, so someone facing them sees the east on the right and the Midheaven overhead. The whole wheel is mirrored left to right;
-   words, numbers, and glyphs are turned back so they still read. Offered only for southern charts: opts.lat < 0 uses the remembered tick box,
-   or opts.facingNorth true/false decides. EAWheel.facingNorthBox(lat) gives each app the matching pill for its menu row. */
-const FNK='ea-facing-north';
-function facingNorth(v){try{if(v!=null){localStorage.setItem(FNK,v?'1':'0');return !!v}return localStorage.getItem(FNK)==='1'}catch(e){return !!v}}
-function mirror(svgs){const m=svgs.match(/^<svg[^>]*>/);if(!m)return svgs;let b=svgs.slice(m[0].length,svgs.lastIndexOf('</svg>'));
+function svg(chart,opts){const u='w'+(++UID).toString(36),o=svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u);return opts&&opts.facingNorth?mirror(o):o}
+/* Facing North (Gemini, Nov 22, global, for southern-hemisphere charts): in the south the Sun and Moon arc across the northern sky, so
+   someone facing them sees the east on the right with the Midheaven overhead. opts.facingNorth mirrors the whole wheel left to right
+   about its center (Ascendant on the right); words, degree numbers, planet glyphs and sign images are turned back so they still read.
+   The app shows the tick box only for southern places and remembers it (after the Moon app's mirrorSVG, PR #136). */
+function mirror(o){const m=o.match(/^<svg[^>]*>/);if(!m)return o;let b=o.slice(m[0].length,o.lastIndexOf('</svg>'));
  b=b.replace(/<g transform="translate\(([-\d.]+) ([-\d.]+)\)( scale\([-\d.]+\))?"/g,(q,x,y,sc)=>`<g transform="translate(${x} ${y})${sc||''} scale(-1 1)"`);
- b=b.replace(/<text([^>]*?) x="([-\d.]+)"([^>]*)>/g,(q,a,x,c)=>{if(/transform=/.test(a+c))return q;const sw=t=>t.replace(/text-anchor="(start|end)"/,(z,v)=>`text-anchor="${v==='start'?'end':'start'}"`);
-  return `<text${sw(a)} x="${x}"${sw(c)} transform="matrix(-1 0 0 1 ${f(2*x)} 0)">`});
- return m[0].replace('class="eaw"','class="eaw eaw-fn"')+'<g transform="scale(-1 1)">'+b+'</g></svg>'}
-/* the tick box: a pill for the menu row, just right of the icons, shown only for southern charts; attach() remembers it and calls cb.facingNorth(on) */
-function facingNorthBox(lat){return `<label class="eaw-fnb" title="See the sky as the Southern Hemisphere does, facing the Sun and Moon in the north: east on the right"${lat<0?'':' hidden'} style="display:inline-flex;align-items:center;gap:6px;height:40px;box-sizing:border-box;padding:0 12px;border-radius:20px;border:1px solid rgba(223,226,232,.35);background:rgba(20,26,64,.85);color:#dfe2e8;font:500 13px Inter,system-ui,sans-serif;white-space:nowrap;cursor:pointer;user-select:none"><input type="checkbox" class="eaw-fnc"${facingNorth()?' checked':''} style="accent-color:#c9a85c;width:16px;height:16px;margin:0"> Facing North</label>`}
+ b=b.replace(/<text([^>]*?) x="([-\d.]+)"([^>]*)>/g,(q,a,x,c)=>{if(/transform=/.test(a+c))return q;const sw=t=>t.replace(/text-anchor="(start|end)"/,(z,v)=>`text-anchor="${v==='start'?'end':'start'}"`);return `<text${sw(a)} x="${x}"${sw(c)} transform="matrix(-1 0 0 1 ${(2*x).toFixed(2)} 0)">`});
+ b=b.replace(/<image([^>]*?) x="([-\d.]+)"([^>]*?) width="([-\d.]+)"/g,(q,a,x,c,w)=>/transform=/.test(a+c)?q:`<image${a} x="${x}"${c} width="${w}" transform="matrix(-1 0 0 1 ${(2*x+ +w).toFixed(2)} 0)"`);
+ return m[0]+'<g transform="scale(-1 1)">'+b+'</g></svg>'}
 function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},T=Object.assign({},T0,C,{el:T0.el.map((c,i)=>(C.el&&C.el[i])||c)}),P=chart.pos||{},RX=chart.ret||{},cu=chart.cusps||null;
  const mix=(c,w,k)=>'#'+[1,3,5].map(j=>Math.round(parseInt(c.slice(j,j+2),16)*(1-k)+w*k).toString(16).padStart(2,'0')).join('');
  if(C.gold&&/^#[0-9a-f]{6}$/i.test(C.gold)){if(!C.goldHi)T.goldHi=mix(C.gold,255,.55);if(!C.goldLo)T.goldLo=mix(C.gold,0,.25)}   /* a picked gold keeps its shine */
@@ -329,8 +324,6 @@ function zoomable(){const root=document;if(root.__eawz)return;root.__eawz=1;   /
  if(root.head&&!root.getElementById('eaw-touch')){const st0=root.createElement('style');st0.id='eaw-touch';st0.textContent='svg.eaw{touch-action:pan-y}body.eawz svg.eaw{touch-action:none}';root.head.appendChild(st0)}}
 function zoomReset(){ZV.k=1;ZV.x=0;ZV.y=0;document.querySelectorAll('svg.eaw').forEach(zApply);zState()}
 function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)root.__eaw=cb;return}root.__eaw=cb;let tm=null;
- root.addEventListener('change',e=>{if(!e.target.classList||!e.target.classList.contains('eaw-fnc'))return;const on=facingNorth(e.target.checked);
-  (root.querySelectorAll?root.querySelectorAll('input.eaw-fnc'):[]).forEach(i=>i.checked=on);root.__eaw.facingNorth&&root.__eaw.facingNorth(on)});
  root.addEventListener('click',e=>{const pl=e.target.closest&&e.target.closest('g.eawp');
   /* tap a planet: cb.planet(name, ring, event), ring 0 = the main chart, 1 and 2 the outer rings (Gemini, Nov 16: a planet info box) */
   if(pl&&root.__eaw.planet){e.preventDefault();root.__eaw.planet(pl.dataset.pl,+pl.dataset.ring||0,e);return}
@@ -342,5 +335,5 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
 function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
  const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
  return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
-window.EAWheel={svg,facingNorth,facingNorthBox,mirror,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+window.EAWheel={svg,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
