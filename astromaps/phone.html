@@ -658,6 +658,7 @@ body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
 
 /* Facing North tick box (Gemini, Nov 22): a pill matching the chart buttons */
 #cbar .cbfn{display:flex;align-items:center;gap:6px;cursor:pointer}#cbar .cbfn input{margin:0;accent-color:#d1ab74;width:13px;height:13px}#cbar .cbfn:focus-within{outline:2px solid #ffd166;outline-offset:2px}
+.amp-picking,.amp-picking *{cursor:crosshair!important}.amp-pickb{margin:0 0 6px}.amp-pickb button.on{background:#e8c46a;color:#0a0a0a;border-color:#e8c46a}
 </style>
 <div id="bg"></div>
 <div id="stage"><div id="wheel"></div><div id="scene"></div><div id="lUL" class="lb ul"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lUR" class="lb ur"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLR" class="lb lr"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLL" class="lb ll"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="dock" hidden></div><div id="dropzone" hidden>Drop Here To Dock Below The Chart</div><div id="box" hidden></div>
@@ -6290,7 +6291,7 @@ const PRESETS=[['all','All',BODIES.slice()],['inner','Sun To Mars',['Sun','Moon'
 const VIEWS={h:84,stars:[['map','ampmap','World Map',24,40],['globe','ampglobe','Globe',76,40]],lines:[['map','globe']]};
 const nm=k=>k==='Node'?'North Node':k==='SNode'?'South Node':k;
 const D=AMP_CFG.defaults;
-const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popW:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
+const ST={vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pick:false,pickHint:false,pops:{stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popW:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
  show:Object.fromEntries(Object.entries(AMP_CFG.show).map(([k,v])=>[k,v[1]]))};
 const SH=k=>!!ST.show[k];
 const TH=()=>AMP_CFG.themes[ST.theme]||AMP_CFG.themes.night;
@@ -6789,7 +6790,7 @@ function svg(scale){const c=chart(),F=FR(),I=TH();
  const tm=ST.moment==='tm',title=esc((c&&c.name||'Chart 1')+rectShift(c,tm)),sub=esc(chartLine(c,tm)),sub2=ST.mode==='zodiaco'?'In Zodiaco':'';
  const body=ST.view==='globe'?globeBody(c,drawnL(L),scale||1.5):mapBody(c,drawnL(L));
  const desc=`AstroMaps ${ST.view==='globe'?'globe':'world map'} for ${c&&c.name||'Chart 1'}: ${L.length} planet lines.`+(ST.place?` Chosen place ${llTxt(ST.place)}.`:'');
- return `<svg class="amp" tabindex="0" viewBox="0 0 ${F.w} ${F.h}" data-vb="0 0 ${F.w} ${F.h}" role="img" aria-label="${esc(desc)}" style="position:absolute;left:${F.x}px;top:${F.y}px;width:${F.w}px;height:${F.h}px;overflow:visible;font-family:inherit">
+ return `<svg class="amp${ST.pick?' amp-picking':''}" tabindex="0" viewBox="0 0 ${F.w} ${F.h}" data-vb="0 0 ${F.w} ${F.h}" role="img" aria-label="${esc(desc)}" style="position:absolute;left:${F.x}px;top:${F.y}px;width:${F.w}px;height:${F.h}px;overflow:visible;font-family:inherit">
 <defs><filter id="amp-glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur in="SourceGraphic" stdDeviation="2.6" result="b"/><feFlood flood-color="${AMP_CFG.zod.oobGlow}" flood-opacity=".9"/><feComposite in2="b" operator="in" result="g"/><feMerge><feMergeNode in="g"/><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge></filter><filter id="amp-blur"><feGaussianBlur stdDeviation="3"/></filter></defs><rect x="0" y="0" width="${F.w}" height="${F.h}" rx="14" fill="${I.bg}"/>
 <text x="24" y="34" font-size="22" font-weight="700" fill="${I.text}">${title}</text><text x="24" y="56" font-size="14" fill="${I.dim}">${sub}</text>${sub2?`<text x="24" y="76" font-size="13" fill="${I.dim}">${esc(sub2)}</text>`:''}
 ${body}${c&&c.unknown?`<text x="${F.w/2}" y="${ST.view==='map'?MAPR().y+MAPR().h/2:F.h/2}" text-anchor="middle" font-size="17" font-weight="700" fill="${I.text}" stroke="${I.bg}" stroke-width="5" paint-order="stroke">Birth Time Unknown: planet lines need a birth time.</text>`:''}
@@ -6817,10 +6818,13 @@ function animZoom(k,p,center){const sv=STAGE&&STAGE.querySelector('svg.amp');if(
 function tapAt(p){{const sid=stoHit(p);if(sid){stoGo(sid);return}}
  if(ST.meas.on){const q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);if(q)measTap(q);return}
  {const h=lineHit(p);if(h){ST.ltag=h;renderAll();return}if(ST.ltag){ST.ltag=null}}
- let q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y),nmx='',best=12;if(!q)return;for(const c of CITY_SEEN){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<best){best=d;q=[c.r.lo,c.r.la];nmx=cityLabel(c.r)}}ST.place=q;ST.placeName=nmx;reading();
+ let q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y),nmx='',best=12;if(!q)return;for(const c of CITY_SEEN){const d=Math.hypot(c.x-p.x,c.y-p.y);if(d<best){best=d;q=[c.r.lo,c.r.la];nmx=cityLabel(c.r)}}
+ /* a tap moves the place only after Pick Place is pressed (Gemini, Nov 22): grabbing to pan a zoomed map must never relocate */
+ if(ST.pick){ST.place=q;ST.placeName=nmx;ST.pick=false;reading();renderAll()}
  if(eclShown()&&A.openGaze){const e=eclNear(q);if(e){let tz='UTC',nmP=nmx;try{const G=window.GemBPlaces,r=G&&G.nearest?G.nearest(q[1],q[0]):null;if(r){tz=r.tz||r.timezone||tz;if(!nmP)nmP=r.label}}catch(err){}
   const o={tab:'eclipses',jd:e.jd,place:{lat:q[1],lon:q[0],name:nmP||llTxt(q),label:nmP||llTxt(q),tz},watch:'here'};ST.gazeO=o;
   if(A.gaze){A.gaze().open(o);ST.pops.gaze=true;ST.popOrder=ST.popOrder.filter(x=>x!=='gaze');ST.popOrder.push('gaze');renderAll()}else A.openGaze(o);return}}
+ if(!ST.pick&&!ST.pickHint){ST.pickHint=true;toast('To move the place, press Pick Place in Relocate, then tap.')}
  renderAll()}   /* a tap on a city dot takes that city */
 function cityLabel(r){const G=window.GemBPlaces;try{const f=G.nearest(r.la,r.lo);if(f&&f.km<1)return f.label}catch(e){}return r.n}
 /* Hide Menus: the frame fills the stage, so redraw when the Device's menus hide or return */
@@ -6833,7 +6837,7 @@ function mount(el){STAGE=el;const stg=document.getElementById('stage');if(stg){c
  sv.addEventListener('mousemove',e=>{if(!ST.meas.on||ST.meas.pts.length!==1||G)return;const g=sv.querySelector('.amp-measlive');if(!g)return;const p=toLocal(e);if(!p)return;const q=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);g.innerHTML=q?measSVG(TH(),[ST.meas.pts[0],q]):''});
  const two=()=>{const [a,b]=[...PT.values()];return {d:Math.hypot(a.x-b.x,a.y-b.y)||1,m:{x:(a.x+b.x)/2,y:(a.y+b.y)/2}}};
  sv.addEventListener('pointerdown',e=>{if(!e.target.closest('.amp-hit'))return;const p=toLocal(e);if(!p)return;PT.set(e.pointerId,p);try{sv.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();try{sv.focus({preventScroll:true})}catch(_){}
-  if(PT.size===1){let pin=false;if(ST.place){const q=ST.view==='map'?mapXY(ST.place[0],ST.place[1]):gProj(view(),ST.place[0],ST.place[1]);pin=!!q&&Math.hypot(q[0]-p.x,q[1]-p.y)<22}
+  if(PT.size===1){let pin=false;if(ST.place&&ST.pick){const q=ST.view==='map'?mapXY(ST.place[0],ST.place[1]):gProj(view(),ST.place[0],ST.place[1]);pin=!!q&&Math.hypot(q[0]-p.x,q[1]-p.y)<22}
    G={k:'one',x:p.x,y:p.y,pin,moved:false,mc:ST.mc.slice(),rot:ST.rot?ST.rot.slice():null}}
   else if(PT.size===2){const t=two();G={k:'pinch',d0:t.d,z0:zoomNow(),m:t.m,geo:ST.view==='map'?mapInv(t.m.x,t.m.y):null,moved:true}}});
  sv.addEventListener('pointermove',e=>{if(!G||!PT.has(e.pointerId))return;const p=toLocal(e);if(!p)return;PT.set(e.pointerId,p);
@@ -6976,7 +6980,7 @@ function compassSVG(){const jd=mjd(),P=rplace(),G=gmst(jd),f=n=>n.toFixed(1),RR=
  const rows=L.slice().sort((a,b)=>a.l-b.l).map(x=>`<tr><th scope="row">${PGH(x.k,13,colOf(x.k))} ${nm(x.k)}</th><td>${Math.round(x.l)}°</td><td>${x.alt>=0?'up':'down'} ${Math.abs(Math.round(x.alt))}°</td></tr>`).join('');
  return h+`</svg><small class="amp-pn">Solid: above the horizon. Dashed: below. Azimuth from north toward east.</small><div class="amp-ctbl"><table>${rows}</table></div>`}
 /* Escape closes the newest pop-up first (the menu rule: every pop-up has an X and closes with Escape) */
-if(!window.__ampEsc){window.__ampEsc=true;document.addEventListener('keydown',e=>{if(e.key!=='Escape'||S.gv!=='amap'||S.open)return;   /* an open menu closes first, then the pop-ups, newest first */const open=ST.popOrder.filter(k=>ST.pops[k]);if(!open.length){if(ST.meas.on||ST.ltag){ST.meas.on=false;ST.meas.pts=[];ST.ltag=null;e.stopImmediatePropagation();e.preventDefault();renderAll()}return}const k=open[open.length-1];ST.pops[k]=false;ST.popOrder=ST.popOrder.filter(x=>x!==k);e.stopImmediatePropagation();e.preventDefault();renderAll()},true)}
+if(!window.__ampEsc){window.__ampEsc=true;document.addEventListener('keydown',e=>{if(e.key!=='Escape'||S.gv!=='amap'||S.open)return;   /* an open menu closes first, then Pick Place, then the pop-ups, newest first */if(ST.pick){ST.pick=false;e.stopImmediatePropagation();e.preventDefault();renderAll();return}const open=ST.popOrder.filter(k=>ST.pops[k]);if(!open.length){if(ST.meas.on||ST.ltag){ST.meas.on=false;ST.meas.pts=[];ST.ltag=null;e.stopImmediatePropagation();e.preventDefault();renderAll()}return}const k=open[open.length-1];ST.pops[k]=false;ST.popOrder=ST.popOrder.filter(x=>x!==k);e.stopImmediatePropagation();e.preventDefault();renderAll()},true)}
 /* while dragging: a quicker, coarser globe, swapped in place */
 function fastGlobe(sv){const c=chart(),V=view(),L=drawnL(c&&!c.unknown?lines()||[]:[]);const r=sv.querySelector('.amp-ras'),v=sv.querySelector('.amp-vec');if(r)r.innerHTML=globeRaster(V,.6);if(v)v.innerHTML=globeVector(V,c,L);const cp=sv.querySelector('#amp-gclip circle');if(cp)cp.setAttribute('r',V.r);const zc=sv.querySelector('.amp-zw');if(zc)zc.innerHTML=zoomCtl(FR().w-58,BARY()-130,TH())}
 
@@ -7032,13 +7036,13 @@ function linesHTML(){const ck=(on,act,id,lab,inner)=>`<button type="button" clas
  ${ST.parOn?`<div class="amp-asps" role="group" aria-label="Paran options">${ck(ST.parPolar,'amppar','polar','Hide parans above the polar circles','Hide Polar Parans')}${ck(ST.parBand,'amppar','band','Moon paran bands','Moon Paran Bands')}</div>${ST.parBand?`<div class="amp-asps" role="group" aria-label="Moon band hours">${[2,6,12].map(h=>ck(AMP_CFG.par.bandHours===h,'amppar','h:'+h,`${h} hours either side`,`± ${h} Hours`)).join('')}</div>`:''}<div class="amp-asps amp-mw" role="group" aria-label="Parans with">${ck(!ST.parWith,'amppar','w:','All pairs','All')}${BODIES.filter(k=>ST.on.has(k)).map(k=>ck(ST.parWith===k,'amppar','w:'+k,`Parans with ${nm(k)}`,PGH(k,14,colOf(k)))).join('')}</div>`:''}
  <small class="amp-pn">A paran is a latitude where two planets are on angles at the same moment, for example one at Rise while the other is at Reach. It holds all the way around the Earth, so it is drawn as a two-color line across the map. Uses the planets and angles that are on. Moon Paran Bands shade how far each Moon paran's latitude drifts as the Moon moves through the hours you pick either side of the chart's moment.</small></div></div>`}
 function relocateHTML(){const P=ST.place,near=P?(ST.placeName||nearName()||llTxt(P)):'';const orb=orbKm(),top=P?(ST.hits.length?ST.hits:(reading(),ST.hits)).slice(0,4):[];
- return `<div class="amp-find"><input type="search" data-amp-in="q" value="${esc(ST.q)}" placeholder="City name, then Enter" aria-label="Relocate to a place"></div><div class="segs amp-found">${foundHTML()}</div>`+
- (P?`<small class="amp-pn">Now: ${esc(near.replace(/ \([^)]*\)$/,''))}</small><div class="amp-ctbl"><table>${top.map(h=>`<tr${h.km<=orb?' class="in"':''}><th scope="row">${PGH(h.l.k,13,colOf(h.l.k))} ${esc(lineName(h.l))}</th><td>${distTxt(h.km)}</td></tr>`).join('')}</table></div><div class="btns"><button type="button" data-act="ampclr">Back To The Birthplace</button></div>`:`<small class="amp-pn">Or tap a place on the map. The Chart Wheel and Compass follow the place you choose.</small>`)}
+ return `<div class="btns amp-pickb"><button type="button" class="${ST.pick?'solid on':''}" aria-pressed="${ST.pick}" data-act="amppick" data-id="1">${ST.pick?'Tap The Map To Choose':'Pick Place'}</button></div><div class="amp-find"><input type="search" data-amp-in="q" value="${esc(ST.q)}" placeholder="City name, then Enter" aria-label="Relocate to a place"></div><div class="segs amp-found">${foundHTML()}</div>`+
+ (P?`<small class="amp-pn">Now: ${esc(near.replace(/ \([^)]*\)$/,''))}</small><div class="amp-ctbl"><table>${top.map(h=>`<tr${h.km<=orb?' class="in"':''}><th scope="row">${PGH(h.l.k,13,colOf(h.l.k))} ${esc(lineName(h.l))}</th><td>${distTxt(h.km)}</td></tr>`).join('')}</table></div><div class="btns"><button type="button" data-act="ampclr">Back To The Birthplace</button></div>`:`<small class="amp-pn">Or press Pick Place, then tap the map. The Chart Wheel and Compass follow the place you choose.</small>`)}
 function found(){const G=window.GemBPlaces;if(!G||!ST.q||ST.q.trim().length<2)return [];try{return G.search(ST.q,6)||[]}catch(e){return []}}
 function foundHTML(){return found().map((r,i)=>`<button class="seg" data-act="ampgo" data-id="${i}">${esc(r.label)}</button>`).join('')}
 function findPlace(first){const f=found();if(!f.length){toast('No place found by that name.');return}const r=f[0];goPlace(r)}
 function goPlace(r){ST.place=[r.longitude,r.latitude];ST.placeName=r.label;reading();if(ST.view==='globe')ST.rot=[r.longitude,Math.max(-60,Math.min(60,r.latitude))];renderAll()}
-function readingHTML(){if(!ST.place)return `<small class="note">Tap a place on the map or globe, drag the place marker, or type a city, to relocate and read the lines near that place. Drag to move the map, pinch or double tap to zoom in.</small>`;
+function readingHTML(){if(!ST.place)return `<small class="note">Press Pick Place in Relocate and tap the map or globe, or type a city, to relocate and read the lines near that place. Drag to move the map, pinch or double tap to zoom in.</small>`;
  if(!ST.hits.length)reading();const near=nearName();const orb=orbKm();
  const rows=ST.hits.slice(0,10).map(h=>`<tr class="${h.km<=orb?'in':''}"><th scope="row">${PGH(h.l.k,15,colOf(h.l.k))} ${esc(lineName(h.l))}${h.l.approx?' *':''}</th><td>${distTxt(h.km)}</td></tr>`).join('');
  const inN=ST.hits.filter(h=>h.km<=orb).length;
@@ -7107,6 +7111,7 @@ function act(a,id){
  else if(a==='amptm'){const on=ST.moment==='tm'&&S.dockTM;if(on){ST.moment='chart';S.dockTM=false}else{ST.moment='tm';S.dockTM=true;if(S.open==='tm')S.open=null;if(!S.tm.active){const c=chart();S.tm.active=true;S.tm.playing=false;S.tm.time=c?chartMs(c):Date.now()}}saveS();reading()}
  else if(a==='amppop'){if(ST.pops[id]!=null){ST.pops[id]=!ST.pops[id];ST.popOrder=ST.popOrder.filter(x=>x!==id);if(ST.pops[id])ST.popOrder.push(id);if(id==='stories'&&ST.pops.stories)stoOpened()}}
  else if(a==='ampchart'){const rec=ST.chartRec||(A.S&&A.S.baseRec)||null;if(id==='edit'){if(rec&&A.chartForm){A.chartForm('amp',rec,'enter');return}}else if(id==='replace'){if(A.chartForm){A.chartForm('amp',null,'open');return}}else if(id==='clear'&&A.nowRec){try{setChart(A.nowRec())}catch(e){toast('Current Transits could not be cast.')}}}
+ else if(a==='amppick'){ST.pick=!ST.pick;if(ST.pick){ST.meas.on=false;toast('Tap the map or globe to choose the place. Escape cancels.')}}
  else if(a==='ampmeas'){ST.meas.on=!ST.meas.on;ST.meas.pts=[];if(ST.meas.on){ST.ltag=null;toast('Measure: click a starting point, then an end point. A third click starts over.')}}
  else if(a==='ampsto'){if(stoAct(id))return}
  else if(a==='amphit')return;   /* taps and drags are handled by mount's listeners; nothing to redraw here */
@@ -10315,7 +10320,7 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(a==='moonapp'){moonAppOpen();return}
   else if(a==='phopen'&&S.open==='phours'){phw().act(a,id);return}
   else if(/^tl[a-z]+$/.test(a)&&S.open==='timelords'){tl().act(a,id);return}
-  else if(/^amp(view|pl|set|ang|focus|show|theme|units|orb|clr|go|zoom|center|hit|mode|moment|tm|pop|geo|prime|lines|asp|mid|par|pll|ecl|sky|sto|meas|chart)$/.test(a)){amp().act(a,id);return}
+  else if(/^amp(view|pl|set|ang|focus|show|theme|units|orb|clr|go|zoom|center|hit|mode|moment|tm|pop|geo|prime|lines|asp|mid|par|pll|ecl|sky|sto|meas|chart|pick)$/.test(a)){amp().act(a,id);return}
   else if(/^agr(view|span|move|dial|set|node|moon|around|style|stylereset|theme|show|pl|focus|cur|clr|at|go|natal|hit)$/.test(a)){agr().act(a,id);return}
   else if(a==='pipick'){S.pi=id}
   else if(a==='piasp'){S.piAsp=!S.piAsp}
