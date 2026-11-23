@@ -664,13 +664,41 @@ body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
 /* Gemini, Nov 23: labels stay put when menus are hidden (teacher window); long names shrink (fitTitles) */
 #stage .lb .ttl{max-width:300px}
 /* Moon in place (Gemini, Nov 23): the Moon takes the whole stage; every Device button goes away until Main Wheel */
-#moonv{position:absolute;left:0;top:0;width:1440px;height:900px;z-index:60;display:none;background:#0b0e22}#stage.moonv #moonv{display:block}
+/* Moon in place (Gemini, Nov 23): the wheel's area only, above the docked Time Machine; an iris opens from the wheel's center */
+#moonv{position:absolute;left:196px;top:0;width:1048px;height:818px;z-index:9;display:none;background:#0b0e22;clip-path:circle(0px at 524px 450px);transition:clip-path .55s cubic-bezier(.4,0,.2,1)}
+#stage.moonv #moonv,#moonv.closing{display:block}#moonv.irisopen{clip-path:circle(820px at 524px 450px)}
+#stage:not(.docked) #moonv{height:900px}
 #moonv iframe{position:absolute;left:0;top:0;width:100%;height:100%;border:0;background:#0b0e22}
+@media (prefers-reduced-motion:reduce){#moonv{transition:none}}html.noanim #moonv{transition:none}
+#stage.moonch #moonv,#stage.moonch #moonv iframe{background:transparent}
+#stage.moonv.moonch #wheel,#stage.moonv.moonch .lb{visibility:visible!important}
+#stage.moonv #wheel,#stage.moonv .lb,#stage.moonv #cbar,#stage.moonv #hmb,#stage.moonv #imgx{visibility:hidden!important}
+.lmv{pointer-events:auto;display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}.lmv button{width:18px;height:16px;padding:0;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-size:8px;line-height:1;cursor:pointer;opacity:.55}.lmv button:hover,.lmv button:focus-visible{opacity:1}
 #moonv .mvback{position:absolute;left:20px;top:20px;height:32px;padding:0 16px;border-radius:16px;border:1px solid #c9ccd6;background:#14182ecc;color:#eef0f6;font:600 14px Inter,sans-serif;cursor:pointer;z-index:2}
 #moonv .mvback:focus-visible{outline:2px solid #ffd166;outline-offset:2px}
-#stage.moonv>*:not(#moonv){visibility:hidden!important}
 .amp-kinds{display:grid!important;grid-template-columns:1fr 1fr;gap:6px}.amp-kinds .seg{min-height:34px}.amp-bar button,.amp-grp button{padding:6px 7px}.amp-bar{gap:5px!important}
-.lmv{pointer-events:auto;display:inline-flex;gap:3px;margin-left:6px;vertical-align:middle}.lmv button{width:18px;height:16px;padding:0;border-radius:5px;border:1px solid currentColor;background:none;color:inherit;font-size:8px;line-height:1;cursor:pointer;opacity:.55}.lmv button:hover,.lmv button:focus-visible{opacity:1}
+/* the Moon bar is the standard Time Machine (Gemini, Nov 23): lunation arrows at both ends of the transport, eclipses edged red as in the Moon app */
+.tr button.lun,#dock .tr button.lun{width:auto;min-width:42px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;gap:1px}
+.tr .lun i{font-style:normal;font-size:15px;opacity:.75}.tr .lun svg{flex:none}
+.tr button.lun.lecl,#dock .tr button.lun.lecl{border-color:#e0675c}
+.tr button.lun:disabled{opacity:.4;cursor:default}
+#dock .plw[data-id=date]{width:104px}#dock .plw[data-id=time]{width:106px}#dock .plw[data-id=loc]{width:124px}
+#stage.plnfull #dock{transform:none}   /* the full-screen Planetarium places its dock itself: no centering shift (the bar was cut off at the left edge) */
+/* chart icons under the label (Gemini, Nov 23): Options and Add Wheels */
+.lb .bb button.bic{width:34px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.lb .wmenu{min-width:200px}.lb .wmenu .wl{display:flex;align-items:center;gap:8px}.lb .wmenu .wl i{width:9px;height:9px;border-radius:50%;opacity:.4;flex:none}.lb .wmenu .wl.on i{opacity:1}
+.lb .wmenu .wl b{margin-left:auto;font-weight:700;color:#efe3c8}.lb .wmenu .wl.on{color:#efe3c8;border-color:#d1ab74}
+.lb .wmenu label.wl{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:8px;border:1px solid rgba(214,205,184,.25);color:#d6cdb8;cursor:pointer}.lb .wmenu label.wl input{margin:0;accent-color:#d1ab74}
+.lb .wmenu .wchips{display:flex;gap:5px;margin-bottom:2px}.lb .wmenu .wch{flex:1;min-width:34px;font-weight:700;letter-spacing:.03em;text-align:center!important;border-color:var(--c)!important;color:var(--c)!important;background:rgba(0,0,0,.3)!important;cursor:grab}.lb .wmenu .wch:active{cursor:grabbing}.lb .wmenu .wch:focus-visible{outline:2px solid #ffd166;outline-offset:2px}
+.lb .wmenu .wcount{display:flex;border:1px solid rgba(214,205,184,.35);border-radius:8px;overflow:hidden;margin-bottom:2px}
+.lb .wmenu .wcount span{flex:1;text-align:center;font-size:12px;font-weight:700;padding:4px 0;color:#9d9585;border-left:1px solid rgba(214,205,184,.25)}.lb .wmenu .wcount span:first-child{border-left:0}
+.lb .wmenu .wcount span.on{background:#d1ab74;color:#1c1710}
+.lb .wmenu button.wl.on{opacity:1;cursor:pointer;background:rgba(214,205,184,.14)}   /* a wheel that is on reads brighter, not grayed */
+.lb .wmenu .wkeys{display:block;font-size:10.5px;line-height:1.35;color:#a99f8c;margin-top:4px;max-width:220px}
+@keyframes wchBlink{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 3px var(--c);background:rgba(255,255,255,.12)}}
+.lb .wmenu .wchips.blink .wch{animation:wchBlink .7s ease-in-out 6}
+@media (prefers-reduced-motion:reduce){.lb .wmenu .wchips.blink .wch{animation:none;box-shadow:0 0 0 3px var(--c)}}
+.lb .bmenu button.wl{display:flex;align-items:center;gap:8px}.lb .bmenu button.wl b{margin-left:auto;font-weight:700;color:#efe3c8}.lb .bmenu button.wl.on{opacity:1;cursor:pointer;color:#efe3c8;border-color:#d1ab74}
 </style>
 <div id="bg"></div>
 <div id="stage"><div id="wheel"></div><div id="scene"></div><div id="lUL" class="lb ul"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lUR" class="lb ur"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLR" class="lb lr"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="lLL" class="lb ll"><div class="lbt"></div><div class="bb"></div><div class="lbt2"></div></div><div id="dock" hidden></div><div id="dropzone" hidden>Drop Here To Dock Below The Chart</div><div id="box" hidden></div>
@@ -1376,7 +1404,8 @@ window.EALook={STYLES,WHEEL,PLANETS,SIGNS,CUSTOM,DEFAULTS:DEF,get,set,clean,whee
                       spec = {tab:'asp'|'rd'|'ing'|'pos'|'house'|'ret'|'lun', ...fields as in the panel}; returns {jd, label, ring} or {jd:null, msg}
      events({anchor, ctx, getMs, go, natal, title})   opens the Step Chart to Event panel beside anchor. Prev and Next search from getMs();
                       go(ms, label, ring) moves the app's chart (ring: 'tr' | 'pr' | 'sa', which wheel moved). X, Escape, or a click outside closes it.
-     close()          closes the panel */
+     close()          closes the panel
+     lunar            lunation arrows: syz(ms, dir), eclipse(jd, full), icon(t, size) (see below) */
 (function(){
 const UNITS=[['s','Second',1e3],['mi','Minute',6e4],['h','Hour',36e5],['d','Day',864e5],['w','Week',6048e5],['mo','Month',0],['y','Year',0],['de','Decade',0],['c','Century',0]];
 const MON={mo:1,y:12,de:120,c:1200};
@@ -1472,7 +1501,89 @@ function injectCss(){if(document.getElementById('eat-css'))return;const s=docume
 .eat-s{flex:1;text-align:center;display:flex;flex-direction:column}.eat-s small{opacity:.7;font-size:11.5px}
 .eat-l{margin-top:8px;font-size:13px;text-align:center;opacity:.9}
 .eat-p button:focus-visible,.eat-p select:focus-visible{outline:2px solid #f3e7c4;outline-offset:1px}`;(document.head||document.documentElement).appendChild(s)}
-window.EATime={UNITS,step,unitName,speeds,STAR_TARGET,TABS,LUNATIONS,ASPECTS,KINDS_FROM,KINDS_TO,find,events,close,isOpen:()=>!!P};
+/* ---------- Lunation arrows (Leo, Nov 23, from Kidinnu's Moon bar): jump to the previous or next New or Full Moon; the icon shows which,
+   the Sun for a New Moon, the full Moon for a Full Moon, an eclipse icon (red edge) when it is an eclipse. Needs window.EA_JPL.
+   lunar.syz(ms, dir) -> {ms, jd, full, eclipse, name} or null;  lunar.eclipse(jd, full) -> 'Total Solar Eclipse' ... or null;
+   lunar.icon(t, size) the icon SVG for a syz() result ---------- */
+const LR=Math.PI/180,LAU=149597870.7,LSYN=29.530589,jdOfMs=ms=>ms/864e5+2440587.5,msOfJd=jd=>(jd-2440587.5)*864e5,n360=e360;
+const LB=(n,jd)=>window.EA_JPL&&EA_JPL.body?EA_JPL.body(n,jd,{speed:false}):null;
+function elong(jd){const s=LB('Sun',jd),m=LB('Moon',jd);return s&&m?n360(m.lon-s.lon):null}
+function findElong(t,jd){for(let i=0;i<12;i++){const e=elong(jd);if(e==null)return null;const d=e180(e-t);jd-=d/12.19;if(Math.abs(d)<1e-6)break}return jd}
+function prevNew(jd){const e=elong(jd);if(e==null)return null;let n=findElong(0,jd-e/12.19);if(n!=null&&n>jd+1/1440)n=findElong(0,n-LSYN);return n}
+function eclipse(jd,full){const s=LB('Sun',jd),m=LB('Moon',jd);if(!s||!m||m.lat==null)return null;const dm=m.dist*LAU,ds=s.dist*LAU,as=x=>Math.asin(x)/LR;
+ const pm=as(6378.137/dm),ps=as(6378.137/ds),sm=as(1737.4/dm),ss=as(696000/ds),g=Math.abs(m.lat)*0.9962;
+ if(!full){if(g>pm-ps+sm+ss)return null;if(g<pm-ps)return sm*1.005>ss?'Total Solar Eclipse':'Annular Solar Eclipse';return 'Partial Solar Eclipse'}
+ const pen=1.02*(pm+ps+ss),umb=1.02*(pm+ps-ss);
+ if(g+sm<umb)return 'Total Lunar Eclipse';if(g-sm<umb)return 'Partial Lunar Eclipse';if(g-sm<pen)return 'Penumbral Lunar Eclipse';return null}
+function syz(ms,dir){const jd=jdOfMs(ms),eps=2/1440,n0=prevNew(jd+eps*dir);if(n0==null)return null;const c=[];
+ for(let k=-1;k<=2;k++){const n=k===0?n0:findElong(0,n0+k*LSYN),f=findElong(180,n0+(k+.5)*LSYN);if(n!=null)c.push({jd:n,full:false});if(f!=null)c.push({jd:f,full:true})}
+ const t=c.filter(x=>dir>0?x.jd>jd+eps:x.jd<jd-eps).sort((a,b)=>dir*(a.jd-b.jd))[0];if(!t)return null;
+ t.ms=msOfJd(t.jd);t.eclipse=eclipse(t.jd,t.full);t.name=t.eclipse||(t.full?'Full Moon':'New Moon');return t}
+const SUN_IC=s=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#dfe2e8" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#f4f5f8"/></svg>`,
+ FULL_IC=s=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#e9edf5"/><circle cx="9" cy="10" r="1.6" fill="#c3c8d2"/><circle cx="14.5" cy="14" r="2.2" fill="#c3c8d2"/></svg>`,
+ ECL_IC=(solar,s)=>solar?`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="10.6" cy="13" r="7.8" fill="#dfe2e8"/><circle cx="15.2" cy="9.6" r="6.6" fill="#0b0f26" stroke="#dfe2e8" stroke-width="1.5"/></svg>`
+ :`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#b4573a" stroke="#e0675c" stroke-width="1.3"/></svg>`;
+const icon=(t,s)=>{s=s||20;return !t?SUN_IC(s):t.eclipse?ECL_IC(!t.full,s):t.full?FULL_IC(s):SUN_IC(s)};
+const lunar={syz,eclipse,prevNew,findElong,icon};
+window.EATime={lunar,UNITS,step,unitName,speeds,STAR_TARGET,TABS,LUNATIONS,ASPECTS,KINDS_FROM,KINDS_TO,find,events,close,isOpen:()=>!!P};
+})();
+</script>
+<script>/* ---------- EAChartIcons: the chart icons under every chart label (Leo, Painter World, Nov 23 2026; Gemini: "make these icons global") ----------
+   Three icons, each opening a small menu just below it:
+     ⊕ Options  (the Earth glyph)   Save, Edit, Clear, Replace, Relocate, and for Transits the Clock switch
+     🕒 Clock                        Now, Set Date And Time   (only under wheels that move with time: Transits, Progressions, Solar Arc)
+     ◎ Wheels   (two circles)        the wheel chips, then the wheels to add (Transits, Secondary/Minor/Tertiary Progressions, Solar Arc,
+                                     a partner chart, Swap, Davison, Composite). Apps with one wheel (the Moon) leave it out.
+   Rules (Gemini, Nov 23): entered charts (birth, event, partner) get Options, plus Wheels when the chart is the inner one; added wheels
+   (Transits, Progressions, Solar Arc) get all three. "Transits", never "Current Transits"; the label reads "Clock" while the Clock runs.
+
+   Wheel chips: the charts on the wheel, inner to outer, left to right, in their ring colors, with two-letter codes astrologers use.
+   Drag a chip left or right, or focus it and press Alt with ← or →, to change the wheel order. Click one for that chart's options.
+
+   window.EAChartIcons
+     ICON.options / ICON.clock / ICON.wheels   SVG strings (18 px, currentColor)
+     CODE   {chart:'Ch', transits:'Tr', secondary:'Pr', minor:'MP', tertiary:'TP', solarArc:'SA', directions:'PD', profections:'Pf'}; partner n: 'C'+n
+     COLOR  ring colors {chart:'#f5c35c', transits:'#d6dae2', progressions:'#8fb8ff', solarArc:'#86d9a5'}
+     button(kind, {id, open, act, label, title})  one icon button (kind 'options' | 'clock' | 'wheels'); data-act defaults to 'eaci'
+     chips(list, {blink})   list [{id, code, color, name}] inner to outer -> the chip row HTML (class .eaci-chips; chips are .eaci-chip, data-id)
+     onMove(fn)             fn(id, toIndex) is called when a chip is dragged or moved with Alt+arrow; return true if the order changed
+                            (the host redraws; focus returns to the moved chip)
+     onChip(fn)             fn(id) for a plain click on a chip (open that chart's options)
+   The host draws its own menus; the look (.eaci-*) is injected once below. */
+(function(){
+const SV=(b,w)=>`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="${w||1.8}" stroke-linecap="round">${b}</svg>`;
+const ICON={options:SV('<circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/>'),
+ clock:SV('<circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.2 2"/>'),
+ wheels:SV('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/>',1.7)};
+const CODE={chart:'Ch',transits:'Tr',secondary:'Pr',minor:'MP',tertiary:'TP',solarArc:'SA',directions:'PD',profections:'Pf'};
+const COLOR={chart:'#f5c35c',transits:'#d6dae2',progressions:'#8fb8ff',solarArc:'#86d9a5'};
+const LAB={options:['Chart Options','Chart Options: Save, Edit, Clear, Replace'],clock:['Time: Now, Or Set The Date And Time','Now, Or Set The Date And Time'],wheels:['Wheels','Wheels: Transits, Progressions, Solar Arc, Synastry']};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function button(kind,o){o=o||{};const L=LAB[kind]||[kind,kind],op=!!o.open;
+ return `<button type="button" data-act="${o.act||'eaci'}" data-id="${esc(o.id!=null?o.id:kind)}" class="bic eaci-b mn ${op?'op':''}" aria-expanded="${op}" aria-haspopup="menu" aria-label="${esc(o.label||L[0])}" title="${esc(o.title||L[1])}">${ICON[kind]||''}</button>`}
+function chips(list,o){o=o||{};const n=list.length;
+ return `<div class="eaci-chips wchips${o.blink?' blink':''}" role="list" aria-label="Wheels, inner to outer. Drag or press Alt and an arrow key to reorder">${list.map((c,i)=>`<button type="button" role="listitem" class="eaci-chip wch" draggable="true" data-act="${o.act||'wchip'}" data-id="${esc(c.id)}" style="--c:${esc(c.color||'#d6cdb8')}" title="${esc(c.name)}: wheel ${i+1} of ${n}${i===0?' (inner)':i===n-1?' (outer)':''}. Drag to reorder; click for options" aria-label="${esc(c.name)}, wheel ${i+1} of ${n}">${esc(c.code)}</button>`).join('')}</div>`}
+let MOVE=null,CHIP=null;
+const onMove=f=>{MOVE=f},onChip=f=>{CHIP=f};
+const chipOf=e=>e.target&&e.target.closest&&e.target.closest('.eaci-chip');
+document.addEventListener('dragstart',e=>{const c=chipOf(e);if(!c)return;e.dataTransfer.setData('text/plain',c.dataset.id);e.dataTransfer.effectAllowed='move'});
+document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('.eaci-chips'))e.preventDefault()});
+document.addEventListener('drop',e=>{const row=e.target.closest&&e.target.closest('.eaci-chips');if(!row||!MOVE)return;e.preventDefault();const id=e.dataTransfer.getData('text/plain');
+ const cs=[...row.querySelectorAll('.eaci-chip')].filter(c=>c.dataset.id!==id);let to=cs.length;for(let n=0;n<cs.length;n++){const r=cs[n].getBoundingClientRect();if(e.clientX<r.left+r.width/2){to=n;break}}   /* the place among the other chips */
+ MOVE(id,to)});
+document.addEventListener('keydown',e=>{const c=chipOf(e);if(!c||!MOVE||!e.altKey||(e.key!=='ArrowLeft'&&e.key!=='ArrowRight'))return;e.preventDefault();e.stopImmediatePropagation();
+ const id=c.dataset.id,cs=[...c.parentNode.querySelectorAll('.eaci-chip')],i=cs.indexOf(c);
+ if(MOVE(id,i+(e.key==='ArrowLeft'?-1:1))){const f=document.querySelector(`.eaci-chip[data-id="${id}"]`);if(f)f.focus()}},true);
+document.addEventListener('click',e=>{const c=chipOf(e);if(c&&CHIP&&c.dataset.act==='eaci-chip'){CHIP(c.dataset.id)}});
+(function(){if(document.getElementById('eacicss'))return;const st=document.createElement('style');st.id='eacicss';st.textContent=`
+.eaci-b{width:34px;height:30px;padding:0!important;display:inline-flex;align-items:center;justify-content:center}
+.eaci-chips{display:flex;gap:5px;margin-bottom:2px}
+.eaci-chip{flex:1;min-width:34px;font-weight:700;letter-spacing:.03em;text-align:center!important;border:1px solid var(--c)!important;color:var(--c)!important;background:rgba(0,0,0,.3)!important;border-radius:8px;padding:4px 8px;cursor:grab;font:inherit;font-size:11.5px;font-weight:700}
+.eaci-chip:active{cursor:grabbing}.eaci-chip:focus-visible{outline:2px solid #ffd166;outline-offset:2px}
+@keyframes eaciBlink{0%,100%{box-shadow:0 0 0 0 transparent}50%{box-shadow:0 0 0 3px var(--c);background:rgba(255,255,255,.12)}}
+.eaci-chips.blink .eaci-chip{animation:eaciBlink .7s ease-in-out 6}
+@media (prefers-reduced-motion:reduce){.eaci-chips.blink .eaci-chip{animation:none;box-shadow:0 0 0 3px var(--c)}}`;(document.head||document.documentElement).appendChild(st)})();
+window.EAChartIcons={ICON,CODE,COLOR,button,chips,onMove,onChip};
 })();
 </script>
 <script>/* ---------- AstroDice (Games World, round 1) ----------
@@ -1969,7 +2080,7 @@ window.EA_PLN_MAP={"land":"M900 81l-1 1 -1 1 0 1 0 -1 1 0 1 0 -1 0 1 1 -1 0 -1 0
      keep      extra CSS selectors whose clicks do not close the open window
      enter     {inputId: buttonSelector} more Enter-key shortcuts inside the window
      toast(msg) a short message (falls back to alert-free console)
-   D: bar() eye and windows HTML; popHTML() the open window; open(k, working values); close(); pop (open window or null);
+   D: bar(o) eye and windows HTML (o.eye false: no eye); eye() the eye alone; popHTML() the open window; open(k, working values); close(); pop (open window or null);
       pe (the open window's working values); hidden(k); tick() refreshes the window texts each second.
    The world map is window.EA_PLN_MAP (Natural Earth 1:50m, public domain); places are window.GemBPlaces. */
 (function(){
@@ -1992,8 +2103,9 @@ function make(cfg){
  D.hidden=k=>!!D.hide[k];
  D.open=(k,pe)=>{D.pop=k;D.pe=Object.assign({mv:D.pe.mv},pe||{});if(!pe){if(k==='date'||k==='time')D.pe.focus=k==='date'?'plw-d':'plw-t';if(k==='loc')D.pe.focus='plw-q'}};
  D.close=()=>{D.pop=null;D.pe={mv:D.pe.mv}};
- D.bar=()=>{const v=cfg.values(),anyHid=cfg.fields.some(([k])=>D.hide[k]);CUR=D;queueMicrotask(after);
-  return `<button class="plwe${anyHid?' on':''}" data-dk="${key}" data-act="dkw" data-id="eye" aria-expanded="${D.pop==='eye'}" aria-label="Privacy: hide or show the ${cfg.fields.map(f=>f[1].toLowerCase()).join(', ').replace(/, ([^,]+)$/,', and $1')}" title="Privacy">${EYE}</button>`
+ D.eye=()=>{const anyHid=cfg.fields.some(([k])=>D.hide[k]);return `<button class="plwe${anyHid?' on':''}" data-dk="${key}" data-act="dkw" data-id="eye" aria-expanded="${D.pop==='eye'}" aria-label="Privacy: hide or show the ${cfg.fields.map(f=>f[1].toLowerCase()).join(', ').replace(/, ([^,]+)$/,', and $1')}" title="Privacy">${EYE}</button>`};
+ D.bar=o=>{const v=cfg.values();CUR=D;queueMicrotask(after);   /* bar({eye:false}) leaves the eye out, for a host that puts D.eye() at the end of its bar (the Moon bar order, Leo, Nov 23) */
+  return (o&&o.eye===false?'':D.eye())
    +cfg.fields.map(([k,lab])=>`<button class="plw${D.pop===k?' on':''}${D.hide[k]?' hid':''}" data-dk="${key}" data-act="dkw" data-id="${k}" aria-expanded="${D.pop===k}" aria-label="${lab}: ${D.hide[k]?'hidden':esc(v[k])}. Change ${lab.toLowerCase()}"${D.hide[k]?'':` title="${esc(v[k])}"`}><small>${lab}</small><span id="plw-${k}">${D.hide[k]?'Hidden':esc(v[k])}</span></button>`).join('')};
  D.popHTML=()=>{if(!D.pop)return '';const k=D.pop,lab=k==='eye'?'Privacy':(cfg.fields.find(f=>f[0]===k)||[])[1]||(cfg.popLabel&&cfg.popLabel(k))||k;
   return `<div id="plwpop" class="plwpop-${k}" role="dialog" aria-label="${esc(lab)}">${popBody(k)}</div>`};
@@ -2783,7 +2895,7 @@ document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest
 const PLN_LS='apparatus-pln-v1';
 /* Chart, Location, Date, and Time, the eye, and the map come from the shared dock (src/placedock.js, EADock, Nov 23), which
    AstroMaps uses too. The Planetarium adds the Chart window (Chart Picker), Snap, and Save This Chart. */
-const PLW_F=[['name','Chart'],['loc','Location'],['date','Date'],['time','Time']];
+const PLW_F=[['name','Chart'],['date','Date'],['time','Time'],['loc','Location']];   /* date, then place, as in the Moon bar (Nov 23) */
 function plwVals(){const w=plnWhen(),d=new Date(w.ms),P=plnS();
  return {name:w.frame?w.name:P.chart?P.chart.name:S.tm.active?'Time Machine':'Clock',loc:w.place.replace(/, USA$/,''),
   date:new Intl.DateTimeFormat('en-US',{timeZone:w.tz,year:'numeric',month:'short',day:'numeric'}).format(d),
@@ -2796,9 +2908,9 @@ const DK=EADock.make({key:'pln',store:PLN_LS,fields:PLW_F,values:plwVals,getPlac
  extraPop:k=>plwPop(k),popLabel:k=>({name:'Chart',ask:'Save This Chart',snap:'Snap'})[k],
  keep:'.plwsn,.gpl,.gp,[data-act="snapgo"],[data-act="now"]',enter:{'plw-sname':'[data-act=plnsave]'},toast:m=>toast(m)});
 const PLW=DK;   /* PLW.hide: the privacy choices */
-function plnDock(tr){const P=plnS();
- return DK.bar()+`<span class="sep"></span>${tr}<button class="nowb" data-act="now" title="Return to the Clock: now, at this location">Now</button><span class="sep"></span>`
-  +`<button class="sb" data-act="snapgo" data-id="back" title="Snap Back To The Previous Aspect" aria-label="Snap Back To The Previous Aspect">&#9664;</button><button class="sb plwsn${DK.pop==='snap'?' on':''}" data-dk="pln" data-act="dkw" data-id="snap" aria-expanded="${DK.pop==='snap'}" title="Choose the aspect to snap to">Snap</button><button class="sb solid" data-act="snapgo" data-id="fwd" title="Snap Forward To The Next Aspect" aria-label="Snap Forward To The Next Aspect">&#9654;</button>`
+function plnDock(tr){   /* the Moon bar order (Gemini, Nov 23: the Moon Time Machine is standard): Now, the windows, the transport with the lunation arrows,
+   step, Star Target (Snap lives in its Aspect tab), then the eye */
+ return `<button class="nowb" data-act="now" title="Return to the Clock: now, at this location">Now</button>`+DK.bar({eye:false})+tr+DK.eye()
   +`<div class="dmsg">${S.tm.msg||''}</div>`+DK.popHTML()}
 /* the time display in the windows changes every second; the core redraws the sky each second, so refresh them then */
 function plwTick(){DK.tick()}
@@ -2814,7 +2926,7 @@ function plwRec(name){const pl=plnPlace(),p=parts(nowMs(),pl.tz||'UTC'),p2=n=>St
 cpRegister('pln',r=>{const P=plnS(),[y,m,d]=r.date.split('-').map(Number),t=(r.time||'12:00:00').split(':').map(Number);
  setPlay(false);S.tm.active=true;S.tm.time=localToMs(y,m,d,t[0]||0,t[1]||0,t[2]||0,r.place);S.tm.msg='';P.chart=r;P.solo=false;P.loc=null;DK.close();DK.pe={};P.az=null;openAsChart1(r);P.mainSig=plnMainSig()});
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-act^="pln"]');if(!a)return;const P=plnS(),act=a.dataset.act,PE=DK.pe;
- if(act==='plnclock'){setPlay(false);S.tm.active=false;S.tm.msg='';P.chart=null;P.solo=false;P.bi='off';DK.close()}
+ if(act==='plnclock'){setPlay(false);S.tm.active=false;S.clock=true;   /* Use The Clock turns on the Device's Clock (Nov 23) */ S.tm.msg='';P.chart=null;P.solo=false;P.bi='off';DK.close()}
  else if(act==='plnnew'){plwAsk('This is the sky right now in the windows below.','')}
  else if(act==='plnsave'){const nm=(PE.sname||'').trim();if(!nm){toast('Please give the chart a name.');PE.focus='plw-sname'}else{const r=plwRec(nm);S.charts.push(r);saveCharts();addRecent(r);setPlay(false);if(!S.tm.active){S.tm.active=true;S.tm.time=Math.floor(nowMs()/1000)*1000}openAsChart1(r);P.mainSig=plnMainSig();P.chart=r;   /* the saved moment holds still, so the Chart window keeps its name */P.loc=null;DK.close();toast('Saved '+nm+'. Find it in the Chart Picker.')}}
  else return},true);
@@ -7573,7 +7685,7 @@ function stoNorm(l){if(!l||!Array.isArray(l.stories))return null;
  const r=l.rec&&l.rec.date&&l.rec.place&&isFinite(+l.rec.place.lat)&&isFinite(+l.rec.place.lon)?l.rec:null;
  return {id:String(l.id||uid()),v:+l.v||1,name:String(l.name||'Stories').slice(0,80),rec:r,stories:st}}
 function stoImportable(o){const arr=Array.isArray(o)?o:o&&Array.isArray(o.lists)?o.lists:[o];return arr.map(stoNorm).filter(Boolean)}
-/* example lists shipped beside the page (stories.json) are added once; one you delete stays deleted */
+/* example lists (Erik's Stories From The Road) are always there (Gemini, Nov 23): one you delete comes back on the next visit */
 function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const v=localStorage.getItem('ea-amp-stories-side');if(v!=null)STO.side=v==='1';const n=localStorage.getItem('ea-amp-stories-notes');STO.notes=n!=='0'}catch(e){}try{const o=JSON.parse(localStorage.getItem(STO_KEY)||'null');if(o&&Array.isArray(o.lists)){STO.lists=o.lists.map(stoNorm).filter(Boolean);STO.cur=o.cur||'';STO.seen=Array.isArray(o.seen)?o.seen:[]}}catch(e){}
  /* the example lists are built into the page (Gemini, Nov 23: Erik's stories were missing where stories.json was not shipped);
     a stories.json beside the page can still add or refresh them */
@@ -7581,7 +7693,7 @@ function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const v=localStorage
   for(const l of stoImportable(o)){const old=STO.lists.find(x=>x.id===l.id);
    /* a newer example (v) refreshes the text of its own stories, keeping your order and your added stories */
    if(old&&l.v>(old.v||1)){for(const s of l.stories){const t=old.stories.find(x=>x.id===s.id);if(t)Object.assign(t,{title:s.title,place:s.place,lat:s.lat,lon:s.lon,when:s.when,story:s.story,note:s.note,extra:s.extra})}old.v=l.v;add++;continue}
-   if(STO.seen.includes(l.id)||old)continue;STO.lists.push(l);STO.seen.push(l.id);add++}
+   if(old)continue;STO.lists.push(l);if(!STO.seen.includes(l.id))STO.seen.push(l.id);add++}
   if(add){if(!stoList())STO.cur=STO.lists[0].id;stoSave();if(ST.pops.stories){stoForChart();if(!stoChartOn(stoList()))stoUseChart(stoList())}if(S.gv==='amap')renderAll()}};
  try{take(window.AMP_STORY_SAMPLE)}catch(e){}
  try{if(typeof fetch!=='function')return;fetch(AMP_CFG.story.sample).then(r=>r.ok?r.json():null).then(take).catch(()=>{})}catch(e){}}
@@ -7594,7 +7706,9 @@ const stoList=()=>STO.lists.find(l=>l.id===STO.cur)||null;
 const stoSel=()=>{const l=stoList();return l&&l.stories.find(s=>s.id===STO.sel)||null};
 const recKey=r=>r?JSON.stringify([r.date,r.time,r.unknown||false,f1(+r.place.lat),f1(+r.place.lon)]):'';
 const stoChartOn=l=>!l||!l.rec||recKey(l.rec)===recKey(ST.chartRec||(ST.chart?null:S.baseRec));
-function stoUseChart(l){if(!l||!l.rec)return;try{ST.chart=buildChart(l.rec);ST.chart.name=l.rec.name;ST.chartRec=l.rec;ST.rot=null;if(ST.moment==='tm'&&S.tm)S.tm.time=chartMs(ST.chart)}catch(e){toast('That chart could not be cast.')}}
+function stoUseChart(l){if(!l||!l.rec)return;try{ST.chart=buildChart(l.rec);ST.chart.name=l.rec.name;ST.chartRec=l.rec;ST.rot=null;if(ST.moment==='tm'&&S.tm)S.tm.time=chartMs(ST.chart);
+  /* the Device's main chart follows too (Gemini, Nov 23: clicking Erik's stories casts his chart in Maps and the Device) */
+  try{const A=window.__app;if(A&&A.setMain)A.setMain(l.rec)}catch(e){}}catch(e){toast('That chart could not be cast.')}}
 function stoPick(id){STO.cur=id;STO.sel='';STO.edit=null;STO.mk=null;STO.del='';const l=stoList();if(l&&!stoChartOn(l))stoUseChart(l);stoSave()}
 /* every planet on every angle, plus parans, at the chart's own moment: the activations do not depend on which lines are drawn */
 let SMEMO={k:'',L:null};
@@ -8008,14 +8122,19 @@ const BIRTH={name:'Gemini Brett',type:'Birth',ms:Date.UTC(1975,9,24,23,39,0),pla
 BIRTH.jd=jdOf(BIRTH.ms);BIRTH.pos=positions(BIRTH.jd);BIRTH.cusps=cuspsFor(BIRTH.jd,BIRTH.lat,BIRTH.lon);BIRTH.pos.AS=BIRTH.cusps[1];BIRTH.pos.MC=BIRTH.cusps[10];BIRTH.ret=retro(BIRTH.jd);
 const HOME={place:'Oakland, CA',lat:37.8044,lon:-122.2712,tz:'America/Los_Angeles'};const HOME0=Object.assign({},HOME),HOME_DEF=Object.assign({},HOME);
 BIRTH.tz='America/New_York';
+/* progressions (Gemini, Nov 23): Secondary (a day for a year), Minor (a tropical month, 27.321582 days, for a year) and Tertiary (a day for a
+   tropical month), one at a time on the Progressions wheel (S.pk). Solar Arc keeps the Secondary Sun. */
+const PROG_KINDS=[['sec','Secondary Progressions','SECONDARY','Pr'],['min','Minor Progressions','MINOR','MP'],['ter','Tertiary Progressions','TERTIARY','TP']],TMONTH=27.321582;
+const progK=()=>PROG_KINDS.find(x=>x[0]===S.pk)||PROG_KINDS[0];
+function progJd(jd){const d=jd-BIRTH.jd,k=progK()[0];return BIRTH.jd+(k==='min'?d*TMONTH/365.2422:k==='ter'?d/TMONTH:d/365.2422)}
 function arcPos(ms){const jd=jdOf(ms),pj=BIRTH.jd+(jd-BIRTH.jd)/365.2422,arc=n360(positions(pj).Sun-BIRTH.pos.Sun),o={};for(const k of PLANETS)o[k]=n360(BIRTH.pos[k]+arc);o.arc=arc;return o}
 function fmtDM(x){const t=Math.floor(x*60+0.5);return p2(Math.floor(t/60))+'°'+p2(t%60)+"'"}
 /* ---------- state ---------- */
-const DEF={corner:'air',open:null,sub:'look',csub:'synodic',hsub:'hcharts',hv:'',hm:{wfoc:'',wh:0,mstart:'aries',morb:1.5,tfoc:'Sun',tdial:90,torb:1.5,tfit:95,cyspec:false,cyn:1,cyp:'with',see:false,cshow:'s3',cn:5,chz:500,smax:64,gn:1,gref:false,pair:'',n:5,orb:16,om:'16',tsbs:false,sbs:false,ring:true,poly:true,anc:'Sun',max:180,cell:'',noAng:false,cast:'eqas'},ctb:{tpl:'venus-gb',date:'',from:'2000-01-01',to:'2060-12-31'},pcy:{a:'Jupiter',b:'Saturn',c:'',f:'geo',from:'1900-01-01',to:'2100-12-31',orb:10,tri:false,dots:true,mo:'all',ps:'all',lay:'ring'},cph:{mode:'natal',fa:'Saturn',fb:'Saturn',qa:'Jupiter',qb:'Saturn',eight:false,date:''},cyc:{kind:'planet',sp:'Venus',rp:'Saturn',pa:'Venus',pb:'Sun',set:'hard',range:'around',n:5,from:'',to:''},look:'cornersg',layers:{nat:false,prog:false,arc:false,trn:true},dockTM:false,order:['nat','prog','arc','trn','x1','x2','x3','x4'],xchart:{x1:null,x2:null,x3:null,x4:null},charts:[],recents:[],favs:[],form:null,orient:'as',ws:'simple',start:'last',askQuit:true,wd:{lto:'mark',stars:'auto',con:'auto',ecl:'auto',lat:'auto',mpath:true,planets:true,houses:true,lines:true,lv:3,esz:'small',earth:true},info:false,tip:null,boxPos:{},
- tm:{active:false,time:Date.now(),playing:false,dir:1,step:'1 Hour',sq:1,su:'Hour',msg:''},snap:{t1:'Transit',p1:'Moon',asp:'Conjunct',t2:'Transit',p2:'Sun'},
+const DEF={corner:'air',open:null,sub:'look',csub:'synodic',hsub:'hcharts',hv:'',hm:{wfoc:'',wh:0,mstart:'aries',morb:1.5,tfoc:'Sun',tdial:90,torb:1.5,tfit:95,cyspec:false,cyn:1,cyp:'with',see:false,cshow:'s3',cn:5,chz:500,smax:64,gn:1,gref:false,pair:'',n:5,orb:16,om:'16',tsbs:false,sbs:false,ring:true,poly:true,anc:'Sun',max:180,cell:'',noAng:false,cast:'eqas'},ctb:{tpl:'venus-gb',date:'',from:'2000-01-01',to:'2060-12-31'},pcy:{a:'Jupiter',b:'Saturn',c:'',f:'geo',from:'1900-01-01',to:'2100-12-31',orb:10,tri:false,dots:true,mo:'all',ps:'all',lay:'ring'},cph:{mode:'natal',fa:'Saturn',fb:'Saturn',qa:'Jupiter',qb:'Saturn',eight:false,date:''},cyc:{kind:'planet',sp:'Venus',rp:'Saturn',pa:'Venus',pb:'Sun',set:'hard',range:'around',n:5,from:'',to:''},look:'cornersg',layers:{nat:false,prog:false,arc:false,trn:true},dockTM:false,clock:true,order:['nat','prog','arc','trn','x1','x2','x3','x4'],xchart:{x1:null,x2:null,x3:null,x4:null},charts:[],recents:[],favs:[],form:null,orient:'as',ws:'simple',start:'last',askQuit:true,wd:{lto:'mark',stars:'auto',con:'auto',ecl:'auto',lat:'auto',mpath:true,planets:true,houses:true,lines:true,lv:3,esz:'small',earth:true},info:false,tip:null,boxPos:{},
+ tm:{active:false,time:Date.now(),cast:Date.now(),playing:false,dir:1,step:'1 Hour',sq:1,su:'Hour',msg:''},snap:{t1:'Transit',p1:'Moon',asp:'Conjunct',t2:'Transit',p2:'Sun'},
  label:{date:'mdy',time:'12',weekday:true,wdv:1,dayGlyph:true,hourGlyph:true},show:{nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},asp:{},acc:{nat:true,trn:true,prog:false,arc:false}};
 let S=JSON.parse(JSON.stringify(DEF));S.syn={f:'helio',b1:'Earth',b2:'Venus',orb:'circ',step:2,start:'',end:'',rings:true,range:'current',around:'',mode:'result',astyle:'draw',si:3,win:1,as:0,zr:true,cm:'single',hue:'venus',hby:'phase',cj:'interior',star:false};S.synA={on:false,p:0,last:0,key:'',sig:''};S.synView=false;S.gpOpen=null;S.gv='';S.hov='';S.g={layout:'full',lines:true,par:1.5,a:'auto',b:'auto',set:'major',node:true,axes:true,showOrb:true,lum:2,orbs:{Conjunct:8,Sextile:6,Square:8,Trine:8,Opposite:8,Semisextile:2,Semisquare:2,Sesquiquadrate:2,Quincunx:3,Decile:1.5,Quintile:2,Biquintile:2,Septile:1.5,Biseptile:1.5,Triseptile:1.5,Novile:1.5,Binovile:1.5,Quadnovile:1.5,Undecile:1,Biundecile:1,Triundecile:1,Quadundecile:1,Quintundecile:1}};S.dl={m:90,dir:'ccw',a:'auto',b:'auto',ptr:0,porb:1,last:'Sun'};
-try{const sv=JSON.parse(localStorage.getItem('apparatus-test-v1')||'null');if(sv&&sv.aspSet)S.g.set=sv.aspSet;if(sv&&sv.fn)S.fn=true;if(sv){if(sv.homeBase&&sv.homeBase.lat!==undefined){Object.assign(HOME0,sv.homeBase);Object.assign(HOME,sv.homeBase)}if(sv.home&&sv.home.lat!==undefined){Object.assign(HOME,sv.home);S.homeReloc=true}S.look=sv.look||S.look;if(sv.dice)S.gmLook=sv.dice;if(sv.diceOn)S.gmOn=sv.diceOn;if(sv.diceLevel)S.gmLevel=sv.diceLevel;if(sv.diceTrad)S.gmTrad=sv.diceTrad;if(sv.diceSkip)S.gmSkip=true;if(sv.diceSkin)S.gmSkin=sv.diceSkin;if(sv.diceTable)S.gmTable=sv.diceTable;if(sv.paint){S.paint=sv.paint;if(!sv.paint.cv){S.paint.con='blue';S.paint.cv=1}}if(sv.wsv===2||sv.wsv===3){S.ws=sv.wsv===3?(sv.ws||S.ws):'simple';   /* Gemini, Nov 18: the shared chart look (Kepler's Planetary Tables wheel) is the Device default; Standard and Earth Center stay as Wheel Styles */if(sv.wd)S.wd=Object.assign(S.wd,sv.wd);if(sv.wd&&(sv.wd.lv||0)<3){S.wd.lines=true;S.wd.esz='small';S.wd.lv=3}   /* Small Earth with aspect lines is the default (Gemini, Nov 10) */}S.start=sv.start||S.start;if(Array.isArray(sv.gn)&&sv.gn.length===12)window.__gnSaved=sv.gn;if(sv.askQuit!==undefined)S.askQuit=!!sv.askQuit;S.label=Object.assign(S.label,sv.label||{});if(!S.label.wdv){S.label.weekday=true;S.label.wdv=1}S.show=Object.assign({nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},sv.show||{});S.dockTM=!!sv.dockTM;if(sv.asp&&typeof sv.asp==='object')S.asp=sv.asp;S.info=!!sv.info;if(Array.isArray(sv.order)&&sv.order.length===8&&['nat','prog','arc','trn','x1','x2','x3','x4'].every(k=>sv.order.includes(k)))S.order=sv.order}}catch(e){}
+try{const sv=JSON.parse(localStorage.getItem('apparatus-test-v1')||'null');if(sv&&sv.aspSet)S.g.set=sv.aspSet;if(sv&&sv.fn)S.fn=true;if(sv){if(sv.homeBase&&sv.homeBase.lat!==undefined){Object.assign(HOME0,sv.homeBase);Object.assign(HOME,sv.homeBase)}if(sv.home&&sv.home.lat!==undefined){Object.assign(HOME,sv.home);S.homeReloc=true}S.look=sv.look||S.look;if(sv.dice)S.gmLook=sv.dice;if(sv.diceOn)S.gmOn=sv.diceOn;if(sv.diceLevel)S.gmLevel=sv.diceLevel;if(sv.diceTrad)S.gmTrad=sv.diceTrad;if(sv.diceSkip)S.gmSkip=true;if(sv.diceSkin)S.gmSkin=sv.diceSkin;if(sv.diceTable)S.gmTable=sv.diceTable;if(sv.paint){S.paint=sv.paint;if(!sv.paint.cv){S.paint.con='blue';S.paint.cv=1}}if(sv.wsv===2||sv.wsv===3){S.ws=sv.wsv===3?(sv.ws||S.ws):'simple';   /* Gemini, Nov 18: the shared chart look (Kepler's Planetary Tables wheel) is the Device default; Standard and Earth Center stay as Wheel Styles */if(sv.wd)S.wd=Object.assign(S.wd,sv.wd);if(sv.wd&&(sv.wd.lv||0)<3){S.wd.lines=true;S.wd.esz='small';S.wd.lv=3}   /* Small Earth with aspect lines is the default (Gemini, Nov 10) */}S.start=sv.start||S.start;if(Array.isArray(sv.gn)&&sv.gn.length===12)window.__gnSaved=sv.gn;if(sv.askQuit!==undefined)S.askQuit=!!sv.askQuit;if(sv.noAnim){S.noAnim=true;document.documentElement.classList.add('noanim')}S.label=Object.assign(S.label,sv.label||{});if(!S.label.wdv){S.label.weekday=true;S.label.wdv=1}S.show=Object.assign({nat:{},prog:{},arc:{},trn:{},x1:{},x2:{},x3:{},x4:{}},sv.show||{});S.dockTM=!!sv.dockTM;S.clock=sv.clock===undefined?true:!!sv.clock;if(sv.pk)S.pk=sv.pk;if(sv.asp&&typeof sv.asp==='object')S.asp=sv.asp;S.info=!!sv.info;if(Array.isArray(sv.order)&&sv.order.length===8&&['nat','prog','arc','trn','x1','x2','x3','x4'].every(k=>sv.order.includes(k)))S.order=sv.order}}catch(e){}
 
 /* ---------- charts: build, save, place ---------- */
 const CC=new Map();
@@ -8145,13 +8264,15 @@ const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').rep
 /* True North and South Nodes show on every chart by default (Gemini, Nov 18, every app; replaces the Nov 16 "Nodes off" default).
    Each can still be hidden in Displayed Planets, and a person's later choice is kept. */
 try{if(!localStorage.getItem('ea-pldef2')){['nat','prog','arc','trn','x1','x2','x3','x4'].forEach(l=>{S.show[l]=S.show[l]||{};S.show[l].Node=true;S.show[l].SNode=true});localStorage.setItem('ea-pldef2','1')}}catch(e){}
-function save(){try{localStorage.setItem('apparatus-test-v1',JSON.stringify({wsv:3,ws:S.ws,wd:S.wd,start:S.start,askQuit:S.askQuit,look:S.look,paint:S.paint,label:S.label,show:S.show,dockTM:S.dockTM,info:S.info,asp:S.asp,order:S.order,gn:GLYPH_NUDGE,home:S.homeReloc?((S.tm.auto&&S.tm.auto.home)||HOME):null,homeBase:HOME0.place===HOME_DEF.place&&HOME0.lat===HOME_DEF.lat?null:HOME0,dice:S.gmLook||null,diceOn:S.gmOn||null,diceLevel:S.gmLevel||null,diceTrad:S.gmTrad||null,diceSkip:S.gmSkip||null,diceSkin:S.gmSkin||null,diceTable:S.gmTable||null,aspSet:S.g.set||'major',fn:!!S.fn}))}catch(e){}}
+function save(){try{localStorage.setItem('apparatus-test-v1',JSON.stringify({wsv:3,ws:S.ws,wd:S.wd,start:S.start,askQuit:S.askQuit,noAnim:!!S.noAnim,look:S.look,paint:S.paint,label:S.label,show:S.show,dockTM:S.dockTM,clock:!!S.clock,pk:S.pk||'sec',info:S.info,asp:S.asp,order:S.order,gn:GLYPH_NUDGE,home:S.homeReloc?((S.tm.auto&&S.tm.auto.home)||HOME):null,homeBase:HOME0.place===HOME_DEF.place&&HOME0.lat===HOME_DEF.lat?null:HOME0,dice:S.gmLook||null,diceOn:S.gmOn||null,diceLevel:S.gmLevel||null,diceTrad:S.gmTrad||null,diceSkip:S.gmSkip||null,diceSkin:S.gmSkin||null,diceTable:S.gmTable||null,aspSet:S.g.set||'major',fn:!!S.fn}))}catch(e){}}
 
 const isShown=(layer,n)=>(S.show[layer]||{})[n]!==false;
 /* aspects to and from each displayed object, per chart; all on by default (Gemini, Oct 25) */
 const aspOn=(layer,n)=>((S.asp||{})[layer]||{})[n]!==false;
 /* ---------- time helpers ---------- */
-const nowMs=()=>S.tm.active?S.tm.time:Date.now();
+/* the Clock (Gemini, Nov 23): Options > Clock keeps Transits updating every second, and the label reads Clock. Without it, Transits hold
+   the moment they were cast (S.tm.cast); Now (dock, clock icon) casts them again for this moment */
+const nowMs=()=>S.tm.active?S.tm.time:(S.clock||!S.tm.cast)?Date.now():S.tm.cast;
 function parts(ms,tz){const f=new Intl.DateTimeFormat('en-US',{timeZone:tz||HOME.tz,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',weekday:'long',hourCycle:'h23'}).formatToParts(new Date(ms)),o={};f.forEach(p=>o[p.type]=p.value);return{y:+o.year,m:+o.month,d:+o.day,h:+o.hour%24,mi:+o.minute,s:+o.second,wd:o.weekday}}
 
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -8411,7 +8532,7 @@ function detail(k,jd){const J=detailJPL(k,jd);if(J)return J;const d=jd-2451543.5
 function fSD(x,u){if(x===null||x===undefined)return '&mdash;';const t=Math.floor(Math.abs(x)*60+0.5);return (x<0?'&minus;':'+')+p2(Math.floor(t/60))+'°'+p2(t%60)+"'"}
 function fRA(x){if(x===null)return '&mdash;';const h=x/15,hh=Math.floor(h),m=(h-hh)*60,mm=Math.floor(m),ss=Math.floor((m-mm)*60+0.5);return p2(hh)+'h '+p2(mm)+'m '+p2(ss)+'s'}
 function fLon(l){const t=Math.floor(l*60+0.5)%21600,sg=Math.floor(t/1800),r=t%1800;return p2(Math.floor(r/60))+'°'+p2(r%60)+"' "+agHtml(sg)}
-function layerJd(ly){const ms=nowMs();if(ly==='nat')return BIRTH.jd;if(ly&&ly[0]==='x'&&S.xchart[ly])return xc(ly).jd;if(ly==='prog')return BIRTH.jd+(jdOf(ms)-BIRTH.jd)/365.2422;return jdOf(ms)}
+function layerJd(ly){const ms=nowMs();if(ly==='nat')return BIRTH.jd;if(ly&&ly[0]==='x'&&S.xchart[ly])return xc(ly).jd;if(ly==='prog')return progJd(jdOf(ms));return jdOf(ms)}
 function layerLbl(ly){return ly==='nat'?(BIRTH.name||'Birth'):ly&&ly[0]==='x'&&S.xchart[ly]?xc(ly).name:ly==='prog'?'Progressions':ly==='arc'?'Transits (Solar Arc uses the same sky)':'Transits'}
 /* Gemini, Nov 16 (from Planetary Tables): today's distance and magnitude beside the planet's average, House / Sign, and an Aspects button */
 const PIAVG={},PISPAN={Sun:365.25,Moon:27.5546,Mercury:2191.5,Venus:2922,Mars:5479,Jupiter:4332.6,Saturn:10759,Uranus:30687,Neptune:60190};
@@ -10017,13 +10138,33 @@ function plRowFrom(pd,what,wd){const L=S.label,dg=L.dayGlyph&&pd,hg=L.hourGlyph&
  return `<div class="pl${w?' wd':''}">${d}${w?`<em class="wdn">${({Sunday:'Sun',Monday:'Mon',Tuesday:'Tue',Wednesday:'Wed',Thursday:'Thr',Friday:'Fri',Saturday:'Sat'})[wd]||wd}</em>`:''}${h}</div>`}
 function plRow(ms){return plRowFrom(planetary(ms),'',parts(ms).wd)}
 function blkMv(id){const sh=shownIds(),i=sh.indexOf(id);if(sh.length<2||i<0)return '';return `<span class="lmv">${i>0?`<button type="button" data-act="lmove" data-id="${id}" data-dir="in" aria-label="Move this wheel inward" title="Move inward">&#9664;</button>`:''}${i<sh.length-1?`<button type="button" data-act="lmove" data-id="${id}" data-dir="out" aria-label="Move this wheel outward" title="Move outward">&#9654;</button>`:''}</span>`}
-function blk(id,head,lines,title){return `${title?ttlStar(id,title):''}<div class="blk"><b style="color:${lblCol(id)}">${rcDot(id)} ${head}${blkMv(id)}</b>${lines.filter(Boolean).map(l=>`<div>${l}</div>`).join('')}</div>`}
+function blk(id,head,lines,title){return `${title?ttlStar(id,title):''}<div class="blk">${head?`<b style="color:${lblCol(id)}">${rcDot(id)} ${head}${blkMv(id)}</b>`:''}${lines.filter(Boolean).map(l=>`<div>${l}</div>`).join('')}</div>`}
 function isReloc(k){if(k==='trn')return !!S.homeReloc;const r=recForLayer(k);return !!(r&&r.reloc)}
-function bbHTML(k){const r=recForLayer(k),svd=r?isSaved(r):false,op=S.bbOpen===k,live=k==='trn'&&!S.tm.active,only=shownIds().length===1,pair=!!(r&&r.comp);
- /* Gemini, Nov 13 (every chart, Device-wide): Edit and Clear sit in plain view once a chart is cast; Clear goes back to Current
-    Transits. Live Current Transits shows Edit only (there is nothing to clear); in the Time Machine, Clear returns to now. */
- let h=`<div class="bbr">${pair?'':`<button data-act="bedit" data-id="${k}">Edit</button>`}${live&&only?'':`<button data-act="${k==='trn'?'bnow':'bclear'}" data-id="${k}" title="${k==='trn'?'Back To The Present Moment':'Back To Current Transits'}">Clear</button>`}<button data-act="bmenu" data-id="${k}" class="mn ${op?'op':''}" aria-expanded="${op}">Options ${op?'&#9650;':'&#9660;'}</button></div>`;
- if(op)h+=`<div class="bmenu"><button data-act="bsave" data-id="${k}" ${svd?'disabled class="on"':''}>${svd?'Saved':'Save'}</button><button data-act="breplace" data-id="${k}">Replace</button>${pair?'':`<button data-act="brelocate" data-id="${k}">Relocate</button>${isReloc(k)?`<button data-act="bunreloc" data-id="${k}">Clear Relocation</button>`:''}`}</div>`;
+/* Chart icons under each chart label (Gemini, Nov 23): the bottom row of wheel buttons (Transits, Progressions, Solar Arc, + Synastry) and the
+   Edit, Clear, Options buttons were too much. Now two icons: Options (Earth glyph; Save, Edit, Clear, Replace, Relocate) and, under the innermost chart only,
+   Wheels (two circles: Transits, Progressions, Solar Arc, a partner chart, Swap, Davison, Composite, Facing North). Each opens just below. */
+const ICN=()=>window.EAChartIcons?EAChartIcons.ICON:{options:'⊕',clock:'◷',wheels:'◎'},IC_OPT_=()=>ICN().options,IC_CLOCK_=()=>ICN().clock,IC_WHEELS_=()=>ICN().wheels;   /* the icons live in src/charticons.js (EAChartIcons), shared by every World */
+const WCODE={nat:'Ch',trn:'Tr',prog:'Pr',arc:'SA',x1:'C2',x2:'C3',x3:'C4',x4:'C5'};
+function wName(k){return {nat:'Chart',trn:'Transits',prog:progK()[1],arc:'Solar Arc'}[k]||((S.xchart[k]&&S.xchart[k].name)||'Partner Chart')}
+function wMove(id,to){const sh=shownIds(),i=sh.indexOf(id);if(i<0)return false;to=Math.max(0,Math.min(sh.length-1,to));if(to===i)return false;
+ const pos=sh.map(k=>S.order.indexOf(k)).sort((x,y)=>x-y),nw=sh.slice();nw.splice(i,1);nw.splice(to,0,id);pos.forEach((p,n)=>{S.order[p]=nw[n]});save();return true}
+if(window.EAChartIcons)EAChartIcons.onMove((id,to)=>{const ok=wMove(id,to);if(ok)renderAll();return ok});
+let WBLINK=0;function wBlink(){S.open=null;S.bbOpen='wheels:'+(shownIds()[0]||'trn');WBLINK=Date.now();renderAll();clearTimeout(wBlink.t);wBlink.t=setTimeout(()=>{WBLINK=0;const r=document.querySelector('.wchips');if(r)r.classList.remove('blink')},4200);const f=document.querySelector('.wch');if(f)f.focus()}
+function wheelsMenu(){const sh=shownIds(),natOn=S.layers.nat,pr=cbPartner(),n=Math.min(4,sh.length);
+ /* wheel chips above Transits (Gemini, Nov 23): the charts on the wheel, inner to outer, left to right, in their ring colors.
+    Drag a chip left or right (or Alt + arrow keys) to change the order; click one for that chart's options.
+    Two-letter codes astrologers use: Ch chart, Tr transits, Pr progressions, SA solar arcs (PD, Pf when those wheels come), C2.. partner charts */
+ return (window.EAChartIcons?EAChartIcons.chips(sh.map(k=>({id:k,code:k==='prog'?progK()[3]:WCODE[k],color:RC[k],name:wName(k)})),{blink:WBLINK&&Date.now()-WBLINK<4200}):'')+CBAR.map(([a,id,t])=>{if(a==='layer'&&id==='prog')return PROG_KINDS.map(([pk,nm])=>{const p=!!S.layers.prog&&progK()[0]===pk;return `<button type="button" class="wl${p?' on':''}" data-act="wprog" data-id="${pk}" aria-pressed="${p}" title="${p?'Hide':'Add'} The ${nm} Wheel"><i style="background:${RC.prog}"></i>${nm}<b aria-hidden="true">${p?'&#10003;':''}</b></button>`}).join('');if(a==='layer'){const p=!!S.layers[id];return `<button type="button" class="wl${p?' on':''}" data-act="layer" data-id="${id}" aria-pressed="${p}" title="${p?'Hide':'Add'} The ${t} Wheel"><i style="background:${RC[id]}"></i>${t}<b aria-hidden="true">${p?'&#10003;':''}</b></button>`}
+  if(a==='swap')return sh.length>1?`<button type="button" data-act="swap" title="Swap The Inner And Outer Wheels">Swap Inner And Outer</button>`:'';
+  if(a==='cbpair')return natOn&&pr?`<button type="button" data-act="cbpair" data-id="${id}" title="Cast The ${t} Chart Of Chart 1 And ${esc(S.xchart[pr].name||'Chart 2')}">${t}</button>`:'';
+  return `<button type="button" data-act="cbadd" title="Add A Partner Chart As An Outer Wheel (Synastry)">+ Add A Chart (Synastry)</button>`}).join('')
+  +`<small class="wkeys">${IS_MAC?'&#8997;&#8984;':'Alt+Ctrl+'}1 to 4: number of charts · ${IS_MAC?'&#8997;&#8984;':'Alt+Ctrl+'}&#8594;: swap inner and outer (3 or 4 charts: these chips blink; drag them)</small>`
+  +(fnSouth()?`<label class="wl cbfn${S.fn?' on':''}" title="Southern Hemisphere: mirror the chart so the east is on the right, as you see the sky facing north"><input type="checkbox" id="cbfn"${S.fn?' checked':''}> Facing North</label>`:'')}
+function bbHTML(k,first){const r=recForLayer(k),svd=r?isSaved(r):false,op=S.bbOpen===k,mv=k==='trn'||k==='prog'||k==='arc',wi=first||mv,wop=wi&&S.bbOpen==='wheels:'+k,live=k==='trn'&&!S.tm.active,only=shownIds().length===1,pair=!!(r&&r.comp);
+ let h=`<div class="bbr"><button data-act="bmenu" data-id="${k}" class="bic mn ${op?'op':''}" aria-expanded="${op}" aria-haspopup="menu" aria-label="Chart Options" title="Chart Options: Save, Edit, Clear, Replace">${IC_OPT_()}</button>${mv?`<button data-act="bmenu" data-id="c:${k}" class="bic mn ${S.bbOpen==='c:'+k?'op':''}" aria-expanded="${S.bbOpen==='c:'+k}" aria-haspopup="menu" aria-label="Time: Now, Or Set The Date And Time" title="Now, Or Set The Date And Time">${IC_CLOCK_()}</button>`:''}${wi?`<button data-act="bmenu" data-id="wheels:${k}" class="bic mn ${wop?'op':''}" aria-expanded="${wop}" aria-haspopup="menu" aria-label="Wheels" title="Wheels: Transits, Progressions, Solar Arc, Synastry">${IC_WHEELS_()}</button>`:''}</div>`;
+ if(op)h+=`<div class="bmenu" role="menu" aria-label="Chart Options"><button data-act="bsave" data-id="${k}" ${svd?'disabled class="on"':''}>${svd?'Saved':'Save'}</button>${pair?'':`<button data-act="bedit" data-id="${k}">Edit</button>`}${live&&only?'':`<button data-act="${k==='trn'?'bnow':'bclear'}" data-id="${k}" title="${k==='trn'?'Back To The Present Moment':'Back To Current Transits'}">Clear</button>`}${k==='trn'?`<button data-act="bclock" data-id="trn" class="wl${S.clock?' on':''}" aria-pressed="${!!S.clock}" title="Keep Transits updating every second">Clock<b aria-hidden="true">${S.clock?'&#10003;':''}</b></button>`:''}<button data-act="breplace" data-id="${k}">Replace</button>${pair?'':`<button data-act="brelocate" data-id="${k}">Relocate</button>${isReloc(k)?`<button data-act="bunreloc" data-id="${k}">Clear Relocation</button>`:''}`}</div>`;
+ if(S.bbOpen==='c:'+k){const moving=k==='trn'||k==='prog'||k==='arc';h+=`<div class="bmenu" role="menu" aria-label="Time">${moving?`<button data-act="now" data-id="${k}" ${!S.tm.active?'disabled class="on"':''} title="Back To The Present Moment">${S.tm.active?'Now':'Now (It Is Now)'}</button><button data-act="tmdate" data-id="${k}" title="Open The Time Machine With Its Date Window">Set Date And Time…</button>`:`<button data-act="bedit" data-id="${k}">Edit Date And Time…</button>`}</div>`}
+ if(wop)h+=`<div class="bmenu wmenu" role="menu" aria-label="Wheels">${wheelsMenu()}</div>`;
  return h}
 /* Favorite star beside every chart name, saved or not (Gemini, Nov 13): empty until favorited, then gold. Starring an unsaved
    chart saves it first. Live Current Transits keep moving, so starring them saves this moment as a favorite chart. */
@@ -10032,17 +10173,20 @@ function ttlStar(k,title){const on=layerFav(k);return `<div class="ttlw"><div cl
 function favLayer(k){let r=recForLayer(k);if(!r)return;let c=isSaved(r)?savedOf(r):null;
  if(!c){r=Object.assign({},r,{id:'c'+Date.now()});S.charts.push(r);c=r;if(k==='nat'||k==='prog'||k==='arc')S.baseRec=r;else if(k[0]==='x')S.xchart[k]=r}
  const was=isFav(c.id);S.favs=was?S.favs.filter(x=>x!==c.id):S.favs.concat(c.id);saveCharts();save();toast(was?`${esc(c.name)} is no longer a Favorite.`:`${esc(c.name)} is in Favorites${k==='trn'&&!S.tm.active?' (this moment)':''}.`)}
-function renderLabel(){document.body.classList.toggle('synv',!!(S.game||S.synView||(S.hv&&!S.gv)||(S.gv&&!(S.gv==='grid'&&S.g.layout==='split'))));const ms=nowMs(),p=parts(ms),shown=shownIds(),dateS=dateStr(p),timeS=timeStr(p,true),wdl=S.label.weekday?p.wd:'',tag=S.tm.active?'<div class="tag">Time Machine</div>':'',pl=plRow(ms),CORN=['ul','ur','lr','ll'];
+/* Clock by default (Gemini, Nov 23): with no chart on screen the Device runs the Clock; opening a chart (chart work) holds Transits at that
+   moment; clearing the charts goes back to the Clock. Options > Clock still turns it on or off by hand. */
+let CLK_ENT;function clockAuto(){const ent=shownIds().some(k=>k==='nat'||k[0]==='x');if(CLK_ENT!==undefined&&ent!==CLK_ENT){S.clock=!ent;S.tm.cast=Date.now();save()}CLK_ENT=ent}
+function renderLabel(){clockAuto();document.body.classList.toggle('synv',!!(S.game||S.synView||(S.hv&&!S.gv)||(S.gv&&!(S.gv==='grid'&&S.g.layout==='split'))));const ms=nowMs(),p=parts(ms),shown=shownIds(),dateS=dateStr(p),timeS=timeStr(p,true),wdl=S.label.weekday?p.wd:'',tag=S.tm.active?'<div class="tag">Time Machine</div>':'',pl=plRow(ms),CORN=['ul','ur','lr','ll'];
  const U={ul:'',ur:'',lr:'',ll:''},B={ul:'',ur:'',lr:'',ll:''};
- if(shown.length===1&&shown[0]==='trn'){U.ul=`${ttlStar('trn',S.tm.active?'Transits':'Current Transits')}<div class="ln"><div>${dateS}</div><div>${timeS}</div><div>${HOME.place}${S.homeReloc?' &middot; Relocated':''}</div></div>${tag}${pl}`;B.ul=bbHTML('trn')}
- else{const jd=jdOf(ms),pj=BIRTH.jd+(jd-BIRTH.jd)/365.2422,pp=parts((pj-2440587.5)*86400000,BIRTH.tz),age=((jd-BIRTH.jd)/365.2422).toFixed(2);
+ if(shown.length===1&&shown[0]==='trn'){U.ul=`${ttlStar('trn',S.clock&&!S.tm.active?'Clock':'Transits')}<div class="ln"><div>${dateS}</div><div>${timeS}</div><div>${HOME.place}${S.homeReloc?' &middot; Relocated':''}</div></div>${tag}${pl}`;B.ul=bbHTML('trn',true)}
+ else{const jd=jdOf(ms),pj=progJd(jd),pp=parts((pj-2440587.5)*86400000,BIRTH.tz),age=((jd-BIRTH.jd)/365.2422).toFixed(2);
   const blockFor=k=>{if(k==='nat')return blk('nat',BIRTH.type.toUpperCase()+(BIRTH.reloc?' RELOCATED':''),[BIRTH.dateText+' &middot; '+BIRTH.timeText,BIRTH.place+(BIRTH.reloc?'':''),BIRTH.reloc?'Relocated to '+esc(BIRTH.reloc):'','Tropical'+(BIRTH.cusps?(BIRTH.whole?' &middot; Whole Sign':' &middot; Placidus'):'')],esc(BIRTH.name))+plRowFrom(BIRTH.pd,' at the chart moment',parts((BIRTH.jd-2440587.5)*86400000,BIRTH.tz).wd);
-   if(k==='prog')return blk('prog','SECONDARY',['Progressed to',wdl,dateS+' &middot; '+timeS,'Chart date '+p2(pp.m)+'/'+p2(pp.d)+'/'+pp.y,timeStr(pp,false)+' &middot; age '+age],'Progressions');
+   if(k==='prog')return blk('prog',progK()[2],['Progressed to',wdl,dateS+' &middot; '+timeS,'Chart date '+p2(pp.m)+'/'+p2(pp.d)+'/'+pp.y,timeStr(pp,false)+' &middot; age '+age],'Progressions');
    if(k==='arc')return blk('arc','DIRECTED',['Directed to',wdl,dateS+' &middot; '+timeS,'Arc '+fmtDM(arcPos(ms).arc)],'Solar Arc');
-   if(k==='trn')return blk('trn','CURRENT SKY'+(S.homeReloc?' RELOCATED':''),[dateS+' &middot; '+timeS,HOME.place],S.tm.active?'Transits':'Current Transits')+tag+pl;
+   if(k==='trn')return blk('trn','',[dateS+' &middot; '+timeS,HOME.place+(S.homeReloc?' &middot; Relocated':'')],S.clock&&!S.tm.active?'Clock':'Transits')+tag+pl;
    const c=xc(k);return blk(k,c.type.toUpperCase()+(c.reloc?' RELOCATED':''),[c.dateText+' &middot; '+c.timeText,esc(c.place),c.reloc?'Relocated to '+esc(c.reloc):''],esc(c.name))+plRowFrom(c.pd,' at the chart moment',parts((c.jd-2440587.5)*86400000,c.tz).wd)};
   const titleFor=k=>k==='trn'?'Clock':k[0]==='x'?esc(xc(k).name):esc(BIRTH.name);
-  shown.slice(0,4).forEach((k,i)=>{const c=CORN[i];U[c]=blockFor(k);B[c]=bbHTML(k)});
+  shown.slice(0,4).forEach((k,i)=>{const c=CORN[i];U[c]=blockFor(k);B[c]=bbHTML(k,i===0)});
   if(!shown.includes('trn'))U.ul+=tag}
  for(const c of CORN){const el=$('#l'+c.toUpperCase());{const h=U[c],ix=[h.indexOf('<div class="pl"'),h.indexOf('<div class="tag"')].filter(x=>x>=0),sp=ix.length?Math.min(...ix):h.length;el.querySelector('.lbt').innerHTML=h.slice(0,sp);el.querySelector('.lbt2').innerHTML=h.slice(sp)}const bb=el.querySelector('.bb');if(bb.dataset.h!==B[c]){bb.dataset.h=B[c];bb.innerHTML=B[c]}fitTitles(el)}}
 function fitTitles(el){const W=285;el.querySelectorAll('.ttl').forEach(t=>{let fs=30;t.style.fontSize=fs+'px';while(t.scrollWidth>W&&fs>12){fs--;t.style.fontSize=fs+'px'}})}
@@ -10060,11 +10204,11 @@ function aspSvg(A,cx,cy,sz,col){const k=A.k,sc=sz/14,P={conj:'<circle cx="-2" cy
  if(P[k])return `<g transform="translate(${cx} ${cy}) scale(${sc})" fill="none" stroke="${col}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${P[k]}</g>`;
  const L=k[0],sup=k.slice(1);return `<text x="${(cx-(sup?sz*.14:0)).toFixed(1)}" y="${(cy+sz*.04).toFixed(1)}" text-anchor="middle" dominant-baseline="central" font-family="Inter,sans-serif" font-weight="800" font-size="${(sz*1.08).toFixed(1)}" fill="${col}">${L}${sup?`<tspan font-size="${(sz*.55).toFixed(1)}" dy="${(-sz*.4).toFixed(1)}">${sup}</tspan>`:''}</text>`}
 function gResolve(v,w){const sh=shownIds();if(v==='auto')return w==='a'?(sh[0]||'trn'):(sh[1]||'none');if(v!=='none'&&v!=='trn'&&v!=='prog'&&v!=='arc'&&v!=='nat'&&!S.xchart[v])return w==='a'?(sh[0]||'trn'):'none';return v}
-function layerPos(k){const ms=nowMs(),jd=jdOf(ms);if(k==='nat')return BIRTH.pos;if(k==='prog')return positions(BIRTH.jd+(jd-BIRTH.jd)/365.2422);if(k==='arc')return arcPos(ms);if(S.xchart[k]){const c=xc(k);if(c)return c.pos}return positions(jd)}
+function layerPos(k){const ms=nowMs(),jd=jdOf(ms);if(k==='nat')return BIRTH.pos;if(k==='prog')return positions(progJd(jd));if(k==='arc')return arcPos(ms);if(S.xchart[k]){const c=xc(k);if(c)return c.pos}return positions(jd)}
 function axesOf(k){if(k==='nat')return BIRTH.unknown||!BIRTH.cusps?null:{AS:BIRTH.cusps[1],MC:BIRTH.cusps[10]};if(S.xchart[k]){const c=xc(k);return c&&!c.unknown&&c.cusps?{AS:c.cusps[1],MC:c.cusps[10]}:null}return null}
 function decFor(k,nm){try{if(k==='arc'){const lon=arcPos(nowMs())[nm],lat=detail(nm,BIRTH.jd).lat||0,e=rad(23.4393),l=rad(lon),b=rad(lat);return deg(Math.asin(Math.sin(b)*Math.cos(e)+Math.cos(b)*Math.sin(e)*Math.sin(l)))}const r=detail(nm,layerJd(k)).dec;return r==null?null:r}catch(e){return null}}
 function decsOf(k,L){const o={};L.forEach(n=>{if(n!=='AS'&&n!=='MC')o[n]=decFor(k,n)});return o}
-function layerPosAt(k,dd){const ms=nowMs(),jd=jdOf(ms);if(k==='nat')return positions(BIRTH.jd+dd);if(k==='prog')return positions(BIRTH.jd+(jd+dd-BIRTH.jd)/365.2422);if(k==='arc')return arcPos(ms+dd*864e5);if(S.xchart[k]){const c=xc(k);if(c)return positions(c.jd+dd)}return positions(jd+dd)}
+function layerPosAt(k,dd){const ms=nowMs(),jd=jdOf(ms);if(k==='nat')return positions(BIRTH.jd+dd);if(k==='prog')return positions(progJd(jd+dd));if(k==='arc')return arcPos(ms+dd*864e5);if(S.xchart[k]){const c=xc(k);if(c)return positions(c.jd+dd)}return positions(jd+dd)}
 function speedsOf(k){const a=layerPosAt(k,-.5),b=layerPosAt(k,.5),o={};for(const n of PLANETS)o[n]=((b[n]-a[n]+540)%360)-180;return o}
 function orbTxt(o,mk){const t=Math.floor(o*60+.5),dg=Math.floor(t/60),mi=t%60;return mk?`${dg}<tspan fill="${mk==='A'?'#ffd98a':'#9fb0d8'}" font-weight="700">${mk}</tspan>${p2(mi)}`:fmtDM(o)}
 function bodiesOf(k,axes){const ax=axesOf(k),p=Object.assign({},layerPos(k),ax||{});let L=PLANETS.filter(n=>S.g.node||(n!=='Node'&&n!=='SNode'));if(axes!==false&&S.g.axes&&ax)L=L.concat(['AS','MC']);return {p,L,sp:speedsOf(k),dec:decsOf(k,L)}}
@@ -10506,7 +10650,7 @@ function renderWheel(){const el=$('#wheel');if((SEE.tone||SEE.auto)&&!((S.hv==='
  el.innerHTML=mainWheelSVG()}
 /* the main wheel as an SVG string; loc: houses for this place when no chart with houses is shown (the Planetarium's floating wheel) */
 function mainWheelSVG(loc,plain){if(plain){/* the Planetarium's floating wheel (Gemini, Nov 7): the sky already has the stars, figures and planet pictures, so a plain wheel with glyphs */const sv=S.wd;S.wd=Object.assign({},sv,{stars:false,con:false,pv:'glyph',esz:'small',earth:true});try{return mainWheelSVG(loc)}finally{S.wd=sv}}const ms=nowMs(),jd=jdOf(ms),L=S.layers,layers=[];
- const mk={trn:()=>({id:'trn',pos:positions(jd),ret:retro(jd)}),prog:()=>{const pj=BIRTH.jd+(jd-BIRTH.jd)/365.2422;return {id:'prog',pos:positions(pj),ret:retro(pj)}},arc:()=>({id:'arc',pos:arcPos(ms),ret:{}}),nat:()=>({id:'nat',pos:BIRTH.pos,ret:BIRTH.ret})};
+ const mk={trn:()=>({id:'trn',pos:positions(jd),ret:retro(jd)}),prog:()=>{const pj=progJd(jd);return {id:'prog',pos:positions(pj),ret:retro(pj)}},arc:()=>({id:'arc',pos:arcPos(ms),ret:{}}),nat:()=>({id:'nat',pos:BIRTH.pos,ret:BIRTH.ret})};
  ['x1','x2','x3','x4'].forEach(k=>{mk[k]=()=>{const c=xc(k);return {id:k,pos:c.pos,ret:c.ret}}});
  S.order.slice().reverse().forEach(k=>{if(L[k]&&(k[0]!=='x'||S.xchart[k]))layers.push(mk[k]())});
  if(!layers.length)layers.push(mk.trn());
@@ -10563,7 +10707,7 @@ function settingsBox(){let h=head('gear','Settings','C+,')+constellationHTML(SET
   else h+=`<div class="cap">${PAINTER_SECS.find(x=>x[0]===sec)[1].toUpperCase()}</div><small class="note">${PAINTER_SECS.find(x=>x[0]===sec)[2]}</small>`}
  if(S.sub==='displayed'){h+=[['nat','Birth','(radix, the inner wheel)'],['prog','Progressions',''],['arc','Solar Arc Directions',''],['trn','Transits','(outer wheel)']].map(([k,n,t])=>`<div class="acc" data-act="acc" data-id="${k}"><b>${n}</b> <span>${t}</span><i>${S.acc[k]?'&#9660;':'&#9654;'}</i></div>`+(S.acc[k]?`<div class="alln"><a data-act="all" data-layer="${k}">All</a> &middot; <a data-act="none" data-layer="${k}">None</a></div><div class="chipgrid">${chipsFor(k)}</div><div class="cap">ASPECTS</div><div class="chipgrid">${aspChipsFor(k)}</div>`:'')).join('')+`<small class="note">The top row shows or hides each object on the wheel. The Aspects row decides whether aspect lines and the Aspect Grid include that object. All are on to start.</small>`+`<div class="cap">MORE BODIES</div><div class="chipgrid">${['⚷','⚳','⚴','⚵','⚶','⚸'].map(g=>`<button class="chip off" disabled>${g}︎</button>`).join('')}</div><small class="note">Chiron, asteroids and Lilith arrive with the full ephemeris.</small>`}
  if(S.sub==='charts'){h+=`<div class="cap">DRAG OR USE THE ARROWS &middot; CHART 1 IS INNERMOST</div><div id="crows">`+rowIds().map((k,i,ar)=>`<div class="crow" data-k="${k}"><span class="grip">&#8942;&#8942;</span><span class="cn">${i+1}</span><label class="rcdot" title="Click to change this chart's glyph color"><i style="background:${RC[k]}"></i><input type="color" data-act="ptrc" data-id="${k}" value="${RC[k]}"></label><b>${layerName(k)}</b>${mvBtns(k,i,ar.length)}${k[0]==='x'?`<button data-act="xrem" data-id="${k}" title="Remove this chart from the wheel list">&times;</button>`:''}<button data-act="layer" data-id="${k}" class="${S.layers[k]?'solid':''}">${S.layers[k]?'Shown':'Hidden'}</button></div>`).join('')+`</div><div class="btns"><button data-act="swap">Swap Inner And Outer</button><button data-act="cycle">Cycle 1 To 4 Charts</button></div><small class="note">Standard order, inner to outer: Birth, Progressions, Solar Arc Directions, Transits. Chart information stays in its corner: Birth upper left, Progressions upper right, Transits lower right, Solar Arc lower left.</small>`}
- if(S.sub==='power'){h+=`<div class="cap">STARTUP</div><select data-act="selStart">${opt([['last','Open On The Last Chart View'],['clock','Open On The Clock'],['base','Open On Birth Chart And Transits']],S.start)}</select><small class="note">In this test version the last chart view is remembered in this browser.</small>`+homeHTML()+`<div class="cap">SHUTDOWN</div>`+cb('askq',S.askQuit,'Ask to Clear Recent Files When Quitting','When you quit, asks whether to clear the recent charts list so the next client cannot see earlier names. Turn it off to quit without the question.','askq')+`<small class="note">The quit question arrives with the desktop app. The Clear Recent Files button and shortcut are being built with the chart picker.</small>`}
+ if(S.sub==='power'){h+=`<div class="cap">STARTUP</div><select data-act="selStart">${opt([['last','Open On The Last Chart View'],['clock','Open On The Clock'],['base','Open On Birth Chart And Transits']],S.start)}</select><small class="note">In this test version the last chart view is remembered in this browser.</small>`+homeHTML()+`<div class="cap">SHUTDOWN</div>`+cb('askq',S.askQuit,'Ask to Clear Recent Files When Quitting','When you quit, asks whether to clear the recent charts list so the next client cannot see earlier names. Turn it off to quit without the question.','askq')+`<small class="note">The quit question arrives with the desktop app. The Clear Recent Files button and shortcut are being built with the chart picker.</small>`+`<div class="cap">ANIMATIONS</div>`+cb('anim',!S.noAnim,'Transition Animations','The iris that opens and closes the Moon over the main wheel, and other moves between Worlds. Turn it off for instant switches.','anim')}
  if(S.sub==='label'){const L=S.label;h+=`<div class="cap">DATE FORMAT</div><select data-act="selLabel" data-k="date">${opt([['mdy','10/21/2026'],['mdy2','10/21/26'],['dmy','21/10/2026'],['long','21st of October, 2026']],L.date)}</select><div class="cap">TIME FORMAT</div><select data-act="selLabel" data-k="time">${opt([['12','6:48pm'],['24','18:48']],L.time)}</select>`+cb('weekday',L.weekday,'Weekday Line','Wednesday, and so on','tgl')+cb('dayGlyph',L.dayGlyph,'Planetary Day','The ruler of today','tgl')+cb('hourGlyph',L.hourGlyph,'Planetary Hour','The ruler of this hour','tgl')+`<small class="note">The clock and date keep the same footprint at any time or date.</small>`}
  return h}
 function plTxt(p){return (Math.abs(p.lat).toFixed(2)+(p.lat>=0?'N':'S'))+', '+(Math.abs(p.lon).toFixed(2)+(p.lon>=0?'E':'W'))+' · '+(p.tz||('UTC'+(p.off>=0?'+':'')+p.off))}
@@ -10601,7 +10745,7 @@ function chartBox(){const f=S.form,sh=shownIds(),yr=+String(f.p.y||0),inRange=yr
 const tnT=k=>k[0]==='x'?layerName(k):k==='nat'?BIRTH.type+' (Radix)':TN[k][0];
 const tnS=(k,L)=>{if(k[0]==='x'){const c=xc(k);return c.dateText+' · '+c.timeText+' · '+c.place}if(k==='nat')return BIRTH.dateText+' · '+BIRTH.timeText+' · '+BIRTH.place;return TN[k][1](L)};
 const TN={nat:['Birth',()=>'The chart itself.'],trn:['Transits',()=>'The sky right now, or any moment you pick.'],prog:['Secondary Progressions',()=>'One day after birth for each year of life.'],arc:['Solar Arc Directions',L=>'Every point moves by the progressed Sun\'s arc'+(L.arc?' ('+fmtDM(arcPos(nowMs()).arc)+')':'')+'.']};
-function timingsBox(){const L=S.layers,ms=nowMs(),pj=BIRTH.jd+(jdOf(ms)-BIRTH.jd)/365.2422,pp=parts((pj-2440587.5)*86400000,BIRTH.tz),p=parts(ms);
+function timingsBox(){const L=S.layers,ms=nowMs(),pj=progJd(jdOf(ms)),pp=parts((pj-2440587.5)*86400000,BIRTH.tz),p=parts(ms);
  return head('clock','Timings','Ct')+`<p>Choose which time layers wrap the chart. Drag a row or use its arrows to reorder: the top row is the innermost wheel.</p>`+`<div id="drows">`+rowIds().map((k,i,ar)=>`<div class="row drow ${L[k]?'on':''}" data-act="layer" data-id="${k}" data-k="${k}"><span class="ck">${L[k]?'&#10003;':''}</span><span><b>${tnT(k)}</b><small>${tnS(k,L)}</small></span>${mvBtns(k,i,ar.length)}<span class="grip" title="Drag to reorder">&#8942;&#8942;</span></div>`).join('')+`</div>`+`<div class="pbox"><b>PROGRESSED TO</b><div>${dateStr(p)} &middot; ${timeStr(p,true)}</div><b>PROGRESSED CHART DATE</b><div>${p2(pp.m)}/${p2(pp.d)}/${pp.y} &middot; ${timeStr(pp,false)}</div><small>Age ${((jdOf(ms)-BIRTH.jd)/365.2422).toFixed(2)}. Day-for-a-year method.</small></div>`
  +`<div class="btns"><button data-act="preset" data-id="clock">Clock</button><button data-act="preset" data-id="three">Three Wheels</button><button data-act="preset" data-id="four">Four Wheels</button></div><div class="cap">LATER</div><div class="chips2">${['Returns','Primary Directions'].map(c=>`<span>${c}</span>`).join('')}</div>`}
 const STEPS=[['1 Minute',60e3],['1 Hour',3600e3],['1 Day',864e5],['1 Week',6048e5],['1 Month',2629800e3],['1 Year',31556926e3]];
@@ -10617,14 +10761,23 @@ function natApply(){const r=S.baseRec||BRETT,o=(S.tm.off||{}).nat;Object.assign(
 function tmTransits(){if(S.layers.trn)return;let r=null;for(const k of shownIds()){if(k==='nat'){r=S.baseRec;break}if(k[0]==='x'&&S.xchart[k]){r=S.xchart[k];break}}
  const pl=r&&(r.reloc||r.place);if(pl&&pl.lat!==undefined&&(Math.abs(pl.lat-HOME.lat)>1e-4||Math.abs(pl.lon-HOME.lon)>1e-4)){S.tm.auto={home:Object.assign({},HOME)};Object.assign(HOME,{place:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz||pl.timezone||HOME.tz})}else S.tm.auto={};
  S.layers.trn=true;enforceMax('trn');toast('Transits for '+HOME.place+' are on the wheel. The Time Machine moves them. Return To Now takes them away.')}
-function tmAdvance(d){const k=tmTarget();if(k==='trn'){tmTransits();if(!S.tm.active){S.tm.active=true;S.tm.time=Date.now()}S.tm.time+=d;S.tm.spin=(S.tm.spin||0)+Math.sign(d)*earthSpinStep(Math.abs(d));return}
+function tmAdvance(d){const k=tmTarget();if(k==='trn'){tmTransits();if(!S.tm.active){S.tm.active=true;S.tm.time=nowMs()}S.tm.time+=d;S.tm.spin=(S.tm.spin||0)+Math.sign(d)*earthSpinStep(Math.abs(d));return}
  S.tm.off=S.tm.off||{};S.tm.off[k]=(S.tm.off[k]||0)+d;if(k==='nat')natApply()}
 function stepPick(){const op=S.gpOpen==='tstep',q=+S.tm.sq||1,pl=q===1?'':'s';return `<div class="gp up tp stp"><button type="button" class="gpb" data-act="gpopen" data-id="tstep" title="Time Step: Quantity And Increment">${q} ${S.tm.su}${pl} <small>${op?'&#9650;':'&#9660;'}</small></button>${op?`<div class="gpl two"><div class="col qc"><input type="number" id="sqin" min="0.01" step="any" value="${q}" title="Type A Quantity" aria-label="Step Quantity"></div><div class="col">${SU.map(u=>`<button type="button" data-act="suset" data-id="${u[0]}" class="${u[0]===S.tm.su?'on':''}">${u[0]}${pl}</button>`).join('')}</div></div>`:''}</div>`}
-function trHTML(){return `<div class="tr"><button class="qmg" type="button" title="Chart menu (or right-click the chart)" aria-haspopup="menu" aria-label="Chart menu">&#9881;</button>${[['pback','&#9664;','Run Backward'],['back','&#10074;&#9664;','Step Back'],['stop','&#9632;','Stop'],['fwd','&#9654;&#10074;','Step Forward'],['pfwd','&#9654;','Run Forward']].map(b=>`<button class="${(b[0]==='pback'&&S.tm.playing&&S.tm.dir<0)||(b[0]==='pfwd'&&S.tm.playing&&S.tm.dir>=0)||(b[0]==='stop'&&!S.tm.playing)?'solid':''}" data-act="tr" data-id="${b[0]}" title="${b[2]}" aria-label="${b[2]}">${b[1]}</button>`).join('')}${stepPick()}${window.EATime?`<button class="tmev" type="button" data-act="tmev" title="Step Chart To Event" aria-label="Step Chart To Event" aria-haspopup="dialog">${EATime.STAR_TARGET}</button>`:''}</div>`}
+/* the Moon bar is the standard Time Machine (Gemini, Nov 23): lunation arrows (previous or next New or Full Moon, an eclipse icon when it is one)
+   sit at the two ends of the transport, as in Kidinnu's Moon app; they move the Clock (Transits), like the Star Target */
+const tmMs=nowMs;
+const LUNC={};function lunAt(dir){const L=window.EATime&&EATime.lunar;if(!L)return null;const k=dir+':'+Math.floor(tmMs()/6e4);if(LUNC[dir]&&LUNC[dir].k===k)return LUNC[dir].t;let t=null;try{t=L.syz(tmMs(),dir)}catch(e){}LUNC[dir]={k,t};return t}
+function lunTitle(t,dir){if(!t)return dir<0?'Previous New or Full Moon':'Next New or Full Moon';const p=parts(t.ms);return `${dir<0?'Previous':'Next'} ${t.name} · ${(dateStr(p)+' '+timeStr(p,true)).replace(/<[^>]+>/g,'')}`}
+function lunInner(t,dir){const ic=window.EATime&&EATime.lunar?EATime.lunar.icon(t,20):'';return dir<0?`<i aria-hidden="true">&#8249;</i>${ic}`:`${ic}<i aria-hidden="true">&#8250;</i>`}
+function lunBtn(dir){const t=lunAt(dir),n=lunTitle(t,dir);return `<button class="lun${t&&t.eclipse?' lecl':''}" type="button" data-act="tmlun" data-id="${dir}" title="${n}" aria-label="${n.split(' · ')[0]}"${t?'':' disabled'}>${lunInner(t,dir)}</button>`}
+function lunRefresh(){for(const b of document.querySelectorAll('button.lun[data-act=tmlun]')){const dir=+b.dataset.id,t=lunAt(dir),n=lunTitle(t,dir),h=lunInner(t,dir);if(b.innerHTML!==h)b.innerHTML=h;b.title=n;b.setAttribute('aria-label',n.split(' · ')[0]);b.classList.toggle('lecl',!!(t&&t.eclipse));b.disabled=!t}}
+function tmGo(ms,msg){setPlay(false);tmTransits();S.tm.active=true;S.tm.time=ms;S.tm.msg=msg||'';renderAll()}
+function trHTML(){return `<div class="tr"><button class="qmg" type="button" title="Chart menu (or right-click the chart)" aria-haspopup="menu" aria-label="Chart menu">&#9881;</button>${lunBtn(-1)}${[['pback','&#9664;','Run Backward'],['back','&#10074;&#9664;','Step Back'],['stop','&#9632;','Stop'],['fwd','&#9654;&#10074;','Step Forward'],['pfwd','&#9654;','Run Forward']].map(b=>`<button class="${(b[0]==='pback'&&S.tm.playing&&S.tm.dir<0)||(b[0]==='pfwd'&&S.tm.playing&&S.tm.dir>=0)||(b[0]==='stop'&&!S.tm.playing)?'solid':''}" data-act="tr" data-id="${b[0]}" title="${b[2]}" aria-label="${b[2]}">${b[1]}</button>`).join('')}${lunBtn(1)}${stepPick()}${window.EATime?`<button class="tmev" type="button" data-act="tmev" title="Step Chart To Event" aria-label="Step Chart To Event" aria-haspopup="dialog">${EATime.STAR_TARGET}</button>`:''}</div>`}
 /* Gemini, Nov 18: Kepler's Time Machine is global. The bar follows the Astro Gold layout (Now, run back, step back, stop, step forward,
    run forward, step size) and the Star Target opens Step Chart to Event (Aspect, R/D, Ing, Pos, House, Return, Lun/Ecl) from the shared EATime */
 function tmEvents(btn){if(!window.EATime)return;const nat=shownIds().includes('nat')&&!!BIRTH.jd,mem={};
- EATime.events({key:'device',anchor:btn,natal:nat,fmt:ms=>{const p=parts(ms);return `${dateStr(p)} ${timeStr(p,true)}`.replace(/<[^>]+>/g,'')},getMs:()=>S.tm.active?S.tm.time:Date.now(),ctx:{lon:(p,jd)=>{if(mem.k!==jd){mem.k=jd;mem.p=positions(jd)}return mem.p[p]},natal:nat?{jd:BIRTH.jd,cusps:BIRTH.unknown?null:BIRTH.cusps}:null},
+ EATime.events({key:'device',anchor:btn,natal:nat,fmt:ms=>{const p=parts(ms);return `${dateStr(p)} ${timeStr(p,true)}`.replace(/<[^>]+>/g,'')},getMs:()=>nowMs(),ctx:{lon:(p,jd)=>{if(mem.k!==jd){mem.k=jd;mem.p=positions(jd)}return mem.p[p]},natal:nat?{jd:BIRTH.jd,cusps:BIRTH.unknown?null:BIRTH.cusps}:null},
   go:(ms,label,ring)=>{setPlay(false);const L={tr:'trn',pr:'prog',sa:'arc'}[ring]||'trn';if(!S.layers[L]){S.layers[L]=true;enforceMax(L)}S.tm.active=true;S.tm.time=ms;const p=parts(ms);S.tm.msg=`${label}: ${dateStr(p).replace(/<[^>]+>/g,'')} ${timeStr(p,true).replace(/<[^>]+>/g,'')}`;renderAll()}})}
 function tpick(id,list,val,btn){const op=S.gpOpen===id,f=list.find(x=>x[0]===val);return `<div class="gp up tp"><button type="button" class="gpb" data-act="gpopen" data-id="${id}" title="${f?f[1].replace(/<[^>]+>/g,''):''}">${btn} <small>${op?'&#9650;':'&#9660;'}</small></button>${op?`<div class="gpl one">${list.map(x=>`<button type="button" data-act="gpsel" data-id="${id}|${x[0]}" class="${x[0]===val?'on':''}">${x[1]}</button>`).join('')}</div>`:''}</div>`}
 function snapHTML(cp){const a=S.snap,planets=PLANETS.filter(n=>n!=='Node'&&n!=='SNode').map(n=>[n,n]),aspOpts=Object.keys(ASPECTS).map(k=>[k,ASPECTS[k][1]+'\ufe0e'+(cp?'':' '+k)]),tOpts=cp?[['Transit','T'],['Progressed','P'],['Solar Arc','S'],['Birth','R']]:[['Transit','Transit'],['Progressed','Progressed'],['Solar Arc','Solar Arc'],['Birth',BIRTH.type]];
@@ -10632,7 +10785,15 @@ function snapHTML(cp){const a=S.snap,planets=PLANETS.filter(n=>n!=='Node'&&n!=='
  if(cp)return `<div class="snap">${tpick('snap:t1',tFull,a.t1,TL[a.t1])}${gpick('snap:p1',planets.map(x=>x[0]),a.p1,true,true)}${tpick('snap:asp',aFull,a.asp,ASPECTS[a.asp][1]+'\ufe0e')}${tpick('snap:t2',tFull,a.t2,TL[a.t2])}${gpick('snap:p2',planets.map(x=>x[0]),a.p2,true,true)}</div>`;
  return `<div class="snap"><select data-act="snap" data-k="t1">${opt(tOpts,a.t1)}</select>${gpick('snap:p1',planets.map(x=>x[0]),a.p1,true,cp)}<select data-act="snap" data-k="asp">${opt(aspOpts,a.asp)}</select><select data-act="snap" data-k="t2">${opt(tOpts,a.t2)}</select>${gpick('snap:p2',planets.map(x=>x[0]),a.p2,true,cp)}</div>`}
 function dockHTML(){if(plnOn())return pln().dock(trHTML());if(ctbOn())return ctbDock();const base=dockBase();return S.gv==='amap'&&!window.EA_PHONE&&amp().dock?amp().dock(base):base}
-function dockBase(){return `<button class="und" data-act="undock" title="Undock Time Machine">&#8613;</button><button class="nowb" data-act="now">Now</button>${trHTML()}${window.EATime?'':`<span class="sep"></span>${snapHTML(true)}<button class="sb" data-act="snapgo" data-id="back" title="Snap Back To The Previous Aspect">&#9664; Prev</button><button class="sb solid" data-act="snapgo" data-id="fwd" title="Snap Forward To The Next Aspect">Next &#9654;</button>`}<div class="dmsg">${S.tm.msg||''}</div>`}
+/* the Time Machine's Date, Time, and Location windows: the shared dock windows (src/placedock.js, EADock), set for the Clock (Transits) */
+let DKM=null;function dkm(){if(DKM||!window.EADock)return DKM;const tzOf=()=>HOME.tz||'UTC';
+ DKM=EADock.make({key:'tm',store:'apparatus-tmdock-v1',fields:[['date','Date'],['time','Time'],['loc','Location']],
+  values:()=>{const d=new Date(tmMs()),tz=tzOf();return {loc:(HOME.place||'').replace(/, USA$/,''),date:new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'short',day:'numeric'}).format(d),time:new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(d)}},
+  getPlace:()=>({label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:tzOf()}),getMoment:tmMs,
+  setPlace:(pl,why)=>{Object.assign(HOME,{place:pl.label,lat:pl.lat,lon:pl.lon,tz:pl.tz||HOME.tz});S.homeReloc=true;if(S.tm.auto)S.tm.auto.home=null;save();toast(why+' The Clock and Transits use it.')},
+  setMoment:(ms,why,txt)=>tmGo(ms,'Set: '+txt),redraw:()=>renderAll(),active:()=>tmDocked()&&!plnOn()&&!ctbOn()&&!S.game,
+  keep:'.gpl,.gp',toast:m=>toast(m)});return DKM}
+function dockBase(){const D=dkm();return `<button class="nowb" data-act="now" title="Return to now">Now</button>${D?D.bar({eye:false}):''}${trHTML()}${D?D.eye():''}<button class="und" data-act="undock" title="Undock Time Machine" aria-label="Undock Time Machine">&#8613;</button>${window.EATime?'':`<span class="sep"></span>${snapHTML(true)}<button class="sb" data-act="snapgo" data-id="back" title="Snap Back To The Previous Aspect">&#9664; Prev</button><button class="sb solid" data-act="snapgo" data-id="fwd" title="Snap Forward To The Next Aspect">Next &#9654;</button>`}<div class="dmsg">${S.tm.msg||''}</div>${D?D.popHTML():''}`}
 const plnOn=()=>S.gv==='sky'&&!S.synView&&!S.game;   /* Gemini, Oct 30: the Planetarium always docks the Time Machine */
 const tmDocked=()=>!!S.dockTM||plnOn()||(ctbOn()&&!PT_FRAME);   /* Gemini, Nov 3: Cycles Tables always docks it too */
 function renderDock(){const d=$('#dock'),on=tmDocked()&&!S.game;stage.classList.toggle('plndock',on&&plnOn());stage.classList.toggle('ctbdock',on&&ctbOn());stage.classList.toggle('plnfull',on&&plnOn()&&stage.classList.contains('nomenu'));stage.classList.toggle('ampdock',on&&S.gv==='amap'&&!plnOn());stage.classList.toggle('ampfull',S.gv==='amap'&&!plnOn()&&stage.classList.contains('nomenu')&&!window.EA_PHONE);   /* AstroMaps: the Time Machine docks inside its window; Hide Menus fills the stage */d.hidden=!on;stage.classList.toggle('docked',on);if(on)d.innerHTML=dockHTML();const bx=$('#box');if(bx&&!bx.hidden&&S.open)fitBox(bx)}   /* the dock moves Hide Menus up: refit an open box to its new place */   /* Gemini, Oct 29: no time machine bar in Games */
@@ -10734,7 +10895,7 @@ function fnSouth(){return S.ws==='simple'&&!!window.EAWheel&&wheelLat()<0}
 function fnOn(){return !!S.fn&&fnSouth()}
 function cbPartner(){return shownIds().find(k=>k[0]==='x'&&S.xchart[k]&&!S.xchart[k].comp)}
 function chartBar(){let w=document.getElementById('cbar');if(!w){w=document.createElement('div');w.id='cbar';w.setAttribute('role','toolbar');w.setAttribute('aria-label','Chart wheels');stage.appendChild(w)}
- const on=!S.synView&&!S.game&&!S.open&&!S.gv&&!S.hv;w.hidden=!on;if(!on)return;const sh=shownIds(),natOn=S.layers.nat,pr=cbPartner();
+ const on=false;w.hidden=true;if(!on)return;   /* Gemini, Nov 23: the row moved into the Wheels icon under the chart label */const sh=shownIds(),natOn=S.layers.nat,pr=cbPartner();
  const h=CBAR.map(([a,id,t])=>{if(a==='layer'){const p=!!S.layers[id];return `<button type="button" class="ixb${p?' on':''}" data-act="layer" data-id="${id}" aria-pressed="${p}" title="${p?'Hide':'Add'} The ${t} Wheel"><i style="background:${RC[id]}"></i>${t}</button>`}
   if(a==='swap')return sh.length>1?`<button type="button" class="ixb" data-act="swap" title="Swap The Inner And Outer Wheels">Swap</button>`:'';
   if(a==='cbpair')return natOn&&pr?`<button type="button" class="ixb" data-act="cbpair" data-id="${id}" title="Cast The ${t} Chart Of Chart 1 And ${esc(S.xchart[pr].name||'Chart 2')}">${t}</button>`:'';
@@ -10794,9 +10955,9 @@ function autoSimple(){const n=S.order.filter(k=>S.layers[k]&&(k[0]!=='x'||S.xcha
 /* Gemini, Nov 23: chart labels keep a width limit; a long chart name gets a smaller font instead of the label moving out toward the teacher window. */
 const TTL_MAX=300,TTL_MIN=14;   /* still too long at 14px: the name wraps onto a second line inside the limit */
 function fitTitles(){document.querySelectorAll('#stage .lb .ttl').forEach(t=>{t.style.fontSize='';t.style.whiteSpace='';const lb=t.closest('.lb'),st=t.parentElement.querySelector('.fav'),lim=Math.min(TTL_MAX,lb&&lb.clientWidth?lb.clientWidth-(st?st.offsetWidth+10:0):TTL_MAX),w=t.scrollWidth;if(w>lim){const f=parseFloat(getComputedStyle(t).fontSize)||30,k=Math.floor(f*lim/w);t.style.fontSize=Math.max(TTL_MIN,k)+'px';if(k<TTL_MIN)t.style.whiteSpace='normal'}})}
-function renderAll(){autoSimple();renderScene();renderBox();renderDock();renderWheel();renderLabel();fitTitles();roomFor();aspChip();chartBar();persistLast()}   /* roomFor again once the new drawing is in, so its width is measured, not the last view's */
+function renderAll(){autoSimple();renderScene();renderBox();renderDock();renderWheel();renderLabel();fitTitles();roomFor();aspChip();chartBar();persistLast();if(moonOn()){const cw=moonFrame();if(cw)try{moonSync(cw)}catch(e){}}}   /* roomFor again once the new drawing is in, so its width is measured, not the last view's */
 /* ---------- snap search ---------- */
-function posOf(kind,ms){if(kind==='Transit')return positions(jdOf(ms));if(kind==='Progressed')return positions(BIRTH.jd+(jdOf(ms)-BIRTH.jd)/365.2422);if(kind==='Solar Arc')return arcPos(ms);return BIRTH.pos}
+function posOf(kind,ms){if(kind==='Transit')return positions(jdOf(ms));if(kind==='Progressed')return positions(progJd(jdOf(ms)));if(kind==='Solar Arc')return arcPos(ms);return BIRTH.pos}
 function snap(dir){const a=S.snap,A=ASPECTS[a.asp][0],start=nowMs();if(a.t1===a.t2&&a.p1===a.p2){S.tm.msg='Choose two different bodies.';return}
  if(a.t1==='Birth'&&a.t2==='Birth'){S.tm.msg='Both picks are Birth, so nothing moves in time.';return}
  const wrap=x=>((x+540)%360+360)%360-180,f=(ms,T)=>wrap(n360(posOf(a.t1,ms)[a.p1]-posOf(a.t2,ms)[a.p2])-T);
@@ -10825,7 +10986,7 @@ document.addEventListener('click',e=>{
  const t=e.target.closest('[data-act],[data-slot],[data-corner],#box,.stage');const slot=e.target.closest('[data-slot]');
  const cor=e.target.closest('[data-corner]');
  if(cor){S.corner=cor.dataset.corner;S.open=null;renderAll();return}
- if(slot&&!e.target.closest('#box')){const id=slot.dataset.slot;pulsing=false;boxAnchor(slot);carryChart(id);if(id==='arch'){archOpen();return}if(id==='moon'){moonView(!moonOn());return}if(moonOn())moonView(false);   /* Gemini, Nov 23: the Moon tile starts the Moon app in place of the main wheel; the tile again, Main Wheel, or any other tile goes back */{const dm=MENU.find(m=>m.id===id);if(dm&&dm.dummy){if(id==='sky'){try{window.open('https://gemb1123.github.io/GemBstar5813/skymode/','_blank','noopener')}catch(e){}}toast(dm.dummy);return}}if(id==='tm'&&plnOn()){toast('In the Planetarium the Time Machine stays docked below the sky.');return}if(id==='tm'&&ctbOn()&&!PT_FRAME){toast('In Tables the Time Machine stays docked below the table.');return}if(id==='tm'&&S.dockTM){S.dockTM=false;S.open='tm';save();renderAll();return}if(id==='info')S.tip=null;if(['synodic','agrid','dial','chart','ground','harmonics'].includes(id))S.game='';if(id==='harmonics')harmShow(harmView(S.hsub||'hcharts'));else if(['chart','cycles','agrid','dial','ground','games'].includes(id))S.hv='';if(id==='cycles'&&(S.csub==='synodic'||S.csub==='pcycles'||S.csub==='tables')){S.synView=true;S.synKind=S.csub==='pcycles'?'pc':S.csub==='tables'?'tbl':'syn';S.gv='';if(S.csub==='tables')S.ptv='table';if(PT_FRAME&&(S.csub||'synodic')==='synodic'&&!S.synOld){S.synKind='tbl';S.ptv='start'}}if(PT_FRAME&&(id==='tables'||id==='space'||id==='ptearth')){S.synView=true;S.synKind='tbl';S.gv='';S.game='';S.ptv=id==='tables'?'table':id==='space'?'space':'earth';{const pf=document.getElementById('pt-frame');if(pf)pf.dataset.v=''}}   /* Gemini, Nov 15: a menu choice always takes over the tables' view, even when the same choice was made before and a stage button has opened another view since */if(id==='agrid'){S.gv='grid';S.synView=false;S.synA.on=false}if(id==='dial'){S.gv='dial';S.synView=false;S.synA.on=false}if(id==='ground'){if(S.gv!=='sky'||S.synView){if(!window.EA_PHONE&&innerWidth>=900){S.pln=S.pln||{};S.pln.fov=250}   /* Gemini, Nov 11: opens at a 250° field of view on desktop */
+ if(slot&&!e.target.closest('#box')){const id=slot.dataset.slot;pulsing=false;boxAnchor(slot);carryChart(id);if(id==='arch'){archOpen();return}if(id==='moon'){moonView(!moonOn());return}if(moonOn())moonView(false);   /* Gemini, Nov 23: the Moon tile starts the Moon app in place of the main wheel; the tile again, Main Wheel, or any other tile goes back */{const dm=MENU.find(m=>m.id===id);if(dm&&dm.dummy){if(id==='sky'){try{window.open('https://gemb1123.github.io/GemBstar5813/skymode/','_blank','noopener')}catch(e){}}toast(dm.dummy);return}}if(id==='tm'&&plnOn()){toast('In the Planetarium the Time Machine stays docked below the sky.');return}if(id==='tm'&&ctbOn()&&!PT_FRAME){toast('In Tables the Time Machine stays docked below the table.');return}if(id==='tm'){S.dockTM=!S.dockTM;if(S.open==='tm')S.open=null;save();renderAll();return}   /* Gemini, Nov 23: the Time Machine tile docks the bar below the wheel at once (no pop-up first); the tile again puts it away. Undock (the arrow) still opens the pop-up. */if(id==='info')S.tip=null;if(['synodic','agrid','dial','chart','ground','harmonics'].includes(id))S.game='';if(id==='harmonics')harmShow(harmView(S.hsub||'hcharts'));else if(['chart','cycles','agrid','dial','ground','games'].includes(id))S.hv='';if(id==='cycles'&&(S.csub==='synodic'||S.csub==='pcycles'||S.csub==='tables')){S.synView=true;S.synKind=S.csub==='pcycles'?'pc':S.csub==='tables'?'tbl':'syn';S.gv='';if(S.csub==='tables')S.ptv='table';if(PT_FRAME&&(S.csub||'synodic')==='synodic'&&!S.synOld){S.synKind='tbl';S.ptv='start'}}if(PT_FRAME&&(id==='tables'||id==='space'||id==='ptearth')){S.synView=true;S.synKind='tbl';S.gv='';S.game='';S.ptv=id==='tables'?'table':id==='space'?'space':'earth';{const pf=document.getElementById('pt-frame');if(pf)pf.dataset.v=''}}   /* Gemini, Nov 15: a menu choice always takes over the tables' view, even when the same choice was made before and a stage button has opened another view since */if(id==='agrid'){S.gv='grid';S.synView=false;S.synA.on=false}if(id==='dial'){S.gv='dial';S.synView=false;S.synA.on=false}if(id==='ground'){if(S.gv!=='sky'||S.synView){if(!window.EA_PHONE&&innerWidth>=900){S.pln=S.pln||{};S.pln.fov=250}   /* Gemini, Nov 11: opens at a 250° field of view on desktop */
   S.gv='sky';S.synView=false;S.synA.on=false;S.game='';S.hv='';S.open=null;const hb=document.getElementById('hmb');if(hb&&!stage.classList.contains('nomenu'))hb.click();renderAll();return}S.gv='sky';S.synView=false;S.synA.on=false}   /* Gemini, Nov 11: Feet On The Ground opens full screen (its menu closed, Device menus hidden); the tile again opens its menu */if(id==='graphs'){S.gv='graph';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='astromaps'){if(S.gv!=='amap'){S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv='';S.open=null;try{amp().opened()}catch(e){}if(!window.EA_PHONE&&window.__hideMenus)window.__hideMenus(true);renderAll();return}   /* and full screen with the Device's menus hidden (Gemini, Nov 12); Menus brings them back */   /* AstroMaps opens full, menu closed (Gemini, Nov 11); the tile or the Menu button then opens its menu */
 S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S.synView=false;S.gv=''}S.open=(S.open===id)?null:id;renderAll();return}
  if(S.open&&!(S.open==='tm'&&tmDocked())&&!e.target.closest('#box,#quitask,[data-pl],[data-act],.lb,.ib,[data-slot],[data-corner]')){S.open=null;renderAll();return}
@@ -10987,6 +11148,7 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(a==='homepick'){const p=(S.homeSug||[])[+id];if(p)setHome({place:p.label,lat:p.latitude,lon:p.longitude,tz:p.timezone})}
   else if(a==='homereset'){setHome(Object.assign({},HOME_DEF))}
   else if(a==='askq'){S.askQuit=!S.askQuit;save()}
+  else if(a==='anim'){S.noAnim=!S.noAnim;document.documentElement.classList.toggle('noanim',!!S.noAnim);save()}   /* Gemini, Nov 23: transition animations can be turned off */
   else if(a==='sqset'){S.tm.sq=+id}
   else if(a==='suset'){S.tm.su=id}
   else if(a==='gnreset'){GLYPH_NUDGE.forEach((n,i)=>{n[0]=GLYPH_DEF[i][0];n[1]=GLYPH_DEF[i][1];n[2]=100});save()}
@@ -10995,11 +11157,16 @@ S.gv='amap';S.synView=false;S.synA.on=false;S.game='';S.hv=''}if(id==='chart'){S
   else if(a==='chartPick'){S.layers=id==='clock'?{nat:false,prog:false,arc:false,trn:true}:{nat:true,prog:false,arc:false,trn:true}}
   else if(a==='ealook'&&window.EALook){const [k,v]=id.split(':');EALook.set({[k]:v});const W=S.paint&&S.paint.sw;if(W){W.theme='dark';if(W.pc)delete W.pc.dark;if(W.colors)delete W.colors.dark;delete W.cr;delete W.rs}save()}   /* a preset replaces older per-color picks */
   else if(a==='tmev'){tmEvents(act);return}
+  else if(a==='tmdate'){S.bbOpen=null;S.dockTM=true;if(S.open==='tm')S.open=null;save();const D=dkm();if(D)D.open('date')}
+  else if(a==='bclock'){S.clock=!S.clock;S.tm.cast=Date.now();if(S.clock){setPlay(false);S.tm.active=false;S.tm.msg=''}save()}
+  else if(a==='wprog'){if(S.layers.prog&&progK()[0]===id){S.layers.prog=false;if(!shownIds().length)S.layers.trn=true}else{S.pk=id;if(!S.layers.prog){S.layers.prog=true;S.layers.nat=true;canonOrder();enforceMax('prog')}}save()}
+  else if(a==='wchip'){S.bbOpen=id;renderLabel();return}
+  else if(a==='tmlun'){const t=lunAt(+id);if(t){const p=parts(t.ms);tmGo(t.ms,`${t.name}: ${(dateStr(p)+' '+timeStr(p,true)).replace(/<[^>]+>/g,'')}`)}return}
   else if(a==='tr'){const st=stepMs();
    if(id==='play'){setPlay(!S.tm.playing)}else if(id==='pfwd'){setPlay(true,1)}else if(id==='pback'){setPlay(true,-1)}else if(id==='stop'){setPlay(false)}else{setPlay(false);const m={back:-1,fwd:1,back10:-10,fwd10:10}[id];tmAdvance(m*st)}}
   else if(a==='dock'){S.dockTM=true;S.open=null;save()}
   else if(a==='undock'){S.dockTM=false;S.open='tm';save()}
-  else if(a==='now'){setPlay(false);S.tm.active=false;S.tm.msg='';S.tm.off={};natApply();if(S.tm.auto){if(S.tm.auto.home)Object.assign(HOME,S.tm.auto.home);S.layers.trn=false;if(!shownIds().length)S.layers.trn=true;S.tm.auto=null}}
+  else if(a==='now'){S.bbOpen=null;S.tm.cast=Date.now();setPlay(false);S.tm.active=false;S.tm.msg='';S.tm.off={};natApply();if(S.tm.auto){if(S.tm.auto.home)Object.assign(HOME,S.tm.auto.home);S.layers.trn=false;if(!shownIds().length)S.layers.trn=true;S.tm.auto=null}}
   else if(a==='snapgo'){setPlay(false);snap(id)}
   else if(a==='gmsub'){S.game=id;S.open=null;S.synView=false;S.synA.on=false;S.gv=''}
   else if(a==='gmon'){if(GM&&GM.rolling)return;S.gmOn=Object.assign({},S.gmOn||{},{[id]:!gmOn(id)});S.gmRes=null;S.gmDone=false;GM=null;save()}
@@ -11048,7 +11215,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&S.open){S.open=null
  if(!(e.altKey&&(e.ctrlKey||e.metaKey))||e.shiftKey)return;
  const k=e.code&&e.code.startsWith('Digit')?+e.code.slice(5):0;
  if(k>=1&&k<=4){e.preventDefault();S.layers=Object.assign({},WHEELS[k]);renderAll()}
- else if(k===5||e.code==='ArrowRight'){e.preventDefault();swapEnds();renderAll()}
+ else if(k===5||e.code==='ArrowRight'){e.preventDefault();if(shownIds().length>2){wBlink();return}swapEnds();renderAll()}   /* Gemini, Nov 23: with 3 or 4 wheels there are too many orders to step through, so the shortcut opens Wheels with the chips blinking */
  else if(k===6||e.code==='ArrowDown'){e.preventDefault();cycleCount();renderAll()}
  else if(e.code==='KeyE'){e.preventDefault();eraseBoard();renderAll()}
  else if(e.code==='KeyC'){e.preventDefault();clearAll();renderAll()}
@@ -11091,7 +11258,7 @@ function initCharts(){zodiacFill();rcApply();setBase(BRETT);try{const rv=JSON.pa
 if(!S.charts.length)S.charts=[BRETT];if(!S.baseRec)S.baseRec=BRETT;S.form=defaultForm();}
 initCharts();restoreLast();skyInit();
 addEventListener('resize',fit);fit();applyLook();renderAll();loadPlaces();
-setInterval(()=>{if(!S.tm.active){renderLabel();renderWheel();if(S.open==='pinfo'&&(S.piLy==='trn'||S.piLy==='arc')){const e=document.getElementById('pi-data');if(e)e.innerHTML=pinfoData()}}},1000);
+setInterval(()=>{if(!S.tm.active&&S.clock){renderLabel();renderWheel();if(S.open==='pinfo'&&(S.piLy==='trn'||S.piLy==='arc')){const e=document.getElementById('pi-data');if(e)e.innerHTML=pinfoData()}}},1000);
 document.addEventListener('input',e=>{const t=e.target;if(!t||t.id!=='sqin')return;const v=parseFloat(t.value);if(v>0){S.tm.sq=v;const b=document.querySelector('.stp .gpb');if(b){const pl=v===1?'':'s';b.firstChild.textContent=v+' '+S.tm.su+pl+' '}}});
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='sqin'&&(e.key==='Enter'||e.key==='Escape')){S.gpOpen=null;renderAll()}});
 /* Wheel Display > House System > Reorder: drag a row to move it (the arrows do the same on touch screens) */
@@ -11099,7 +11266,7 @@ document.addEventListener('keydown',e=>{if(e.target&&e.target.id==='sqin'&&(e.ke
  document.addEventListener('dragover',e=>{const li=dragHs&&e.target.closest&&e.target.closest('li[data-hs]');if(!li)return;e.preventDefault();document.querySelectorAll('li[data-hs].over').forEach(x=>x.classList.remove('over'));li.classList.add('over')});
  document.addEventListener('drop',e=>{const li=dragHs&&e.target.closest&&e.target.closest('li[data-hs]');if(!li)return;e.preventDefault();const L=hsysList().map(x=>x[0]),to=L.indexOf(li.dataset.hs),from=L.indexOf(dragHs);if(to>=0&&from>=0&&to!==from)hsysMove(dragHs,to);dragHs=null;renderAll()});
  document.addEventListener('dragend',()=>{dragHs=null;document.querySelectorAll('li[data-hs]').forEach(x=>x.classList.remove('drag','over'))})}
-document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('.stp')){S.gpOpen=null;renderAll()}});setInterval(()=>{if(S.dockTM&&!S.tm.active){}},5000);if(window.EAWheel&&EAWheel.attach)EAWheel.attach(document,{tap:swTap,dbl:swDbl});if(window.EA_JPL)EA_JPL.onLoad(()=>{clearTimeout(window.__jplT);window.__jplT=setTimeout(()=>{try{renderAll()}catch(e){}},60)});window.__app={S,chartForm:(target,rec,mode)=>{S.bbOpen=null;if(rec)loadForm(rec);else S.form=defaultForm();S.form.listOpen=mode==='open';S.form.target=target;cpState('chartinfo').mode=mode;S.open='chart';renderAll()},nowRec:()=>{const p=parts(Date.now(),HOME.tz),z=n=>String(n).padStart(2,'0');return {name:'Current Transits',type:'Event',date:`${p.y}-${z(p.m)}-${z(p.d)}`,time:`${z(p.h)}:${z(p.mi)}`,cal:'a',unknown:false,place:{label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}}},positions,nodes:{trueNode,trueNodeMeeus,meanNode},aspSet:{links:ASP_LINKS,open:(k,f)=>{openHarm(k,f);renderAll()},list:ASP_SETS,get:()=>S.g.set||'major',set:v=>{S.g.set=v;save();renderAll()},lines:aspLinesFor,pictures:symPicturesFor},BIRTH,snap,renderAll,buildChart,riseMs,cycle:CYCLE,synFrame,openGaze:o=>{stg().open(o);S.open='stargaze';renderAll()},ctb:t=>ctbVenusCalc(t),
+document.addEventListener('click',e=>{if(S.gpOpen==='tstep'&&!e.target.closest('.stp')){S.gpOpen=null;renderAll()}});setInterval(()=>{if(!tmDocked()||S.game)return;if(DKM&&!plnOn()&&!ctbOn())DKM.tick();lunRefresh()},1000);   /* the dock's Date and Time windows and the lunation arrows keep up with the Clock and a running Time Machine */if(window.EAWheel&&EAWheel.attach)EAWheel.attach(document,{tap:swTap,dbl:swDbl});if(window.EA_JPL)EA_JPL.onLoad(()=>{clearTimeout(window.__jplT);window.__jplT=setTimeout(()=>{try{renderAll()}catch(e){}},60)});window.__app={S,setMain:r=>{try{applyTo(r,'nat')}catch(e){}},chartForm:(target,rec,mode)=>{S.bbOpen=null;if(rec)loadForm(rec);else S.form=defaultForm();S.form.listOpen=mode==='open';S.form.target=target;cpState('chartinfo').mode=mode;S.open='chart';renderAll()},nowRec:()=>{const p=parts(Date.now(),HOME.tz),z=n=>String(n).padStart(2,'0');return {name:'Transits',type:'Event',date:`${p.y}-${z(p.m)}-${z(p.d)}`,time:`${z(p.h)}:${z(p.mi)}`,cal:'a',unknown:false,place:{label:HOME.place,lat:HOME.lat,lon:HOME.lon,tz:HOME.tz}}},positions,nodes:{trueNode,trueNodeMeeus,meanNode},aspSet:{links:ASP_LINKS,open:(k,f)=>{openHarm(k,f);renderAll()},list:ASP_SETS,get:()=>S.g.set||'major',set:v=>{S.g.set=v;save();renderAll()},lines:aspLinesFor,pictures:symPicturesFor},BIRTH,snap,renderAll,buildChart,riseMs,cycle:CYCLE,synFrame,openGaze:o=>{stg().open(o);S.open='stargaze';renderAll()},ctb:t=>ctbVenusCalc(t),
  /* the Venus Tables phone app (worlds/cycles/phone) uses these; names only in every list (privacy rule) */
  tbl:{calc:ctbVenusCalc,pos:ctbPos,pa:ctbPA,date:ctbDate,title:ctbTitle,col:CTB_COL,notes:CTB_NOTES,text:ctbText,hel:CTB_HEL,
   chart:()=>({name:BIRTH.name,ms:(BIRTH.jd-2440587.5)*864e5,unknown:!!BIRTH.unknown,cusps:BIRTH.unknown?null:BIRTH.cusps}),
@@ -11173,21 +11340,37 @@ function carryChart(id){const c=activeChart();if(!c)return;try{
 }catch(e){}}
 function reloadCharts(){try{const cv=JSON.parse(localStorage.getItem('apparatus-charts-v1')||'null');if(!cv)return;S.charts=Array.isArray(cv.charts)?cv.charts.map(unReloc):S.charts;if(Array.isArray(cv.favs))S.favs=cv.favs}catch(e){}}
 window.addEventListener('storage',e=>{if(e.key==='apparatus-charts-v1'){reloadCharts();try{renderAll()}catch(x){}}});
-/* Moon in place (Gemini, Nov 23): the main wheel becomes the Moon. The Moon app takes the whole stage on the chart's moment, the Device's buttons go away and the Moon's buttons arrive; Main Wheel (upper left) or Escape goes back. */
+/* Moon in place (Gemini, Nov 23): the main wheel becomes the Moon. The Moon tile opens it with an iris from the wheel's center (the Moon
+   first, then its buttons) and closes it the same way; the Device's tiles and Time Machine stay. Inside the Device the Moon hides its own
+   Time Machine bar (EA_MOON.embed) and follows the Device's moment; a lunation or eclipse picked inside the Moon moves the Device's moment. */
 function moonOn(){return stage.classList.contains('moonv')}
-function moonSync(cw){const M=cw&&cw.EA_MOON;if(!M||!M.ST)return;const c=activeChart();
- if(c){Object.assign(M.ST,{ms:c.ms,tz:c.tz,name:c.name||'',chartId:c.rec&&c.rec.id||null,place:c.place||'',cplace:isFinite(c.lat)?{lat:c.lat,lon:c.lon,label:c.place||''}:null,defPl:false})}
- else{const ms=nowMs();if(!isFinite(ms))return;M.ST.ms=ms;if(HOME&&HOME.tz)M.ST.tz=HOME.tz}
- M.render()}
+window.EA_ANIM=()=>!S.noAnim;   /* shared: World transitions check this before animating (Settings, Startup/Shutdown, Transition Animations) */
+function moonFrame(){const v=document.getElementById('moonv');return v&&v.dataset.ok?v.querySelector('iframe').contentWindow:null}
+function moonMoment(){const c=activeChart();return S.tm.active?S.tm.time:(c&&isFinite(c.ms)?c.ms:Date.now())}
+function moonSync(cw){const M=cw&&cw.EA_MOON;if(!M||!M.ST)return;const c=activeChart(),ms=moonMoment();if(!isFinite(ms))return;
+ if(M.embed){const d=!!tmDocked();if(M._emb!==d){M._emb=d;M.embed(d)}}   /* the Moon's own bar steps aside only while the Device's Time Machine is docked below it */
+ if(!M._dev){M._dev=1;M.onMoment=t=>{if(!moonOn()||Math.abs(t-nowMs())<500)return;setPlay(false);S.tm.active=true;S.tm.time=t;renderAll()};
+  M.onChart=on=>{stage.classList.toggle('moonch',!!on);moonPE(!on);renderAll()}}   /* the Moon's Chart button: the Device's main wheel, with its settings, shows through the Moon (Gemini, Nov 23) */
+ const o=c?{tz:c.tz,place:isFinite(c.lat)?{lat:c.lat,lon:c.lon,label:c.place||''}:null}:{tz:HOME&&HOME.tz};
+ if(c)Object.assign(M.ST,{name:c.name||'',chartId:c.rec&&c.rec.id||null});
+ if(M.setMoment){if(M.ST.ms!==ms||M._key!==JSON.stringify(o)){M._key=JSON.stringify(o);M.setMoment(ms,o)}}else{M.ST.ms=ms;if(o.tz)M.ST.tz=o.tz;M.render()}}
+/* With the main wheel showing through, the frame lets the mouse reach the wheel (planet hover and click) except over the Moon's own buttons, bars and boxes. */
+function moonPE(on){const f=document.querySelector('#moonv iframe');if(f)f.style.pointerEvents=on?'':'none'}
+function moonHit(x,y){const f=document.querySelector('#moonv iframe'),cw=moonFrame();if(!f||!cw)return false;const r=f.getBoundingClientRect(),sc=r.width/(f.offsetWidth||r.width)||1;
+ const el=cw.document.elementFromPoint((x-r.left)/sc,(y-r.top)/sc);return !!(el&&el.closest('button,select,input,label,a,textarea,[role=dialog],.mo-pop,.mo-menu,.mo-tm'))}
+document.addEventListener('mousemove',e=>{if(!stage.classList.contains('moonch'))return;moonPE(moonHit(e.clientX,e.clientY))},true);
+function moonPass(){const cw=moonFrame();if(!cw||cw._pass)return;cw._pass=1;cw.document.addEventListener('mousemove',e=>{if(!stage.classList.contains('moonch'))return;if(!e.target.closest||!e.target.closest('button,select,input,label,a,textarea,[role=dialog],.mo-pop,.mo-menu,.mo-tm'))moonPE(false)},true)}
+document.addEventListener('pointerdown',e=>{if(!stage.classList.contains('moonch')||e.pointerType==='mouse')return;if(moonHit(e.clientX,e.clientY))moonPE(true)},true);   /* a touch screen has no hover: a tap over a Moon button opens the frame for that tap */
 function moonView(on){let v=document.getElementById('moonv');
  if(on&&!v){v=document.createElement('div');v.id='moonv';v.setAttribute('role','region');v.setAttribute('aria-label','Moon');
-  v.innerHTML='<iframe title="Moon"></iframe><button type="button" class="mvback" data-moonback>&#9664; Main Wheel</button>';stage.appendChild(v);
+  v.innerHTML='<iframe title="Moon"></iframe>';stage.appendChild(v);
   const f=v.querySelector('iframe');
   /* Load the Moon app's text into the frame (srcdoc), with a base for its places.txt, so it also shows inside hosted previews that leave a plain nested page blank. */
-  fetch('moon.html').then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{const b='<base href="'+new URL('.',location.href).href+'">';f.srcdoc=/<head[^>]*>/i.test(t)?t.replace(/<head[^>]*>/i,m=>m+b):b+t}).catch(()=>{f.src='moon.html'});
-  f.addEventListener('load',()=>{if(!f.srcdoc&&!f.getAttribute('src'))return;v.dataset.ok='1';try{moonSync(f.contentWindow)}catch(e){}});
-  v.querySelector('[data-moonback]').addEventListener('click',e=>{e.stopPropagation();moonView(false)})}
- if(on){S.open=null;stage.classList.add('moonv');renderAll();if(v.dataset.ok)try{moonSync(v.querySelector('iframe').contentWindow)}catch(e){}}
+  fetch('moon.html').then(r=>{if(!r.ok)throw 0;return r.text()}).then(t=>{const b='<base href="'+new URL('.',location.href).href+'">';if(tmDocked())t=t.replace(/<body([^>]*)>/i,'<body$1 class="mo-embed">');f.srcdoc=/<head[^>]*>/i.test(t)?t.replace(/<head[^>]*>/i,m=>m+b):b+t}).catch(()=>{f.src='moon.html'});
+  f.addEventListener('load',()=>{if(!f.srcdoc&&!f.getAttribute('src'))return;v.dataset.ok='1';try{moonSync(f.contentWindow);moonPass()}catch(e){}if(moonOn())setTimeout(()=>v.classList.add('irisopen'),60)})}
+ clearTimeout(moonView.t);
+ if(on){S.open=null;v.classList.remove('closing');stage.classList.add('moonv');renderAll();if(v.dataset.ok)requestAnimationFrame(()=>requestAnimationFrame(()=>v.classList.add('irisopen')));   /* the first time, the iris waits until the Moon has loaded */const cw=moonFrame();if(cw)try{moonSync(cw)}catch(e){}}
+ else if(v&&moonOn()){v.classList.add('closing');v.classList.remove('irisopen');stage.classList.remove('moonv','moonch');moonPE(true);reloadCharts();renderAll();moonView.t=setTimeout(()=>{v.classList.remove('closing');const cw=moonFrame();if(cw&&cw.EA_MOON&&cw.EA_MOON.thru)cw.EA_MOON.thru(false)},S.noAnim?0:560)}   /* the main wheel is back underneath while the iris closes */
  else{stage.classList.remove('moonv');reloadCharts();renderAll()}}
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&moonOn()&&!S.open){moonView(false);e.stopImmediatePropagation()}});
 /* ArcheoAstronomy (Thom, Core Request Nov 20): dist/archeoastronomy.html; archOpen(siteId) opens it on one site through window.EA_ARCH.open(id). */
