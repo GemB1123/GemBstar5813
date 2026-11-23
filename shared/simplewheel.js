@@ -234,7 +234,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   {const gp=gap,m={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],C=cu?cu.slice(1,13).map(n360):[],dd=(a,b)=>((a-b+540)%360)-180,n=list.length;
    /* STELLIUM (Gemini, Nov 18, GLOBAL): a house too full to hold its planets (Venus at 4° Leo crowded against the 2nd cusp) grows into
       the next house: the glyph held against that cusp crosses it and sits in the neighboring space, its leader line points back to the
-      true degree, and the whole stellium is framed (below) so it still reads as one group. opts.stellium:false turns this off */
+      true degree. opts.stellium:false turns this off. No frame around the group (Gemini, Nov 23: "No need to draw this box"); opts.stelFrame:true brings it back */
    const over=()=>{const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),O=[];for(let i=0;i<n&&n>1;i++){const A1=B[i],A2=B[(i+1)%n];if(n360(A2.d-A1.d)<gp-.3)O.push(A1,A2)}
     /* also too full when the glyphs only fit by sitting back on a cusp line (the last relax pass pushed one there; Leo, Nov 18) */
     list.forEach(x=>{if(C.some(c=>Math.abs(dd(x.d,c))<m-.3))O.push(x)});return O.length?O:null};
@@ -293,12 +293,12 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
      g.forEach((x,i)=>{const o=(i-(n2-1)/2)*rowH;x.bk={c:c2,o,v,sh:rO-Math.sqrt(Math.max(0,rO*rO-o*o))};x.sc=kk});
      const ptA=(x,r,dt)=>{const p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*(x.bk.o+dt),p0[1]+v[1]*(x.bk.o+dt)]},OU=[],IN=[];
      g.forEach(x=>{OU.push(ptA(x,rO+1,-hr),ptA(x,rO+1,hr));IN.push(ptA(x,rI-2,-hr),ptA(x,rI-2,hr))});
-     h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
+     if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu)){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
    for(const g of G){if(opts.stellium==='block'||g.some(x=>x.bk)||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
-    h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
+    if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
   /* Latitude (Gemini, Nov 23): opts.latShift(name, eclR) moves each planet's glyph stack in or out from the ecliptic by its latitude (one chart only) */
   if(main&&nb===1&&opts.latShift)list.forEach(x=>{x.ls=+opts.latShift(x.k,eclR)||0});
   const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{r+=x.ls||0;if(!x.bk)return xy(x.d,r);r=R.g-(R.g-r)*(x.sc||1);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
