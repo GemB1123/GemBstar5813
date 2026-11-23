@@ -65,8 +65,8 @@ const SGN=['♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','�
 /* the Nodes and the Parts (Fortune, Spirit) are drawn only when an app lists them in opts.planets: default off everywhere (Gemini, Nov 16) */
 const DEF_PL=['Sun','Moon','Mercury','Venus','Mars','Jupiter','Saturn','Uranus','Neptune','Pluto','Node','SNode'];   /* Gemini, Nov 18 (global): both TRUE Nodes on by default (apps pass true-node longitudes; hide via opts.planets); Fortune and Spirit stay off */
 const THEMES={
- light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#2f5fb3','#a03a6b'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
- dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#9fc4ff','#e8a3c4'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
+ light:{bg:'#f7f8fa',ringA:'#8f939c',ringB:'#4c5059',rinkA:'#2e3036',rinkB:'#c3c7cf',ringEdge:'#6f737c',house:'#eceef2',line:'#a3a8b2',axis:'#2e3240',ink:'#1d2027',soft:'#5b616d',ret:'#b3261e',aspBg:'#ffffff',gold:'#b08524',goldHi:'#dcb24c',goldLo:'#6e4f0c',glow:.3,ringCols:['#6b7280','#2f5fb3'],band:'#e4e7ed',xrA:'#eef0f4',xrB:'#e0e3ea',xrInk:'#3a3f4c',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#2c2f35','#15171b'],cuspInk:'#ffffff',cuspEl:ELD,pl:PCL,el:ELC},
+ dark:{bg:'#0b0f26',ringA:'#1c2348',ringB:'#28305e',ringFill:['#77322d','#3e5f56','#a8875a','#363a7d'],rinkA:'#ffffff',rinkB:'#ffffff',ringEdge:'#c9b27a',house:'#141a3a',line:'#c9b27a99',axis:'#f3e7c4',ink:'#f3e7c4',soft:'#c9b27a',ret:'#ff9a8a',aspBg:'#0e1430',gold:'#f5c35c',goldHi:'#ffe9ad',goldLo:'#cf962c',glow:.75,ringCols:['#d6dae2','#8fb8ff'],band:'#1a2147',xrA:'#141a3a',xrB:'#1b2246',xrInk:'#d9c79a',bezel:['#eef1f4','#c7cdd4','#8a8986','#4b4a48'],rim:['#fff3c8','#e6bf5c','#7d6a45','#3a3a3d'],cuspBand:['#e6e9ee','#a9afb8'],cuspInk:'#14161b',cuspEl:ELC,pl:PCD,el:ELD}};
 /* glyph spacing in degrees per wheel mode (Gemini, Nov 16: more room, above all on bi- and tri-wheels) */
 const GAP={big:8.5,full:14.5,compact:13,bi:13.5,tri:12};
 const n360=x=>((x%360)+360)%360,f=n=>n.toFixed(1),rad=d=>d*Math.PI/180;
@@ -104,6 +104,11 @@ function spread(L,gap){L.sort((a,b)=>a.l-b.l);L.forEach(x=>x.d=x.l);const n=L.le
  A.forEach(a=>a.x.d=a.d)}
 /* each wheel gets its own gradient and filter ids, so two wheels on one page keep their own colors */
 let UID=0;
+/* chart glyph colors by kind (Gemini, Nov 23, global): gold for the birth chart (or event), silver for transits, blue for progressions,
+   green for solar arcs. A ring takes r.color, else the color of r.kind ('natal','transit','progressed','solararc'), else the theme's
+   ring colors (silver, then blue). The main chart, the innermost, keeps its gold. */
+const KIND={natal:{dark:'#f5c35c',light:'#b08524'},transit:{dark:'#d6dae2',light:'#6b7280'},progressed:{dark:'#8fb8ff',light:'#2f5fb3'},solararc:{dark:'#86d9a5',light:'#2e8b57'}};
+function ringCol(r,i,th,rc){return r.color||(KIND[r.kind]&&KIND[r.kind][th==='dark'?'dark':'light'])||(rc||[])[i]}
 function svg(chart,opts){const u='w'+(++UID).toString(36),o=svg0(chart,opts).replace(/(id="|url\(#)(eaw(?:bz|gg|glow|bold|cb|cm))\b/g,'$1$2'+u);return opts&&opts.facingNorth?mirror(o):o}
 /* Facing North (Gemini, Nov 22, global, for southern-hemisphere charts): in the south the Sun and Moon arc across the northern sky, so
    someone facing them sees the east on the right with the Midheaven overhead. opts.facingNorth mirrors the whole wheel left to right
@@ -169,6 +174,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h+=`<circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/>`+(xr.length?`<circle r="${RX0}" fill="none" stroke="${T.ringEdge}" stroke-width=".8"/>`:'')+`<circle r="${RP}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;
  /* the house cusp ring: silver on a dark wheel with black cusp degrees, dark gray on a light wheel with white (Gemini, Nov 13) */
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
+ /* the sky behind the planets (Gemini, Nov 23): opts.sky(R) returns stars, Milky Way, and constellations as SVG centered on the wheel, to fill
+    the planet zone out to radius R, turned so its ecliptic longitudes match the wheel's (the app supplies it; the Device uses its own sky) */
+ if(opts.sky){const sk=opts.sky(RP);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
@@ -269,7 +277,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
- rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,r.color||RCOL[i]||T.soft,false,i+1)});
+ rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,ringCol(r,i,opts.theme,RCOL)||T.soft,false,i+1)});
  const L=band(P,RX,RP-H*rings.length,null,true);
  /* aspect circle: tap for the next aspect set, double tap to make it large */
  const pp={};L.forEach(x=>pp[x.k]=x.l);if(angles){pp.AS=n360(cu[1]);pp.MC=n360(cu[10])}
@@ -333,7 +341,7 @@ function attach(root,cb){if(root)zoomable(root);if(!root||root.__eaw){if(root)ro
  root.addEventListener('keydown',e=>{const g=e.target.closest&&e.target.closest('[data-eaw="asp"]');if(!g||(e.key!=='Enter'&&e.key!==' '))return;e.preventDefault();(e.shiftKey?root.__eaw.dbl:root.__eaw.tap)&&(e.shiftKey?root.__eaw.dbl():root.__eaw.tap())})}
 /* legend for bi- and tri-wheels: one line per ring, inner to outer, a dot in the ring's color and its label */
 function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.light,C=opts.colors||{},rc=C.ringCols||T.ringCols,pm=opts.planetColors||'gold';
- const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:r.color||rc[i]})));
+ const main=pm==='gold'?(C.gold||T.gold):T.ink,L=[{label:chart.label||'Chart',color:chart.color||main}].concat((chart.rings||[]).slice(0,2).map((r,i)=>({label:r.label||('Ring '+(i+2)),color:ringCol(r,i,opts.theme,rc)})));
  return `<div class="eaw-legend" style="display:flex;flex-wrap:wrap;gap:4px 14px;font:600 12px Inter,system-ui,sans-serif;font-variant-numeric:tabular-nums">`+L.map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:50%;background:${x.color};display:inline-block"></i>${String(x.label).replace(/</g,'&lt;')}</span>`).join('')+'</div>'}
-window.EAWheel={svg,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+window.EAWheel={svg,kindColors:KIND,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
