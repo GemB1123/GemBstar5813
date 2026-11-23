@@ -260,6 +260,17 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     const L=list.slice().sort((p,q)=>p.l-q.l);let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(L[(i+1)%n].l-L[i].l);if(g>w){w=g;wi=(i+1)%n}}
     const LO=L.slice(wi).concat(L.slice(0,wi)),D=cut(list.map(x=>n360(x.d)));let k0=0,bd=1e9;for(let k=0;k<n;k++){let t=0;LO.forEach((x,i)=>{t+=Math.abs(((D[(i+k)%n]-x.l+540)%360)-180)});if(t<bd){bd=t;k0=k}}
     LO.forEach((x,i)=>{x.d=D[(i+k0)%n]})}}
+  /* HOUSE LOCK (Gemini, Nov 23, GLOBAL; replaces the Nov 18 rule that let a full house grow into the next one): every planet's glyph stays
+     inside its own house. A house first gives up its cusp margin; if it is still too full, that house's glyph stacks shrink (to half size at
+     most) so its planets fit between its cusps. Ticks stay on the true degree. opts.houseLock:false turns this off */
+  if(cu&&opts.houseLock!==false&&mode!=='big'){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b},
+    mg={full:5.5,compact:5,bi:4.5,tri:4}[mode]||4,HG={};list.forEach(x=>{x.sc=1;(HG[hs(x.l)]=HG[hs(x.l)]||[]).push(x)});
+   for(const k of Object.keys(HG)){const g=HG[k],c0=CS[k],wid=n360(CS[(+k+1)%12]-c0),n2=g.length;g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
+    const raw=(wid-.8)/(n2*gap),blk=(raw<.6||(raw<.85&&n2>=4))&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(.6,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
+    let D=P.map(v=>Math.min(hi,Math.max(lo,v)));for(let i=1;i<n2;i++)D[i]=Math.max(D[i],D[i-1]+gp);for(let i=n2-1;i>=0;i--){if(D[i]>hi)D[i]=hi;if(i<n2-1&&D[i]>D[i+1]-gp)D[i]=D[i+1]-gp}
+    if(D[0]<lo){const sp=n2>1?(hi-lo)/(n2-1):0;D=D.map((v,i)=>n2>1?lo+i*sp:(lo+hi)/2)}
+    g.forEach((x,i)=>{x.d=n360(c0+D[i]);x.sc=sc;x.blk=blk})}
+   /* glyphs pulled back into their house can now crowd a neighbor house's glyph across the cusp; the margins above keep them apart */}
   if(cu&&opts.stellium!==false&&list.length>2){const dd=(a,b)=>((a-b+540)%360)-180,mm={big:4,full:5.5,compact:5,bi:4.5,tri:4}[mode],CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b};
    const B=list.slice().sort((a,b)=>n360(a.d)-n360(b.d)),n=B.length;let w=-1,wi=0;for(let i=0;i<n;i++){const g=n360(B[(i+1)%n].d-B[i].d);if(g>w){w=g;wi=(i+1)%n}}
    const S=B.slice(wi).concat(B.slice(0,wi)),G=[[S[0]]];for(let i=1;i<n;i++){const sp=n360(S[i].d-S[i-1].d),cx=CS.some(c=>n360(c-S[i-1].d)<sp);if(sp<gap*1.35||(cx&&sp<gap+2*mm+.5))G[G.length-1].push(S[i]);else G.push([S[i]])}
@@ -268,29 +279,38 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       of parallel rows, one row per planet (glyph, degree, sign, minutes), all pointing toward the center along the group's middle angle and
       stacked shoulder to shoulder in zodiac order, kept inside the planets' own house when it fits; each glyph's tick still marks its true
       degree with a thin leader, and the block is framed */
-   if(opts.stellium==='block'&&main&&(mode==='full'||mode==='compact'))for(const g of Object.values(list.reduce((o,x)=>{(o[hs(x.l)]=o[hs(x.l)]||[]).push(x);return o},{}))){if(g.length<3)continue;{const b0=CS[hs(g[0].l)];g.sort((p,q)=>n360(p.l-b0)-n360(q.l-b0))}const n2=g.length,rowH=(R.gs||17*GS)*1.06,half=n2*rowH/2,
-     ca=g.reduce((s0,x)=>s0+dd(x.l,g[0].l),0)/n2+g[0].l,hw=Math.asin(Math.min(1,half/(R.m||R.s||R.d||R.g)))*57.3+.6,hk=hs(n360(ca)),c0=CS[hk],c1=CS[(hk+1)%12],wid=n360(c1-c0);let c2=ca;
-     if(wid>=2*hw){const e0=n360(c2-c0);if(e0<hw)c2=c0+hw;else if(e0>wid-hw)c2=c0+wid-hw}else c2=c0+wid/2;
-     const t=rad(180+c2-rot),v=[-Math.sin(t),-Math.cos(t)],shf=Math.sqrt(ro*ro+half*half)-ro;g.forEach((x,i)=>{x.bk={c:c2,o:(i-(n2-1)/2)*rowH,v,sh:shf}});
-     const pad=rowH*.55,P0=r=>xy(c2,r-shf),cn=[[ro+2,-1],[ro+2,1],[ri0-2,1],[ri0-2,-1]].map(([r,sg])=>{const p0=P0(r);return [p0[0]+v[0]*sg*(half+pad*.2),p0[1]+v[1]*sg*(half+pad*.2)]});
-     h+=`<path class="eaw-stel" d="M${cn.map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
-   if(opts.stellium==='block'){const BK=[];list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
+   if(main&&(mode==='full'||mode==='compact'))for(const g of Object.values(list.reduce((o,x)=>{(o[hs(x.l)]=o[hs(x.l)]||[]).push(x);return o},{}))){if(g.length<3||!(opts.stellium==='block'||g.some(x=>x.blk)))continue;
+     /* rows follow the rim like AstroGold's (Gemini, Nov 23, from the Feb 1962 Aquarius stellium): every row points at the center along the
+        block's middle angle, its glyph sits on the glyph circle (a staircase, not a box), and rows shrink until the whole stack fits between the
+        house's cusps, so no planet ever looks like it is in the next house */
+     const hk=hs(g[0].l),c0=CS[hk],wid=n360(CS[(hk+1)%12]-c0);g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
+     const n2=g.length,rh0=(R.gs||17*GS)*1.06,Ln=ro-ri0,lim=Math.max(1,wid/2-1.2),
+      spanA=rh=>{const k=rh/rh0,rO=R.g+(ro-R.g)*k,om=(n2-1)/2*rh+rh*.55;if(om>=rO*.9)return 99;const sq=Math.sqrt(rO*rO-om*om);return Math.max(Math.asin(om/rO),Math.atan2(om,Math.max(1,sq-Ln*k)))*57.3};
+     let rowH=rh0;while(rowH>rh0*.4&&spanA(rowH)>lim)rowH*=.96;
+     const hwA=spanA(rowH)+1.2,ca=c0+g.reduce((s0,x)=>s0+n360(x.l-c0),0)/n2;let c2=ca;
+     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else c2=c0+wid/2;
+     const t=rad(180+c2-rot),v=[-Math.sin(t),-Math.cos(t)],hr=rowH/2,kk=rowH/rh0,rO=R.g+(ro-R.g)*kk,rI=R.g-(R.g-ri0)*kk;
+     g.forEach((x,i)=>{const o=(i-(n2-1)/2)*rowH;x.bk={c:c2,o,v,sh:rO-Math.sqrt(Math.max(0,rO*rO-o*o))};x.sc=kk});
+     const ptA=(x,r,dt)=>{const p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*(x.bk.o+dt),p0[1]+v[1]*(x.bk.o+dt)]},OU=[],IN=[];
+     g.forEach(x=>{OU.push(ptA(x,rO+1,-hr),ptA(x,rO+1,hr));IN.push(ptA(x,rI-2,-hr),ptA(x,rI-2,hr))});
+     h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
+   if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu)){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
-   for(const g of G){if(opts.stellium==='block'||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
+   for(const g of G){if(opts.stellium==='block'||g.some(x=>x.bk)||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
     h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
   /* Latitude (Gemini, Nov 23): opts.latShift(name, eclR) moves each planet's glyph stack in or out from the ecliptic by its latitude (one chart only) */
   if(main&&nb===1&&opts.latShift)list.forEach(x=>{x.ls=+opts.latShift(x.k,eclR)||0});
-  const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{r+=x.ls||0;if(!x.bk)return xy(x.d,r);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
+  const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{r+=x.ls||0;if(!x.bk)return xy(x.d,r);r=R.g-(R.g-r)*(x.sc||1);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
    {const k0=xy(x.l,tb),k1=xy(x.l,tb+sd*TL),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${f((nb>1?1.4:1.8)*(.4+.6*GS))}" stroke-linecap="${opts.ticksOnDivider!==false&&nb>1?'butt':'round'}"/>`}
    if(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-   const g=at(x,R.g),gs=R.gs||17*GS;
+   const g=at(x,R.g),xk=x.sc||1,gs=(R.gs||17*GS)*xk;
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=at(x,R.d),s2=at(x,R.s),m=at(x,R.m);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=at(x,R.d),s2=at(x,R.s);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss,scol(q.s)||c)}
-   else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds,rx?T.ret:ink,700,1)}
+   if(mode==='full'){const d=at(x,R.d),s2=at(x,R.s),m=at(x,R.m);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms*xk,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=at(x,R.d),s2=at(x,R.s);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)}
+   else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
  rings.forEach((r,i)=>{const t=RP-H*(rings.length-1-i);h+=`<circle r="${f(t-H)}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;band(r.pos,r.ret||{},t,ringCol(r,i,opts.theme,RCOL)||T.soft,false,i+1)});
