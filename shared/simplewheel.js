@@ -183,9 +183,10 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
    h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
-   /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): left to right, or top to
-       bottom where the label stands upright; on the far side of the wheel (houses 7 to 11 when the AS is on the left) the two ends swap */
-   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp0=hs?4.2:4.4,q=dms(cu[i]),e0=xy(cu[i]-sp0,rc),e1=xy(cu[i]+sp0,rc),dx=e1[0]-e0[0],dy=e1[1]-e0[1],sp=(Math.abs(dx)>=Math.abs(dy)?dx<0:dy<0)?-sp0:sp0,pd=xy(cu[i]-sp,rc),
+   /* cusp labels read Degree, Sign, Minutes in reading order wherever the cusp sits (Gemini, Nov 18): the degree is always the left end,
+       as in AstroGold (Gemini, Nov 23: the 5th, 6th, 11th, and 12th cusps had Minutes, Sign, Degree); only where the label stands nearly
+       upright (within about 11° of the AS/DS line) does it read top to bottom */
+   const hs=sty==='houses',rc=hs?(R0+R1)/2:RC,sp0=hs?4.2:4.4,q=dms(cu[i]),e0=xy(cu[i]-sp0,rc),e1=xy(cu[i]+sp0,rc),dx=e1[0]-e0[0],dy=e1[1]-e0[1],sp=(Math.abs(dx)>=.2*Math.abs(dy)?dx<0:dy<0)?-sp0:sp0,pd=xy(cu[i]-sp,rc),
     /* the metal cusp ring is light at the top and dark at the bottom, so its text turns white past the middle */
     dk=MET&&(pd[1]+ME)/(2*ME)>.55,cI=MET?(dk?'#ffffff':'#14161b'):hs?null:cIn,cE=MET?(dk?ELD:ELC):hs?T.el:cEl,ps=xy(cu[i]-.1,rc),pm=xy(cu[i]+sp,rc),cc=ax?T.axis:T.soft;
    if(hs){const t0=xy(cu[i],R0),t1=xy(cu[i],R1);h+=`<line x1="${f(t0[0])}" y1="${f(t0[1])}" x2="${f(t1[0])}" y2="${f(t1[1])}" stroke="${ax?T.axis:T.ringEdge}" stroke-width="${ax?1.6:.6}" opacity=".5"/>`}
