@@ -16,7 +16,8 @@
                       spec = {tab:'asp'|'rd'|'ing'|'pos'|'house'|'ret'|'lun', ...fields as in the panel}; returns {jd, label, ring} or {jd:null, msg}
      events({anchor, ctx, getMs, go, natal, title})   opens the Step Chart to Event panel beside anchor. Prev and Next search from getMs();
                       go(ms, label, ring) moves the app's chart (ring: 'tr' | 'pr' | 'sa', which wheel moved). X, Escape, or a click outside closes it.
-     close()          closes the panel */
+     close()          closes the panel
+     lunar            lunation arrows: syz(ms, dir), eclipse(jd, full), icon(t, size) (see below) */
 (function(){
 const UNITS=[['s','Second',1e3],['mi','Minute',6e4],['h','Hour',36e5],['d','Day',864e5],['w','Week',6048e5],['mo','Month',0],['y','Year',0],['de','Decade',0],['c','Century',0]];
 const MON={mo:1,y:12,de:120,c:1200};
@@ -112,5 +113,29 @@ function injectCss(){if(document.getElementById('eat-css'))return;const s=docume
 .eat-s{flex:1;text-align:center;display:flex;flex-direction:column}.eat-s small{opacity:.7;font-size:11.5px}
 .eat-l{margin-top:8px;font-size:13px;text-align:center;opacity:.9}
 .eat-p button:focus-visible,.eat-p select:focus-visible{outline:2px solid #f3e7c4;outline-offset:1px}`;(document.head||document.documentElement).appendChild(s)}
-window.EATime={UNITS,step,unitName,speeds,STAR_TARGET,TABS,LUNATIONS,ASPECTS,KINDS_FROM,KINDS_TO,find,events,close,isOpen:()=>!!P};
+/* ---------- Lunation arrows (Leo, Nov 23, from Kidinnu's Moon bar): jump to the previous or next New or Full Moon; the icon shows which,
+   the Sun for a New Moon, the full Moon for a Full Moon, an eclipse icon (red edge) when it is an eclipse. Needs window.EA_JPL.
+   lunar.syz(ms, dir) -> {ms, jd, full, eclipse, name} or null;  lunar.eclipse(jd, full) -> 'Total Solar Eclipse' ... or null;
+   lunar.icon(t, size) the icon SVG for a syz() result ---------- */
+const LR=Math.PI/180,LAU=149597870.7,LSYN=29.530589,jdOfMs=ms=>ms/864e5+2440587.5,msOfJd=jd=>(jd-2440587.5)*864e5,n360=e360;
+const LB=(n,jd)=>window.EA_JPL&&EA_JPL.body?EA_JPL.body(n,jd,{speed:false}):null;
+function elong(jd){const s=LB('Sun',jd),m=LB('Moon',jd);return s&&m?n360(m.lon-s.lon):null}
+function findElong(t,jd){for(let i=0;i<12;i++){const e=elong(jd);if(e==null)return null;const d=e180(e-t);jd-=d/12.19;if(Math.abs(d)<1e-6)break}return jd}
+function prevNew(jd){const e=elong(jd);if(e==null)return null;let n=findElong(0,jd-e/12.19);if(n!=null&&n>jd+1/1440)n=findElong(0,n-LSYN);return n}
+function eclipse(jd,full){const s=LB('Sun',jd),m=LB('Moon',jd);if(!s||!m||m.lat==null)return null;const dm=m.dist*LAU,ds=s.dist*LAU,as=x=>Math.asin(x)/LR;
+ const pm=as(6378.137/dm),ps=as(6378.137/ds),sm=as(1737.4/dm),ss=as(696000/ds),g=Math.abs(m.lat)*0.9962;
+ if(!full){if(g>pm-ps+sm+ss)return null;if(g<pm-ps)return sm*1.005>ss?'Total Solar Eclipse':'Annular Solar Eclipse';return 'Partial Solar Eclipse'}
+ const pen=1.02*(pm+ps+ss),umb=1.02*(pm+ps-ss);
+ if(g+sm<umb)return 'Total Lunar Eclipse';if(g-sm<umb)return 'Partial Lunar Eclipse';if(g-sm<pen)return 'Penumbral Lunar Eclipse';return null}
+function syz(ms,dir){const jd=jdOfMs(ms),eps=2/1440,n0=prevNew(jd+eps*dir);if(n0==null)return null;const c=[];
+ for(let k=-1;k<=2;k++){const n=k===0?n0:findElong(0,n0+k*LSYN),f=findElong(180,n0+(k+.5)*LSYN);if(n!=null)c.push({jd:n,full:false});if(f!=null)c.push({jd:f,full:true})}
+ const t=c.filter(x=>dir>0?x.jd>jd+eps:x.jd<jd-eps).sort((a,b)=>dir*(a.jd-b.jd))[0];if(!t)return null;
+ t.ms=msOfJd(t.jd);t.eclipse=eclipse(t.jd,t.full);t.name=t.eclipse||(t.full?'Full Moon':'New Moon');return t}
+const SUN_IC=s=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="7.5" fill="none" stroke="#dfe2e8" stroke-width="2"/><circle cx="12" cy="12" r="2" fill="#f4f5f8"/></svg>`,
+ FULL_IC=s=>`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#e9edf5"/><circle cx="9" cy="10" r="1.6" fill="#c3c8d2"/><circle cx="14.5" cy="14" r="2.2" fill="#c3c8d2"/></svg>`,
+ ECL_IC=(solar,s)=>solar?`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="10.6" cy="13" r="7.8" fill="#dfe2e8"/><circle cx="15.2" cy="9.6" r="6.6" fill="#0b0f26" stroke="#dfe2e8" stroke-width="1.5"/></svg>`
+ :`<svg viewBox="0 0 24 24" width="${s}" height="${s}" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="#b4573a" stroke="#e0675c" stroke-width="1.3"/></svg>`;
+const icon=(t,s)=>{s=s||20;return !t?SUN_IC(s):t.eclipse?ECL_IC(!t.full,s):t.full?FULL_IC(s):SUN_IC(s)};
+const lunar={syz,eclipse,prevNew,findElong,icon};
+window.EATime={lunar,UNITS,step,unitName,speeds,STAR_TARGET,TABS,LUNATIONS,ASPECTS,KINDS_FROM,KINDS_TO,find,events,close,isOpen:()=>!!P};
 })();
