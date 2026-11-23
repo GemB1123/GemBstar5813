@@ -174,6 +174,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h+=`<circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/>`+(xr.length?`<circle r="${RX0}" fill="none" stroke="${T.ringEdge}" stroke-width=".8"/>`:'')+`<circle r="${RP}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;
  /* the house cusp ring: silver on a dark wheel with black cusp degrees, dark gray on a light wheel with white (Gemini, Nov 13) */
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
+ /* the sky behind the planets (Gemini, Nov 23): opts.sky(R) returns stars, Milky Way, and constellations as SVG centered on the wheel, to fill
+    the planet zone out to radius R, turned so its ecliptic longitudes match the wheel's (the app supplies it; the Device uses its own sky) */
+ if(opts.sky){const sk=opts.sky(RP);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
