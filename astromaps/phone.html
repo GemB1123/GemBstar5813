@@ -6352,7 +6352,7 @@ const agSvg=A.agSvg,cuspsFor=A.cuspsFor,ASPG=A.ASPG||[],SFILL=A.SFILL||['#482027
 const AMP_CFG={
  frame:{x:200,y:30,w:1040,h:730},
  /* pop-ups over the drawing (Gemini, Nov 11): a simple chart wheel (the Planetary Tables look) and a Local Space compass, each movable with an X */
- vis:{max:3,op:.26},
+ vis:{max:3,op:.26,allOp:.42,allColor:'#ffd166'},
  /* Story Maps (Gemini, Nov 19): example lists beside the page, how far in the map flies, parans within 1° of latitude, lines within 150 mi in bold */
  ltag:{hit:9},meas:{color:'#ffd166',n:96},
  story:{sample:'stories.json',zoom:6,zoomMax:12,zoomTrip:2.5,globeZoom:1.8,flySteps:30,parOrb:1,max:8,tight:150,hit:16,freeMin:260,sideW:380,phoneY:.3,globeStepsMax:96,globeStepsPerDeg:.45,globeTripDeg:35},tide:{sun:.46,color:'#5fd0e0',op:.5},find:{min:8,max:10},
@@ -6410,7 +6410,7 @@ const PRESETS=[['all','All',BODIES.slice()],['inner','Sun To Mars',['Sun','Moon'
 const VIEWS={h:84,stars:[['map','ampmap','World Map',24,40],['globe','ampglobe','Globe',76,40]],lines:[['map','globe']]};
 const nm=k=>k==='Node'?'North Node':k==='SNode'?'South Node':k;
 const D=AMP_CFG.defaults;
-const ST={hiMC:new Set(),hiAS:new Set(),zopMC:null,zopAS:null,vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pick:false,pickHint:false,pops:{kind:false,stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popW:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
+const ST={visAll:false,hiMC:new Set(),hiAS:new Set(),zopMC:null,zopAS:null,vis:[],tide:false,tideSun:true,find:{k:'Sun',a:'AS'},findL:[],oob:new Set(),geo:false,prime:'greenwich',primeC:null,pq:'',mode:'mundo',moment:'chart',meas:{on:false,pts:[]},ltag:null,pick:false,pickHint:false,pops:{kind:false,stories:false,story:false,gaze:false,sky:false,ecl:false,zodiac:false,lines:false,relocate:false,wheel:false,compass:false},off:new Set(),aspOn:new Set(),aspTo:new Set(['MC','AS']),midOn:false,midWith:'',parOn:false,parWith:'',parPolar:true,parBand:false,pll:false,pllOrb:1.5,pllTight:false,ecl:{y0:null,y1:null,kind:'all',on:new Map(),saros:null,lines:false},popPos:{},popW:{},popOrder:[],view:D.view,theme:D.theme,units:D.units,orb:D.orb,on:new Set(D.on),ang:new Set(D.ang),chart:null,place:null,focus:'',gz:1,mz:1,mc:[0,0],rot:null,q:'',hits:[],
  show:Object.fromEntries(Object.entries(AMP_CFG.show).map(([k,v])=>[k,v[1]]))};
 const SH=k=>!!ST.show[k];
 const TH=()=>AMP_CFG.themes[ST.theme]||AMP_CFG.themes.night;
@@ -6697,7 +6697,9 @@ const vecOf=p=>[Math.cos(p[1]*R)*Math.cos(p[0]*R),Math.cos(p[1]*R)*Math.sin(p[0]
 const dot3=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 /* shading layers {c:[r,g,b], a:P=>alpha} for a unit vector P on the Earth */
 function skyShades(){const c=chart();if(!c||c.jd==null)return [];const jd=mjd(),out=[],V=AMP_CFG.vis;
- for(const k of ST.vis){const v=vecOf(subPt(k,jd));out.push({c:hex(colOf(k)),a:P=>V.op*Math.max(0,Math.min(1,(dot3(P,v)+.012)/.03))})}
+ /* Together (Gemini, Nov 23): only where every chosen planet is above the horizon at once, in gold, e.g. Sun and Moon both up */
+ if(ST.visAll&&ST.vis.length>1){const vs=ST.vis.map(k=>vecOf(subPt(k,jd)));out.push({c:hex(V.allColor),a:P=>{let m=1;for(const v of vs){m=Math.min(m,(dot3(P,v)+.012)/.03);if(m<=0)return 0}return V.allOp*Math.min(1,m)}})}
+ else for(const k of ST.vis){const v=vecOf(subPt(k,jd));out.push({c:hex(colOf(k)),a:P=>V.op*Math.max(0,Math.min(1,(dot3(P,v)+.012)/.03))})}
  if(ST.tide){const T=AMP_CFG.tide,m=vecOf(subPt('Moon',jd)),sv=vecOf(subPt('Sun',jd)),f=ST.tideSun?T.sun:0;
   out.push({c:hex(T.color),a:P=>{const a=dot3(P,m),b=dot3(P,sv),h=(a*a-1/3)+f*(b*b-1/3);return h>0?T.op*Math.min(1,h/.55):0}})}
  return out}
@@ -6748,7 +6750,8 @@ function skyHTML(){const ck=(on,id,lab,inner)=>`<button type="button" class="amp
  return `<div class="amp-asps">${ck(SH('daynight'),'day','Day and night','Day And Night')}</div>
  <div class="amp-lcap">${zo?'WHERE EACH DEGREE WAS ABOVE THE HORIZON':'WHERE EACH PLANET WAS ABOVE THE HORIZON'}</div>
  <div class="amp-asps amp-mw" role="group" aria-label="Above the horizon">${BODIES.map(k=>ck(ST.vis.includes(k),'v:'+k,`Where ${nm(k)}${zo?"'s degree":''} was above the horizon`,PGH(k,14,colOf(k)))).join('')}${ST.vis.length?ck(false,'v:','Clear all','Clear'):''}</div>
- <small class="amp-pn">Up to ${AMP_CFG.vis.max} at a time, each tinted in its own color, so the overlaps show where two or three were up together. A fourth replaces the first one picked. The edge of each tint is that planet's AS and DS lines.</small>
+ ${ST.vis.length>1?`<div class="amp-asps">${ck(ST.visAll,'vall','Only where all of them are up together','Together')}</div>`:''}
+ <small class="amp-pn">Up to ${AMP_CFG.vis.max} at a time, each tinted in its own color, so the overlaps show where two or three were up together. A fourth replaces the first one picked. The edge of each tint is that planet's AS and DS lines. Together shows only where all of the chosen planets are above the horizon at once, in gold (for example the Sun and Moon both up, to see a natal Moon phase at a Metonic return). Day And Night is separate: it darkens the night side.</small>
  <div class="amp-lcap">TIDES</div><div class="amp-asps">${ck(ST.tide,'tide','Tides','Tides')}${ST.tide?ck(ST.tideSun,'tsun',"Add the Sun's pull","Add The Sun's Pull"):''}</div>
  ${ST.tide?`<small class="amp-pn">${tideNote()}</small>`:''}
  <div class="amp-lcap">FIND PLACES</div><div class="amp-asps amp-mw" role="group" aria-label="Planet to find">${BODIES.map(k=>ck(F.k===k,'fk:'+k,nm(k),PGH(k,14,colOf(k)))).join('')}</div>
@@ -6825,7 +6828,7 @@ function bandMap(l){const M=MAPR(),y0=Math.max(M.y,mapXY(0,l.band[1])[1]),y1=Mat
    while the map is dragged or zoomed (Gemini, Nov 12: zooming was twitchy and the fan ran; these used to be repainted
    on every frame). Redrawn only when the moment, theme, or switches change. */
 let RAS={k:'',url:''};
-function worldRaster(){const c=chart();if(!c||c.jd==null)return '';const I=TH(),jd=mjd(),day=SH('daynight'),key=JSON.stringify([jd,ST.theme,day,ST.vis,ST.tide,ST.tideSun,ST.mode,zoneKey()]);if(RAS.k===key)return RAS.url;
+function worldRaster(){const c=chart();if(!c||c.jd==null)return '';const I=TH(),jd=mjd(),day=SH('daynight'),key=JSON.stringify([jd,ST.theme,day,ST.vis,ST.visAll,ST.tide,ST.tideSun,ST.mode,zoneKey()]);if(RAS.k===key)return RAS.url;
  const Ls=skyShades().concat(zoneShades(false));if(!day&&!Ls.length){RAS={k:key,url:''};return ''}
  const W=AMP_CFG.map.rasW,H=W/2,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');if(!g)return '';
  const img=g.createImageData(W,H),o=img.data,sp=sunPoint(jd),sd=Math.sin(sp[1]*R),cd=Math.cos(sp[1]*R),nc=hex(I.night),op=I.nightOp,P=[0,0,0];
@@ -7243,7 +7246,7 @@ function act(a,id){
  else if(a==='ampang'){if(ST.ang.has(id))ST.ang.delete(id);else ST.ang.add(id);for(const k of BODIES)ST.off.delete(k+'|'+id);reading()}
  else if(a==='amplines'){const [t,v]=String(id).split(':');if(id==='all'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=true;ST.off.clear();ST.on=new Set(BODIES.filter(k=>!NODES.has(k)||ST.on.has(k)))}else if(id==='angles'){['AS','MC','DS','IC'].forEach(x=>ST.ang.add(x));ST.show.localSpace=false;ST.off.clear()}else if(t==='c')toggleCol(v);else if(t==='r')toggleRow(v);else toggleCell(t,v);reading()}
  else if(a==='ampasp'){const [t,v]=String(id).split(':');if(t==='to'){if(ST.aspTo.has(v))ST.aspTo.delete(v);else ST.aspTo.add(v)}else if(ST.aspOn.has(id))ST.aspOn.delete(id);else ST.aspOn.add(id);reading()}
- else if(a==='ampsky'){const v=String(id);if(v==='day')ST.show.daynight=!ST.show.daynight;else if(v==='tide')ST.tide=!ST.tide;else if(v==='tsun')ST.tideSun=!ST.tideSun;
+ else if(a==='ampsky'){const v=String(id);if(v==='day')ST.show.daynight=!ST.show.daynight;else if(v==='vall')ST.visAll=!ST.visAll;else if(v==='tide')ST.tide=!ST.tide;else if(v==='tsun')ST.tideSun=!ST.tideSun;
   else if(v.startsWith('v:')){const k=v.slice(2);if(!k)ST.vis=[];else if(ST.vis.includes(k))ST.vis=ST.vis.filter(x=>x!==k);else{ST.vis.push(k);if(ST.vis.length>AMP_CFG.vis.max){const old=ST.vis.shift();toast(`Up to ${AMP_CFG.vis.max} at a time: ${nm(old)} is off now.`)}}}
   else if(v.startsWith('fk:'))ST.find.k=v.slice(3);else if(v.startsWith('fa:'))ST.find.a=v.slice(3);
   else if(v==='gazefull'){ST.pops.gaze=false;if(ST.gazeO)A.openGaze(ST.gazeO);return}
