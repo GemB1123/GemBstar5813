@@ -15,7 +15,7 @@
      snap(el, {top, z})               a still copy of el's picture, in el's place (just under it, or on top with top:true)
      clear(el)                        stop any iris on el and show it whole
      on()                             true when animations should run
-     MS                               the standard length in ms (1100; Gemini, Nov 23: slower); change it to change every World
+     MS                               the standard length in ms (1500; Gemini, Nov 23: 1.5 s); change it to change every World
    Frames run on requestAnimationFrame, so several pieces (a closing Moon and the wheel appearing around it) stay in step. */
 (function(){
 const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;   /* ease in and out */
@@ -50,5 +50,5 @@ function snap(el,o){o=o||{};if(!el||!el.parentNode)return null;const cs=getCompu
 function swap(el,draw,o){o=o||{};document.querySelectorAll('.eairis-snap').forEach(n=>n.remove());
  const c=on()&&el?snap(el,{top:true,z:o.z}):null;try{draw()}finally{if(!c){if(o.done)o.done()}
   else{const g=geo(el,o);hole(c,{x:g.x,y:g.y,from:0,to:g.r,ms:o.ms,done:()=>{c.remove();if(o.done)o.done()}})}}}
-window.EAIris={swap,open,close,hole,snap,clear,on,MS:1100};
+window.EAIris={swap,open,close,hole,snap,clear,on,MS:1500};
 })();
