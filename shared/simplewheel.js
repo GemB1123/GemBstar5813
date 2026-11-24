@@ -183,9 +183,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  /* a stellium too big for its house widens the house (Gemini, Nov 24, the AstroGold way): its glyphs keep (nearly) their size, the block runs
     past the next cusp, and that cusp line bends around the block's far side. Cusp lines go in as placeholders, finished once the bands know. */
- const CUSPL={},BENT={};
+ const CUSPL={},BENT={},AXW=opts.axisWidth||1.2;   /* angular cusp lines 1.2 (Gemini, Nov 24: 1.8 was too thick beside the 0.7 cusps) */
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
-   CUSPL[i]={a,b,ax,st:`stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"`};h+=`\u0001C${i}\u0001<line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
+   CUSPL[i]={a,b,ax,st:`stroke="${ax?T.axis:T.line}" stroke-width="${ax?AXW:.7}"`};h+=`\u0001C${i}\u0001<line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?AXW:.7}" opacity=".35"/>`;
    /* cusp labels (Gemini, Nov 23: "Always deg on left, minutes on right"): Degree, Sign, Minutes read left to right on every cusp, as in
        AstroGold, whichever way the wheel turns (Facing North too). The 1st and 7th cusps (AS and DS) stack degree above, minutes below
        ("1st and 7th... degrees above, minutes below") */
@@ -198,7 +198,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   /* Gemini, Nov 18 (global): arrowheads on the AS and MC ends of the angle lines, as on the Device wheel, instead of dots */
   /* an AS or MC axis that is not a cusp: its own line, across the planet zone and faintly out to the zodiac ring */
   [AXA,AXA!=null?AXA+180:null,AXM,AXM!=null?AXM+180:null].forEach(l=>{if(l==null||!(cu.asc!=null||cu.mc!=null))return;if([1,4,7,10].some(i=>dAx(cu[i],l)<1e-6&&((angles&&!cu.even)||onAx(cu[i]))))return;
-   const a=xy(l,RP),b=xy(l,RI),a0=xy(l,R1);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.axis}" stroke-width="1.8"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="1.8" opacity=".35"/>`});
+   const a=xy(l,RP),b=xy(l,RI),a0=xy(l,R1);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.axis}" stroke-width="${AXW}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${T.axis}" stroke-width="${AXW}" opacity=".35"/>`});
   [[AXA,'AS'],[AXM,'MC']].forEach(([l,t])=>{if(l==null)return;const tp=xy(l,RP-1),bs=xy(l,RP-11),L=Math.hypot(tp[0],tp[1])||1,nx=-tp[1]/L*4.2,ny=tp[0]/L*4.2;
    h+=`<path d="M${f(tp[0])} ${f(tp[1])}L${f(bs[0]+nx)} ${f(bs[1]+ny)}L${f(bs[0]-nx)} ${f(bs[1]-ny)}Z" fill="${T.axis}"><title>${t}</title></path>`})}
  else for(let i=0;i<12;i++){const a=xy(i*30,RP),b=xy(i*30,RI);h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${T.line}" stroke-width=".6"/>`}
@@ -218,7 +218,8 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    return `${PN[x.k]||x.k} ${d}° ${SN[Math.floor(t/108000)%12]} ${String(m).padStart(2,'0')}′ ${String(sc).padStart(2,'0')}″${rx?' retrograde':''}${dc!=null?` · Dec ${dc<0?'−':'+'}${Math.floor(Math.abs(dc))}°${String(Math.floor(Math.abs(dc)%1*60)).padStart(2,'0')}′`:''}`};
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
-  const R={big:{g:140},full:{g:t-16,d:t-35,s:t-51,m:t-65,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-28,s:t-41,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  /* Gemini, Nov 24: degree, sign, and minutes sit closer to the planet and to each other (still with breathing room), freeing room for stellium cusp bends */
+  const R={big:{g:140},full:{g:t-16,d:t-32,s:t-45.5,m:t-58,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-26,s:t-37.5,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   /* opts.glyphScale (Solar Return, Gemini Nov 18: "everything smaller for breathing room"; default .85 for every chart, global) shrinks glyphs, numbers and ticks;
      opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
      stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
@@ -271,7 +272,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   if(cu&&opts.houseLock!==false&&mode!=='big'){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b},
     mg={full:5.5,compact:5,bi:4.5,tri:4}[mode]||4,HG={};list.forEach(x=>{x.sc=1;(HG[hs(x.l)]=HG[hs(x.l)]||[]).push(x)});
    for(const k of Object.keys(HG)){const g=HG[k],c0=CS[k],wid=n360(CS[(+k+1)%12]-c0),n2=g.length;g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
-    const raw=(wid-.8)/(n2*gap),blk=raw<GMIN&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(GMIN,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
+    const raw=(wid-.8)/(n2*gap),blk=(raw<.6||(raw<.85&&n2>=4))&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(GMIN,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
     let D=P.map(v=>Math.min(hi,Math.max(lo,v)));for(let i=1;i<n2;i++)D[i]=Math.max(D[i],D[i-1]+gp);for(let i=n2-1;i>=0;i--){if(D[i]>hi)D[i]=hi;if(i<n2-1&&D[i]>D[i+1]-gp)D[i]=D[i+1]-gp}
     if(D[0]<lo){const sp=n2>1?(hi-lo)/(n2-1):0;D=D.map((v,i)=>n2>1?lo+i*sp:(lo+hi)/2)}
     g.forEach((x,i)=>{x.d=n360(c0+D[i]);x.sc=sc;x.blk=blk})}
@@ -293,7 +294,10 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       spanA=rh=>{const k=rh/rh0,rO=R.g+(ro-R.g)*k,om=(n2-1)/2*rh+rh*.55;if(om>=rO*.9)return 99;const sq=Math.sqrt(rO*rO-om*om);return Math.max(Math.asin(om/rO),Math.atan2(om,Math.max(1,sq-Ln*k)))*57.3};
      let rowH=rh0;while(rowH>rh0*GMIN+1e-9&&spanA(rowH)>lim)rowH=Math.max(rh0*GMIN,rowH*.98);const over=spanA(rowH)>lim;   /* at most 10% smaller (GMIN); past that the house widens */
      const hwA=spanA(rowH)+1.2,ca=c0+g.reduce((s0,x)=>s0+n360(x.l-c0),0)/n2;let c2=ca;
-     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else{const AN=[0,3,6,9],aS=AN.includes(hk)&&(angles&&!cu.even),aE=AN.includes((hk+1)%12)&&(angles&&!cu.even);c2=aS&&!aE?c0+hwA:aE&&!aS?c0+wid-hwA:c0+wid/2}
+     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else{const AN=[0,3,6,9],aS=AN.includes(hk)&&(angles&&!cu.even),aE=AN.includes((hk+1)%12)&&(angles&&!cu.even);c2=aS&&!aE?c0+hwA:aE&&!aS?c0+wid-hwA:c0+wid/2;
+       /* Gemini, Nov 24: bent cusps must never cross; if keeping clear of the angle would bend two or more other cusps, center the block on
+          its house and let the angle bend too */
+       if(aS!==aE&&CS.filter(cv=>Math.abs(dd(cv,c2))<hwA-.05).length>=2)c2=c0+wid/2}
      /* too big for the house (Gemini, Nov 24): the AS and MC lines bend as little as possible, so when one of the house's cusps is an angle the
         block keeps clear of it and runs on into the next house instead (only that ordinary cusp bends); otherwise it is centered and both bend */
      const t=rad(180+c2-rot),v=[-Math.sin(t),-Math.cos(t)],hr=rowH/2,kk=rowH/rh0,rO=R.g+(ro-R.g)*kk,rI=R.g-(R.g-ri0)*kk;
