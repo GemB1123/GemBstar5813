@@ -177,8 +177,14 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* the sky behind the planets (Gemini, Nov 23): opts.sky(R) returns stars, Milky Way, and constellations as SVG centered on the wheel, to fill
     the planet zone out to radius R, turned so its ecliptic longitudes match the wheel's (the app supplies it; the Device uses its own sky) */
  /* eclR: the radius where the main chart's glyphs sit, so the sky's ecliptic (and Latitude) lines up with the planets (Gemini, Nov 23) */
- const nb0=big?1:1+Math.min(2,(chart.rings||[]).filter(r=>r&&r.pos).length),H0=(RP-RH)/nb0,eclR=RP-H0*(nb0-1)-(nb0===1?16:11);
- if(opts.sky){const sk=opts.sky(RP,eclR);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
+ const nb0=big?1:1+Math.min(2,(chart.rings||[]).filter(r=>r&&r.pos).length),H0=(RP-RH)/nb0,SKO=RP-H0*(nb0-1),
+  eclR=!big&&opts.eclMid!==false?(RH+SKO)/2:RP-H0*(nb0-1)-(nb0===1?16:11);
+ /* SKY ROOM (Gemini, Nov 24, GLOBAL): the ecliptic always sits halfway between the nearest circles inside (the house number ring) and outside
+    (the zodiac ring, or the innermost added ring: decans, bounds, cusp labels, or another chart's ring). Adding rings shrinks the sky to fit that
+    band instead of covering it, and the sky is clipped to the band. When the band is narrower than opts.skyMin (60), there is not room for stars
+    and constellations, so they are not drawn (the ecliptic line still is). opts.eclMid:false puts the ecliptic back on the glyph ring. */
+ if(opts.sky&&!big){const room=SKO-RH>=(opts.skyMin||60),sk=opts.sky(SKO,eclR,room);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
+ else if(opts.sky){const sk=opts.sky(RP,eclR,true);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
  /* a stellium too big for its house widens the house (Gemini, Nov 24, the AstroGold way): its glyphs keep (nearly) their size, the block runs
