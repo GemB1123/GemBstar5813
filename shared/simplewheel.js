@@ -178,13 +178,15 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* the sky behind the planets (Gemini, Nov 23): opts.sky(R) returns stars, Milky Way, and constellations as SVG centered on the wheel, to fill
     the planet zone out to radius R, turned so its ecliptic longitudes match the wheel's (the app supplies it; the Device uses its own sky) */
  /* eclR: the radius where the main chart's glyphs sit, so the sky's ecliptic (and Latitude) lines up with the planets (Gemini, Nov 23) */
- const nb0=big?1:1+Math.min(2,(chart.rings||[]).filter(r=>r&&r.pos).length),H0=(RP-RH)/nb0,SKO=RP-H0*(nb0-1),
+ const nb0=big?1:1+Math.min(2,(chart.rings||[]).filter(r=>r&&r.pos).length),H0=(RP-RH)/nb0,RING=!big&&nb0===1&&!!opts.degOnly&&(opts.latDots==null||opts.latDots==='ring'),SKO=RING?RP-(opts.ringW||26):RP-H0*(nb0-1),
   eclR=!big&&opts.eclMid!==false?(RH+SKO)/2:RP-H0*(nb0-1)-(nb0===1?16:11);
  /* SKY ROOM (Gemini, Nov 24, GLOBAL): the ecliptic always sits halfway between the nearest circles inside (the house number ring) and outside
     (the zodiac ring, or the innermost added ring: decans, bounds, cusp labels, or another chart's ring). Adding rings shrinks the sky to fit that
     band instead of covering it, and the sky is clipped to the band. When the band is narrower than opts.skyMin (60), there is not room for stars
     and constellations, so they are not drawn (the ecliptic line still is). opts.eclMid:false puts the ecliptic back on the glyph ring. */
- if(opts.sky&&!big){const room=SKO-RH>=(opts.skyMin||60),sk=opts.sky(SKO,eclR,room);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
+ /* GLYPH RING (Gemini, Nov 24, GLOBAL default: "definitely a go"): with Latitude balls the glyphs and degrees get their own ring on the far outside by the placement
+    dashes, and the sky (ecliptic, stars, balls) moves in to the new inner circle; stars under the house number ring are lost (no planet goes there) */
+ if(opts.sky&&!big){const room=RING||SKO-RH>=(opts.skyMin||60),sk=opts.sky(SKO,eclR,room);if(sk)h+=`<g pointer-events="none">${sk}</g>`;if(RING)h+=`<circle r="${f(SKO)}" fill="none" stroke="${T.line}" stroke-width=".7"/>`}
  else if(opts.sky){const sk=opts.sky(RP,eclR,true);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
@@ -231,9 +233,10 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
      opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
      stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
   /* glyph shrink cap (Gemini, Nov 24: "How small are we willing to go?"): a crowded house shrinks its glyphs to 90% at the least; past that the house widens */
-  const GMIN=opts.glyphMin||.9,GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(nb>1?5:6.5)*GS;
+  const GMIN=opts.glyphMin||.9,GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(RING&&main?3.5:nb>1?5:6.5)*GS;
   /* degree only (Gemini, Nov 24): with stars or constellations on, the main chart shows just the degree with each planet; no sign or minutes */
   const DO=main&&!!opts.degOnly&&(mode==='full'||mode==='compact');if(DO){delete R.s;delete R.ss;delete R.m;delete R.ms}
+  if(DO&&RING){R.g=t-(opts.ringG||11);R.gs=opts.ringGs||19;R.d=t-(opts.ringD||21);R.ds=opts.ringDs||9.5}   /* glyph ring (Gemini, Nov 24): glyphs right by the outer edge, degrees tucked close under them */
   if(GS!==1)for(const k of ['gs','ds','ss','ms'])if(R[k])R[k]*=GS;
   if(GS!==1&&!R.gs)R.gs=17*GS;
   if(inv)for(const k of ['g','d','s','m'])if(R[k])R[k]=tb+(t-R[k]);
@@ -341,11 +344,15 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       measured out (north) or in (south) from the halfway ecliptic. Its degree, sign, and minutes keep their row but drop to just outside the
       house number ring, out of the glyphs' way, joined to the glyph by a thin dotted lift. A glyph that would leave the room stops at the edge
       with a small arrow pointing farther (Pluto, far north of the ecliptic). */
-   if(LAT){const inn=DO?R.d:mode==='full'?R.m:R.s,innS=(DO?R.ds:mode==='full'?R.ms:R.ss)*xk;SD=RH+innS*.62+2-inn;
-    const top=R.d+SD+R.ds*xk*.6,rr=eclR+x.ls,lo=DO?RH+(R.g-R.d)+R.ds*xk*.6+1:top+gs*.62+1,hi=RP-gs*.62,rc=Math.max(lo,Math.min(hi,rr)),
+   if(LAT&&RING){const TRR=eclR+x.ls,tr=Math.max(RH+2,Math.min(SKO-.5,TRR)),d=xy(x.l,tr),bc=String(c).startsWith('url')?T.gold:c;
+    lift=`<circle cx="${f(d[0])}" cy="${f(d[1])}" r="5.2" fill="${bc}" opacity=".22"/><circle cx="${f(d[0])}" cy="${f(d[1])}" r="3.4" fill="${bc}" opacity=".35"/><circle cx="${f(d[0])}" cy="${f(d[1])}" r="2.2" fill="${bc}"><title>${x.k}: true place among the stars</title></circle>`;
+    if(TRR>SKO-.5||TRR<RH+2){const o=TRR>SKO?1:-1,t0=xy(x.l,tr+o*5.5),t1=xy(x.l,tr+o*9.5),ux=(t1[0]-t0[0])/4,uy=(t1[1]-t0[1])/4,w=2.4;lift+=`<path d="M${f(t1[0])} ${f(t1[1])}L${f(t0[0]-uy*w)} ${f(t0[1]+ux*w)}L${f(t0[0]+uy*w)} ${f(t0[1]-ux*w)}Z" fill="${bc}" opacity=".9"><title>${x.k} is farther ${o>0?'north':'south'} of the ecliptic than the wheel shows</title></path>`}}
+   else if(LAT){const inn=DO?R.d:mode==='full'?R.m:R.s,innS=(DO?R.ds:mode==='full'?R.ms:R.ss)*xk;SD=RH+innS*.62+2-inn;
+    const top=R.d+SD+R.ds*xk*.6,TRR=eclR+x.ls,rr=opts.latDots&&DO?Math.min(SKO-2,TRR)-gs*.82:TRR,lo=DO?RH+(R.g-R.d)+R.ds*xk*.6+1:top+gs*.62+1,hi=opts.latEdge==="ring"?RP-gs*.62:SKO-1.5,rc=Math.max(lo,Math.min(hi,rr)),
      raw=r=>{if(!x.bk)return xy(x.d,r);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
     if(DO)SD=rc-R.g;   /* degree only: the degree rides just under its glyph, so no lift is needed; no pointer lines to the ticks either (Gemini, Nov 24: degree and order make it obvious) */
-    g=raw(rc);if(!DO&&rc-gs*.6-top>2){const a=raw(rc-gs*.6),b=raw(top);lift=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${c}" stroke-width=".6" stroke-dasharray="1.6 1.4" opacity=".7"/>`}
+    g=raw(rc);if(opts.latDots&&DO){const tr=Math.min(SKO-2,TRR),d=xy(x.l,tr),bc=String(c).startsWith('url')?T.gold:c;lift+=`<circle cx="${f(d[0])}" cy="${f(d[1])}" r="5.2" fill="${bc}" opacity=".22"/><circle cx="${f(d[0])}" cy="${f(d[1])}" r="3.4" fill="${bc}" opacity=".35"/><circle cx="${f(d[0])}" cy="${f(d[1])}" r="2.2" fill="${bc}"><title>${x.k}: true place among the stars</title></circle>`}   /* Latitude balls (Gemini, Nov 24, mockup): a glowing ball at the true place among the stars, the glyph just inside it, no pointer lines */
+    if(x.k==='Pluto'&&rc===rr&&!opts.latDots&&opts.plutoAnchor!==false)g=[g[0],g[1]+gs*.28];   /* Pluto's circle (the top of the glyph) marks the true spot (Gemini, Nov 24) */if(!DO&&rc-gs*.6-top>2){const a=raw(rc-gs*.6),b=raw(top);lift=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${c}" stroke-width=".6" stroke-dasharray="1.6 1.4" opacity=".7"/>`}
     x._top=raw(rc+gs*.6);
     if(rr>hi+.5||rr<RH){const o=rr>hi?1:-1,t0=raw(rc+o*gs*.62),t1=raw(rc+o*gs*1.02),L=Math.hypot(t1[0]-t0[0],t1[1]-t0[1])||1,ux=(t1[0]-t0[0])/L,uy=(t1[1]-t0[1])/L,w=gs*.22;
      lift+=`<path d="M${f(t1[0])} ${f(t1[1])}L${f(t0[0]-uy*w)} ${f(t0[1]+ux*w)}L${f(t0[0]+uy*w)} ${f(t0[1]-ux*w)}Z" fill="${String(c).startsWith('url')?T.gold:c}" opacity=".9"><title>${x.k} is farther ${rr>hi?'north':'south'} of the ecliptic than the wheel shows</title></path>`}}
