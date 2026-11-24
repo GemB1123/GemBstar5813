@@ -131,7 +131,8 @@ function svg0(chart,opts){opts=opts||{};const T0=THEMES[opts.theme]||THEMES.ligh
     optional Decans and Bounds rings with their guides (13 each), then house cusp degree / sign / minutes on the wheel
     (signs style), planets down to RH, house numbers RH..RI, aspects inside RI. Double tap makes the aspect circle large. */
  const sty=opts.ringStyle||'signs',uni=!(chart.rings&&chart.rings.some(r=>r&&r.pos)),xr=uni?[opts.decans?'dec':null,opts.bounds?'bnd':null].filter(Boolean):[];   /* Decans and Bounds only on a single wheel (Gemini, Nov 13) */
- const RB=194.5,R0=190,R1=168,RX0=R1-13*xr.length,RC=RX0-8,NCB=sty!=='houses'&&(!cu||opts.cuspRing===false||cu.even||cu.slice(1,13).every(c=>Math.abs(n360(c+1e-7)%30)<1e-6)),RP=sty==='houses'||NCB?RX0:RX0-16,RI=big?Math.min(128,RP-12):56,RH=big?RI:70;
+ /* Signs off (Gemini, Nov 24): the rings inside (decans, bounds, the cusp ring, the planets) move out to the outer edge, no gap */
+ const RB=194.5,R0=190,R1=sty!=='houses'&&opts.signRing===false?R0:168,RX0=R1-13*xr.length,RC=RX0-8,NCB=sty!=='houses'&&(!cu||opts.cuspRing===false||cu.even||cu.slice(1,13).every(c=>Math.abs(n360(c+1e-7)%30)<1e-6)),RP=sty==='houses'||NCB?RX0:RX0-16,RI=big?Math.min(128,RP-12):56,RH=big?RI:70;
  const glyph=opts.glyph,sign=opts.sign,ink=T.ink;
  const sg=(i,x,y,sz,col)=>sign?sign(i,x,y,sz,col):`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${SGN[i]}︎</text>`;
  const pg=(k,x,y,sz,col)=>{const g=glyph&&glyph(k);return g?`<g transform="translate(${f(x)} ${f(y)}) scale(${(sz/30).toFixed(3)})" fill="none" stroke="${col}" color="${col.startsWith('url')?T.gold:col}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${g}</g>`:`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" dominant-baseline="central" font-size="${sz}" fill="${col}">${PGT[k]||k}︎</text>`};
