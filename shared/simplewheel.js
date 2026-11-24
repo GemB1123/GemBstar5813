@@ -292,12 +292,18 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       spanA=rh=>{const k=rh/rh0,rO=R.g+(ro-R.g)*k,om=(n2-1)/2*rh+rh*.55;if(om>=rO*.9)return 99;const sq=Math.sqrt(rO*rO-om*om);return Math.max(Math.asin(om/rO),Math.atan2(om,Math.max(1,sq-Ln*k)))*57.3};
      let rowH=rh0;while(rowH>rh0*.9&&spanA(rowH)>lim)rowH*=.98;const over=spanA(rowH)>lim;   /* at most 10% smaller; past that the house widens */
      const hwA=spanA(rowH)+1.2,ca=c0+g.reduce((s0,x)=>s0+n360(x.l-c0),0)/n2;let c2=ca;
-     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else c2=over?c0+hwA:c0+wid/2;
+     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else c2=c0+wid/2;   /* too big for the house: centered on it, running past both cusps */
      const t=rad(180+c2-rot),v=[-Math.sin(t),-Math.cos(t)],hr=rowH/2,kk=rowH/rh0,rO=R.g+(ro-R.g)*kk,rI=R.g-(R.g-ri0)*kk;
      g.forEach((x,i)=>{const o=(i-(n2-1)/2)*rowH;x.bk={c:c2,o,v,sh:rO-Math.sqrt(Math.max(0,rO*rO-o*o))};x.sc=kk});
      const ptA=(x,r,dt)=>{const p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*(x.bk.o+dt),p0[1]+v[1]*(x.bk.o+dt)]},OU=[],IN=[];
      g.forEach(x=>{OU.push(ptA(x,rO+1,-hr),ptA(x,rO+1,hr));IN.push(ptA(x,rI-2,-hr),ptA(x,rI-2,hr))});
-     if(over){const z=g[n2-1];g.forEach(x=>{x.bk.over=1});BENT[(hk+1)%12+1]={far:[ptA(z,rO,hr*.6),ptA(z,rI,hr*.6)],all:OU.concat(IN)}}
+     if(over){g.forEach(x=>{x.bk.over=1});
+      /* every cusp that crosses the block bends around it (Gemini, Nov 24: both sides of a stellium when needed, and the crowded houses of
+         far-north charts): the cusp runs parallel along the edge between the rows on either side of its degree, so each planet stays in
+         its own house. Before the first row or after the last it hugs that row (Mars side, Sun side). */
+      CS.forEach((cv,j)=>{const e=dd(cv,c2);if(Math.abs(e)>=hwA&&j!==hk&&j!==(hk+1)%12)return;const k=g.filter(x=>dd(x.l,cv)<0).length,
+       z=g[Math.min(n2-1,Math.max(0,k===0?0:k-1))],ob=k===0?g[0].bk.o-hr*.6:k===n2?g[n2-1].bk.o+hr*.6:(g[k-1].bk.o+g[k].bk.o)/2,
+       q=r=>{const p0=xy(c2,r-z.bk.sh);return [p0[0]+v[0]*ob,p0[1]+v[1]*ob]};BENT[j+1]={far:[q(rO),q(rI)],all:OU.concat(IN),edge:k===0||k===n2}})}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
@@ -335,9 +341,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  h=h.replace(/\u0001C(\d+)\u0001/g,(m,i)=>{const c=CUSPL[i];if(!c)return '';const B=BENT[i];if(B){   /* Gemini, Nov 24: from the house number ring the cusp runs out along its true line, steps sideways on a diagonal, runs PARALLEL to
    its true line past the block, steps back on a diagonal, and finishes along its true line to its degree on the zodiac ring */
   const rb=Math.hypot(c.b[0],c.b[1]),ra=Math.hypot(c.a[0],c.a[1]),u=[c.b[0]/rb,c.b[1]/rb],nv=[-u[1],u[0]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
-  const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+3),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
+  const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+(B.edge?3:0)),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
   const k=Math.abs(D),q1=Math.max(RH,rb+3,Math.min(r1-k,r1-2)),q2=Math.min(ra-3,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
-  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(Math.min(q2-1,r2),D),P(q2,0),c.a];
+  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,ra-3-k*.8),D),P(q2,0),c.a];
   return `<path d="M${pts.map(p=>f(p[0])+' '+f(p[1])).join('L')}" fill="none" ${c.st} stroke-linejoin="round"/>`}return `<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
