@@ -222,7 +222,8 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   /* opts.glyphScale (Solar Return, Gemini Nov 18: "everything smaller for breathing room"; default .85 for every chart, global) shrinks glyphs, numbers and ticks;
      opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
      stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
-  const GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(nb>1?5:6.5)*GS;
+  /* glyph shrink cap (Gemini, Nov 24: "How small are we willing to go?"): a crowded house shrinks its glyphs to 90% at the least; past that the house widens */
+  const GMIN=opts.glyphMin||.9,GS=opts.glyphScale==null?.85:opts.glyphScale,inv=!main&&opts.ticksOnDivider!==false,tb=inv?t-H:t,TL=(nb>1?5:6.5)*GS;
   if(GS!==1)for(const k of ['gs','ds','ss','ms'])if(R[k])R[k]*=GS;
   if(GS!==1&&!R.gs)R.gs=17*GS;
   if(inv)for(const k of ['g','d','s','m'])if(R[k])R[k]=tb+(t-R[k]);
@@ -265,12 +266,12 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     const LO=L.slice(wi).concat(L.slice(0,wi)),D=cut(list.map(x=>n360(x.d)));let k0=0,bd=1e9;for(let k=0;k<n;k++){let t=0;LO.forEach((x,i)=>{t+=Math.abs(((D[(i+k)%n]-x.l+540)%360)-180)});if(t<bd){bd=t;k0=k}}
     LO.forEach((x,i)=>{x.d=D[(i+k0)%n]})}}
   /* HOUSE LOCK (Gemini, Nov 23, GLOBAL; replaces the Nov 18 rule that let a full house grow into the next one): every planet's glyph stays
-     inside its own house. A house first gives up its cusp margin; if it is still too full, that house's glyph stacks shrink (to half size at
+     inside its own house. A house first gives up its cusp margin; if it is still too full, that house's glyph stacks shrink (to 90% at
      most) so its planets fit between its cusps. Ticks stay on the true degree. opts.houseLock:false turns this off */
   if(cu&&opts.houseLock!==false&&mode!=='big'){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b},
     mg={full:5.5,compact:5,bi:4.5,tri:4}[mode]||4,HG={};list.forEach(x=>{x.sc=1;(HG[hs(x.l)]=HG[hs(x.l)]||[]).push(x)});
    for(const k of Object.keys(HG)){const g=HG[k],c0=CS[k],wid=n360(CS[(+k+1)%12]-c0),n2=g.length;g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
-    const raw=(wid-.8)/(n2*gap),blk=(raw<.6||(raw<.85&&n2>=4))&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(.6,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
+    const raw=(wid-.8)/(n2*gap),blk=raw<GMIN&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(GMIN,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
     let D=P.map(v=>Math.min(hi,Math.max(lo,v)));for(let i=1;i<n2;i++)D[i]=Math.max(D[i],D[i-1]+gp);for(let i=n2-1;i>=0;i--){if(D[i]>hi)D[i]=hi;if(i<n2-1&&D[i]>D[i+1]-gp)D[i]=D[i+1]-gp}
     if(D[0]<lo){const sp=n2>1?(hi-lo)/(n2-1):0;D=D.map((v,i)=>n2>1?lo+i*sp:(lo+hi)/2)}
     g.forEach((x,i)=>{x.d=n360(c0+D[i]);x.sc=sc;x.blk=blk})}
@@ -290,7 +291,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
      const hk=hs(g[0].l),c0=CS[hk],wid=n360(CS[(hk+1)%12]-c0);g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
      const n2=g.length,rh0=(R.gs||17*GS)*1.06,Ln=ro-ri0,lim=Math.max(1,wid/2-1.2),
       spanA=rh=>{const k=rh/rh0,rO=R.g+(ro-R.g)*k,om=(n2-1)/2*rh+rh*.55;if(om>=rO*.9)return 99;const sq=Math.sqrt(rO*rO-om*om);return Math.max(Math.asin(om/rO),Math.atan2(om,Math.max(1,sq-Ln*k)))*57.3};
-     let rowH=rh0;while(rowH>rh0*.9&&spanA(rowH)>lim)rowH*=.98;const over=spanA(rowH)>lim;   /* at most 10% smaller; past that the house widens */
+     let rowH=rh0;while(rowH>rh0*GMIN+1e-9&&spanA(rowH)>lim)rowH=Math.max(rh0*GMIN,rowH*.98);const over=spanA(rowH)>lim;   /* at most 10% smaller (GMIN); past that the house widens */
      const hwA=spanA(rowH)+1.2,ca=c0+g.reduce((s0,x)=>s0+n360(x.l-c0),0)/n2;let c2=ca;
      if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else{const AN=[0,3,6,9],aS=AN.includes(hk)&&(angles&&!cu.even),aE=AN.includes((hk+1)%12)&&(angles&&!cu.even);c2=aS&&!aE?c0+hwA:aE&&!aS?c0+wid-hwA:c0+wid/2}
      /* too big for the house (Gemini, Nov 24): the AS and MC lines bend as little as possible, so when one of the house's cusps is an angle the
@@ -305,13 +306,17 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
          its own house. Before the first row or after the last it hugs that row (Mars side, Sun side). */
       CS.forEach((cv,j)=>{const e=dd(cv,c2);if(Math.abs(e)>=hwA-.05)return;const k=g.filter(x=>dd(x.l,cv)<0).length,
        z=g[Math.min(n2-1,Math.max(0,k===0?0:k-1))],ob=k===0?g[0].bk.o-hr*.6:k===n2?g[n2-1].bk.o+hr*.6:(g[k-1].bk.o+g[k].bk.o)/2,
-       q=r=>{const p0=xy(c2,r-z.bk.sh);return [p0[0]+v[0]*ob,p0[1]+v[1]*ob]};BENT[j+1]={far:[q(rO),q(rI)],all:OU.concat(IN),edge:k===0||k===n2}})}
+       q=r=>{const p0=xy(c2,r-z.bk.sh);return [p0[0]+v[0]*ob,p0[1]+v[1]*ob]};BENT[j+1]={far:[q(rO),q(rI)],all:OU.concat(IN),edge:k===0||k===n2,
+        lifts:g.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [xy(x.l,tb-TL),[p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]]})}})}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
    for(const g of G){if(opts.stellium==='block'||g.some(x=>x.bk)||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
     if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
+  /* OUT OF MANY, ONE (Gemini, Nov 24, GLOBAL): when any glyph on a ring has to shrink, every planet on that ring shrinks by the same
+     amount, so the wheel keeps one glyph size; never below GMIN (90%). opts.oneSize:false lets each house shrink on its own */
+  if(opts.oneSize!==false&&list.length){const m=Math.max(GMIN,Math.min(...list.map(x=>x.sc||1)));if(m<1)list.forEach(x=>{x.sc=m})}
   /* Latitude (Gemini, Nov 23): opts.latShift(name, eclR) moves each planet's glyph stack in or out from the ecliptic by its latitude (one chart only) */
   if(main&&nb===1&&opts.latShift)list.forEach(x=>{x.ls=+opts.latShift(x.k,eclR)||0});
   const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{r+=x.ls||0;if(!x.bk)return xy(x.d,r);r=R.g-(R.g-r)*(x.sc||1);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
@@ -346,7 +351,14 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   const rb=Math.hypot(c.b[0],c.b[1]),ra=Math.hypot(c.a[0],c.a[1]),u=[c.b[0]/rb,c.b[1]/rb],nv=[-u[1],u[0]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
   const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+(B.edge?3:0)),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
   const k=Math.abs(D),top=c.ax?ra-10:ra-3,q1=Math.max(RH+5,rb+3,Math.min(r1-k,r1-2)),q2=Math.min(top,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
-  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,top-k*.8),D),P(q2,0),c.a];
+  /* Gemini, Nov 24: the step back must not slice through a planet's lift (the thin leader from its tick to its glyph): the parallel run
+     carries on outward until the step back and the rest of the line clear every lift, and only then cuts back over */
+  let rs=Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,top-k*.8),qe=q2;
+  {const lo=Math.min(0,D)-1.5,hi=Math.max(0,D)+1.5;let need=-1;
+   for(const L of B.lifts||[]){const a=[dot(L[0],u),dot(L[0],nv)],b=[dot(L[1],u),dot(L[1],nv)];
+    for(let t=0;t<=1.0001;t+=.05){const r=a[0]+(b[0]-a[0])*t,o=a[1]+(b[1]-a[1])*t;if(o>=lo&&o<=hi&&r>need)need=r}}
+   if(need>0&&need+2>rs){rs=Math.min(need+2,top-.5);qe=c.ax?Math.max(q2,Math.min(top,rs+1)):Math.min(ra-.5,Math.max(q2,rs+2))}}
+  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(rs,D),P(qe,0),c.a];
   return `<path d="M${pts.map(p=>f(p[0])+' '+f(p[1])).join('L')}" fill="none" ${c.st} stroke-linejoin="round"/>`}return `<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
