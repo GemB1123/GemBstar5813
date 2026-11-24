@@ -224,8 +224,8 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    return `${PN[x.k]||x.k} ${d}° ${SN[Math.floor(t/108000)%12]} ${String(m).padStart(2,'0')}′ ${String(sc).padStart(2,'0')}″${rx?' retrograde':''}${dc!=null?` · Dec ${dc<0?'−':'+'}${Math.floor(Math.abs(dc))}°${String(Math.floor(Math.abs(dc)%1*60)).padStart(2,'0')}′`:''}`};
  const band=(Pp,RXp,t,ci,main,ri)=>{const list=(opts.planets||DEF_PL).filter(k=>Pp[k]!=null).map(k=>({k,l:n360(Pp[k])}));
   const mode=big?'big':nb===1?(RP-RH<75?'compact':'full'):nb===2?'bi':'tri';
-  /* Gemini, Nov 24: degree, sign, and minutes sit closer to the planet and to each other (still with breathing room), freeing room for stellium cusp bends */
-  const R={big:{g:140},full:{g:t-16,d:t-32,s:t-45.5,m:t-58,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-26,s:t-37.5,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
+  /* Gemini, Nov 24: degree, sign, and minutes sit closer to the planet and to each other (still with breathing room; tightened again Nov 24 evening), freeing room for stellium cusp bends */
+  const R={big:{g:140},full:{g:t-16,d:t-29,s:t-40,m:t-50.5,gs:22,ds:13.5,ss:13.5,ms:10.5},compact:{g:t-12,d:t-24,s:t-34.5,gs:19,ds:12.5,ss:12},bi:{g:t-11,d:t-25,s:t-35,gs:17,ds:11,ss:10},tri:{g:t-9,d:t-20.5,gs:14.5,ds:9.5}}[mode];
   /* opts.glyphScale (Solar Return, Gemini Nov 18: "everything smaller for breathing room"; default .85 for every chart, global) shrinks glyphs, numbers and ticks;
      opts.ticksOnDivider puts an outer ring's ticks on the circle it shares with the chart inside it, and mirrors that ring's
      stack so its glyphs sit beside their ticks (both rings' ticks on one circle, Gemini Nov 18; on by default, ticksOnDivider:false turns it off) */
@@ -329,15 +329,27 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   if(opts.oneSize!==false&&list.length){const m=Math.max(GMIN,Math.min(...list.map(x=>x.sc||1)));if(m<1)list.forEach(x=>{x.sc=m})}
   /* Latitude (Gemini, Nov 23): opts.latShift(name, eclR) moves each planet's glyph stack in or out from the ecliptic by its latitude (one chart only) */
   if(main&&nb===1&&opts.latShift)list.forEach(x=>{x.ls=+opts.latShift(x.k,eclR)||0});
-  const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{r+=x.ls||0;if(!x.bk)return xy(x.d,r);r=R.g-(R.g-r)*(x.sc||1);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
+  const cf=main?col:()=>ci,sh=main&&shiny,at=(x,r)=>{if(!x.bk)return xy(x.d,r);r=R.g-(R.g-r)*(x.sc||1);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
    {const k0=xy(x.l,tb),k1=xy(x.l,tb+sd*TL),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${f((nb>1?1.4:1.8)*(.4+.6*GS))}" stroke-linecap="${opts.ticksOnDivider!==false&&nb>1?'butt':'round'}"/>`}
-   if(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
-   const g=at(x,R.g),xk=x.sc||1,gs=(R.gs||17*GS)*xk;
+   let g=at(x,R.g),SD=0,lift='';const xk=x.sc||1,gs=(R.gs||17*GS)*xk,LAT=x.ls!=null&&main&&(mode==='full'||mode==='compact');
+   /* LATITUDE (Gemini, Nov 24: "let's try only moving the glyph"): with Latitude on, only the glyph moves to its true place among the stars,
+      measured out (north) or in (south) from the halfway ecliptic. Its degree, sign, and minutes keep their row but drop to just outside the
+      house number ring, out of the glyphs' way, joined to the glyph by a thin dotted lift. A glyph that would leave the room stops at the edge
+      with a small arrow pointing farther (Pluto, far north of the ecliptic). */
+   if(LAT){const inn=mode==='full'?R.m:R.s,innS=(mode==='full'?R.ms:R.ss)*xk;SD=RH+innS*.62+2-inn;
+    const top=R.d+SD+R.ds*xk*.6,rr=eclR+x.ls,lo=top+gs*.62+1,hi=RP-gs*.62,rc=Math.max(lo,Math.min(hi,rr)),
+     raw=r=>{if(!x.bk)return xy(x.d,r);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
+    g=raw(rc);if(rc-gs*.6-top>2){const a=raw(rc-gs*.6),b=raw(top);lift=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${c}" stroke-width=".6" stroke-dasharray="1.6 1.4" opacity=".7"/>`}
+    x._top=raw(rc+gs*.6);
+    if(rr>hi+.5||rr<RH){const o=rr>hi?1:-1,t0=raw(rc+o*gs*.62),t1=raw(rc+o*gs*1.02),L=Math.hypot(t1[0]-t0[0],t1[1]-t0[1])||1,ux=(t1[0]-t0[0])/L,uy=(t1[1]-t0[1])/L,w=gs*.22;
+     lift+=`<path d="M${f(t1[0])} ${f(t1[1])}L${f(t0[0]-uy*w)} ${f(t0[1]+ux*w)}L${f(t0[0]+uy*w)} ${f(t0[1]-ux*w)}Z" fill="${String(c).startsWith('url')?T.gold:c}" opacity=".9"><title>${x.k} is farther ${rr>hi?'north':'south'} of the ecliptic than the wheel shows</title></path>`}}
+   if(LAT){const t2=xy(x.l,tb+sd*TL),e=x._top;if(Math.hypot(t2[0]-e[0],t2[1]-e[1])>3)h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`;h+=lift}
+   else if(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(mode==='full'){const d=at(x,R.d),s2=at(x,R.s),m=at(x,R.m);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms*xk,rx?T.ret:T.soft,500)}
-   else if(mode==='bi'||mode==='compact'){const d=at(x,R.d),s2=at(x,R.s);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)}
+   if(mode==='full'){const d=at(x,R.d+SD),s2=at(x,R.s+SD),m=at(x,R.m+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms*xk,rx?T.ret:T.soft,500)}
+   else if(mode==='bi'||mode==='compact'){const d=at(x,R.d+SD),s2=at(x,R.s+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)}
    else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
    else if(rx){const d=xy(x.d,R.g-12);h+=tx('℞',d[0],d[1],7,T.ret,700)}
    h+='</g>'});return list};
