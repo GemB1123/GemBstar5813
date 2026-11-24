@@ -722,6 +722,7 @@ body,table,input,select,button,#plTip,.qml{font-variant-numeric:tabular-nums}
    The Ground windows give up width first when the window is narrow */
 #stage.ampdock #dock{max-width:none;overflow:hidden}
 #stage.ampdock #dock .plw{flex:0 1 auto;min-width:74px}#stage.ampdock #dock .plw[data-id]{width:auto;max-width:124px}
+.tile.tmon{border-color:#e8c46a!important;box-shadow:none}
 /* Gemini, Nov 24: Time Machine lit like the Menu button (gold edge, no fill); Map/Globe is a dropdown so it reads as a choice */
 .amp-bar button[data-act="amptm"].on{background:rgba(10,13,23,.82);color:#efe6d2;border-color:#e8c46a;box-shadow:inset 0 0 0 1px #e8c46a}
 .amp-vw{position:relative;display:inline-flex}
@@ -7844,12 +7845,14 @@ function lineHit(p){const c=chart();if(!c||c.unknown)return null;let L=[];try{L=
  for(const l of L){if(l.ghost)continue;const pts=ST.view==='map'?fine(l):l.pts;let prev=null;for(const q of pts){const s=pr(q[0],q[1]);if(s&&prev&&Math.abs(s[0]-prev[0])<240&&Math.abs(s[1]-prev[1])<240){const d=segD(p,prev,s);if(d<bd){bd=d;best=l}}prev=s}}
  if(!best)return null;const at=ST.view==='map'?mapInv(p.x,p.y):gInv(view(),p.x,p.y);return at?{l:best,at}:null}
 /* tap a line: its name and a short description (Gemini, Nov 23: "Moon IC Line / Moon rooting below the ground") */
+/* Gemini, Nov 24: the words say which side of the Sun the planet shows: rising on the eastern horizon, resting into the western
+   horizon, reaching its height, rooting below the ground */
 function lineDesc(l){const P=nm(l.k),V={AS:'rising',DS:'resting',MC:'reaching',IC:'rooting'};
  if(l.par!=null)return [`${P} ${l.a} / ${nm(l.k2)} ${l.a2} Paran`,`${P} ${V[l.a]||l.a} as ${nm(l.k2)} is ${V[l.a2]||l.a2}, at ${dms(l.par,'N','S')}`];
- if(l.midpt)return [`${P}/${nm(l.k2)} Midpoint ${l.a} Line`,`The midpoint of ${P} and ${nm(l.k2)} ${({AS:'rising on the eastern horizon',DS:'setting on the western horizon',MC:'reaching the top of the sky',IC:'rooting below the ground'})[l.a]}`];
- if(l.asp)return [`${P} ${AMP_CFG.aspects[l.asp][0]} ${l.a==='MC'?'MC':'AS'} Line`,`The point ${AMP_CFG.aspects[l.asp][0].toLowerCase()} ${P} ${l.a==='MC'?'reaching the top of the sky':'rising on the eastern horizon'}`];
+ if(l.midpt)return [`${P}/${nm(l.k2)} Midpoint ${l.a} Line`,`The midpoint of ${P} and ${nm(l.k2)} ${({AS:'rising on the eastern horizon',DS:'resting into the western horizon',MC:'reaching its height',IC:'rooting below the ground'})[l.a]}`];
+ if(l.asp)return [`${P} ${AMP_CFG.aspects[l.asp][0]} ${l.a==='MC'?'MC':'AS'} Line`,`The point ${AMP_CFG.aspects[l.asp][0].toLowerCase()} ${P} ${l.a==='MC'?'reaching its height':'rising on the eastern horizon'}`];
  if(l.a==='LS')return [`${P} Local Space${l.back?' (Opposite)':''}`,l.back?`The compass direction opposite ${P}, from the chart's location`:`Compass direction of ${P} from the chart's location`];
- return [`${P} ${l.a} Line`,`${P} ${({AS:'rising on the eastern horizon',DS:'resting on the western horizon',MC:'reaching the top of the sky',IC:'rooting below the ground'})[l.a]||''}`]}
+ return [`${P} ${l.a} Line`,`${P} ${({AS:'rising on the eastern horizon',DS:'resting into the western horizon',MC:'reaching its height',IC:'rooting below the ground'})[l.a]||''}`]}
 const wrap2=(t,n)=>{if(t.length<=n)return [t];let k=t.lastIndexOf(' ',n);if(k<10)k=n;return [t.slice(0,k),t.slice(k+1)]};
 function ltagSVG(I){const T=ST.ltag;if(!T)return '';const p=lproj()(T.at[0],T.at[1]);if(!p)return '';const l=T.l,col=colOf(l.k),[ttl,desc]=lineDesc(l),dl=wrap2(desc,30),
  w=Math.round(Math.max(ttl.length*7.2+40,Math.max(...dl.map(x=>x.length))*6.3+22)),h=32+dl.length*15,x=Math.max(8,Math.min(FR().w-w-8,p[0]-w/2)),y=p[1]-h-16;
@@ -10332,7 +10335,7 @@ function renderScene(){const col=elCol();let h='';
  for(const k of ['air','fire','water','earth']){const c=COR[k];h+=`<div class="corner" data-corner="${k}" aria-label="${k[0].toUpperCase()+k.slice(1)}" aria-pressed="${k===S.corner}" data-side="${c.x<720?'l':'r'}" style="left:${c.x}px;top:${c.y}px;width:${D.B}px;height:${D.B}px">${k===S.corner?c.sel:c.unsel}${badge('corner-'+k,'right:6px;top:6px')}</div>`}
  const slotAt={};MENU.forEach(m=>slotAt[m.c+'.'+m.r]=m);
  for(let c=1;c<=4;c++)for(let r=1;r<=7;r++){const x=D.colX[c],y=D.y0+(r-1)*(56+D.gg),m=slotAt[c+'.'+r];
-  if(m&&(S.corner==='air'||m.global))h+=tileHTML(m.kind,x,y,col,S.open===m.id||(m.id==='cycles'&&S.synView)||(m.id==='harmonics'&&!!S.hv&&!S.synView&&!S.gv&&!S.game)||(m.id==='agrid'&&S.gv==='grid'&&!S.synView)||(m.id==='dial'&&S.gv==='dial'&&!S.synView)||(m.id==='ground'&&S.gv==='sky'&&!S.synView&&!S.game)||(m.id==='tm'&&S.dockTM)||(m.id==='games'&&!!S.game),m.id).replace('class="tile','class="tile '+(m.pulse&&pulsing&&S.open!==m.id?'pulse ':''));else h+=blankHTML(x,y,col)}
+  if(m&&(S.corner==='air'||m.global))h+=tileHTML(m.kind,x,y,col,S.open===m.id||(m.id==='cycles'&&S.synView)||(m.id==='harmonics'&&!!S.hv&&!S.synView&&!S.gv&&!S.game)||(m.id==='agrid'&&S.gv==='grid'&&!S.synView)||(m.id==='dial'&&S.gv==='dial'&&!S.synView)||(m.id==='ground'&&S.gv==='sky'&&!S.synView&&!S.game)||(m.id==='games'&&!!S.game),m.id).replace('class="tile','class="tile '+(m.pulse&&pulsing&&S.open!==m.id?'pulse ':'')+(m.id==='tm'&&S.dockTM?'tmon ':''))   /* Time Machine docked: gold outline only, like the Menu button (Gemini, Nov 24) */;else h+=blankHTML(x,y,col)}
  h+=badge('wheel','left:712px;top:20px');
  $('#scene').innerHTML=h}
 function plRowFrom(pd,what,wd){const L=S.label,dg=L.dayGlyph&&pd,hg=L.hourGlyph&&pd&&pd.hourRuler,w=L.weekday&&wd;if(!(dg||hg||w))return '';
