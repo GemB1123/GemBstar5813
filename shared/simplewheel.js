@@ -335,7 +335,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   list.forEach(x=>{const q=dms(x.l),c=cf(x.k),rx=RXp[x.k],sd=inv?1:-1;
    /* a short tick, not a dot, marks the exact placement (Gemini, Nov 15: global) */
    {const k0=xy(x.l,tb),k1=xy(x.l,tb+sd*TL),kc=String(c).startsWith('url')?T.gold:c;h+=`<line x1="${f(k0[0])}" y1="${f(k0[1])}" x2="${f(k1[0])}" y2="${f(k1[1])}" stroke="${kc}" stroke-width="${f((nb>1?1.4:1.8)*(.4+.6*GS))}" stroke-linecap="${opts.ticksOnDivider!==false&&nb>1?'butt':'round'}"/>`}
-   let g=at(x,R.g),SD=0,lift='';const xk=x.sc||1,gs=(R.gs||17*GS)*xk,LAT=x.ls!=null&&main&&(mode==='full'||mode==='compact');
+   let g=at(x,R.g),SD=0,lift='';const xk=x.sc||1,gs=(R.gs||17*GS)*xk,LAT=(x.ls!=null||DO)&&main&&(mode==='full'||mode==='compact');if(LAT&&x.ls==null)x.ls=0;   /* with stars on and Latitude off, every glyph sits on the ecliptic, In Zodiaco (Gemini, Nov 24) */
    /* LATITUDE (Gemini, Nov 24: "let's try only moving the glyph"): with Latitude on, only the glyph moves to its true place among the stars,
       measured out (north) or in (south) from the halfway ecliptic. Its degree, sign, and minutes keep their row but drop to just outside the
       house number ring, out of the glyphs' way, joined to the glyph by a thin dotted lift. A glyph that would leave the room stops at the edge
@@ -343,12 +343,12 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    if(LAT){const inn=DO?R.d:mode==='full'?R.m:R.s,innS=(DO?R.ds:mode==='full'?R.ms:R.ss)*xk;SD=RH+innS*.62+2-inn;
     const top=R.d+SD+R.ds*xk*.6,rr=eclR+x.ls,lo=DO?RH+(R.g-R.d)+R.ds*xk*.6+1:top+gs*.62+1,hi=RP-gs*.62,rc=Math.max(lo,Math.min(hi,rr)),
      raw=r=>{if(!x.bk)return xy(x.d,r);const p0=xy(x.bk.c,r-x.bk.sh);return [p0[0]+x.bk.v[0]*x.bk.o,p0[1]+x.bk.v[1]*x.bk.o]};
-    if(DO)SD=rc-R.g;   /* degree only: the degree rides just under its glyph, so no lift is needed */
+    if(DO)SD=rc-R.g;   /* degree only: the degree rides just under its glyph, so no lift is needed; no pointer lines to the ticks either (Gemini, Nov 24: degree and order make it obvious) */
     g=raw(rc);if(!DO&&rc-gs*.6-top>2){const a=raw(rc-gs*.6),b=raw(top);lift=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${c}" stroke-width=".6" stroke-dasharray="1.6 1.4" opacity=".7"/>`}
     x._top=raw(rc+gs*.6);
     if(rr>hi+.5||rr<RH){const o=rr>hi?1:-1,t0=raw(rc+o*gs*.62),t1=raw(rc+o*gs*1.02),L=Math.hypot(t1[0]-t0[0],t1[1]-t0[1])||1,ux=(t1[0]-t0[0])/L,uy=(t1[1]-t0[1])/L,w=gs*.22;
      lift+=`<path d="M${f(t1[0])} ${f(t1[1])}L${f(t0[0]-uy*w)} ${f(t0[1]+ux*w)}L${f(t0[0]+uy*w)} ${f(t0[1]-ux*w)}Z" fill="${String(c).startsWith('url')?T.gold:c}" opacity=".9"><title>${x.k} is farther ${rr>hi?'north':'south'} of the ecliptic than the wheel shows</title></path>`}}
-   if(LAT){const t2=xy(x.l,tb+sd*TL),e=x._top;if(Math.hypot(t2[0]-e[0],t2[1]-e[1])>3)h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`;h+=lift}
+   if(LAT){const t2=xy(x.l,tb+sd*TL),e=x._top;if(!DO&&Math.hypot(t2[0]-e[0],t2[1]-e[1])>3)h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`;h+=lift}
    else if(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
    if(DO){const d=at(x,R.d+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
