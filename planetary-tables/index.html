@@ -12535,6 +12535,10 @@ body.tc-blend .vtm.now:hover,body.tc-blend .vtc.now:hover{box-shadow:inset 6px 0
 .cwcim [role=menuitem]:hover,.cwcim [role=menuitem]:focus-visible{background:#ffffff14;outline:none;color:#ffd166}
 .cwcim .eaci-chips{margin:2px 0 6px}
 #vt-cw .cwcim .cwsph b{font-size:13px;line-height:1.2}
+/* V265 (Gemini, Nov 24): menus hidden = a blank teacher window in the upper right (size set by stageFit: --tw wide, 16:9) */
+body.vtfull #vt-cw.stg .cwh .cwouter{position:absolute;right:var(--orr,16px);top:var(--tdrop,0px);margin:0}
+body.vtfull{--tw:min(460px,max(280px,24vw))}
+body.vtfull #vt-cw .vtvx,body.vtfull #vt-spc .vtvx,body.vtfull #vt-ea .vtvx{max-width:min(980px,calc(100% - var(--tw) - 12px))!important;margin:0 auto 8px 0}
 </style><script>/* Venus Tables on a phone (Gemini, Nov 3, 2026). The Device runs hidden underneath for its engine and saved charts;
    this draws one column: chart and date on top, the cycle as cards, the Time Machine along the bottom.
    The card outlined in gold is the last event on or before the date (Gemini: highlight the row above). */
@@ -13662,6 +13666,8 @@ function cwRingUI(){if(cwKind()!=='natal'||!window.EAWheel)return `<div class="c
  /* Gemini, Nov 15: one split button. Nothing added: "Transits" adds the transit wheel, the arrow offers Progressions and Solar Arc.
     A wheel added: the button reads "Clear", and the arrow offers the other two */
  const on=R[0],others=Object.keys(RINGN).filter(k=>on?k!==on:k!=='tr');
+ /* Nov 24: the Wheels icon under the chart label now adds and clears wheels (shared chart icons), so this button goes */
+ if(window.EAChartIcons)return `<div class="cwrings">${cwSet()}${cwGtm()}</div>`;
  return `<div class="cwrings"><div class="cwtools"><div class="cwsplit"><button class="cwsm" data-cwr="${on?'clear':'tr'}">${on?'One Wheel':'Transits'}</button><button class="cwsa" id="cw-rm" aria-haspopup="menu" aria-expanded="${!!CW.rmenu}" aria-label="More wheels">&#9662;</button>`
   +(CW.rmenu?`<div class="cwmenu" role="menu">${others.map(k=>`<button role="menuitem" data-cwr="${k}">${RINGN[k]}</button>`).join('')}</div>`:'')+`</div></div>`+cwSet()+cwGtm()
  +`</div>`}
@@ -13752,11 +13758,18 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
    as large as it can be while the four corners stay free for the listings (upper left and right) and the small labels and buttons (lower left and right) */
 const STG={tl:[250,122],tr:[250,122],bl:[112,118],br:[112,118],bot:76};
 function stageFit(o,w){if(!o||!w)return false;if(!PANE()){o.classList.remove('stg');['position','left','top','width','height'].forEach(k=>w.style.removeProperty(k));return false}
- o.classList.add('stg');const vx=o.querySelector('.vtvx');if(!vx)return false;const pr=o.getBoundingClientRect(),xr=vx.getBoundingClientRect(),L=xr.left,W=xr.width,T=xr.bottom+6,B=pr.bottom-STG.bot,cx=L+W/2;
- let best=0,bcy=(T+B)/2;for(let cy=T+40;cy<=B-40;cy+=2){let r=Math.min(W/2,cy-T,B-cy);
-  for(const [x,y,dx,dy] of [[L+STG.tl[0],T+STG.tl[1],1,1],[L+W-STG.tr[0],T+STG.tr[1],-1,1],[L+STG.bl[0],B-STG.bl[1],1,-1],[L+W-STG.br[0],B-STG.br[1],-1,-1]]){
+ o.classList.add('stg');const vx=o.querySelector('.vtvx');if(!vx)return false;const pr=o.getBoundingClientRect(),xr=vx.getBoundingClientRect(),T=xr.bottom+6,B=pr.bottom-STG.bot;
+ /* Gemini, Nov 24: with the menus hidden, the upper right is a blank teacher window (16:9, about a quarter of the width) for a
+    livestream or class camera. The view tabs stop short of it, the added wheel's listing drops below it, and the wheel keeps clear */
+ const tf=document.body.classList.contains('vtfull'),tw=tf?Math.round(Math.min(460,Math.max(280,innerWidth*.24))):0,th=Math.round(tw*9/16),L=tf?pr.left+16:xr.left,W=tf?pr.width-32:xr.width;
+ o.style.setProperty('--tw',tw+'px');
+ const otr=o.querySelector('.cwouter'),hd=o.querySelector('.cwh'),orect=otr&&otr.getBoundingClientRect(),hr=hd&&hd.getBoundingClientRect();
+ if(tf&&hr){o.style.setProperty('--tdrop',Math.round(pr.top+th+10-hr.top)+'px');o.style.setProperty('--orr',Math.round(hr.right-(pr.right-16))+'px')}
+ const trW=tf?Math.max(STG.tr[0],tw,orect?orect.width+24:0):STG.tr[0],trH=tf?Math.max(0,pr.top+th+10-T)+(orect?orect.height+8:0):STG.tr[1];
+ let best=0,bcy=(T+B)/2,cx=L+W/2,bcx=cx;const cx0=cx;for(let sx=0;sx<=(tf?W*.18:0);sx+=8){const cx1=cx0-sx;for(let cy=T+40;cy<=B-40;cy+=2){let r=Math.min(cx1-L,L+W-cx1,cy-T,B-cy);const cx=cx1;
+  for(const [x,y,dx,dy] of [[L+STG.tl[0],T+STG.tl[1],1,1],[L+W-trW,T+trH,-1,1],[L+STG.bl[0],B-STG.bl[1],1,-1],[L+W-STG.br[0],B-STG.br[1],-1,-1]]){
    const px=dx*(cx-x)>0?x:cx,py=dy*(cy-y)>0?y:cy;r=Math.min(r,Math.hypot(cx-px,cy-py)-6)}
-  if(r>best+.5){best=r;bcy=cy}}
+  if(r>best+.5){best=r;bcy=cy;bcx=cx1}}}cx=bcx;
  const S=Math.max(200,Math.floor(best*2)),ox=pr.left+o.clientLeft,oy=pr.top+o.clientTop;
  Object.assign(w.style,{position:'absolute',left:Math.round(cx-S/2-ox)+'px',top:Math.round(bcy-S/2-oy)+'px',width:S+'px',height:S+'px'});
  /* Space: the readout sits under the title in the upper left, where Chart's listing lives */
