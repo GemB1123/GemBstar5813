@@ -185,7 +185,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     past the next cusp, and that cusp line bends around the block's far side. Cusp lines go in as placeholders, finished once the bands know. */
  const CUSPL={},BENT={};
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
-   CUSPL[i]={a,b,st:`stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"`};h+=`\u0001C${i}\u0001<line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
+   CUSPL[i]={a,b,ax,st:`stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"`};h+=`\u0001C${i}\u0001<line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
    /* cusp labels (Gemini, Nov 23: "Always deg on left, minutes on right"): Degree, Sign, Minutes read left to right on every cusp, as in
        AstroGold, whichever way the wheel turns (Facing North too). The 1st and 7th cusps (AS and DS) stack degree above, minutes below
        ("1st and 7th... degrees above, minutes below") */
@@ -339,11 +339,12 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
  if(opts.setLabel&&opts.showSetLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
  h=h.replace(/\u0001C(\d+)\u0001/g,(m,i)=>{const c=CUSPL[i];if(!c)return '';const B=BENT[i];if(B){   /* Gemini, Nov 24: from the house number ring the cusp runs out along its true line, steps sideways on a diagonal, runs PARALLEL to
-   its true line past the block, steps back on a diagonal, and finishes along its true line to its degree on the zodiac ring */
+   its true line past the block, steps back on a diagonal, and finishes along its true line to its degree on the zodiac ring; on the AS and MC lines the step back meets the arrowhead's
+   feathers, not its tip, and the first turn waits until it has cleared the house number ring by a little */
   const rb=Math.hypot(c.b[0],c.b[1]),ra=Math.hypot(c.a[0],c.a[1]),u=[c.b[0]/rb,c.b[1]/rb],nv=[-u[1],u[0]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
   const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+(B.edge?3:0)),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
-  const k=Math.abs(D),q1=Math.max(RH,rb+3,Math.min(r1-k,r1-2)),q2=Math.min(ra-3,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
-  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,ra-3-k*.8),D),P(q2,0),c.a];
+  const k=Math.abs(D),top=c.ax?ra-10:ra-3,q1=Math.max(RH+5,rb+3,Math.min(r1-k,r1-2)),q2=Math.min(top,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
+  const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,top-k*.8),D),P(q2,0),c.a];
   return `<path d="M${pts.map(p=>f(p[0])+' '+f(p[1])).join('L')}" fill="none" ${c.st} stroke-linejoin="round"/>`}return `<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
