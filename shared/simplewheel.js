@@ -317,9 +317,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
          far-north charts): the cusp runs parallel along the edge between the rows on either side of its degree, so each planet stays in
          its own house. Before the first row or after the last it hugs that row (Mars side, Sun side). */
       CS.forEach((cv,j)=>{const e=dd(cv,c2);if(Math.abs(e)>=hwA-.05)return;const k=g.filter(x=>dd(x.l,cv)<0).length,
-       z=g[Math.min(n2-1,Math.max(0,k===0?0:k-1))],ob=k===0?g[0].bk.o-hr*.6:k===n2?g[n2-1].bk.o+hr*.6:(g[k-1].bk.o+g[k].bk.o)/2,
+       z=g[Math.min(n2-1,Math.max(0,k===0?0:k-1))],ob=k===0?g[0].bk.o-hr*.5:k===n2?g[n2-1].bk.o+hr*.5:(g[k-1].bk.o+g[k].bk.o)/2,NB=[g[Math.max(0,k-1)],g[Math.min(n2-1,k)]],
        q=r=>{const p0=xy(c2,r-z.bk.sh);return [p0[0]+v[0]*ob,p0[1]+v[1]*ob]};BENT[j+1]={far:[q(rO),q(rI)],all:OU.concat(IN),edge:k===0||k===n2,
-        lifts:g.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [xy(x.l,tb-TL),[p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]]})}})}
+        near:NB.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]}),lifts:g.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [xy(x.l,tb-TL),[p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]]})}})}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
@@ -349,7 +349,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
     if(rr>hi+.5||rr<RH){const o=rr>hi?1:-1,t0=raw(rc+o*gs*.62),t1=raw(rc+o*gs*1.02),L=Math.hypot(t1[0]-t0[0],t1[1]-t0[1])||1,ux=(t1[0]-t0[0])/L,uy=(t1[1]-t0[1])/L,w=gs*.22;
      lift+=`<path d="M${f(t1[0])} ${f(t1[1])}L${f(t0[0]-uy*w)} ${f(t0[1]+ux*w)}L${f(t0[0]+uy*w)} ${f(t0[1]-ux*w)}Z" fill="${String(c).startsWith('url')?T.gold:c}" opacity=".9"><title>${x.k} is farther ${rr>hi?'north':'south'} of the ecliptic than the wheel shows</title></path>`}}
    if(LAT){const t2=xy(x.l,tb+sd*TL),e=x._top;if(!DO&&Math.hypot(t2[0]-e[0],t2[1]-e[1])>3)h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`;h+=lift}
-   else if(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
+   else if(opts.pointers!==false&&(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2)){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
    if(DO){const d=at(x,R.d+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
    else if(mode==='full'){const d=at(x,R.d+SD),s2=at(x,R.s+SD),m=at(x,R.m+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms*xk,rx?T.ret:T.soft,500)}
@@ -375,15 +375,14 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    its true line past the block, steps back on a diagonal, and finishes along its true line to its degree on the zodiac ring; on the AS and MC lines the step back meets the arrowhead's
    feathers, not its tip, and the first turn waits until it has cleared the house number ring by a little */
   const rb=Math.hypot(c.b[0],c.b[1]),ra=Math.hypot(c.a[0],c.a[1]),u=[c.b[0]/rb,c.b[1]/rb],nv=[-u[1],u[0]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
-  const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+(B.edge?3:0)),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
+  const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+(B.edge?1:0)),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
   const k=Math.abs(D),top=c.ax?ra-10:ra-3,q1=Math.max(RH+5,rb+3,Math.min(r1-k,r1-2)),q2=Math.min(top,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
   /* Gemini, Nov 24: the step back must not slice through a planet's lift (the thin leader from its tick to its glyph): the parallel run
      carries on outward until the step back and the rest of the line clear every lift, and only then cuts back over */
+  /* Gemini, Nov 24 (later): the step back hugs the planets: it starts as soon as the parallel run has passed the nearest glyphs ("closer to Mars"),
+     cuts diagonally back to the cusp's true line, and the cusp then runs out along its own radius to the zodiac ring */
   let rs=Math.min(q2-Math.min(k,Math.max(1,q2-r2)),r2,top-k*.8),qe=q2;
-  {const lo=Math.min(0,D)-1.5,hi=Math.max(0,D)+1.5;let need=-1;
-   for(const L of B.lifts||[]){const a=[dot(L[0],u),dot(L[0],nv)],b=[dot(L[1],u),dot(L[1],nv)];
-    for(let t=0;t<=1.0001;t+=.05){const r=a[0]+(b[0]-a[0])*t,o=a[1]+(b[1]-a[1])*t;if(o>=lo&&o<=hi&&r>need)need=r}}
-   if(need>0&&need+2>rs){rs=Math.min(need+2,top-.5);qe=c.ax?Math.max(q2,Math.min(top,rs+1)):Math.min(ra-.5,Math.max(q2,rs+2))}}
+  if(B.near&&B.near.length){const nt=Math.max(...B.near.map(p=>dot(p,u)))+1.5;rs=Math.max(r1+2,Math.min(top-1,nt));qe=Math.min(c.ax?top:ra-2,rs+k*.75);if(c.ax)qe=Math.max(qe,q2)}
   const pts=[c.b,P(q1,0),P(Math.max(q1+Math.min(k,Math.max(1,r1-q1)),r1),D),P(rs,D),P(qe,0),c.a];
   return `<path d="M${pts.map(p=>f(p[0])+' '+f(p[1])).join('L')}" fill="none" ${c.st} stroke-linejoin="round"/>`}return `<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
