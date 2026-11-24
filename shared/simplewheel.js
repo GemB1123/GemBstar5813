@@ -181,8 +181,11 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  if(opts.sky){const sk=opts.sky(RP,eclR);if(sk)h+=`<g pointer-events="none">${sk}</g>`}
  if(!big)h+=`<circle r="${RH}" fill="${T.house}" stroke="${T.line}" stroke-width=".8"/>`;
  /* house cusps: lines through the planet zone, cusp degree / sign / minutes just outside the zodiac ring, numbers in the house ring */
+ /* a stellium too big for its house widens the house (Gemini, Nov 24, the AstroGold way): its glyphs keep (nearly) their size, the block runs
+    past the next cusp, and that cusp line bends around the block's far side. Cusp lines go in as placeholders, finished once the bands know. */
+ const CUSPL={},BENT={};
  if(cu){for(let i=1;i<=12;i++){const ax=(i===1||i===4||i===7||i===10)?(angles&&!cu.even)||onAx(cu[i]):false,a=xy(cu[i],RP),b=xy(cu[i],RI),a0=xy(cu[i],R1);
-   h+=`<line x1="${f(a[0])}" y1="${f(a[1])}" x2="${f(b[0])}" y2="${f(b[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"/><line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
+   CUSPL[i]={a,b,st:`stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}"`};h+=`\u0001C${i}\u0001<line x1="${f(a0[0])}" y1="${f(a0[1])}" x2="${f(a[0])}" y2="${f(a[1])}" stroke="${ax?T.axis:T.line}" stroke-width="${ax?1.8:.7}" opacity=".35"/>`;
    /* cusp labels (Gemini, Nov 23: "Always deg on left, minutes on right"): Degree, Sign, Minutes read left to right on every cusp, as in
        AstroGold, whichever way the wheel turns (Facing North too). The 1st and 7th cusps (AS and DS) stack degree above, minutes below
        ("1st and 7th... degrees above, minutes below") */
@@ -287,15 +290,16 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
      const hk=hs(g[0].l),c0=CS[hk],wid=n360(CS[(hk+1)%12]-c0);g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
      const n2=g.length,rh0=(R.gs||17*GS)*1.06,Ln=ro-ri0,lim=Math.max(1,wid/2-1.2),
       spanA=rh=>{const k=rh/rh0,rO=R.g+(ro-R.g)*k,om=(n2-1)/2*rh+rh*.55;if(om>=rO*.9)return 99;const sq=Math.sqrt(rO*rO-om*om);return Math.max(Math.asin(om/rO),Math.atan2(om,Math.max(1,sq-Ln*k)))*57.3};
-     let rowH=rh0;while(rowH>rh0*.4&&spanA(rowH)>lim)rowH*=.96;
+     let rowH=rh0;while(rowH>rh0*.9&&spanA(rowH)>lim)rowH*=.98;const over=spanA(rowH)>lim;   /* at most 10% smaller; past that the house widens */
      const hwA=spanA(rowH)+1.2,ca=c0+g.reduce((s0,x)=>s0+n360(x.l-c0),0)/n2;let c2=ca;
-     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else c2=c0+wid/2;
+     if(wid>=2*hwA){const e0=ca-c0;if(e0<hwA)c2=c0+hwA;else if(e0>wid-hwA)c2=c0+wid-hwA}else c2=over?c0+hwA:c0+wid/2;
      const t=rad(180+c2-rot),v=[-Math.sin(t),-Math.cos(t)],hr=rowH/2,kk=rowH/rh0,rO=R.g+(ro-R.g)*kk,rI=R.g-(R.g-ri0)*kk;
      g.forEach((x,i)=>{const o=(i-(n2-1)/2)*rowH;x.bk={c:c2,o,v,sh:rO-Math.sqrt(Math.max(0,rO*rO-o*o))};x.sc=kk});
      const ptA=(x,r,dt)=>{const p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*(x.bk.o+dt),p0[1]+v[1]*(x.bk.o+dt)]},OU=[],IN=[];
      g.forEach(x=>{OU.push(ptA(x,rO+1,-hr),ptA(x,rO+1,hr));IN.push(ptA(x,rI-2,-hr),ptA(x,rI-2,hr))});
+     if(over){const z=g[n2-1];g.forEach(x=>{x.bk.over=1});BENT[(hk+1)%12+1]=[ptA(z,rO+3,hr+3),ptA(z,rI-4,hr+3)]}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
-   if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu)){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
+   if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
    for(const g of G){if(opts.stellium==='block'||g.some(x=>x.bk)||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
@@ -328,6 +332,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
  if(opts.setLabel&&opts.showSetLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
+ h=h.replace(/\u0001C(\d+)\u0001/g,(m,i)=>{const c=CUSPL[i];if(!c)return '';const B=BENT[i];return B?`<path d="M${f(c.a[0])} ${f(c.a[1])}L${f(B[0][0])} ${f(B[0][1])}L${f(B[1][0])} ${f(B[1][1])}L${f(c.b[0])} ${f(c.b[1])}" fill="none" ${c.st} stroke-linejoin="round"/>`:`<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
 /* pinch to zoom on phones (Gemini, Nov 13: an imperative wherever the wheel appears on mobile): two fingers zoom about their
@@ -384,5 +389,5 @@ function legend(chart,opts){opts=opts||{};const T=THEMES[opts.theme]||THEMES.lig
    the node given), which becomes 0° Aries; returns {pos, cusps}. Non-number fields and cusp-array flags (even, whole) are kept. */
 function draconic(P,cu,nd){const n=nd!=null?nd:P&&P.Node;if(!isFinite(n))return {pos:P,cusps:cu};const m=v=>typeof v==='number'&&isFinite(v)?((v-n)%360+360)%360:v,o={};
  for(const k in P)o[k]=m(P[k]);let c=cu;if(cu){c=cu.map(m);for(const k of Object.keys(cu))if(isNaN(+k))c[k]=cu[k]}return {pos:o,cusps:c}}
-window.EAWheel={svg,draconic,kindColors:KIND,decans:DEC,bounds:BND,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
+window.EAWheel={svg,draconic,mirror,kindColors:KIND,decans:DEC,bounds:BND,ASPECTS,findAspects,legend,attach,zoomReset,themes:THEMES,spread,planetColors:{dark:PCD,light:PCL}};
 })();
