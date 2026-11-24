@@ -169,8 +169,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  else if(opts.signRing!==false)for(let i=0;i<12;i++){const A=xy(i*30,R0),B=xy(i*30,R1),Cc=xy(i*30+30,R1),D=xy(i*30+30,R0),g=xy(i*30+15,(R0+R1)/2);
   h+=`<path d="M${f(A[0])} ${f(A[1])}L${f(B[0])} ${f(B[1])}A${R1} ${R1} 0 0 0 ${f(Cc[0])} ${f(Cc[1])}L${f(D[0])} ${f(D[1])}A${R0} ${R0} 0 0 1 ${f(A[0])} ${f(A[1])}Z" fill="${T.ringFill?T.ringFill[i%4]:i%2?T.ringB:T.ringA}" stroke="${T.ringEdge}" stroke-width=".6"/>`+sgb(i,g[0],g[1],14,rink(i))}
  /* Decans and Bounds rings: thin rings with each part's guide glyph (Gemini, Nov 13) */
+ const XT=opts.xrTint!=null?+opts.xrTint:.33;   /* decan and bound segments take a veil of their sign's color (Gemini, Nov 24: between plain and full element color); opts.xrTint 0 = plain */
  xr.forEach((kind,j)=>{const r0=R1-13*j,r1=r0-13,parts=kind==='dec'?(DEC[opts.decans]||DEC.chaldean):(BND[opts.bounds]||BND.egyptian);
-  parts.forEach(([g,a0,a1],n)=>{h+=seg(a0,a1,r0,r1,n%2?T.xrB:T.xrA,.4);const m=xy((a0+a1)/2,(r0+r1)/2);h+=pg(g,m[0],m[1],8.5,T.xrInk)})});
+  parts.forEach(([g,a0,a1],n)=>{h+=seg(a0,a1,r0,r1,n%2?T.xrB:T.xrA,.4);if(XT>0){const si=Math.floor(n360((a0+a1)/2)/30),sc=T.ringFill?T.ringFill[si%4]:T.el[si%4];h+=`<g opacity="${XT}">`+seg(a0,a1,r0,r1,sc,0)+'</g>'}const m=xy((a0+a1)/2,(r0+r1)/2);h+=pg(g,m[0],m[1],8.5,T.xrInk)})});
  h+=`<circle r="${R1}" fill="none" stroke="${T.ringEdge}" stroke-width="1"/>`+(xr.length?`<circle r="${RX0}" fill="none" stroke="${T.ringEdge}" stroke-width=".8"/>`:'')+`<circle r="${RP}" fill="none" stroke="${T.line}" stroke-width=".6"/>`;
  /* the house cusp ring: silver on a dark wheel with black cusp degrees, dark gray on a light wheel with white (Gemini, Nov 13) */
  if(sty!=='houses'&&RX0>RP)h+=`<circle r="${f((RX0+RP)/2)}" fill="none" stroke="url(#${MET?'eawcm':'eawcb'})" stroke-width="${f(RX0-RP)}"/><circle r="${RP}" fill="none" stroke="${T.ringEdge}" stroke-width=".6"/>`;
