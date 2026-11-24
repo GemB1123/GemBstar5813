@@ -285,7 +285,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
   if(cu&&opts.houseLock!==false&&mode!=='big'){const CS=cu.slice(1,13).map(n360),hs=l=>{let b=-1,bd=361;CS.forEach((c,i)=>{const e=n360(l-c);if(e<bd){bd=e;b=i}});return b},
     mg={full:5.5,compact:5,bi:4.5,tri:4}[mode]||4,HG={};list.forEach(x=>{x.sc=1;(HG[hs(x.l)]=HG[hs(x.l)]||[]).push(x)});
    for(const k of Object.keys(HG)){const g=HG[k],c0=CS[k],wid=n360(CS[(+k+1)%12]-c0),n2=g.length;g.sort((p,q)=>n360(p.l-c0)-n360(q.l-c0));
-    const raw=(wid-.8)/(n2*gap),blk=(raw<.6||(raw<.85&&n2>=4))&&n2>=3&&main&&(mode==='full'||mode==='compact')&&opts.stellium!==false,sc=Math.max(GMIN,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
+    const raw=(wid-.8)/(n2*gap),blk=(raw<.6||(raw<.85&&n2>=4))&&n2>=3&&main&&(mode==='full'||mode==='compact'||mode==='bi')&&opts.stellium!==false,sc=Math.max(GMIN,Math.min(1,raw)),gp=gap*sc,mh=Math.max(gp/2+.4,Math.min(mg,(wid-(n2-1)*gp)/2)),lo=mh,hi=wid-mh,P=g.map(x=>n360(x.l-c0));
     let D=P.map(v=>Math.min(hi,Math.max(lo,v)));for(let i=1;i<n2;i++)D[i]=Math.max(D[i],D[i-1]+gp);for(let i=n2-1;i>=0;i--){if(D[i]>hi)D[i]=hi;if(i<n2-1&&D[i]>D[i+1]-gp)D[i]=D[i+1]-gp}
     if(D[0]<lo){const sp=n2>1?(hi-lo)/(n2-1):0;D=D.map((v,i)=>n2>1?lo+i*sp:(lo+hi)/2)}
     g.forEach((x,i)=>{x.d=n360(c0+D[i]);x.sc=sc;x.blk=blk})}
@@ -298,7 +298,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
       of parallel rows, one row per planet (glyph, degree, sign, minutes), all pointing toward the center along the group's middle angle and
       stacked shoulder to shoulder in zodiac order, kept inside the planets' own house when it fits; each glyph's tick still marks its true
       degree with a thin leader, and the block is framed */
-   if(main&&(mode==='full'||mode==='compact'))for(const g of Object.values(list.reduce((o,x)=>{(o[hs(x.l)]=o[hs(x.l)]||[]).push(x);return o},{}))){if(g.length<3||!(opts.stellium==='block'||g.some(x=>x.blk)))continue;
+   if(main&&(mode==='full'||mode==='compact'||mode==='bi'))for(const g of Object.values(list.reduce((o,x)=>{(o[hs(x.l)]=o[hs(x.l)]||[]).push(x);return o},{}))){if(g.length<3||!(opts.stellium==='block'||g.some(x=>x.blk)))continue;
      /* rows follow the rim like AstroGold's (Gemini, Nov 23, from the Feb 1962 Aquarius stellium): every row points at the center along the
         block's middle angle, its glyph sits on the glyph circle (a staircase, not a box), and rows shrink until the whole stack fits between the
         house's cusps, so no planet ever looks like it is in the next house */
@@ -327,7 +327,9 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
         near:NB.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]}),lifts:g.map(x=>{const r=R.g-(R.g-(R.g+(mode==='full'?10:7)*GS))*kk,p0=xy(c2,r-x.bk.sh);return [xy(x.l,tb-TL),[p0[0]+v[0]*x.bk.o,p0[1]+v[1]*x.bk.o]]})}})}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
-    list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
+    list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})
+    /* glyphs pushed aside by a block keep their spacing from each other, in zodiac order (Anu, Nov 24: Mercury and the Node landed on one spot) */
+    BK.forEach(b=>{[1,-1].forEach(sg=>{const S=list.filter(x=>!x.bk&&Math.sign(dd(x.d,b.c))===sg&&Math.abs(dd(x.d,b.c))<90).sort((p,q)=>Math.abs(dd(p.d,b.c))-Math.abs(dd(q.d,b.c)));for(let i=1;i<S.length;i++){const e0=Math.abs(dd(S[i-1].d,b.c)),e1=Math.abs(dd(S[i].d,b.c));if(e1<e0+gap)S[i].d=n360(b.c+sg*(e0+gap))}})})}
    for(const g of G){if(opts.stellium==='block'||g.some(x=>x.bk)||g.length<3||!g.some(x=>hs(x.d)!==hs(x.l)))continue;const a0=g[0].d-gap*.5,a1=a0+n360(g[g.length-1].d-g[0].d)+gap,lg=a1-a0>180?1:0;
     const p0=xy(a0,ro),p1=xy(a1,ro),p2=xy(a1,ri0),p3=xy(a0,ri0);
     if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${f(p0[0])} ${f(p0[1])}A${f(ro)} ${f(ro)} 0 ${lg} 0 ${f(p1[0])} ${f(p1[1])}L${f(p2[0])} ${f(p2[1])}A${f(ri0)} ${f(ri0)} 0 ${lg} 1 ${f(p3[0])} ${f(p3[1])}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}}
