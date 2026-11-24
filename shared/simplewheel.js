@@ -351,7 +351,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
    if(LAT){const t2=xy(x.l,tb+sd*TL),e=x._top;if(!DO&&Math.hypot(t2[0]-e[0],t2[1]-e[1])>3)h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`;h+=lift}
    else if(opts.pointers!==false&&(x.bk||Math.abs(((x.d-x.l+540)%360)-180)>1.2)){const e=at(x,R.g-sd*(mode==='full'||mode==='big'?10:7)*GS),t2=xy(x.l,tb+sd*TL);h+=`<line x1="${f(t2[0])}" y1="${f(t2[1])}" x2="${f(e[0])}" y2="${f(e[1])}" stroke="${c}" stroke-width=".6" opacity=".6"/>`}
    h+=`<g class="eawp" data-pl="${x.k}" data-ring="${ri||0}"><title>${hov(x,Pp,ri)}</title>`+(sh?`<g filter="url(#eawglow)">${pg(x.k,g[0],g[1],gs,'url(#eawgg)')}</g>`:pg(x.k,g[0],g[1],gs,c));
-   if(DO){const d=at(x,R.d+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
+   if(DO){const d=at(x,R.d+SD);   /* degree only rounds: 30 minutes or more goes up (Gemini, Nov 24), held at 29 so it never reads as the next sign */h+=txd(T,opts,Math.min(29,q.d+(q.m>=30?1:0))+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
    else if(mode==='full'){const d=at(x,R.d+SD),s2=at(x,R.s+SD),m=at(x,R.m+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)+tx(String(q.m).padStart(2,'0')+'′',m[0],m[1],R.ms*xk,rx?T.ret:T.soft,500)}
    else if(mode==='bi'||mode==='compact'){const d=at(x,R.d+SD),s2=at(x,R.s+SD);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)+sgb(q.s,s2[0],s2[1],R.ss*xk,scol(q.s)||c)}
    else if(mode==='tri'){const d=xy(x.d,R.d);h+=txd(T,opts,q.d+'°',d[0],d[1],R.ds*xk,rx?T.ret:ink,700,1)}
