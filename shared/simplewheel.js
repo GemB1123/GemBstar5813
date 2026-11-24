@@ -297,7 +297,7 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
      g.forEach((x,i)=>{const o=(i-(n2-1)/2)*rowH;x.bk={c:c2,o,v,sh:rO-Math.sqrt(Math.max(0,rO*rO-o*o))};x.sc=kk});
      const ptA=(x,r,dt)=>{const p0=xy(c2,r-x.bk.sh);return [p0[0]+v[0]*(x.bk.o+dt),p0[1]+v[1]*(x.bk.o+dt)]},OU=[],IN=[];
      g.forEach(x=>{OU.push(ptA(x,rO+1,-hr),ptA(x,rO+1,hr));IN.push(ptA(x,rI-2,-hr),ptA(x,rI-2,hr))});
-     if(over){const z=g[n2-1];g.forEach(x=>{x.bk.over=1});BENT[(hk+1)%12+1]=[ptA(z,rO+3,hr+3),ptA(z,rI-4,hr+3)]}
+     if(over){const z=g[n2-1];g.forEach(x=>{x.bk.over=1});BENT[(hk+1)%12+1]={far:[ptA(z,rO+1,hr),ptA(z,rI-2,hr)],all:OU.concat(IN)}}
      if(opts.stelFrame)h+=`<path class="eaw-stel" d="M${OU.concat(IN.reverse()).map(p0=>f(p0[0])+' '+f(p0[1])).join('L')}Z" fill="${T.soft}" fill-opacity=".06" stroke="${T.soft}" stroke-opacity=".55" stroke-width=".7" stroke-linejoin="round"/>`}
    if(list.some(x=>x.bk)&&(opts.houseLock===false||!cu||list.some(x=>x.bk&&x.bk.over))){const BK=[];   /* with the house lock every block already sits inside its own house */list.forEach(x=>{if(x.bk&&!BK.some(b=>b.c===x.bk.c))BK.push({c:x.bk.c,hw:Math.asin(Math.min(1,(Math.abs(x.bk.o)+(R.gs||17*GS)*.53*2)/R.g))*57.3})});
     list.forEach(x=>{if(x.bk)return;BK.forEach(b=>{const hw2=Math.max(...list.filter(y=>y.bk&&y.bk.c===b.c).map(y=>Math.asin(Math.min(1,(Math.abs(y.bk.o)+(R.gs||17*GS)*.6)/(R.m||R.s||R.d||R.g)))*57.3))+gap*.5,e=dd(x.d,b.c);if(Math.abs(e)<hw2)x.d=n360(b.c+(Math.sign(e)||1)*hw2)})})}
@@ -332,7 +332,13 @@ const tx=(s,x,y,sz,col,w)=>`<text x="${f(x)}" y="${f(y)}" text-anchor="middle" d
  if(opts.earth){const er=f(RI*(opts.earth==='large'?.6:.3));h+=`<g pointer-events="none">${opts.earthSVG?opts.earthSVG(+er):`<circle r="${er}" fill="#24497e" stroke="${T.ringEdge}" stroke-width=".8"/>`}</g>`}
  /* the set name is spoken to screen readers, not written on the chart (Gemini, Nov 15); showSetLabel writes it */
  if(opts.setLabel&&opts.showSetLabel)h+=`<text x="0" y="${f(RI*.72)}" text-anchor="middle" dominant-baseline="central" font-size="${big?9:7}" fill="${T.soft}" stroke="${T.aspBg}" stroke-width="2.5" paint-order="stroke" font-family="Inter,system-ui,sans-serif" font-weight="600">${opts.setLabel}</text>`;
- h=h.replace(/\u0001C(\d+)\u0001/g,(m,i)=>{const c=CUSPL[i];if(!c)return '';const B=BENT[i];return B?`<path d="M${f(c.a[0])} ${f(c.a[1])}L${f(B[0][0])} ${f(B[0][1])}L${f(B[1][0])} ${f(B[1][1])}L${f(c.b[0])} ${f(c.b[1])}" fill="none" ${c.st} stroke-linejoin="round"/>`:`<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
+ h=h.replace(/\u0001C(\d+)\u0001/g,(m,i)=>{const c=CUSPL[i];if(!c)return '';const B=BENT[i];if(B){   /* Gemini, Nov 24: from the house number ring the cusp runs out along its true line, steps sideways on a diagonal, runs PARALLEL to
+   its true line past the block, steps back on a diagonal, and finishes along its true line to its degree on the zodiac ring */
+  const rb=Math.hypot(c.b[0],c.b[1]),ra=Math.hypot(c.a[0],c.a[1]),u=[c.b[0]/rb,c.b[1]/rb],nv=[-u[1],u[0]],dot=(p,q)=>p[0]*q[0]+p[1]*q[1];
+  const sf=B.far.map(p=>dot(p,nv)),sg=Math.sign(sf[0]+sf[1])||1,D=sg*(Math.max(...sf.map(v=>v*sg))+5),pr=B.all.map(p=>dot(p,u)),r1=Math.min(...pr)-3,r2=Math.max(...pr)+3;
+  const k=Math.abs(D),q1=Math.max(rb+3,Math.min(r1-k,r1-2)),q2=Math.min(ra-3,Math.max(r2+k,r2+2)),P=(r,o)=>[u[0]*r+nv[0]*o,u[1]*r+nv[1]*o];
+  const pts=[c.b,P(q1,0),P(Math.max(q1+1,r1),D),P(Math.min(q2-1,r2),D),P(q2,0),c.a];
+  return `<path d="M${pts.map(p=>f(p[0])+' '+f(p[1])).join('L')}" fill="none" ${c.st} stroke-linejoin="round"/>`}return `<line x1="${f(c.a[0])}" y1="${f(c.a[1])}" x2="${f(c.b[0])}" y2="${f(c.b[1])}" ${c.st}/>`});
  return h+'</g></svg>'}
 /* one listener per root: a single tap waits a moment so a double tap is not read as two taps */
 /* pinch to zoom on phones (Gemini, Nov 13: an imperative wherever the wheel appears on mobile): two fingers zoom about their
