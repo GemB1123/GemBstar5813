@@ -75,7 +75,7 @@ input[type=datetime-local],input[type=date],input[type=time]{color-scheme:dark}
 .mo-open .mo-caret{transform:rotate(90deg)}.mo-detail td{white-space:normal;background:#161d44;padding:6px 10px 10px;font-size:13px}
 .mo-detail p{margin:4px 0}.mo-desc{color:var(--ink);font-style:italic}.mo-go{margin-top:6px;font-size:13px;min-height:30px;padding:3px 10px}
 .mo-ds{width:100%;height:auto;display:block;margin:6px 0 10px;font-family:inherit}
-.mo-past td{opacity:.6}.mo-asym{display:inline-block;width:1.1em;text-align:center;font-weight:700}.mo-rx{color:#ff4a4a}
+.mo-past td{opacity:.6}.mo-asym{display:inline-block;min-width:1.1em;text-align:center;font-weight:700}.mo-rx{color:#ff4a4a}
 .mo-about summary{cursor:pointer;color:var(--acc);margin-top:8px}.mo-about p{color:var(--soft);font-size:13px}
 @media (max-width:600px){.mo-app{padding:4px 4px calc(6px + env(safe-area-inset-bottom,0px))}.mo-wheel{padding:52px 0}.mo-line .mo-wheel{padding:0}
  .mo-corner{width:44px;height:44px}.mo-tm{gap:4px;padding:5px 6px}.mo-tm input{max-width:190px}}
@@ -279,6 +279,13 @@ body.mo-thru #mo-strip,body.mo-thru #mo-zoom,body.mo-thru #mo-grid,body.mo-thru 
 .mo-cbw>button[data-outer]{display:flex;align-items:center;gap:8px}.mo-cbw>button i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--c);flex:none}.mo-cbw>button[aria-checked="true"] i{background:var(--c)}
 .mo-cbw .eaci-chips{margin-bottom:4px}.mo-cbw .eaci-chip{cursor:default;min-height:26px}
 @media (max-width:700px){.mo-chartbar{position:relative}.mo-cbi{position:absolute;right:6px;top:0;margin:0}.mo-cbmenu{left:auto;right:6px}}
+
+/* the All Planets and Minor Aspects tick boxes above the Lunar Aspects table (Gemini, Nov 25) */
+.mo-aspall{display:flex;flex-wrap:wrap;gap:4px 18px;margin:4px 0 8px}.mo-asym sup{font-size:.62em;margin-left:1px}.mo-ev{color:#c9cde0;font-weight:400}.mo-pasp td{color:#c9cde0}
+.mo-aspall~.mo-t td:nth-child(3){white-space:normal}.mo-aspall~.mo-t td:nth-child(4){white-space:nowrap}
+
+/* Progressed Lunar Phases (Nov 25) */
+.mo-ppn{margin:4px 0 8px}.mo-ppi svg{width:18px;height:18px;vertical-align:-4px;margin-right:6px}.mo-t tr.mo-now td{background:rgba(241,219,156,.12)}
 </style>
 </head><body>
 <main class="mo-app">
@@ -356,7 +363,7 @@ body.mo-thru #mo-strip,body.mo-thru #mo-zoom,body.mo-thru #mo-grid,body.mo-thru 
 <div id="p-phase" class="mo-pop" role="dialog" aria-label="Moon Phases" hidden>
  <div class="mo-ph"><b>Moon Phases</b><button type="button" class="mo-x" aria-label="Close Moon Phases">&#10005;</button></div>
  <div class="mo-pb">
-  <div class="mo-segs" role="group" aria-label="Table"><button type="button" data-t="cycle">This Cycle</button><button type="button" data-t="cal">Calendar</button><button type="button" data-t="year">New And Full Moons</button><button type="button" data-t="ret">Lunar Returns</button></div>
+  <div class="mo-segs" role="group" aria-label="Table"><button type="button" data-t="cycle">This Cycle</button><button type="button" data-t="cal">Calendar</button><button type="button" data-t="year">New And Full Moons</button><button type="button" data-t="ret">Lunar Returns</button><button type="button" data-t="pph">Progressed Phases</button></div>
   <div id="mo-ptab"></div>
   <button type="button" id="mo-facb" class="mo-learnb" data-learn="faces" aria-haspopup="dialog" aria-expanded="false">Teach Me About The Twelve Faces</button>
   <button type="button" id="mo-monb" class="mo-learnb" data-learn="months" aria-haspopup="dialog" aria-expanded="false">Teach Me About Many Moonths</button>
@@ -1619,7 +1626,7 @@ const ST={outer:'',ms:Date.now(),tz:Intl.DateTimeFormat().resolvedOptions().time
  zodiac:'metal',menus:'line',useLoc:false,home:null,fortune:true,spirit:true,view:'auto',play:null,south:false,tab:'cycle',open:new Set(),S:null,chartId:null,house:'placidus',zsys:'tropical',disp:'moon',stars:true,cons:true,pv:'glyph',grid:false,gset:'major',hsel:null,psel:null,voc:'trad',tlb:'trad',tlo:13,par:'geo'};
 (()=>{const p=prefs();ST.fn=!!p.fn;if(p.grid!=null)ST.grid=!!p.grid;if(['major','minor','sym','harm'].includes(p.gset))ST.gset=p.gset;if(['lilly','trad','modern','hell'].includes(p.voc))ST.voc=p.voc;if(p.tlb==='modern')ST.tlb='modern';if(p.par==='topo')ST.par='topo';if(+p.tlo>=1&&+p.tlo<=30)ST.tlo=+p.tlo;if(phoneW()&&(ST.gset==='sym'||ST.gset==='harm'))ST.gset='major'})();   /* the Aspect Grid and its mode stay as you left them */
 (()=>{const p=prefs();if(!p.lil13)savePref({lil13:1,...(p.lilith==='mean'&&{lilith:'true'})})})();   /* True Lilith becomes the default (Gemini, Nov 21) */
-Object.assign(ST,(({unit,step,qty,method,lilith,all,zodiac,menus,useLoc,home,fortune,spirit,view,house,zsys,disp,stars,cons,pv,calV,trOn,outer})=>({...(trOn!=null&&{trOn:!!trOn}),...(trOn&&!outer&&{outer:'tr'}),...(['','tr','p2','pm','p3'].includes(outer)&&{outer}),...(["grid","circle","spiral","rings"].includes(calV)&&{calV}),...(all!=null&&{all}),...(unit&&{unit}),...(step&&{step}),...(qty>0&&{qty:+qty}),
+Object.assign(ST,(({unit,step,qty,method,lilith,all,zodiac,menus,useLoc,home,fortune,spirit,view,house,zsys,disp,stars,cons,pv,calV,trOn,outer,aspAll,aspMin,aspX,ppN,ppK})=>({...((ppN===8||ppN===12)&&{ppN}),...(['p2','pm','p3'].includes(ppK)&&{ppK}),...(aspX&&typeof aspX==='object'&&{aspX:{ing:!!aspX.ing,sta:!!aspX.sta}}),...(aspAll!=null&&{aspAll:!!aspAll}),...(aspMin!=null&&{aspMin:!!aspMin}),...(trOn!=null&&{trOn:!!trOn}),...(trOn&&!outer&&{outer:'tr'}),...(['','tr','p2','pm','p3'].includes(outer)&&{outer}),...(["grid","circle","spiral","rings"].includes(calV)&&{calV}),...(all!=null&&{all}),...(unit&&{unit}),...(step&&{step}),...(qty>0&&{qty:+qty}),
  ...(method&&CFG.methods[method]&&{method}),...(lilith&&{lilith}),...((zodiac==='metal'||zodiac==='element')&&{zodiac}),...((menus==='line'||menus==='corners')&&{menus}),...(useLoc!=null&&{useLoc}),
  ...(home&&isFinite(home.lat)&&isFinite(home.lon)&&{home}),...(fortune!=null&&{fortune}),...(spirit!=null&&{spirit}),...(view&&{view}),...((disp==='moon'||disp==='chart')&&{disp}),...(stars!=null&&{stars}),...(cons!=null&&{cons}),...((pv==='glyph'||pv==='planet')&&{pv}),...(house&&CFG.houses.some(h=>h[0]===house)&&{house}),...(zsys&&(zsys==='tropical'||CFG.ayan.some(a=>a[0]===zsys))&&{zsys})}))(prefs()));
 /* chart data is kept only when you press Save (My Charts, on this device, in the Device's chart list); Use My Location keeps your own place on this device only */
@@ -2235,6 +2242,7 @@ function renderPhase(){const S=ST.S;if(!S)return;document.querySelectorAll('#p-p
   box.querySelectorAll('.mo-go').forEach(b=>b.onclick=e=>{e.stopPropagation();stop();ST.ms=+b.dataset.ms;render()});return}
  if(ST.tab==='cal'){renderCal(box);return}
  if(ST.tab==='ret'){renderRet(box);return}
+ if(ST.tab==='pph'){renderPPh(box);return}
  const y=ST.calY!=null?ST.calY:parts(ST.ms,ST.tz).y,j0=jdOf(localToMs(y,1,1,0,0,ST.tz)),j1=jdOf(localToMs(y+1,1,1,0,0,ST.tz));
  const L=lunations(j0,j1);box.innerHTML=`${phHead(S)}<div class="mo-calnav"><button type="button" id="yr-p" aria-label="Previous year">&#9664;</button><b>New And Full Moons, ${yTxt(y)}</b><button type="button" id="yr-n" aria-label="Next year">&#9654;</button></div>
  <div class="mo-calbtns"><button type="button" id="yr-cal">Calendar</button><button type="button" id="yr-print">Print</button></div><table class="mo-t"><thead><tr><th>Date</th><th>Time</th><th>Lunation</th><th>Moon</th></tr></thead><tbody>${L.map(l=>{const ms=msOf(l.jd);
@@ -2286,6 +2294,33 @@ async function progRet(N,n,jn){const k=['p2','pm','p3'].includes(ST.outer)?ST.ou
  return `<h3 class="mo-h3">Progressed Lunar Returns: ${OUTER[k][1]}</h3><table class="mo-t"><thead><tr><th>Date</th><th>Age</th><th>Return</th></tr></thead><tbody>${out.map(r=>{const ms=msOf(r.jd),past=r.jd<jn;
   return `<tr class="${past?'mo-past':''}${r.lr?'':' mo-pret'}" data-ms="${ms}" tabindex="0" role="button" aria-label="Go to the progressed ${r.lr?'lunar return':'lunar phase return'} ${fmtDate(ms,ST.tz)}"><td>${fmtDate(ms,ST.tz)}</td><td>${age(r.jd)}</td><td>${r.lr?'Progressed Lunar Return':`Progressed Phase Return<br><small>${esc(meth.phases[pk][0])}</small>`}</td></tr>`}).join('')||'<tr><td colspan="3">None in this span.</td></tr>'}</tbody></table>
  <p class="mo-foot">${k==='p2'?'From birth to age 100':'Ten years back and twenty ahead'}. The progressed Moon returns to the natal Moon's degree (lunar return) and to the natal phase (phase return). Dates are to the day; progressed times are not exact to the hour. Choose Pr, MP, or TP on the Wheels row to switch.</p>`}
+/* the Progressed Phases tab (Gemini, Nov 25: its own tab): the natal chart line, the Wheels row (which progression), then the table */
+async function renderPPh(box){const n=ST.natal,S=ST.S,head=`${phHead(S)}<h2>Progressed Phases</h2>`;
+ if(!n){box.innerHTML=head+`<p>Cast a birth chart in Date, Time, And Place, then use it as the natal chart. This table shows each time the progressed Moon begins a new phase of its cycle with the progressed Sun, about every 2½ years in Secondary Progressions.</p>
+  <div class="mo-calbtns"><button type="button" id="ret-set">Use This Chart As Natal</button></div><p class="mo-foot">This chart: ${esc(ST.name||'unnamed')}, ${fmtDate(ST.ms,ST.tz)} ${fmtTime(ST.ms,ST.tz)}${ST.place?', '+esc(ST.place):''}.</p>`;$('#ret-set').onclick=()=>{setNatal();renderPhase()};return}
+ const N=await natalState();if(!N){box.innerHTML=head+'<p class="mo-foot">Loading...</p>';return}
+ const jn=jdOf(ST.ms),k=['p2','pm','p3'].includes(ST.ppK)?ST.ppK:'p2',body=await progPhases(N,n,jn,k);if(ST.tab!=='pph')return;
+ box.innerHTML=head+`<p class="mo-sub">Natal: <b>${esc(n.name||'this chart')}</b> · Moon ${dms(N.moon.lon).txt}</p>
+  <div class="mo-wheels" role="group" aria-label="Progression"><span>Progression</span>${Object.entries(OUTER).filter(([c])=>c!=='tr').map(([c,v])=>`<button type="button" data-outer="${c}" aria-pressed="${k===c}" title="${v[1]}" style="--c:${OCOL[c]}">${v[0]}</button>`).join('')}</div>
+  <div class="mo-calbtns"><button type="button" id="ret-print">Print</button></div>${body.replace(/<h3 class="mo-h3" id="pph">[^<]*<\/h3>/,`<h3 class="mo-h3" id="pph">${OUTER[k][1]}</h3>`)}`;
+ goRows(box);$('#ret-print').onclick=()=>printPop('phase');
+ box.querySelectorAll('[data-ppn]').forEach(b=>b.onclick=()=>{ST.ppN=+b.dataset.ppn;savePref({ppN:ST.ppN});renderPhase()});
+ box.querySelectorAll('[data-outer]').forEach(b=>b.onclick=()=>{ST.ppK=b.dataset.outer;savePref({ppK:ST.ppK});renderPhase()})}
+/* Progressed Lunar Phases (Gemini, Nov 25): each time the progressed Moon, moving away from the progressed Sun, begins a new phase,
+   for the natal chart in use. 12 Phases (Gemini's Earthstrology faces, 30° each) by default, or 8 Phases (Rudhyar, 45° each).
+   Its own tab (Gemini, Nov 25) with its own Pr / MP / TP choice (ST.ppK), so it never changes the chart's second wheel. Secondary: about 2.5 years a phase of 12. */
+async function progPhases(N,n,jn,k){const njd=jdOf(n.ms),q=ST.ppN===8?8:12,meth=CFG.methods[q===8?'rudhyar':'earth'],w=360/q;
+ const r0=k==='p2'?njd:Math.max(njd,jn-10*YEAR),r1=k==='p2'?njd+100*YEAR:jn+20*YEAR,p0=progJd(k,njd,r0),p1=progJd(k,njd,r1);await need(p0-2);await need(p1+2);
+ const out=[],e0=elong(p0);if(e0!=null){out.push({jd:r0,i:Math.floor(e0/w)%q,start:true});let pe=e0,t0=p0;
+  for(let t=p0+.5;t<=p1+1e-9;t+=.5){const e=elong(t);if(e==null)break;const a=Math.floor(pe/w),b=Math.floor(e/w);
+   if(a!==b){const bd=b*w;let lo=t0,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;e180(elong(mid)-bd)<0?lo=mid:hi=mid}const pj=(lo+hi)/2;out.push({jd:realJd(k,njd,pj),i:b%q,pm:B('Moon',pj).lon,e:bd})}
+   pe=e;t0=t}}
+ const age=j=>((j-njd)/YEAR).toFixed(1),cur=out.filter(r=>r.jd<=jn).pop();
+ return `<h3 class="mo-h3" id="pph">Progressed Lunar Phases: ${OUTER[k][1]}</h3>
+ <div class="mo-segs mo-ppn" role="group" aria-label="Number of phases">${[12,8].map(v=>`<button type="button" data-ppn="${v}" aria-pressed="${q===v}">${v} Phases</button>`).join('')}</div>
+ <table class="mo-t"><thead><tr><th>Date</th><th>Age</th><th>Phase</th><th>${OUTER[k][0]} Moon</th></tr></thead><tbody>${out.map(r=>{const ms=msOf(r.jd),past=r.jd<jn&&r!==cur,ph=meth.phases[r.i];
+  return `<tr class="${past?'mo-past':''}${r===cur?' mo-now':''}" data-ms="${ms}" tabindex="0" role="button" aria-label="Go to the progressed ${esc(ph[0])} phase, ${fmtDate(ms,ST.tz)}"><td>${fmtDate(ms,ST.tz)}</td><td>${age(r.jd)}</td><td><span class="mo-ppi">${calIcon(r.start?n360(elong(p0)):r.e+w/2,ST.south)}</span>${r.start&&r0===njd?'Born in ':''}${esc(ph[0])}<br><small>${esc(ph[1])}</small></td><td>${r.start?'':`<span class="eal-lon">${EALook.lonCols(r.pm)}</span>`}</td></tr>`}).join('')}</tbody></table>
+ <p class="mo-foot">${k==='p2'?'From birth to age 100':'Ten years back and twenty ahead'}. Each row is the day the progressed Moon begins a new phase, measured from the progressed Sun. The highlighted row is the phase you are in at the Time Machine's moment. Dates are to the day.</p>`}
 /* the 13 drawn phases as a header for the Calendar and the year table (Gemini, Nov 21) */
 function phHead(S){return `<div class="mo-phhead">${stripSVG(S,ST.south)}</div>`}
 /* Moon Phase Calendar (Gemini, Nov 21): a month of days, each with the Moon's phase at local noon; New Moon, First Quarter, Full Moon,
@@ -2386,11 +2421,18 @@ function renderFam(box){const y=OCC.y||parts(ST.ms,ST.tz).y,j=jdOf(yrMs(y)),ay=a
    return `<tr class="${cur?'mo-cur':''}"><td>${signImg?`<svg class="mo-tg" viewBox="-12 -12 24 24" aria-hidden="true">${signImg(r.k,0,0,20,'silver')}</svg> `:''}${SIGNS[r.k]}</td><td class="mo-nw">${d(r.a)} to ${d(r.b)}</td><td>${r.fam.map(([n,mg])=>mg<1.5?`<b>${esc(n)}</b>`:esc(n)).join(', ')||'none'}</td></tr>`}).join('')}</tbody></table>
   <p class="mo-foot">With the North Node in each sign, the Moon’s path sweeps a band about 2½° wide that wanders up to about 5° north and south of the Sun’s path. Every star inside that band can be covered somewhere on the Earth: that is the sign’s occultation family. First-magnitude stars are in bold; only four of them, Aldebaran, Regulus, Spica, and Antares, ever come within reach. The node takes about a year and a half to cross each sign and returns every 18.6 years, so each family comes back in turn.</p>`;
  $('#fam-back').onclick=()=>{ST.aspV='occ';renderAsp()}}
-function renderAsp(){if(ST.aspV==='occ'){renderOcc($('#mo-asp'));return}if(ST.aspV==='fam'){renderFam($('#mo-asp'));return}const S=ST.S;if(!S)return;const box=$('#mo-asp'),L=moonAspects(S.N0,S.N1);
- box.innerHTML=`<h2>${esc(S.name)} Cycle</h2><table class="mo-t"><thead><tr><th>Date</th><th>Time</th><th>Aspect</th><th>Moon</th></tr></thead><tbody>${L.map(a=>{const ms=msOf(a.jd),past=a.jd<S.jd;
-  return `<tr class="${past?'mo-past':''}" data-ms="${ms}" tabindex="0" role="button" aria-label="Go to Moon ${a.name} ${a.p}, ${fmtDate(ms,ST.tz)}"><td>${fmtDate(ms,ST.tz)}</td><td>${fmtTime(ms,ST.tz)}</td><td><span class="mo-asym" style="color:${a.col}">${a.sym}</span> ${esc(a.name)} ${esc(a.p)}${a.r?' <small class="mo-rx">Rx</small>':''}</td><td><span class="eal-lon">${EALook.lonCols(a.lon)}</span></td></tr>`}).join('')}</tbody></table>
- <p class="mo-foot">Every exact Ptolemaic aspect (conjunction, sextile, square, trine, opposition) from the Moon to the Sun and planets, New Moon to New Moon. Click a row (or press Enter) to go there. Rx marks a retrograde planet.</p><p><button type="button" class="mo-tlink" id="asp-occ">Lunar Occultations &#8250;</button></p>`;
- goRows(box);$('#asp-occ').onclick=()=>{ST.aspV='occ';OCC.y=parts(ST.ms,ST.tz).y;renderAsp()}}
+function renderAsp(){if(ST.aspV==='occ'){renderOcc($('#mo-asp'));return}if(ST.aspV==='fam'){renderFam($('#mo-asp'));return}const S=ST.S;if(!S)return;const box=$('#mo-asp'),all=!!ST.aspAll,mi=!!ST.aspMin,X=ST.aspX||(ST.aspX={}),rxT=' <small class="mo-rx">Rx</small>',nm=k=>CH_NAME[k]||k,
+  L=moonAspects(S.N0,S.N1,all,mi).concat(X.ing||X.sta?moonEvents(S.N0,S.N1,X.ing,X.sta):[]).sort((a,b)=>a.jd-b.jd),wide=all||X.ing||X.sta,
+  chk=(id,on,t)=>`<label class="mo-chk"><input type="checkbox" id="${id}"${on?' checked':''}> ${t}</label>`,
+  cell=a=>a.ev==='ing'?`<span class="mo-asym mo-ev">${a.back?'&#8617;':'&#8594;'}</span> ${esc(nm(a.m))}${a.back?rxT:''} enters ${SIGNS[a.sign]}`:a.ev==='sta'?`<span class="mo-asym mo-ev${a.rx?' mo-rx':''}">&#9673;</span> ${esc(nm(a.m))} stations ${a.rx?'<span class="mo-rx">retrograde</span>':'direct'}`
+   :`${all?esc(nm(a.m))+(a.rm?rxT:'')+' ':''}<span class="mo-asym" style="color:${a.col}">${a.sym}</span> ${esc(a.name)} ${esc(nm(a.p))}${a.r?rxT:''}`,
+  lab=a=>a.ev==='ing'?`${nm(a.m)} enters ${SIGNS[a.sign]}`:a.ev==='sta'?`${nm(a.m)} stations ${a.rx?'retrograde':'direct'}`:`${nm(a.m)} ${a.name} ${nm(a.p)}`;
+ box.innerHTML=`<h2>${esc(S.name)} Cycle</h2><div class="mo-aspall">${chk('asp-all',all,'All Planets')}${chk('asp-min',mi,'Minor Aspects')}${chk('asp-ing',X.ing,'Ingresses')}${chk('asp-sta',X.sta,'Stations')}</div><table class="mo-t"><thead><tr><th>Date</th><th>Time</th><th>${X.ing||X.sta?'Event':'Aspect'}</th><th>${wide?'Position':'Moon'}</th></tr></thead><tbody>${L.map(a=>{const ms=msOf(a.jd),past=a.jd<S.jd,mo=a.m==='Moon'&&!a.ev;
+  return `<tr class="${past?'mo-past':''}${mo||!wide?'':' mo-pasp'}" data-ms="${ms}" tabindex="0" role="button" aria-label="Go to ${esc(lab(a))}, ${fmtDate(ms,ST.tz)}"><td>${fmtDate(ms,ST.tz)}</td><td>${fmtTime(ms,ST.tz)}</td><td>${cell(a)}</td><td><span class="eal-lon">${EALook.lonCols(a.lon)}</span></td></tr>`}).join('')}</tbody></table>
+ <p class="mo-foot">Every exact Ptolemaic aspect (conjunction, sextile, square, trine, opposition)${mi?', and the minor aspects (semisextile, semisquare, sesquiquadrate, quincunx, and the septiles, noviles, and undeciles with their multiples),':''} from the Moon to the Sun and planets${all?', and, with All Planets, the aspects the Sun and planets make with each other':''}${X.ing?'. Ingresses show the Moon, Sun, and planets entering each sign (&#8617; when a planet backs into the sign it just left)':''}${X.sta?'. Stations show each planet standing still as it turns retrograde or direct':''}, New Moon to New Moon.${wide?' The position is the first body\'s.':''} Click a row (or press Enter) to go there. Rx marks a retrograde planet.</p><p><button type="button" class="mo-tlink" id="asp-occ">Lunar Occultations &#8250;</button></p>`;
+ goRows(box);$('#asp-all').onchange=e=>{ST.aspAll=e.target.checked;savePref({aspAll:ST.aspAll});renderAsp()};$('#asp-min').onchange=e=>{ST.aspMin=e.target.checked;savePref({aspMin:ST.aspMin});renderAsp()};
+ ['ing','sta'].forEach(k=>{$('#asp-'+k).onchange=e=>{X[k]=e.target.checked;savePref({aspX:Object.assign({},X)});renderAsp()}});
+ $('#asp-occ').onclick=()=>{ST.aspV='occ';OCC.y=parts(ST.ms,ST.tz).y;renderAsp()}}
 /* Settings (upper right) */
 function renderSet(){const box=$('#mo-set'),L=ST.home,seg=(id,list,v)=>`<div class="mo-segs" role="group" id="${id}">${list.map(([k,n])=>`<button type="button" data-v="${k}" aria-pressed="${k===v}">${n}</button>`).join('')}</div>`,
   sel=(id,list,v)=>`<select id="${id}">${list.map(([k,n])=>`<option value="${k}"${k===v?' selected':''}>${esc(n)}</option>`).join('')}</select>`,chk=(id,on,t,dis)=>`<label class="mo-chk"><input type="checkbox" id="${id}"${on?' checked':''}${dis?' disabled':''}> ${t}</label>`;
@@ -2446,11 +2488,35 @@ function locate(){const msg=t=>{const m=$('#s-locmsg');if(m)m.textContent=t};
 /* ---------- Moon Aspects (Gemini, Nov 19): exact Ptolemaic aspects from the Moon to the Sun and planets between two moments ---------- */
 const PTOL=[[0,'Conjunct','☌','#e8c46a'],[60,'Sextile','⚹','#9fc4ff'],[90,'Square','□','#ff9a8a'],[120,'Trine','△','#9fc4ff'],[180,'Opposite','☍','#ff9a8a']];   /* verb forms: Moon opposite Venus (Gemini, Nov 21) */
 const ASPC=new Map();
-function moonAspects(j0,j1){const key=j0.toFixed(4)+'|'+j1.toFixed(3)+ST.method+ST.zsys;if(ASPC.has(key))return ASPC.get(key);const bodies=['Sun',...PLANETS],out=[],st=.25,pos=jd=>POS(jd);
+/* all (Gemini, Nov 25): the All Planets tick box adds the aspects the Sun and planets make with each other, not only the Moon's */
+const MINORA=[[30,'Semisextile','⚺','#6aa38a'],[45,'Semisquare','∠','#c4a077'],[135,'Sesquiquadrate','⚼','#d38c98'],[150,'Quincunx','⚻','#6aa38a']];   /* the Minor Aspects tick box (Gemini, Nov 25), as the grid's minors */
+/* Septiles, Noviles, Undeciles: part of Minor Aspects, no boxes of their own (Gemini, Nov 25): each family's multiples up to 180, names and colors as the Device's ASPG
+   (src/app.js); the symbol is the Device's letter with the multiple raised (S, S², N, U³...). 120 (the trine) stays in the Ptolemaic set */
+const HSYM=(L,n,c)=>`<b style="color:${c}">${L}</b>${n>1?`<sup style="color:${c}">${n}</sup>`:''}`;
+const HARMA={h7:[[1,'Septile'],[2,'Biseptile'],[3,'Triseptile']].map(([n,nm])=>[360*n/7,nm,HSYM('S',n,'#e070f0'),'#e070f0']),
+ h9:[[1,'Novile'],[2,'Binovile'],[4,'Quadnovile']].map(([n,nm])=>[40*n,nm,HSYM('N',n,'#f0a24a'),'#f0a24a']),
+ h11:[[1,'Undecile'],[2,'Biundecile'],[3,'Triundecile'],[4,'Quadundecile'],[5,'Quintundecile']].map(([n,nm])=>[360*n/11,nm,HSYM('U',n,'#8fd0f0'),'#8fd0f0'])};
+/* Ingresses and Stations tick boxes (Gemini, Nov 25): the Moon, Sun, and planets entering each sign of the zodiac in use, and the
+   planets stationing retrograde or direct, through the same cycle */
+const EVC=new Map();
+function moonEvents(j0,j1,ing,sta){const key=j0.toFixed(4)+'|'+j1.toFixed(3)+ST.method+ST.zsys+(ing?'i':'')+(sta?'s':'');if(EVC.has(key))return EVC.get(key);
+ const out=[],st=.25,ib=['Moon','Sun',...PLANETS],vel=(b,t)=>{const a=POS(t-.05),c=POS(t+.05);return a&&c?e180(c[b]-a[b]):0},velA=t=>{const a=POS(t-.05),c=POS(t+.05),o={};PLANETS.forEach(b=>o[b]=a&&c?e180(c[b]-a[b]):0);return o};
+ let prev=POS(j0),t0=j0,pv=sta?velA(j0):{};
+ for(let t=j0+st;t<=j1+1e-9;t+=st){const cur=POS(t);if(!cur||!prev)break;
+  if(ing)for(const b of ib){const sa=Math.floor(prev[b]/30),sb=Math.floor(cur[b]/30);if(sa===sb)continue;
+   const back=e180(cur[b]-prev[b])<0,bd=(back?sa:sb)*30,f=jd=>{const P=POS(jd);return e180(P[b]-bd)};let lo=t0,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;((f(mid)<0)!==back)?lo=mid:hi=mid}
+   const jd=(lo+hi)/2;out.push({jd,ev:'ing',m:b,sign:sb,back,lon:n360(bd+(back?-1e-6:1e-6)),r:back})}
+  if(sta){const V=velA(t);for(const b of PLANETS){const v=V[b];if((pv[b]<0)!==(v<0)){const rx=v<0;let lo=t0,hi=t;for(let i=0;i<20;i++){const mid=(lo+hi)/2;((vel(b,mid)<0)!==rx)?lo=mid:hi=mid}
+    const jd=(lo+hi)/2;out.push({jd,ev:'sta',m:b,rx,lon:POS(jd)[b]})}pv[b]=v}}
+  prev=cur;t0=t}
+ out.sort((x,y)=>x.jd-y.jd);EVC.set(key,out);if(EVC.size>6)EVC.delete(EVC.keys().next().value);return out}
+function moonAspects(j0,j1,all,mi){const key=j0.toFixed(4)+'|'+j1.toFixed(3)+ST.method+ST.zsys+(all?'a':'')+(mi?'m':''),ASP=mi?PTOL.concat(MINORA,HARMA.h7,HARMA.h9,HARMA.h11):PTOL;if(ASPC.has(key))return ASPC.get(key);const bodies=['Sun',...PLANETS],out=[],st=.25,pos=jd=>POS(jd);
+ const pairs=bodies.map(b=>['Moon',b]);if(all)bodies.forEach((x,i)=>bodies.slice(i+1).forEach(y=>pairs.push([x,y])));
+ const rx=(b,Pa,Pb)=>b!=='Sun'&&b!=='Moon'&&e180(Pb[b]-Pa[b])<0;
  let prev=pos(j0),t0=j0;for(let t=j0+st;t<=j1+1e-9;t+=st){const cur=pos(t);if(!cur||!prev)break;
-  for(const b of bodies)for(const [a,name,sym,col] of PTOL)for(const sg of a===0||a===180?[1]:[1,-1]){const ang=a*sg,f=P=>e180(P.Moon-P[b]-ang),fa=f(prev),fb=f(cur);
-   if(fa<0&&fb>=0&&fb-fa<60){let lo=t0,hi=t,ga=fa;for(let i=0;i<26;i++){const mid=(lo+hi)/2,fm=f(pos(mid));if((fm<0)===(ga<0)){lo=mid;ga=fm}else hi=mid}
-    const jd=(lo+hi)/2,P=pos(jd),Pa=pos(jd-.02),Pb=pos(jd+.02);out.push({jd,p:b,name,sym,col,lon:P.Moon,r:b!=='Sun'&&e180(Pb[b]-Pa[b])<0})}}
+  for(const [m,b] of pairs)for(const [a,name,sym,col] of ASP)for(const sg of a===0||a===180?[1]:[1,-1]){const ang=a*sg,f=P=>e180(P[m]-P[b]-ang),fa=f(prev),fb=f(cur);
+   if((fa<0&&fb>=0||m!=='Moon'&&fa>=0&&fb<0)&&Math.abs(fb-fa)<60){let lo=t0,hi=t,ga=fa;for(let i=0;i<20;i++){const mid=(lo+hi)/2,fm=f(pos(mid));if((fm<0)===(ga<0)){lo=mid;ga=fm}else hi=mid}   /* a planet can move either way (retrograde), so planet pairs cross both ways */
+    const jd=(lo+hi)/2,P=pos(jd),Pa=pos(jd-.02),Pb=pos(jd+.02);out.push({jd,m,p:b,name,sym,col,lon:P[m],r:rx(b,Pa,Pb),rm:rx(m,Pa,Pb)})}}
   prev=cur;t0=t}
  out.sort((x,y)=>x.jd-y.jd);ASPC.set(key,out);if(ASPC.size>6)ASPC.delete(ASPC.keys().next().value);return out}
 
