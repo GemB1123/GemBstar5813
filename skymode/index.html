@@ -1571,9 +1571,9 @@ function sky(){const jd=jdNow(),eps=obl(jd),gm=E.gmst(jd),lst=n360(gm+ST.lon),ph
  const ev=(l,b)=>{const q=eclToEq(l,b,eps);return v(q[0],q[1])};
  if(!SKY||Math.abs(SKY.pjd-jd)>30){const st=[];D.stars.forEach((s,i)=>{if(s[2]>5.6&&!FIGSTARS.has(i))return;const [ra,de]=precessStar(s[0],s[1],jd);st[i]={ra,de,mag:s[2]}});SKY={pjd:jd,st}}
  const stars=[];SKY.st.forEach((s,i)=>{if(s)stars[i]=v(s.ra,s.de)});
- const bodies=[],JB=jplBodies(jd);
- if(JB){for(const b of JB)if(b.k!=='Sun'&&b.k!=='Moon')bodies.push({k:b.k,lon:b.lon,v:v(b.ra,b.dec),dist:b.dist,ph:b.ph,ang:CFG.km[b.k]/(b.dist*149597870.7)})}
- else{const P=planets(jd);for(const k in P){const q=eclToEq(P[k].lon,P[k].lat,eps);bodies.push({k,lon:P[k].lon,v:v(q[0],q[1]),dist:P[k].dist,ph:P[k].ph,ang:CFG.km[k]/(P[k].dist*149597870.7)})}}
+ const bodies=[],JB=jplBodies(jd);const SATP=v(40.589,83.537);   /* Saturn's north pole (IAU, J2000): tilts the rings */
+ if(JB){for(const b of JB)if(b.k!=='Sun'&&b.k!=='Moon')bodies.push({k:b.k,pole:b.k==='Saturn'?SATP:null,lon:b.lon,v:v(b.ra,b.dec),dist:b.dist,ph:b.ph,ang:CFG.km[b.k]/(b.dist*149597870.7)})}
+ else{const P=planets(jd);for(const k in P){const q=eclToEq(P[k].lon,P[k].lat,eps);bodies.push({k,pole:k==='Saturn'?SATP:null,lon:P[k].lon,v:v(q[0],q[1]),dist:P[k].dist,ph:P[k].ph,ang:CFG.km[k]/(P[k].dist*149597870.7)})}}
  let sv,mv,sl,ml,sang,mang;
  if(JB){const S=JB.find(b=>b.k==='Sun'),M=JB.find(b=>b.k==='Moon');sv=v(S.ra,S.dec);mv=v(M.ra,M.dec);sl=S.lon;ml=M.lon;sang=2*Math.asin(696000/(S.dist*149597870.7));mang=2*Math.asin(1737.4/(M.dist*149597870.7))}
  else{const s=E.sunTopo(jd,ST.lat,ST.lon),m=E.moonTopo(jd,ST.lat,ST.lon);sl=E.sun(jd).lon;ml=E.moon(jd).lon;sv=v(s.ra,s.dec);mv=v(m.ra,m.dec);sang=rad(2*s.sd);mang=rad(2*m.sd)}
@@ -1695,11 +1695,18 @@ const PGI={};function pglyph(k){if(PGI[k]!==undefined)return PGI[k];PGI[k]=null;
 /* grows when zooming in, shrinks when zooming out (Gemini, Nov 13); 1 at the startup zoom */
 const zsc=(lo,hi)=>Math.max(lo,Math.min(hi,40/Math.max(1,ST.cam?ST.camFov*.6:ST.fov)));
 function bodyR(b){if(ST.psize==='real')return Math.max(b.k==='Sun'||b.k==='Moon'?2:1.2,CAM.F*Math.tan(b.ang/2));return CFG.big[b.k]*(W<500?.9:1)*Math.pow(zsc(.35,12),.85)}
+/* Saturn's rings (Gemini, Nov 26): the Device's ring texture, tilted by Saturn's pole as seen from here; back half behind the globe, front half over it */
+const SRING={};function ringTex(){if(SRING.st)return SRING.ok?SRING:null;SRING.st=1;const src=(window.APP_PTEX||{}).rings;if(!src)return null;const im=new Image();
+ im.onload=()=>{try{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);SRING.cols=x.getImageData(0,Math.floor(c.height/2),c.width,1).data;SRING.w=c.width;SRING.ok=true}catch(e){}};im.src=src;return null}
+function satRing(g,b,p,r){const T=ringTex();if(!T)return null;const P=b.pole,px=dot(P,CAM.r),py=dot(P,CAM.u),pz=-dot(P,b.v),m=Math.hypot(px,py)||1e-6,th=Math.atan2(-px/m,-py/m),ry=Math.max(.02,Math.abs(pz)),fr=pz<0;
+ return front=>{const rin=1.24*r,rout=2.27*r,NN=Math.max(8,Math.min(50,Math.round(r*2))),c=T.cols;g.save();g.lineWidth=(rout-rin)/NN+.7;
+  for(let q=0;q<NN;q++){const t=q/(NN-1),k=Math.min(T.w-1,Math.floor(t*(T.w-1)))*4,al=c[k+3]/255;if(al<.03)continue;const R=rin+(rout-rin)*t;
+   g.strokeStyle=`rgba(${c[k]},${c[k+1]},${c[k+2]},${(al*.9).toFixed(2)})`;g.beginPath();const s0=front===fr?0:Math.PI;g.ellipse(p[0],p[1],R,R*ry,th,s0,s0+Math.PI);g.stroke()}g.restore()}}
 function drawBody(g,b,p,r){const sun=K.bodies.find(x=>x.k==='Sun');let L=[0,0,1];
  if(b.k!=='Sun'){const t=sun.v.map((x,i)=>x-dot(sun.v,b.v)*b.v[i]);let sx=dot(t,CAM.r),sy=dot(t,CAM.u);const m=Math.hypot(sx,sy)||1;sx/=m;sy/=m;const i=rad(b.ph||0);L=[Math.sin(i)*sx,Math.sin(i)*sy,Math.cos(i)]}
  const sp=r>=3?sphere(b.k,r,L):null;
  if(b.k==='Sun'){g.save();g.globalAlpha*=.5;const gr=g.createRadialGradient(p[0],p[1],r*.6,p[0],p[1],r*2.6);gr.addColorStop(0,'rgba(255,215,94,.8)');gr.addColorStop(1,'rgba(255,215,94,0)');g.fillStyle=gr;g.beginPath();g.arc(p[0],p[1],r*2.6,0,7);g.fill();g.restore()}
- if(sp)g.drawImage(sp,p[0]-r,p[1]-r,r*2,r*2);else{g.fillStyle=PCOL[b.k];g.beginPath();g.arc(p[0],p[1],Math.max(1.2,r),0,7);g.fill()}}
+ const rg=sp&&b.pole?satRing(g,b,p,r):null;if(rg)rg(false);if(sp)g.drawImage(sp,p[0]-r,p[1]-r,r*2,r*2);if(rg)rg(true);if(!sp){g.fillStyle=PCOL[b.k];g.beginPath();g.arc(p[0],p[1],Math.max(1.2,r),0,7);g.fill()}}
 function draw(){playTick();const now=Date.now();if(!K||now-lastSky>4000){K=sky();lastSky=now}if(typeof splTick==='function')splTick();CAM=camera();const g=cx;g.setTransform(DPR,0,0,DPR,0,0);
  if(ST.view==='chart'){g.globalAlpha=1;drawChart(g);if(REC.on||REC.snap)compose();requestAnimationFrame(draw);return}
  const sa0=K.sunAlt,sa=ST.atm?sa0:-90,day=Math.max(0,Math.min(1,(sa+12)/14)),camOn=!!ST.cam&&ST.cam!=='teacher',tiny=W<500?0.85:1;   /* Atmosphere off: a night sky even by day (Gemini, Nov 12) */
