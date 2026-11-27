@@ -140,6 +140,7 @@ body.camon #globe{top:calc(env(safe-area-inset-top) + 112px)}
 #chhead .chlg{display:flex;justify-content:center;font-size:12px;margin-top:2px;pointer-events:none}
 #alist[hidden],#info[hidden],button[hidden]{display:none}
 #alist p{margin:0 0 4px;width:100%;font-size:13px;color:var(--dim)}
+#ctr{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 32px);z-index:3;display:flex;align-items:center;gap:6px;background:rgba(10,12,22,.82);border:1px solid var(--line);border-radius:16px;padding:3px 4px 3px 12px;font-size:13px;color:var(--gold)}#ctr[hidden]{display:none}#ctrx{min-width:28px;min-height:28px;padding:0;border-radius:14px;font-size:13px}
 #msg{position:fixed;left:16px;right:16px;top:calc(env(safe-area-inset-top) + 10px);text-align:center;font-size:13px;color:var(--dim);pointer-events:none}
 body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightness(.75)}
 .cc label{display:inline-flex;align-items:center;gap:6px;font-size:13px;margin:2px 8px 2px 0}.cc input[type=color]{width:34px;height:28px;padding:0;border:1px solid #6b5a3a;border-radius:6px;background:none}
@@ -175,6 +176,7 @@ body.night{filter:grayscale(1) sepia(1) saturate(9) hue-rotate(-40deg) brightnes
 
 <canvas id="sky" aria-label="The live sky"></canvas>
 <div id="msg" role="status"></div>
+<div id="ctr" hidden><span id="ctrt"></span><button id="ctrx" aria-label="Stop centering">&#x2715;</button></div>
 <button id="start">Start Sky Mode</button>
 <div id="chhead" hidden></div><div id="tmdock" hidden aria-label="Time Machine"><button data-chp="-1" aria-label="Play backward">◀</button><button data-st="-1 day" aria-label="Back one day">−D</button><button data-st="-1 hour" aria-label="Back one hour">−H</button><button data-st="-1 min" aria-label="Back one minute">−M</button><button id="chtnow">Now</button><button data-st="1 min" aria-label="Forward one minute">+M</button><button data-st="1 hour" aria-label="Forward one hour">+H</button><button data-st="1 day" aria-label="Forward one day">+D</button><button data-chp="1" aria-label="Play forward">▶</button></div><div id="chrow2" hidden><div class="chrr"><button data-chr="tr">Transits</button><button data-chr="pr">Progressions</button><button data-chr="sa">Solar Arc</button><button data-chr="syn">Synastry</button><button data-chr="swap" hidden aria-label="Swap inside and outside">⇄ Swap</button><button data-chr="davison">Davison</button><button data-chr="composite">Composite</button></div></div><div id="info" hidden role="dialog" aria-label="Information"></div><div id="alist" hidden></div><div id="snapchip" hidden role="status"></div><div id="globe" hidden role="dialog" aria-label="Globe"><canvas id="gcv" aria-label="The sky as a globe, seen from outside"></canvas><button id="gplay" aria-label="Play the day">▶</button><button id="gx" aria-label="Close Globe">×</button><div id="gmsg" aria-live="polite"></div></div><nav id="pbar" class="pbar" hidden aria-label="Path tools"></nav><div id="plist" hidden role="dialog" aria-label="Path list"></div>
 <video id="cam" playsinline muted autoplay hidden></video>
@@ -1644,7 +1646,10 @@ const stereo=()=>!ST.cam&&ST.proj==='stereo';
 function fovNow(){if(!ST.cam){const f=stereo()?ST.fov:Math.min(100,ST.fov);if(H<W)return f;return stereo()?4*deg(Math.atan(Math.tan(rad(f/4))*H/Math.max(1,W))):2*deg(Math.atan(Math.tan(rad(f/2))*H/Math.max(1,W)))}const t=Math.tan(rad(ST.camFov/2));return H>=W?ST.camFov:2*deg(Math.atan(t*H/W))}
 /* the screen's turn (landscape) applies to the sensors' frame only: the drag view is already in screen terms, so turning it too
    showed the sky sideways or upside down after a drag in landscape (Gemini's bug, Nov 13) */
-function camera(){const trk=ST.track&&ST.M;let M=trk?ST.M:dragMatrix();M=rotUp(M,ST.off);const ang=trk?((screen.orientation&&screen.orientation.angle)||window.orientation||0):0,t=rad(ang);
+/* Center (Gemini, Nov 26): keep one planet in the middle of the screen while the Time Machine moves; dragging or phone tracking lets go */
+function ctrSet(k){ST.ctr=k||null;if(k&&ST.track){ST.track=false;$('track').hidden=!ST.sensors;$('tbtn').setAttribute('aria-pressed',false)}
+ $('ctr').hidden=!k;if(k)$('ctrt').textContent='Centered on '+k;const b=$('ibcn');if(b)b.setAttribute('aria-pressed',!!k&&ISEL&&ISEL.k===k)}
+function camera(){if(ST.ctr&&!ST.track&&K){const b=K.bodies.find(x=>x.k===ST.ctr);if(b){const [az,alt]=azAlt(b.v);ST.yaw=n360(az-ST.off);ST.pitch=Math.max(-89,Math.min(89,alt))}}const trk=ST.track&&ST.M;let M=trk?ST.M:dragMatrix();M=rotUp(M,ST.off);const ang=trk?((screen.orientation&&screen.orientation.angle)||window.orientation||0):0,t=rad(ang);
  /* the selfie camera looks out of the screen, so the sky behind you is shown, mirrored like the camera's own picture */
  const sf=ST.cam==='user'&&ST.track,r=col(M,0),u=col(M,1),f=col(M,2).map(x=>sf?x:-x),c=Math.cos(t),s=Math.sin(t);
  return {r:r.map((x,i)=>c*x-s*u[i]),u:r.map((x,i)=>s*x+c*u[i]),f,S:stereo(),F:stereo()?(H/2)/(2*Math.tan(rad(fovNow()/4))):(H/2)/Math.tan(rad(fovNow()/2))}}
@@ -1823,7 +1828,7 @@ cv.addEventListener('pointermove',e=>{if(!PTS.has(e.pointerId))return;PTS.set(e.
 /* tap and drag turns tracking off and leaves the sky where it was (Gemini, Nov 7); Track Sky turns it back on */
 addEventListener('pointermove',e=>{if(!dragging||pinch)return;const dx=e.clientX-dragging[0],dy=e.clientY-dragging[1];if(!dragged&&Math.abs(dx)+Math.abs(dy)<6)return;
  if(ST.view==='chart'){dragged=true;dragging=[e.clientX,e.clientY];if(CHO.style==='basic')chPan(dx,dy);return}
- if(!dragged){dragged=true;if(ST.track&&CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt;ST.track=false;trackBtn()}}
+ if(!dragged){dragged=true;if(ST.ctr)ctrSet(null);if(ST.track&&CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt;ST.track=false;trackBtn()}}
  dragging=[e.clientX,e.clientY];const k=fovNow()/H;ST.yaw=n360(ST.yaw-dx*k);ST.pitch=Math.max(-89,Math.min(89,ST.pitch+dy*k))});
 addEventListener('wheel',e=>{if(e.target.closest&&e.target.closest('.sheet'))return;if(ST.view==='chart'){if(CHO.style==='basic'&&e.target===cv){e.preventDefault();chZoom(Math.exp(-e.deltaY*(e.ctrlKey?.01:.002)),e.clientX,e.clientY)}return}ST.fov=Math.max(5,Math.min(stereo()?180:100,ST.fov*(e.deltaY>0?1.08:0.93)))},{passive:false});
 /* ---- buttons ---- */
@@ -1838,8 +1843,9 @@ $('start').onclick=start;
 /* Track Sky (Gemini, Nov 12): an icon always on the bar, lit while the sky follows the phone, dim when a drag has stopped it; tap to turn it back on (or off) */
 function trackBtn(){const b=$('track');b.hidden=!ST.sensors||ST.track;$('tbtn').setAttribute('aria-pressed',!!(ST.sensors&&ST.track));say(ST.sensors&&!ST.track?'Tracking is off. Tap the phone icon to follow the sky again.':'',ST.sensors&&!ST.track?4000:0)}
 function tbtnTap(){if(!ST.sensors){say($('start').hidden?'No motion sensors here: drag to look around.':'Tap Start Sky Mode first.',3500);return}
- if(ST.track){if(CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt}ST.track=false}else ST.track=true;trackBtn()}
-$('track').onclick=()=>{ST.track=true;trackBtn();closeSheets()};
+ if(ST.track){if(CAM){const [az,alt]=azAlt(CAM.f);ST.yaw=n360(az-ST.off);ST.pitch=alt}ST.track=false}else{ctrSet(null);ST.track=true}trackBtn()}
+$('ctrx').onclick=()=>ctrSet(null);
+$('track').onclick=()=>{ctrSet(null);ST.track=true;trackBtn();closeSheets()};
 $('night').onclick=()=>{ST.night=!ST.night;document.body.classList.toggle('night',ST.night);$('night').setAttribute('aria-pressed',ST.night);save()};
 $('zin').onclick=()=>{ST.fov=Math.max(5,ST.fov/1.3)};$('zout').onclick=()=>{ST.fov=Math.min(stereo()?180:100,ST.fov*1.3)};
 /* Align: put something bright you can see in the ring, pick it, and the compass error is corrected */
@@ -2192,8 +2198,8 @@ function iUnaim(){const a=IAIM;IAIM=null;if(!a||a.ay==null||ST.track||ST.view!==
 const IPATH={da:new Map(),op:new Map()};
 const iKey=sel=>sel.t==='p'?'p:'+sel.k:'s:'+sel.i;
 function iBtns(){if(!ISEL||ISEL.t==='n')return '';const k=iKey(ISEL),da=IPATH.da.has(k),op=IPATH.op.has(k);
- return `<div class="ib"><button id="ibda" aria-pressed="${da}">Arc</button>${ISEL.t==='p'?`<button id="ibop" aria-pressed="${op}">Orbit</button>`:''}</div>`}
-$('info').addEventListener('click',e=>{const id=e.target.id;if(id!=='ibda'&&id!=='ibop'||!ISEL)return;const M=id==='ibda'?IPATH.da:IPATH.op,k=iKey(ISEL);const ty=id==='ibda'?'arc':'orbit';
+ return `<div class="ib"><button id="ibda" aria-pressed="${da}">Arc</button>${ISEL.t==='p'?`<button id="ibop" aria-pressed="${op}">Orbit</button><button id="ibcn" aria-pressed="${ST.ctr===ISEL.k}" title="Keep it in the middle of the screen while time moves">Center</button>`:''}</div>`}
+$('info').addEventListener('click',e=>{const id=e.target.id;if(id==='ibcn'&&ISEL){ctrSet(ST.ctr===ISEL.k?null:ISEL.k);return}if(id!=='ibda'&&id!=='ibop'||!ISEL)return;const M=id==='ibda'?IPATH.da:IPATH.op,k=iKey(ISEL);const ty=id==='ibda'?'arc':'orbit';
  if(M.has(k)&&!(PB.type!==ty||!PB.sel||iKey(PB.sel)!==k)){M.delete(k);pbClose()}else{M.set(k,Object.assign({},ISEL));pbOpen(ty,ISEL)}e.target.setAttribute('aria-pressed',M.has(k))});
 const OPSPAN={Moon:[15,.25],Sun:[183,3],Mercury:[75,1.5],Venus:[160,3],Mars:[220,4],Jupiter:[220,4],Saturn:[220,4],Uranus:[220,5],Neptune:[220,5],Pluto:[220,5]};
 let OPC={};
