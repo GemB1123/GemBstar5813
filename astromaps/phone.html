@@ -7029,7 +7029,11 @@ window.AMP_STREETS={CFG,state:ST,init,paint,decode,status:()=>ST.status,busy:()=
     }
    ],
    "v": 3
-  },
+  }
+ ]
+};</script>
+<script>window.AMP_STORY_TEACH={
+ "lists": [
   {
    "id": "neptune-1846",
    "v": 1,
@@ -7107,6 +7111,69 @@ window.AMP_STREETS={CFG,state:ST,init,paint,decode,status:()=>ST.status,busy:()=
      "when": "July to September 1846",
      "story": "James Challis began searching from Cambridge in July 1846, using Adams' prediction. He is thought to have recorded Neptune more than once in August without recognizing it.",
      "note": "Claudius' notes: from Cambridge, Berlin lies at 82.7°. Jupiter stood at 78.9° at the moment of the find, about 4° off, much looser than London's 0.6°. Neptune set from Cambridge at 247.8°."
+    }
+   ]
+  },
+  {
+   "id": "uranus-1781",
+   "v": 1,
+   "ls": true,
+   "name": "Uranus Found At Bath, 1781",
+   "rec": {
+    "id": "uranus-discovery-1781",
+    "name": "Uranus Discovered",
+    "type": "Event",
+    "date": "1781-03-13",
+    "time": "22:00",
+    "cal": "a",
+    "unknown": false,
+    "place": {
+     "label": "19 New King Street, Bath, England",
+     "lat": 51.3826,
+     "lon": -2.3676,
+     "off": -0.1578
+    }
+   },
+   "stories": [
+    {
+     "id": "ura-1",
+     "title": "Herschel's garden telescope, Bath",
+     "place": "19 New King Street, Bath",
+     "lat": 51.3826,
+     "lon": -2.3676,
+     "when": "March 13, 1781, between 10 and 11 PM (his journal)",
+     "story": "William Herschel, a musician who built his own telescopes, was sweeping the stars from the garden of his house in Bath, with his sister Caroline as his partner in the work. Near the feet of the Twins he saw a star that showed a small disc. He logged it as a curious nebulous star or perhaps a comet. Within months it was clear it was a new planet, the first found since ancient times.",
+     "note": "Claudius' notes (JPL DE441): Uranus was at 24° Gemini 27', high in the west from Bath (azimuth 260°, 38° up at 10 PM). The chart is set to 10 PM Bath local time. Herschel gave only \"between 10 and 11,\" and Local Space lines swing about 12° in that hour, so step the Time Machine through the hour to watch them move. Local Space lines come on with this list and stay drawn from Bath."
+    },
+    {
+     "id": "ura-2",
+     "title": "Hanover, Herschel's birthplace",
+     "place": "Hanover, Germany",
+     "lat": 52.3759,
+     "lon": 9.732,
+     "when": "Herschel was born in Hanover on November 15, 1738",
+     "story": "Herschel grew up in a family of musicians in Hanover and came to England as a young man. He made his name in Bath as an organist and composer before the sky took over.",
+     "note": "Claudius' notes: the line runs the other way here. Seen from Hanover, Uranus stood at azimuth 269.6° at 10 PM Bath time, and Bath lies at 267.2° from Hanover. About 12 minutes earlier the planet stood exactly on the line from his hometown to his garden. Relocate to Hanover to see Uranus' Local Space line from there."
+    },
+    {
+     "id": "ura-3",
+     "title": "The king's planet: Windsor and Slough",
+     "place": "Slough, near Windsor",
+     "lat": 51.5105,
+     "lon": -0.595,
+     "when": "Named Georgium Sidus in 1782; Herschel moved near Windsor that year",
+     "story": "Herschel named the planet Georgium Sidus, George's Star, for King George III. The king made him the King's Astronomer, and Herschel moved near Windsor, then to Slough, where he built his great forty-foot telescope. The name Uranus, from Johann Bode, won out decades later.",
+     "note": "Claudius' notes: at 10 PM Bath time, Saturn's Local Space line from Bath pointed at azimuth 82.9°. Slough lies at 82.7° and Windsor Castle at 84.0°. Saturn, the planet of kings and structure, pointed to the place where the king's patronage would carry Herschel. (Saturn was below the horizon, rooting; Local Space uses the compass direction either way.)"
+    },
+    {
+     "id": "ura-4",
+     "title": "Greenwich: Maskelyne suspects a planet",
+     "place": "Royal Observatory, Greenwich",
+     "lat": 51.4769,
+     "lon": -0.0005,
+     "when": "Spring 1781",
+     "story": "Nevil Maskelyne, the Astronomer Royal, followed Herschel's object and was among the first to suspect it was a planet rather than a comet. Its slow, nearly circular path soon settled it.",
+     "note": "Claudius' notes: from Bath, Greenwich lies at 85.4°. Mars' Local Space line swept across that bearing at about 10:20 PM Bath time, inside Herschel's hour."
     }
    ]
   }
@@ -8160,7 +8227,7 @@ function stoLoad(){if(STO.loaded)return;STO.loaded=true;try{const v=localStorage
    if(old&&l.v>(old.v||1)){for(const s of l.stories){const t=old.stories.find(x=>x.id===s.id);if(t)Object.assign(t,{title:s.title,place:s.place,lat:s.lat,lon:s.lon,when:s.when,story:s.story,note:s.note,extra:s.extra})}old.v=l.v;add++;continue}
    if(old)continue;STO.lists.push(l);if(!STO.seen.includes(l.id))STO.seen.push(l.id);add++}
   if(add){if(!stoList())STO.cur=STO.lists[0].id;stoSave();if(ST.pops.stories){stoForChart();if(!stoChartOn(stoList()))stoUseChart(stoList())}if(S.gv==='amap')renderAll()}};
- try{take(window.AMP_STORY_SAMPLE)}catch(e){}
+ try{take(window.AMP_STORY_SAMPLE)}catch(e){}try{take(window.AMP_STORY_TEACH)}catch(e){}   /* Teaching Stories (Gemini, Nov 28): history checked on DE441 */
  try{if(typeof fetch!=='function')return;fetch(AMP_CFG.story.sample).then(r=>r.ok?r.json():null).then(take).catch(()=>{})}catch(e){}}
 /* a story list belongs to its chart: opening Stories with that chart showing picks its list (same name, or same birth data) */
 function stoForChart(){const c=chart();if(!c)return;const nm0=String(c.name||'').trim().toLowerCase(),rk=recKey(ST.chartRec||(ST.chart?null:S.baseRec)),dk=r=>r?JSON.stringify([r.date,r.time]):'';
